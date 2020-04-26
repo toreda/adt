@@ -1,0 +1,1 @@
+export type ArmorQueueCallable = (element: any, ndx: number) => Promise<void>;

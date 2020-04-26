@@ -1,0 +1,38 @@
+{
+  "name": "@armorjs/collections",
+  "version": "0.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "scripts": {
+    "build": "yarn gulp",
+    "test": "yarn jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/armorjs/collections.git"
+  },
+  "keywords": [
+    "Typescript",
+    "data",
+    "structures"
+  ],
+  "author": "Michael Brich",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/armorjs/collections/issues"
+  },
+  "homepage": "https://github.com/armorjs/collections#readme",
+  "devDependencies": {
+    "@armorjs/build": "^0.0.2",
+    "@types/jest": "^25.2.1",
+    "@types/node": "^13.13.2",
+    "jest": "^25.4.0",
+    "ts-jest": "^25.4.0",
+    "tslint": "^6.1.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@armorjs/action-result": "^0.0.1"
+  }
+}
