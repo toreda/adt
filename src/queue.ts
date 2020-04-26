@@ -1,7 +1,7 @@
 import {ArmorActionResult} from '@armorjs/action-result';
 import {ArmorCollection} from './collection';
-import { ArmorCollectionElement } from './collection-element';
-import { ArmorCollectionSelector } from './selector';
+import {ArmorCollectionElement} from './collection-element';
+import {ArmorCollectionSelector} from './selector';
 import {ArmorQueueCallable} from './callable';
 import {ArmorQueueCallableSync} from './callable-sync';
 import {ArmorQueueOptions} from './options';
@@ -35,8 +35,10 @@ export class ArmorQueue<T> implements ArmorCollection<T> {
 	}
 
 	/**
-	 *	Returns first element if present, or null
-	 *	when queue is empty.
+	 * Returns first element in queue, or null if queue is empty.
+	 *
+	 * @returns First element in queue of type <T> or null.
+	 *
 	 */
 	public front(): T | null {
 		if (this.isEmpty()) {

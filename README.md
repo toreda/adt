@@ -26,19 +26,49 @@ With NPM:
 
 ## Usage
 
-### Library Usage
+### Queue
 
-#### Typescript
+Typescript
+```
+// Import
+import {ArmorQueue} from '@armorjs/collections';
+// Instantiate
+const queue = new ArmorQueue<string>();
+
+// Add elements to queue
+queue.push("my string");
+queue.push("my string 2");
+
+// Returns 2
+const size = queue.size;
+
+// Returns "my string"
+const result = queue.pop();
+
+// Returns "my string 2"
+const result2 = queue.pop();
+
+// Returns null because queue is already empty.
+const result3 = queue.pop();
+
+// Reset queue and remove all elements.
+queue.clear();
+
+
+// Queue 3 items via chained push calls.
+queue.push("one").push("two").push("three");
+
+// Reverse the order of queued elements.
+// "one", "two", "three" becomes "three", "two", "one"
+queue.reverse();
 
 ```
-import { ArmorCollections } from '@armorjs/collections';
-```
 
-#### Node
+### LinkedList
 
-```
-const ArmorCollections = require('@armorjs/collections');
-```
+
+### Stack
+
 
 ## Build
 
