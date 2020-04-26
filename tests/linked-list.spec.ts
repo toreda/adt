@@ -1,4 +1,4 @@
-import { ArmorCollectionQuery } from '../dist/query';
+import { ArmorCollectionQuery } from '../src/query';
 import { ArmorCollectionSelector } from '../src/selector';
 import {ArmorLinkedList} from '../src/linked-list';
 

@@ -25,20 +25,6 @@ export class ArmorQueue<T> implements ArmorCollection<T> {
 		return selector;
 	}
 
-	public createElements(elements: T[]): ArmorCollectionElement<T>[] {
-		const collection: ArmorCollectionElement<T>[] = [];
-
-		if (!Array.isArray(elements)) {
-			return collection;
-		}
-
-		elements.forEach((element: T) => {
-
-		});
-
-		return collection;
-	}
-
 	/**
 	 * Add element to the end of the queue.
 	 */
