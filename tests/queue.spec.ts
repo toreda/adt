@@ -299,7 +299,7 @@ describe('ArmorQueue', () => {
 			expect(spy).toHaveBeenCalledWith(callable, null);
 		});
 
-		it('should execute callable once per element', async(done) => {
+		it('should execute callable once per element', async() => {
 			expect(callable).not.toHaveBeenCalled();
 			const elements = [440194, 11129, 321330];
 			const custom = new ArmorQueue(elements);
