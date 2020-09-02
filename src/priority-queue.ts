@@ -20,6 +20,8 @@ export class ArmorQueue<T> implements ArmorCollection<T> {
   }
 
   clear() {
+    this.elements = [];
 
+    return this;
   }
 }
