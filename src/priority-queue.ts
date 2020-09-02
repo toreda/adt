@@ -1,27 +1,52 @@
-import { ArmorCollection } from './collection';
-import { ArmorCollectionSelector } from './selector';
+import {ArmorCollection} from './collection';
+import {ArmorCollectionSelector} from './selector';
 
-export class ArmorQueue<T> implements ArmorCollection<T> {
-  public elements: T[];
+export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
+	public elements: T[];
 
-  constructor(elements: T[] = []) {
-    if ( Array.isArray(this.elements)){
-      this.elements = elements.slice();
-    }
-    else {
-      this.elements = [];
-    }
-  }
+	constructor(elements: T[] = []) {
+		this.elements = [];
+		if (Array.isArray(elements)) {
+			elements.forEach(element => {
+				this.elements.push(element);
+			});
+		}
+	}
 
-  select(): () => ArmorCollectionSelector<T> {
-    const selector = new ArmorCollectionSelector<T>(this);
+	public select(): ArmorCollectionSelector<T> {
+		const selector = new ArmorCollectionSelector<T>(this);
 
-    return selector;
-  }
+		return selector;
+	}
 
-  clear() {
-    this.elements = [];
+	public clear(): ArmorPriorityQueue<T> {
+		this.elements = [];
 
-    return this;
-  }
+		return this;
+	}
+
+	public size(): number {
+		return this.elements.length;
+	}
+
+	public push(element: any): ArmorPriorityQueue<T> {
+		this.elements.push(element);
+
+		if (this.size() > 1) {
+			let nodeIndex = this.size() - 1;
+			let nodeValue = this.elements[nodeIndex];
+			let parentIndex = Math.floor(nodeIndex / 2);
+			let parentValue = this.elements[parentIndex];
+
+			while (nodeIndex > 1 && parentValue > nodeValue) {
+				this.elements[parentIndex] = nodeValue;
+				this.elements[nodeIndex] = parentValue;
+				nodeIndex = parentIndex;
+				parentIndex = Math.floor(nodeIndex / 2);
+				parentValue = this.elements[parentIndex];
+			}
+		}
+
+		return this;
+	}
 }
