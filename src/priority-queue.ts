@@ -1,6 +1,8 @@
 import {ArmorCollection} from './collection';
 import {ArmorCollectionSelector} from './selector';
 
+type Index = number | null;
+
 interface ArmorPriorityQueueNode<T> {
 	rank: number;
 	data: T;
@@ -44,25 +46,34 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return this.elements[0];
 	}
 
-	public swapNodes(node1Index: number, node2Index: number): void {
+	public swapNodes(node1Index: Index, node2Index: Index): void {
+		if (node1Index == null) {
+			return;
+		}
+		if (node2Index == null) {
+			return;
+		}
 		if (node1Index < 0) {
-			throw 'node1Index is not in array';
+			return;
 		}
 		if (node2Index < 0 ) {
-			throw 'node2Index is not in array';
+			return;
 		}
 		if (node1Index >= this.size() ) {
-			throw 'node1Index is not in array';
+			return;
 		}
 		if (node2Index >= this.size() ) {
-			throw 'node2Index is not in array';
+			return;
 		}
 		const node1Info = {...this.elements[node1Index]};
 		this.elements[node1Index] = {...this.elements[node2Index]};
 		this.elements[node2Index] = {...node1Info};
 	}
 
-	public getParentNodeIndex(nodeIndex: number): number {
+	public getParentNodeIndex(nodeIndex: Index): Index {
+		if (nodeIndex === null) {
+			return null;
+		}
 		if (nodeIndex === 0) {
 			return null;
 		}
@@ -73,7 +84,10 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return parentIndex;
 	}
 
-	public getChildNodesIndexes(nodeIndex: number): [number, number] {
+	public getChildNodesIndexes(nodeIndex: Index): [Index, Index] {
+		if (nodeIndex === null) {
+			return [null, null];
+		}
 		if (nodeIndex < 0) {
 			return [null, null];
 		}
@@ -91,21 +105,31 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return [childOneIndex, childTwoIndex];
 	}
 
+	public getRankFromIndex(nodeIndex: Index): number {
+		if (nodeIndex === null) {
+			return 0;
+		}
+		if (nodeIndex >= this.size()) {
+			return 0;
+		}
+		return this.elements[nodeIndex].rank;
+	}
+
 	public push(element: ArmorPriorityQueueNode<T>): ArmorPriorityQueue<T> {
 		this.elements.push(element);
 
 		if (this.size() > 1) {
-			let nodeIndex = this.size() - 1;
+			let nodeIndex: Index = this.size() - 1;
 			let parentIndex = this.getParentNodeIndex(nodeIndex);
-			let indexesAreValid = parentIndex !== null && nodeIndex > 0;
-			let parentHasLowerRank = this.elements[parentIndex].rank > this.elements[nodeIndex].rank;
+			let indexesAreValid = parentIndex !== null && nodeIndex !== null && nodeIndex > 0;
+			let parentHasLargerRank = (parentIndex !== null && nodeIndex !== null) && this.getRankFromIndex(parentIndex) > this.getRankFromIndex(nodeIndex);
 
-			while (indexesAreValid && parentHasLowerRank) {
+			while (indexesAreValid && parentHasLargerRank) {
 				this.swapNodes(nodeIndex, parentIndex);
 				nodeIndex = parentIndex;
 				parentIndex = this.getParentNodeIndex(nodeIndex);
-				indexesAreValid = parentIndex !== null && nodeIndex > 0;
-				parentHasLowerRank = this.elements[parentIndex].rank > this.elements[nodeIndex].rank;
+				indexesAreValid = parentIndex !== null && nodeIndex !== null && nodeIndex > 0;
+				parentHasLargerRank = (parentIndex !== null && nodeIndex !== null) && this.getRankFromIndex(parentIndex) > this.getRankFromIndex(nodeIndex);
 			}
 		}
 
@@ -117,80 +141,50 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return null;
 		}
 		if (this.size() === 1) {
-			return {...this.elements.shift()};
+			return {...this.elements.shift()} as ArmorPriorityQueueNode<T>;
 		}
-		let highestPriority = {...this.front()} as ArmorPriorityQueueNode<T>;;
-
 		if (this.size() === 3) {
-			highestPriority = {...this.elements.shift()} as ArmorPriorityQueueNode<T>;
-			if ((this.elements[0] as ArmorPriorityQueueNode<T>).rank > (this.elements[1] as ArmorPriorityQueueNode<T>).rank) {
-				let lastValue = {...this.elements[1]};
-				this.elements[1] = {...this.elements[0]};
-				this.elements[0] = {...lastValue};
+			let highestPriority = {...this.elements.shift()};
+			if (this.getRankFromIndex(0) > this.getRankFromIndex(1)) {
+				this.swapNodes(0, 1);
 			}
-			return {...highestPriority};
+			return {...highestPriority} as ArmorPriorityQueueNode<T>;
 		}
+		
+		let highestPriority = {...this.front()};
 
-		let nodeIndex = 0;
-		let nodeValue = {...this.front()} as ArmorPriorityQueueNode<T>;
-		let nodeRank = nodeValue.rank;
-		let nodeData = nodeValue.data;
-		let lastIndex = this.size() - 1;
-		let lastValue = {...this.elements.pop()} as ArmorPriorityQueueNode<T>;
-		let lastRank = lastValue.rank;
-		let lastData = lastValue.data;
-
-		this.elements[nodeIndex] = {rank: lastRank, data: lastData}
+		this.swapNodes(0, this.size() - 1);
+		this.elements.pop();
 
 		if (this.size() === 1) {
-			return {...highestPriority};
+			return {...highestPriority} as ArmorPriorityQueueNode<T>;
 		}
 
-		nodeRank = lastRank;
-		nodeData = lastData;
-		let childLeftIndex = nodeIndex * 2 + 1;
-		let childLeftRank = this.elements[childLeftIndex].rank;
-		let childLeftData = this.elements[childLeftIndex].data;
-		let childRghtIndex = nodeIndex * 2 + 2;
-		let childRghtRank = this.elements[childRghtIndex].rank;
-		let childRghtData = this.elements[childRghtIndex].data;
+		let nodeIndex: Index = 0;
+		let childIndexes = this.getChildNodesIndexes(nodeIndex);
+		let ranksAreValid = this.getRankFromIndex(nodeIndex) > 0 && this.getRankFromIndex(childIndexes[0]) > 0 && this.getRankFromIndex(childIndexes[1]) > 0;
+		let childHasSmallerRank = this.getRankFromIndex(childIndexes[0]) < this.getRankFromIndex(nodeIndex) || this.getRankFromIndex(childIndexes[1]) < this.getRankFromIndex(nodeIndex);
 
-		while (nodeRank && childLeftRank && childRghtRank &&
-					(childLeftRank < nodeRank || childRghtRank < nodeRank)
-					) {
-			if (childLeftRank < childRghtRank) {
-				this.elements[nodeIndex] = {rank: childLeftRank, data: childLeftData};
-				this.elements[childLeftIndex] = {rank: nodeRank, data: nodeData};
-				nodeIndex = childLeftIndex;
+		while (ranksAreValid && childHasSmallerRank) {
+			if (this.getRankFromIndex(childIndexes[0]) < this.getRankFromIndex(childIndexes[1])) {
+				this.swapNodes(nodeIndex, childIndexes[0]);
+				nodeIndex = childIndexes[0];
 			}
 			else {
-				this.elements[nodeIndex] = {rank: childRghtRank, data: childRghtData};
-				this.elements[childRghtIndex] = {rank: nodeRank, data: nodeData};
-				nodeIndex = childRghtIndex;
+				this.swapNodes(nodeIndex, childIndexes[1]);
+				nodeIndex = childIndexes[1];
 			}
-			childLeftIndex = nodeIndex * 2 + 1;
-			if (childLeftIndex >= this.size()) {
-				childLeftRank = 0;
-			}
-			else {
-				childLeftRank = this.elements[childLeftIndex].rank;
-				childLeftData = this.elements[childLeftIndex].data;
-				}
-			childRghtIndex = nodeIndex * 2 + 2;
-			if (childRghtIndex >= this.size()) {
-				childRghtRank = 0;
-			}
-			else {
-				childRghtRank = this.elements[childRghtIndex].rank;
-				childRghtData = this.elements[childRghtIndex].data;
-			}
+			childIndexes = this.getChildNodesIndexes(nodeIndex);
+			ranksAreValid = this.getRankFromIndex(nodeIndex) > 0 && this.getRankFromIndex(childIndexes[0]) > 0 && this.getRankFromIndex(childIndexes[1]) > 0;
+			childHasSmallerRank = this.getRankFromIndex(childIndexes[0]) < this.getRankFromIndex(nodeIndex) || this.getRankFromIndex(childIndexes[1]) < this.getRankFromIndex(nodeIndex);
 		}
 
-		if (!childRghtRank && childLeftRank && nodeRank && childLeftRank < nodeRank) {
-			this.elements[nodeIndex] = {rank: childLeftRank, data: childLeftData};
-			this.elements[childLeftIndex] = {rank: nodeRank, data: nodeData};
+		ranksAreValid = this.getRankFromIndex(nodeIndex) > 0 && this.getRankFromIndex(childIndexes[0]) > 0 && this.getRankFromIndex(childIndexes[1]) === 0;
+		childHasSmallerRank = this.getRankFromIndex(childIndexes[0]) < this.getRankFromIndex(nodeIndex);
+		if (ranksAreValid && childHasSmallerRank) {
+			this.swapNodes(nodeIndex, childIndexes[0]);
 		}
 
-		return {...highestPriority};
+		return {...highestPriority} as ArmorPriorityQueueNode<T>;
 	}
 }

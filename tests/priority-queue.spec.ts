@@ -23,9 +23,16 @@ describe('ArmorPriorityQueue', () => {
 				{rank: 3, data: 75648},
 				{rank: 2, data: 89745},
 				{rank: 5, data: 24567},
-				{rank: 4, data: 95425}
+				{rank: 4, data: 95425},
 			];
-			const expected = contents.slice().sort((a, b) => {return a.rank < b.rank ? -1 : +1});
+			const expected = [
+				{rank: 1, data: 84513},
+				{rank: 2, data: 89745},
+				{rank: 3, data: 75648},
+				{rank: 4, data: 95425},
+				{rank: 5, data: 24567},
+			];
+			const expected1 = contents.slice().sort((a, b) => {return a.rank < b.rank ? -1 : +1});
 			const custom = new ArmorPriorityQueue<number>(contents);
 			
 			for (let i = 0; i < contents.length; i++) {
@@ -141,7 +148,7 @@ describe('ArmorPriorityQueue', () => {
 			items.forEach((item) => {
 				instance.push(item);
 			});
-			expect(instance.front()).toBe(items[1]);
+			expect(instance.front()).toStrictEqual(items[1]);
 		});
 	});
 
