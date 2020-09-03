@@ -1,4 +1,4 @@
-import { ArmorPriorityQueue } from '../src/priority-queue';
+import {ArmorPriorityQueue} from '../src/priority-queue';
 
 describe('ArmorPriorityQueue', () => {
 	let instance: ArmorPriorityQueue<number>;
@@ -16,15 +16,22 @@ describe('ArmorPriorityQueue', () => {
 			const custom = new ArmorPriorityQueue<number>();
 			expect(custom.size()).toBe(0);
 		});
-		
-		it('should initialize priority queue with argument', () => {
-			const contents = [84513, 75648, 89745, 24567, 95425];
-			const expected = contents.slice().sort((a, b) => a - b);
-			const custom = new ArmorPriorityQueue<number>(contents);
 
-			for (let i = 0; i < contents.length; i++ ){
+		it('should initialize priority queue with argument', () => {
+			const contents = [
+				{rank: 1, data: 84513},
+				{rank: 3, data: 75648},
+				{rank: 2, data: 89745},
+				{rank: 5, data: 24567},
+				{rank: 4, data: 95425}
+			];
+			const expected = contents.slice().sort((a, b) => {return a.rank < b.rank ? -1 : +1});
+			const custom = new ArmorPriorityQueue<number>(contents);
+			
+			for (let i = 0; i < contents.length; i++) {
 				const result = custom.pop();
-				expect(result).toBe(expected[i]);
+				expect(result).not.toBeNull();
+				if (result) expect(result.rank).toBe(expected[i].rank);
 			}
 		});
 
@@ -37,7 +44,7 @@ describe('ArmorPriorityQueue', () => {
 	describe('push', () => {
 		it('should add exactly one item to priority queue when push is called once', () => {
 			expect(instance.size()).toBe(0);
-			instance.push(45943);
+			instance.push({rank: 1, data: 45943});
 			expect(instance.size()).toBe(1);
 		});
 
@@ -45,8 +52,8 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.size()).toBe(0);
 
 			const limit = 15;
-			for (let i = 0; i < limit; i++ ) {
-				instance.push(Math.floor(Math.random() * 99999));
+			for (let i = 0; i < limit; i++) {
+				instance.push({rank: Math.floor(Math.random() * 999), data: Math.floor(Math.random() * 99999)});
 			}
 
 			expect(instance.size()).toBe(limit);
@@ -57,7 +64,7 @@ describe('ArmorPriorityQueue', () => {
 		it('should remove exactly 1 item from the priority queue when pop is called once', () => {
 			const limit = 12;
 			for (let i = 0; i < limit; i++) {
-				instance.push(Math.floor(Math.random() * 99999));
+				instance.push({rank: Math.floor(Math.random() * 999), data: Math.floor(Math.random() * 99999)});
 			}
 			expect(instance.size()).toBe(limit);
 			instance.pop();
@@ -81,28 +88,32 @@ describe('ArmorPriorityQueue', () => {
 			let expectedResult = 99999;
 
 			for (let i = 0; i < limit; i++) {
-				let random = Math.floor(Math.random() * 99999);
+				let random = Math.floor(Math.random() * 999);
 				if (random < expectedResult) expectedResult = random;
-				instance.push(random);
+				instance.push({rank: random, data: Math.floor(Math.random() * 99999)});
 			}
 
-			expect(instance.pop()).toBe(expectedResult);
+			let result = instance.pop();
+			expect(result).not.toBeNull();
+			if (result) expect(result.rank).toBe(expectedResult);
 		});
 
-		it('should pop items in order from priority queue', () => {
+		it('should pop items in rank order from priority queue', () => {
 			const limit = 15;
 			let expectedResults: Array<number> = [];
 
 			for (let i = 0; i < limit; i++) {
-				let random = Math.floor(Math.random() * 99999);
+				let random = Math.floor(Math.random() * 999);
 				expectedResults.push(random);
-				instance.push(random);
+				instance.push({rank: random, data: Math.floor(Math.random() * 99999)});
 			}
 
 			expectedResults.sort((a, b) => a - b);
 
 			for (let i = 0; i < limit; i++) {
-				expect(instance.pop()).toBe(expectedResults[i]);
+				let result = instance.pop();
+				expect(result).not.toBeNull();
+				if (result) expect(result.rank).toBe(expectedResults[i]);
 			}
 		});
 
@@ -121,12 +132,16 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.front()).toBeNull();
 		});
 
-		it('should return the highest priority item in priority queue', () => {
-			const items = [95135, 75315, 45682];
-			items.forEach(item => {
+		it('should return the item with the lowest rank in priority queue', () => {
+			const items = [
+				{rank: 2, data: 95135},
+				{rank: 1, data: 75315},
+				{rank: 3, data: 45682}
+			];
+			items.forEach((item) => {
 				instance.push(item);
 			});
-			expect(instance.front()).toBe(items[2]);
+			expect(instance.front()).toBe(items[1]);
 		});
 	});
 
@@ -139,7 +154,7 @@ describe('ArmorPriorityQueue', () => {
 			const limit = 5;
 
 			for (let i = 0; i < limit; i++) {
-				instance.push(Math.floor(Math.random() * 99999));
+				instance.push({rank: Math.floor(Math.random() * 999), data: Math.floor(Math.random() * 99999)});
 			}
 
 			expect(instance.size()).toBe(limit);
@@ -158,13 +173,11 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.size()).toBe(0);
 
 			for (let i = 0; i < 5; i++) {
-				instance.push(Math.floor(Math.random() * 99999));
+				instance.push({rank: Math.floor(Math.random() * 999), data: Math.floor(Math.random() * 99999)});
 			}
 
 			instance.clear();
 			expect(instance.size()).toBe(0);
 		});
 	});
-
-
-})
+});
