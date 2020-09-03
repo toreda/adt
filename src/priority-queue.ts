@@ -8,7 +8,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		this.elements = [];
 		if (Array.isArray(elements)) {
 			elements.forEach(element => {
-				this.elements.push(element);
+				this.push(element);
 			});
 		}
 	}
@@ -38,7 +38,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			let parentIndex = Math.floor((nodeIndex - 1) / 2);
 			let parentValue = this.elements[parentIndex];
 
-			while (nodeIndex > 1 && parentValue > nodeValue) {
+			while (nodeIndex > 0 && parentValue > nodeValue) {
 				this.elements[parentIndex] = nodeValue;
 				this.elements[nodeIndex] = parentValue;
 				nodeIndex = parentIndex;
@@ -51,7 +51,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 	}
 
 	public front(): T | null {
-		return this.elements[0];
+		return this.elements[0] || null;
 	}
 
 	public pop(): T | null {
@@ -59,13 +59,13 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return null;
 		}
 		else if (this.size() == 1) {
-			return this.elements.shift();
+			return this.elements.shift() || null;
 		}
 		else {
 			let highestPriority = this.front();
 
 			if (this.size() === 3) {
-				highestPriority = this.elements.shift();
+				highestPriority = this.elements.shift() || null;
 				if (this.elements[0] > this.elements[1]){
 					let lastValue = this.elements[1];
 					this.elements[1] = this.elements[0];
@@ -79,15 +79,15 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			let lastIndex = this.size() - 1;
 			let lastValue = this.elements.pop();
 
-			this.elements[nodeIndex] = lastValue;
+			if (lastValue) this.elements[nodeIndex] = lastValue;
 
-			nodeValue = lastValue;
+			if (lastValue) nodeValue = lastValue;
 			let childLeftIndex = nodeIndex * 2 + 1;
 			let childLeftValue = this.elements[childLeftIndex] || null;
 			let childRghtIndex = nodeIndex * 2 + 2;
 			let childRghtValue = this.elements[childRghtIndex] || null;
 
-			while (childLeftValue && childRghtValue &&
+			while (nodeValue && childLeftValue && childRghtValue &&
 						(childLeftValue < nodeValue || childRghtValue < nodeValue)
 						) {
 				if (childLeftValue < childRghtValue) {
@@ -106,7 +106,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 				childRghtValue = this.elements[childRghtIndex] || null;
 			}
 
-			if (childRghtValue === null && childLeftValue < nodeValue) {
+			if (childRghtValue === null && childLeftValue && nodeValue && childLeftValue < nodeValue) {
 				this.elements[nodeIndex] = childLeftValue;
 				this.elements[childLeftIndex] = nodeValue;
 			}
