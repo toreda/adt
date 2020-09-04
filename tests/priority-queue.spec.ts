@@ -19,20 +19,17 @@ describe('ArmorPriorityQueue', () => {
 
 		it('should initialize priority queue with argument', () => {
 			const contents = [
-				{rank: 1, data: 84513},
-				{rank: 3, data: 75648},
-				{rank: 2, data: 89745},
-				{rank: 5, data: 24567},
-				{rank: 4, data: 95425}
+				{rank: 1, data: Math.random()},
+				{rank: 9, data: Math.random()},
+				{rank: 2, data: Math.random()},
+				{rank: 8, data: Math.random()},
+				{rank: 3, data: Math.random()},
+				{rank: 7, data: Math.random()},
+				{rank: 4, data: Math.random()},
+				{rank: 6, data: Math.random()},
+				{rank: 5, data: Math.random()}
 			];
-			const expected = [
-				{rank: 1, data: 84513},
-				{rank: 2, data: 89745},
-				{rank: 3, data: 75648},
-				{rank: 4, data: 95425},
-				{rank: 5, data: 24567}
-			];
-			const expected1 = contents.slice().sort((a, b) => {
+			const expected = contents.slice().sort((a, b) => {
 				return a.rank < b.rank ? -1 : +1;
 			});
 			const custom = new ArmorPriorityQueue<number>(contents);
