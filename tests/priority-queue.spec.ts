@@ -259,17 +259,17 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('getRankFromIndex', () => {
-		it('should return 0 when index is null', () =>{
+		it('should return null when index is null', () =>{
 			instance.push({rank:1, data:2});
-			expect(instance.getRankFromIndex(null)).toBe(0);
+			expect(instance.getRankFromIndex(null)).toBeNull();
 		});
 
-		it('should return 0 when index is outside array', () => {
+		it('should return null when index is outside array', () => {
 			instance.push({rank: 1, data: 999});
 			instance.push({rank: 2, data: 999});
 
-			expect(instance.getRankFromIndex(-1)).toBe(0);
-			expect(instance.getRankFromIndex(99)).toBe(0);
+			expect(instance.getRankFromIndex(-1)).toBeNull();
+			expect(instance.getRankFromIndex(99)).toBeNull();
 		});
 
 		it('should return rank appropriate rank when index is valid', () => {
@@ -526,16 +526,17 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.size()).toBe(limit - 1);
 		});
 
-		it('should not throw when called on an empty priority queue', () => {
-			expect(instance.size()).toBe(0);
-			expect(() => {
-				instance.pop();
-			}).not.toThrow();
-		});
-
-		it('should return null when cladded on an empty priority queue', () => {
+		it('should return null when called on a priority queue of size 0', () => {
 			expect(instance.size()).toBe(0);
 			expect(instance.pop()).toBeNull();
+		});
+
+		it('should return null when called repeatedly on a priority queue of size 0', () => {
+			expect(instance.size()).toBe(0);
+
+			for (let i = 0; i < 5; i++) {
+				expect(instance.pop()).toBeNull();
+			}
 		});
 
 		it('should return first item in priority queue', () => {
@@ -569,14 +570,6 @@ describe('ArmorPriorityQueue', () => {
 				let result = instance.pop();
 				expect(result).not.toBeNull();
 				if (result) expect(result.rank).toBe(expectedResults[i]);
-			}
-		});
-
-		it('should return null when called repeatedly on an empty priority queue', () => {
-			expect(instance.size()).toBe(0);
-
-			for (let i = 0; i < 5; i++) {
-				expect(instance.pop()).toBeNull();
 			}
 		});
 	});

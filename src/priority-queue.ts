@@ -4,7 +4,7 @@ import {ArmorCollectionSelector} from './selector';
 type Index = (number | null);
 
 export interface ArmorPriorityQueueNode<T> {
-	rank: number;
+	rank: number | null;
 	data: T;
 }
 
@@ -111,15 +111,15 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return [childOneIndex, childTwoIndex];
 	}
 
-	public getRankFromIndex(nodeIndex: Index): number {
+	public getRankFromIndex(nodeIndex: Index): number | null {
 		if (nodeIndex === null) {
-			return 0;
+			return null;
 		}
 		if (nodeIndex >= this.size()) {
-			return 0;
+			return null;
 		}
 		if (nodeIndex < 0) {
-			return 0;
+			return null;
 		}
 		return this.elements[nodeIndex].rank;
 	}
@@ -139,34 +139,53 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		}
 
 		let nextIndex: Index;
-		let isValidAll: () => Boolean;
 		let isHeapUnbalanced: () => Boolean;
 		let getNextIndex: () => Index;
 
 		if (nodeIndex > 0) {
-			isValidAll = () => {
-				return nextIndex !== null && nodeIndex !== null && nodeIndex > 0;
-			};
 			isHeapUnbalanced = () => {
-				return this.getRankFromIndex(nextIndex) > this.getRankFromIndex(nodeIndex);
+				let nextRank = this.getRankFromIndex(nextIndex);
+				let nodeRank = this.getRankFromIndex(nodeIndex);
+				if (nextRank === null) {
+					return false;
+				}
+				if (nodeRank === null) {
+					return false;
+				}
+				if (nodeIndex! <= 0) {
+					return false;
+				}
+				return nextRank > nodeRank;
 			};
 			getNextIndex = () => {
 				return this.getParentNodeIndex(nodeIndex);
 			};
 		}
 		else {
-			isValidAll = () => {
-				return this.getRankFromIndex(nodeIndex) > 0 && this.getRankFromIndex(nextIndex) > 0;
-			};
 			isHeapUnbalanced = () => {
-				return this.getRankFromIndex(nextIndex) < this.getRankFromIndex(nodeIndex);
+				let nextRank = this.getRankFromIndex(nextIndex);
+				let nodeRank = this.getRankFromIndex(nodeIndex);
+				if (nextRank === null) {
+					return false;
+				}
+				if (nodeRank === null) {
+					return false;
+				}
+				return nextRank < nodeRank;
 			};
 			getNextIndex = () => {
 				let childIndexes = this.getChildNodesIndexes(nodeIndex);
 				if (childIndexes[0] === null || childIndexes[1] === null) {
 					return childIndexes[0];
 				}
-				if (this.getRankFromIndex(childIndexes[0]) < this.getRankFromIndex(childIndexes[1])) {
+				let childRanks = [this.getRankFromIndex(childIndexes[0]), this.getRankFromIndex(childIndexes[1])];
+				if (childRanks[0] === null) {
+					return null;
+				}
+				if (childRanks[1] === null) {
+					return childIndexes[0];
+				}
+				if (childRanks[0] < childRanks[1]) {
 					return childIndexes[0];
 				}
 				return childIndexes[1];
@@ -175,7 +194,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 
 		nextIndex = getNextIndex() as Index;
 
-		while (isValidAll() && isHeapUnbalanced()) {
+		while (isHeapUnbalanced()) {
 			this.swapNodes(nodeIndex, nextIndex);
 			nodeIndex = nextIndex;
 			nextIndex = getNextIndex() as Index;
