@@ -205,7 +205,7 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('getChildNodesIndexes', () => {
-		let items = [
+		const items = [
 			{rank: 1, data: Math.random()},
 			{rank: 2, data: Math.random()},
 			{rank: 3, data: Math.random()},
@@ -285,6 +285,215 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.getRankFromIndex(3)).toBe(5);
 			expect(instance.getRankFromIndex(4)).toBe(8);
 		});
+	});
+
+	describe('fixHeap', () => {
+		const items = [
+			{rank: 10, data: Math.random()},
+			{rank: 20, data: Math.random()},
+			{rank: 30, data: Math.random()},
+			{rank: 40, data: Math.random()},
+			{rank: 50, data: Math.random()},
+			{rank: 60, data: Math.random()},
+			{rank: 70, data: Math.random()},
+			{rank: 80, data: Math.random()},
+			{rank: 90, data: Math.random()}
+		];
+
+		it('should do 0 swapNodes calls if size is 0 or 1', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+			expect(instance.size()).toBe(0);
+			instance.fixHeap(0);
+			instance.fixHeap(null);
+			instance.fixHeap(1);
+			instance.fixHeap(-1);
+			expect(spy).not.toBeCalled();
+		});
+
+		it('should do 0 swapNodes calls if null is passed', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+			expect(instance.size()).toBe(0);
+			instance.fixHeap(null);
+			expect(spy).not.toBeCalled();
+
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			spy.mockClear();
+
+			expect(instance.size()).toBe(items.length);
+			instance.fixHeap(null);
+			expect(spy).not.toBeCalled();
+		});
+
+		it('should do 0 swapNodes calls if negative number is passed', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+			expect(instance.size()).toBe(0);
+			instance.fixHeap(-1);
+			expect(spy).not.toBeCalled();
+
+			items.forEach((item) => {
+				instance.push(item);
+				expect(spy).not.toBeCalled();
+			});
+			spy.mockClear();
+
+			expect(instance.size()).toBe(items.length);
+			instance.fixHeap(-1);
+			expect(spy).not.toBeCalled();
+		});
+
+		it('should do 0 swapNodes calls if negative number is passed', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+			expect(instance.size()).toBe(0);
+			instance.fixHeap(-1);
+			expect(spy).not.toBeCalled();
+
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			spy.mockClear();
+
+			expect(instance.size()).toBe(items.length);
+			instance.fixHeap(-1);
+			expect(spy).not.toBeCalled();
+		});
+
+		it('should do 0 swapNodes calls if number outside of pq is passed', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+			expect(instance.size()).toBe(0);
+			instance.fixHeap(99);
+			expect(spy).not.toBeCalled();
+
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			spy.mockClear();
+	
+			expect(instance.size()).toBe(items.length);
+			instance.fixHeap(99);
+			expect(spy).not.toBeCalled();
+		});
+
+		it('should do 0 swapNodes calls if the number passed is not the node that made heap invalid', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			spy.mockClear();
+	
+			expect(instance.size()).toBe(items.length);
+			instance.elements[instance.size()] = {rank: 1, data: 999};
+			instance.elements[0].rank = 50;
+
+			instance.fixHeap(4);
+			expect(spy).not.toBeCalled();
+			instance.elements[0].rank = 10
+		});
+
+		it('should do # swapNodes calls and be in heap order after adding new lowest rank to end', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			spy.mockClear();
+			
+			expect(instance.size()).toBe(items.length);
+			instance.elements[instance.size()] = {rank: 1, data: 999};
+			// [10, 20, 30, 40, 50, 60, 70, 80, 90, 1] --> [1, 10, 30, 40, 20, 60, 70, 80, 90, 50]
+			// 3 swapNode calls to fix
+			instance.fixHeap(instance.size() - 1);
+			expect(spy).toBeCalledTimes(3);
+			expect(instance.elements.map((v) => v.rank).join(', ')).toBe('1, 10, 30, 40, 20, 60, 70, 80, 90, 50');
+		});
+
+		it('should do # swapNodes calls and be in heap order after adding middle value rank to end', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			spy.mockClear();
+			
+			expect(instance.size()).toBe(items.length);
+			instance.elements[instance.size()] = {rank: 45, data: 999};
+			// [10, 20, 30, 40, 50, 60, 70, 80, 90, 45] --> [10, 20, 30, 40, 45, 60, 70, 80, 90, 50]
+			// 1 swapNode calls to fix
+			instance.fixHeap(instance.size() - 1);
+			expect(spy).toBeCalledTimes(1);
+			expect(instance.elements.map((v) => v.rank).join(', ')).toBe('10, 20, 30, 40, 45, 60, 70, 80, 90, 50');
+		});
+
+		it('should do # swapNodes calls and be in heap order after adding new highest rank to end', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			spy.mockClear();
+			
+			expect(instance.size()).toBe(items.length);
+			instance.elements[instance.size()] = {rank: 100, data: 999};
+			// [10, 20, 30, 40, 50, 60, 70, 80, 90, 45] --> [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+			// 0 swapNode calls to fix
+			instance.fixHeap(instance.size() - 1);
+			expect(spy).toBeCalledTimes(0);
+			expect(instance.elements.map((v) => v.rank).join(', ')).toBe('10, 20, 30, 40, 50, 60, 70, 80, 90, 100');
+		});
+
+		it('should do # swapNodes calls and be in heap order after adding new lowest rank to beginning', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+
+			items.forEach((item) => {
+				instance.push({...item});
+			});
+			spy.mockClear();
+			
+			expect(instance.size()).toBe(items.length);
+			instance.elements[0].rank = 1
+			// [1, 20, 30, 40, 50, 60, 70, 80, 90] --> [1, 20, 30, 40, 50, 60, 70, 80, 90]
+			// 3 swapNode calls to fix
+			instance.fixHeap(0);
+			expect(spy).toBeCalledTimes(0);
+			expect(instance.elements.map((v) => v.rank).join(', ')).toBe('1, 20, 30, 40, 50, 60, 70, 80, 90');
+		});
+
+		it('should do # swapNodes calls and be in heap order after adding middle value rank to beginning', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+
+			items.forEach((item) => {
+				instance.push({...item});
+			});
+			spy.mockClear();
+
+			expect(instance.size()).toBe(items.length);
+			instance.elements[0].rank = 55;
+			// [55, 20, 30, 40, 50, 60, 70, 80, 90] --> [20, 40, 30, 55, 50, 60, 70, 80, 90]
+			// 3 swapNode calls to fix
+			instance.fixHeap(0);
+			expect(spy).toBeCalledTimes(2);
+			expect(instance.elements.map((v) => v.rank).join(', ')).toBe('20, 40, 30, 55, 50, 60, 70, 80, 90');
+		});
+
+		it('should do # swapNodes calls and be in heap order after adding new highest rank to beginning', () => {
+			const spy = jest.spyOn(instance, 'swapNodes');
+
+			items.forEach((item) => {
+				instance.push({...item});
+			});
+			spy.mockClear();
+
+			expect(instance.size()).toBe(items.length);
+			instance.elements[0].rank = 99;
+			// [99, 20, 30, 40, 50, 60, 70, 80, 90] --> [20, 40, 30, 80, 50, 60, 70, 99, 90]
+			// 3 swapNode calls to fix
+			instance.fixHeap(0);
+			expect(spy).toBeCalledTimes(3);
+			expect(instance.elements.map((v) => v.rank).join(', ')).toBe('20, 40, 30, 80, 50, 60, 70, 99, 90');
+		});
+
 	});
 
 	describe('push', () => {

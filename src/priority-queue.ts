@@ -3,7 +3,7 @@ import {ArmorCollectionSelector} from './selector';
 
 type Index = (number | null);
 
-interface ArmorPriorityQueueNode<T> {
+export interface ArmorPriorityQueueNode<T> {
 	rank: number;
 	data: T;
 }
@@ -124,28 +124,27 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return this.elements[nodeIndex].rank;
 	}
 
-	public fixHeap(startIndex: Index): void {
+	public fixHeap(nodeIndex: Index): void {
 		if (this.size() <= 1) {
 			return;
 		}
-		if (startIndex === null) {
+		if (nodeIndex === null) {
 			return;
 		}
-		if (startIndex < 0) {
+		if (nodeIndex < 0) {
 			return;
 		}
-		if (startIndex >= this.size()) {
+		if (nodeIndex >= this.size()) {
 			return;
 		}
 
-		let nodeIndex: Index = startIndex;
 		let nextIndex: Index;
-		let isValid: () => Boolean;
+		let isValidAll: () => Boolean;
 		let isHeapUnbalanced: () => Boolean;
 		let getNextIndex: () => Index;
 
-		if (startIndex > 0) {
-			isValid = () => {
+		if (nodeIndex > 0) {
+			isValidAll = () => {
 				return nextIndex !== null && nodeIndex !== null && nodeIndex > 0;
 			};
 			isHeapUnbalanced = () => {
@@ -153,10 +152,10 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			};
 			getNextIndex = () => {
 				return this.getParentNodeIndex(nodeIndex);
-			}
+			};
 		}
 		else {
-			isValid = () => {
+			isValidAll = () => {
 				return this.getRankFromIndex(nodeIndex) > 0 && this.getRankFromIndex(nextIndex) > 0;
 			};
 			isHeapUnbalanced = () => {
@@ -176,7 +175,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 
 		nextIndex = getNextIndex() as Index;
 
-		while (isValid() && isHeapUnbalanced()) {
+		while (isValidAll() && isHeapUnbalanced()) {
 			this.swapNodes(nodeIndex, nextIndex);
 			nodeIndex = nextIndex;
 			nextIndex = getNextIndex() as Index;
