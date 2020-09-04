@@ -46,31 +46,38 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return this.elements[0];
 	}
 
-	public swapNodes(node1Index: Index, node2Index: Index): void {
-		if (node1Index == null) {
+	public swapNodes(nodeOneIndex: Index, nodeTwoIndex: Index): void {
+		if (nodeOneIndex == null) {
 			return;
 		}
-		if (node2Index == null) {
+		if (nodeTwoIndex == null) {
 			return;
 		}
-		if (node1Index < 0) {
+		if (nodeOneIndex < 0) {
 			return;
 		}
-		if (node2Index < 0 ) {
+		if (nodeTwoIndex < 0) {
 			return;
 		}
-		if (node1Index >= this.size() ) {
+		if (nodeOneIndex >= this.size()) {
 			return;
 		}
-		if (node2Index >= this.size() ) {
+		if (nodeTwoIndex >= this.size()) {
 			return;
 		}
-		if (node1Index === node2Index) {
+		if (nodeOneIndex === nodeTwoIndex) {
 			return;
 		}
-		const node1Info = {...this.elements[node1Index]};
-		this.elements[node1Index] = {...this.elements[node2Index]};
-		this.elements[node2Index] = {...node1Info};
+		if (nodeOneIndex % 1 !== 0) {
+			return;
+		}
+		if (nodeTwoIndex % 1 !== 0) {
+			return;
+		}
+
+		const nodeOneInfo = {...this.elements[nodeOneIndex]};
+		this.elements[nodeOneIndex] = {...this.elements[nodeTwoIndex]};
+		this.elements[nodeTwoIndex] = {...nodeOneInfo};
 	}
 
 	public getParentNodeIndex(nodeIndex: Index): Index {
@@ -83,6 +90,10 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (nodeIndex >= this.size()) {
 			return null;
 		}
+		if (nodeIndex % 1 !== 0) {
+			return null;
+		}
+
 		const parentIndex = Math.floor((nodeIndex - 1) / 2);
 		if (parentIndex >= this.size()) {
 			return null;
@@ -100,6 +111,10 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (nodeIndex >= this.size()) {
 			return [null, null];
 		}
+		if (nodeIndex % 1 !== 0) {
+			return [null, null];
+		}
+
 		const childOneIndex = nodeIndex * 2 + 1;
 		const childTwoIndex = nodeIndex * 2 + 2;
 		if (childOneIndex >= this.size()) {
@@ -121,6 +136,9 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (nodeIndex < 0) {
 			return null;
 		}
+		if (nodeIndex % 1 !== 0) {
+			return null;
+		}
 		return this.elements[nodeIndex].rank;
 	}
 
@@ -135,6 +153,9 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return;
 		}
 		if (nodeIndex >= this.size()) {
+			return;
+		}
+		if (nodeIndex % 1 !== 0) {
 			return;
 		}
 

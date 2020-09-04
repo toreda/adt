@@ -102,6 +102,7 @@ describe('ArmorPriorityQueue', () => {
 			{name: 'null', value: null},
 			{name: 'below zero', value: -1},
 			{name: 'past end', value: 999},
+			{name: 'float', value: Math.PI},
 			{name: 'in array', value: 0},
 		];
 		const items = [
@@ -112,6 +113,9 @@ describe('ArmorPriorityQueue', () => {
 
 		params.forEach(param1 => {
 			params.forEach(param2 => {
+				if (param1.name === 'in array' && param2.name === 'in array') {
+					return false;
+				}
 				it(`should do nothing if indexOne is ${param1.name} and indexTwo is ${param2.name}`, () => {
 					items.forEach(item => {
 						instance.push(item);
@@ -175,6 +179,13 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.getParentNodeIndex(-1)).toBeNull();
 		});
 
+		it('should return null if a float is passed', () => {
+			items.forEach(item => {
+				instance.push(item);
+			});
+			expect(instance.getParentNodeIndex(Math.PI)).toBeNull();
+		});
+
 		it('should return null if the index pass is outside the aray', () => {
 			items.forEach(item => {
 				instance.push(item);
@@ -222,14 +233,21 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.getChildNodesIndexes(null)).toStrictEqual([null, null]);
 		});
 
-		it('should return [null, null] if negative number is passed', () => {
+		it('should return [null, null] if a negative number is passed', () => {
 			items.forEach((item) => {
 				instance.push(item);
 			});
 			expect(instance.getChildNodesIndexes(-1)).toStrictEqual([null, null]);
 		});
 
-		it('should return [null, null] if the index pass is outside the aray', () => {
+		it('should return [null, null] if a float is paseed', () => {
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			expect(instance.getChildNodesIndexes(Math.PI)).toStrictEqual([null, null]);
+		});
+
+		it('should return [null, null] if the index passed is outside the aray', () => {
 			items.forEach((item) => {
 				instance.push(item);
 			});
@@ -270,6 +288,13 @@ describe('ArmorPriorityQueue', () => {
 
 			expect(instance.getRankFromIndex(-1)).toBeNull();
 			expect(instance.getRankFromIndex(99)).toBeNull();
+		});
+
+		it('should return null when index is a float', () => {
+			instance.push({rank: 1, data: 999});
+			instance.push({rank: 2, data: 999});
+
+			expect(instance.getRankFromIndex(1.5)).toBeNull();
 		});
 
 		it('should return rank appropriate rank when index is valid', () => {
