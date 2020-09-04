@@ -205,7 +205,57 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('getChildNodesIndexes', () => {
+		let items = [
+			{rank: 1, data: Math.random()},
+			{rank: 2, data: Math.random()},
+			{rank: 3, data: Math.random()},
+			{rank: 4, data: Math.random()},
+			{rank: 5, data: Math.random()},
+			{rank: 6, data: Math.random()},
+			{rank: 7, data: Math.random()},
+			{rank: 8, data: Math.random()}
+		];
+		it('should return [null, null] if null is passed', () => {
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			expect(instance.getChildNodesIndexes(null)).toStrictEqual([null, null]);
+		});
 
+		it('should return [null, null] if negative number is passed', () => {
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			expect(instance.getChildNodesIndexes(-1)).toStrictEqual([null, null]);
+		});
+
+		it('should return [null, null] if the index pass is outside the aray', () => {
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			expect(instance.getChildNodesIndexes(99)).toStrictEqual([null, null]);
+		});
+
+		it('should return [null, null] if the result would be outside the array', () => {
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			expect(instance.getChildNodesIndexes(8)).toStrictEqual([null, null]);
+		});
+
+		it('should return the children of a valid node as a tuple', () => {
+			items.forEach((item) => {
+				instance.push(item);
+			});
+			expect(instance.getChildNodesIndexes(0)).toStrictEqual([1, 2]);
+			expect(instance.getChildNodesIndexes(1)).toStrictEqual([3, 4]);
+			expect(instance.getChildNodesIndexes(2)).toStrictEqual([5, 6]);
+			expect(instance.getChildNodesIndexes(3)).toStrictEqual([7, null]);
+			expect(instance.getChildNodesIndexes(4)).toStrictEqual([null, null]);
+			expect(instance.getChildNodesIndexes(5)).toStrictEqual([null, null]);
+			expect(instance.getChildNodesIndexes(6)).toStrictEqual([null, null]);
+			expect(instance.getChildNodesIndexes(7)).toStrictEqual([null, null]);
+		});
 	});
 
 	describe('getRankFromIndex', () => {
