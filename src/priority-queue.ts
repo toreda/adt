@@ -77,7 +77,10 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (nodeIndex === null) {
 			return null;
 		}
-		if (nodeIndex === 0) {
+		if (nodeIndex <= 0) {
+			return null;
+		}
+		if (nodeIndex >= this.size()) {
 			return null;
 		}
 		const parentIndex = Math.floor((nodeIndex - 1) / 2);
@@ -190,14 +193,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (this.size() === 1) {
 			return {...this.elements.shift()} as ArmorPriorityQueueNode<T>;
 		}
-		// if (this.size() === 3) {
-		// 	let highestPriority = {...this.elements.shift()};
-		// 	if (this.getRankFromIndex(0) > this.getRankFromIndex(1)) {
-		// 		this.swapNodes(0, 1);
-		// 	}
-		// 	return {...highestPriority} as ArmorPriorityQueueNode<T>;
-		// }
-		
+	
 		let highestPriority = {...this.front()};
 
 		this.swapNodes(0, this.size() - 1);

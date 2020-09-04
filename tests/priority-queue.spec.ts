@@ -150,16 +150,57 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('getParentNodeIndex', () => {
+		let items = [
+			{rank: 1, data: Math.random()},
+			{rank: 2, data: Math.random()},
+			{rank: 3, data: Math.random()},
+			{rank: 4, data: Math.random()},
+			{rank: 5, data: Math.random()},
+			{rank: 6, data: Math.random()},
+			{rank: 7, data: Math.random()},
+			{rank: 8, data: Math.random()},
+		];
 		it('should return null if null is passed', () => {
-			
+			items.forEach(item => {
+				instance.push(item);
+			});
+			expect(instance.getParentNodeIndex(null)).toBeNull();
 		});
 
-		it('should return null if 0 is passed', () => {
+		it('should return null if 0 or less is passed', () => {
+			items.forEach(item => {
+				instance.push(item);
+			});
+			expect(instance.getParentNodeIndex(0)).toBeNull();
+			expect(instance.getParentNodeIndex(-1)).toBeNull();
+		});
 
+		it('should return null if the index pass is outside the aray', () => {
+			items.forEach(item => {
+				instance.push(item);
+			});
+			expect(instance.getParentNodeIndex(99)).toBeNull();
 		});
 
 		it('should return null if the result would be outside the array', () => {
+			items.forEach(item => {
+				instance.push(item);
+			});
+			expect(instance.getParentNodeIndex(99)).toBeNull();
+		});
 
+		it('should return the parent of a valid node if the parent is valid', () => {
+			items.forEach(item => {
+				instance.push(item);
+			});
+			expect(instance.getParentNodeIndex(0)).toBeNull();
+			expect(instance.getParentNodeIndex(1)).toBe(0);
+			expect(instance.getParentNodeIndex(2)).toBe(0);
+			expect(instance.getParentNodeIndex(3)).toBe(1);
+			expect(instance.getParentNodeIndex(4)).toBe(1);
+			expect(instance.getParentNodeIndex(5)).toBe(2);
+			expect(instance.getParentNodeIndex(6)).toBe(2);
+			expect(instance.getParentNodeIndex(7)).toBe(3);
 		});
 	});
 
