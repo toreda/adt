@@ -259,7 +259,32 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('getRankFromIndex', () => {
+		it('should return 0 when index is null', () =>{
+			instance.push({rank:1, data:2});
+			expect(instance.getRankFromIndex(null)).toBe(0);
+		});
 
+		it('should return 0 when index is outside array', () => {
+			instance.push({rank: 1, data: 999});
+			instance.push({rank: 2, data: 999});
+
+			expect(instance.getRankFromIndex(-1)).toBe(0);
+			expect(instance.getRankFromIndex(99)).toBe(0);
+		});
+
+		it('should return rank appropriate rank when index is valid', () => {
+			instance.push({rank: 1, data: 999});
+			instance.push({rank: 2, data: 999});
+			instance.push({rank: 3, data: 999});
+			instance.push({rank: 5, data: 999});
+			instance.push({rank: 8, data: 999});
+
+			expect(instance.getRankFromIndex(0)).toBe(1);
+			expect(instance.getRankFromIndex(1)).toBe(2);
+			expect(instance.getRankFromIndex(2)).toBe(3);
+			expect(instance.getRankFromIndex(3)).toBe(5);
+			expect(instance.getRankFromIndex(4)).toBe(8);
+		});
 	});
 
 	describe('push', () => {

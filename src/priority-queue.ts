@@ -118,6 +118,9 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (nodeIndex >= this.size()) {
 			return 0;
 		}
+		if (nodeIndex < 0) {
+			return 0;
+		}
 		return this.elements[nodeIndex].rank;
 	}
 
