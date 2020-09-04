@@ -136,10 +136,34 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.elements.map(v => v.rank)).toStrictEqual([2, 3, 1]);
 		});
 
+		it('should move all properties of indexOne to indexTwo and vice-versa', () => {
+			items.forEach(item => {
+				instance.push(item);
+				unchanged.push(item);
+			})
+
+			instance.swapNodes(0, 1);
+			expect(instance.elements[0]).toStrictEqual(unchanged.elements[1]);
+			expect(instance.elements[1]).toStrictEqual(unchanged.elements[0]);
+			instance.swapNodes(1, 2);
+			expect(instance.elements[2]).toStrictEqual(unchanged.elements[0]);
+			expect(instance.elements[1]).toStrictEqual(unchanged.elements[2]);
+		});
+
 	});
 
 	describe('getParentNodeIndex', () => {
+		it('should return null if null is passed', () => {
+			
+		});
 
+		it('should return null if 0 is passed', () => {
+
+		});
+
+		it('should return null if the result would be outside the array', () => {
+
+		});
 	});
 
 	describe('getChildNodesIndexes', () => {

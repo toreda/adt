@@ -65,6 +65,9 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (node2Index >= this.size() ) {
 			return;
 		}
+		if (node1Index === node2Index) {
+			return;
+		}
 		const node1Info = {...this.elements[node1Index]};
 		this.elements[node1Index] = {...this.elements[node2Index]};
 		this.elements[node2Index] = {...node1Info};
