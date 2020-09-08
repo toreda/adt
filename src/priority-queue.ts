@@ -1,11 +1,22 @@
 import {ArmorCollection} from './collection';
 import {ArmorCollectionSelector} from './selector';
 
-type Index = (number | null);
+/**
+ * expand options interface for compare functions
+ * set up getRankFromIndex to get compare value
+ * make constructor throw on major errors
+ * split up fixHeap
+ * maybe make push throw
+ */
+
 
 export interface ArmorPriorityQueueNode<T> {
 	rank: number | null;
 	data: T;
+}
+
+interface ArmorPriorityQueueOptions<T> {
+	elements?: Array<ArmorPriorityQueueNode<T>>;
 }
 
 export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
@@ -46,11 +57,11 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return this.elements[0];
 	}
 
-	public swapNodes(nodeOneIndex: Index, nodeTwoIndex: Index): void {
-		if (nodeOneIndex == null) {
+	public swapNodes(nodeOneIndex: number | null, nodeTwoIndex: number | null): void {
+		if (typeof nodeOneIndex !== 'number') {
 			return;
 		}
-		if (nodeTwoIndex == null) {
+		if (typeof nodeTwoIndex !== 'number') {
 			return;
 		}
 		if (nodeOneIndex < 0) {
@@ -75,13 +86,13 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return;
 		}
 
-		const nodeOneInfo = {...this.elements[nodeOneIndex]};
-		this.elements[nodeOneIndex] = {...this.elements[nodeTwoIndex]};
-		this.elements[nodeTwoIndex] = {...nodeOneInfo};
+		const nodeOneInfo = this.elements[nodeOneIndex];
+		this.elements[nodeOneIndex] = this.elements[nodeTwoIndex];
+		this.elements[nodeTwoIndex] = nodeOneInfo;
 	}
 
-	public getParentNodeIndex(nodeIndex: Index): Index {
-		if (nodeIndex === null) {
+	public getParentNodeIndex(nodeIndex: number | null): number | null {
+		if (typeof nodeIndex !== 'number') {
 			return null;
 		}
 		if (nodeIndex <= 0) {
@@ -98,11 +109,12 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (parentIndex >= this.size()) {
 			return null;
 		}
+
 		return parentIndex;
 	}
 
-	public getChildNodesIndexes(nodeIndex: Index): [Index, Index] {
-		if (nodeIndex === null) {
+	public getChildNodesIndexes(nodeIndex: number | null): [number | null, number | null] {
+		if (typeof nodeIndex !== 'number') {
 			return [null, null];
 		}
 		if (nodeIndex < 0) {
@@ -123,11 +135,12 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (childTwoIndex >= this.size()) {
 			return [childOneIndex, null];
 		}
+
 		return [childOneIndex, childTwoIndex];
 	}
 
-	public getRankFromIndex(nodeIndex: Index): number | null {
-		if (nodeIndex === null) {
+	public getRankFromIndex(nodeIndex: number | null): number | null {
+		if (typeof nodeIndex !== 'number') {
 			return null;
 		}
 		if (nodeIndex >= this.size()) {
@@ -139,14 +152,31 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (nodeIndex % 1 !== 0) {
 			return null;
 		}
+
 		return this.elements[nodeIndex].rank;
 	}
 
-	public fixHeap(nodeIndex: Index): void {
+	public isHeapUnbalancedUp(): Boolean {
+		return true;
+	}
+
+	public getNextIndexUp(): Boolean {
+		return true;
+	}
+
+	public isHeapUnbalancedDown(): Boolean {
+		return true;
+	}
+
+	public getNextIndexDown(): Boolean {
+		return true;
+	}
+
+	public fixHeap(nodeIndex: number | null): void {
 		if (this.size() <= 1) {
 			return;
 		}
-		if (nodeIndex === null) {
+		if (typeof nodeIndex !== 'number') {
 			return;
 		}
 		if (nodeIndex < 0) {
@@ -159,12 +189,12 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return;
 		}
 
-		let nextIndex: Index;
-		let isHeapUnbalanced: () => Boolean;
-		let getNextIndex: () => Index;
+		let nextIndex: number | null;
+		let isHeapUnbalanced: () => boolean;
+		let getNextIndex: () => number | null;
 
 		if (nodeIndex > 0) {
-			isHeapUnbalanced = () => {
+			isHeapUnbalanced = (): boolean => {
 				let nextRank = this.getRankFromIndex(nextIndex);
 				let nodeRank = this.getRankFromIndex(nodeIndex);
 				if (nextRank === null) {
@@ -176,13 +206,13 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 				if (nodeIndex! <= 0) {
 					return false;
 				}
+
 				return nextRank > nodeRank;
 			};
 			getNextIndex = () => {
 				return this.getParentNodeIndex(nodeIndex);
 			};
-		}
-		else {
+		} else {
 			isHeapUnbalanced = () => {
 				let nextRank = this.getRankFromIndex(nextIndex);
 				let nodeRank = this.getRankFromIndex(nodeIndex);
@@ -192,6 +222,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 				if (nodeRank === null) {
 					return false;
 				}
+
 				return nextRank < nodeRank;
 			};
 			getNextIndex = () => {
@@ -209,20 +240,22 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 				if (childRanks[0] < childRanks[1]) {
 					return childIndexes[0];
 				}
+
 				return childIndexes[1];
 			};
 		}
 
-		nextIndex = getNextIndex() as Index;
+		nextIndex = getNextIndex() as number | null;
 
 		while (isHeapUnbalanced()) {
 			this.swapNodes(nodeIndex, nextIndex);
 			nodeIndex = nextIndex;
-			nextIndex = getNextIndex() as Index;
+			nextIndex = getNextIndex() as number | null;
 		}
 	}
 
 	public push(element: ArmorPriorityQueueNode<T>): ArmorPriorityQueue<T> {
+		// add throw
 		this.elements.push(element);
 		this.fixHeap(this.size() - 1);
 		return this;
@@ -233,15 +266,17 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return null;
 		}
 		if (this.size() === 1) {
-			return {...this.elements.shift()} as ArmorPriorityQueueNode<T>;
+			const onlyitem = this.elements[0];
+			this.elements = [];
+			return onlyitem;
 		}
-	
-		let highestPriority = {...this.front()};
+
+		let highestPriority = this.front();
 
 		this.swapNodes(0, this.size() - 1);
 		this.elements.pop();
 		this.fixHeap(0);
 
-		return {...highestPriority} as ArmorPriorityQueueNode<T>;
+		return highestPriority;
 	}
 }
