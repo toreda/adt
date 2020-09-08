@@ -9,26 +9,32 @@ import {ArmorCollectionSelector} from './selector';
  * maybe make push throw
  */
 
-
 export interface ArmorPriorityQueueNode<T> {
 	rank: number | null;
 	data: T;
 }
 
-interface ArmorPriorityQueueOptions<T> {
+export interface ArmorPriorityQueueOptions<T> {
 	elements?: Array<ArmorPriorityQueueNode<T>>;
+	comparator?: (nodeOneIndex: number, nodeTwoIndex: number) => boolean;
 }
 
 export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 	public elements: ArmorPriorityQueueNode<T>[];
+	public comparator: (nodeOneIndex: number, nodeTwoIndex: number) => boolean;
 
-	constructor(elements: ArmorPriorityQueueNode<T>[] = []) {
-		this.elements = [];
-		if (Array.isArray(elements)) {
-			elements.forEach(element => {
-				this.push(element);
-			});
+	constructor(options?: ArmorPriorityQueueOptions<T>) {
+		if (!options.elements) {
+			options.elements = [];
 		}
+		if (!Array.isArray(options.elements)) {
+			throw 'options.elements must be passed as an array';
+		}
+
+		this.clear();
+		options.elements.forEach((element) => {
+			this.push(element);
+		});
 	}
 
 	public select(): ArmorCollectionSelector<T> {
@@ -156,20 +162,51 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return this.elements[nodeIndex].rank;
 	}
 
-	public isHeapUnbalancedUp(): Boolean {
-		return true;
+	public getNextIndex(startFromTop: boolean, nodeIndex: number | null): number | null {
+		if (!startFromTop) {
+			return this.getParentNodeIndex(nodeIndex);
+		}
+		const [leftIndex, rightIndex] = this.getChildNodesIndexes(nodeIndex);
+		if (leftIndex === null || rightIndex === null) {
+			return leftIndex;
+		}
+
+		const leftValue = this.elements[leftIndex];
+		const rightValue = this.elements[rightIndex];
+		if (leftValue === null) {
+			return null;
+		}
+		if (rightValue === null) {
+			return leftIndex;
+		}
+
+		if (this.comparator(leftIndex, rightIndex)) {
+			return leftIndex;
+		} else {
+			return rightIndex;
+		}
 	}
 
-	public getNextIndexUp(): Boolean {
-		return true;
-	}
+	public isHeapUnbalanced(nodeIndex: number | null, nextIndex: number | null): Boolean {
+		const nodeValue = this.elements[nodeIndex];
+		const nextValue = this.elements[nextIndex];
+		const startFromTop = nodeIndex < nextIndex;
 
-	public isHeapUnbalancedDown(): Boolean {
-		return true;
-	}
+		if (nodeValue === null) {
+			return false;
+		}
+		if (nextValue === null) {
+			return false;
+		}
+		if (!startFromTop && nodeIndex <= 0) {
+			return false;
+		}
 
-	public getNextIndexDown(): Boolean {
-		return true;
+		if (startFromTop) {
+			return this.comparator(nextIndex, nodeIndex);
+		} else {
+			return this.comparator(nodeIndex, nextIndex);
+		}
 	}
 
 	public fixHeap(nodeIndex: number | null): void {
@@ -189,68 +226,13 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return;
 		}
 
-		let nextIndex: number | null;
-		let isHeapUnbalanced: () => boolean;
-		let getNextIndex: () => number | null;
+		const startFromTop = nodeIndex === 0;
+		let nextIndex = this.getNextIndex(startFromTop, nodeIndex);
 
-		if (nodeIndex > 0) {
-			isHeapUnbalanced = (): boolean => {
-				let nextRank = this.getRankFromIndex(nextIndex);
-				let nodeRank = this.getRankFromIndex(nodeIndex);
-				if (nextRank === null) {
-					return false;
-				}
-				if (nodeRank === null) {
-					return false;
-				}
-				if (nodeIndex! <= 0) {
-					return false;
-				}
-
-				return nextRank > nodeRank;
-			};
-			getNextIndex = () => {
-				return this.getParentNodeIndex(nodeIndex);
-			};
-		} else {
-			isHeapUnbalanced = () => {
-				let nextRank = this.getRankFromIndex(nextIndex);
-				let nodeRank = this.getRankFromIndex(nodeIndex);
-				if (nextRank === null) {
-					return false;
-				}
-				if (nodeRank === null) {
-					return false;
-				}
-
-				return nextRank < nodeRank;
-			};
-			getNextIndex = () => {
-				let childIndexes = this.getChildNodesIndexes(nodeIndex);
-				if (childIndexes[0] === null || childIndexes[1] === null) {
-					return childIndexes[0];
-				}
-				let childRanks = [this.getRankFromIndex(childIndexes[0]), this.getRankFromIndex(childIndexes[1])];
-				if (childRanks[0] === null) {
-					return null;
-				}
-				if (childRanks[1] === null) {
-					return childIndexes[0];
-				}
-				if (childRanks[0] < childRanks[1]) {
-					return childIndexes[0];
-				}
-
-				return childIndexes[1];
-			};
-		}
-
-		nextIndex = getNextIndex() as number | null;
-
-		while (isHeapUnbalanced()) {
+		while (this.isHeapUnbalanced(nodeIndex, nextIndex)) {
 			this.swapNodes(nodeIndex, nextIndex);
 			nodeIndex = nextIndex;
-			nextIndex = getNextIndex() as number | null;
+			nextIndex = this.getNextIndex(startFromTop, nodeIndex);
 		}
 	}
 
