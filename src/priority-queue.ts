@@ -15,7 +15,22 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 	public comparator: (nodeOneIndex: number, nodeTwoIndex: number) => boolean;
 
 	constructor(options: ArmorPriorityQueueOptions<T> = {}) {
-		if (!options.elements) {
+		if (typeof options.comparator === 'function') {
+			this.comparator = options.comparator;
+		} else {
+			this.comparator = (nodeOneIndex: number, nodeTwoIndex: number) => {
+				if (typeof nodeOneIndex !== 'number') {
+					return false;
+				}
+				if (typeof nodeTwoIndex !== 'number') {
+					return false;
+				}
+
+				return JSON.stringify(this.elements[nodeOneIndex]) < JSON.stringify(this.elements[nodeTwoIndex]);
+			};
+		}
+
+		if (options.elements === undefined) {
 			options.elements = [];
 		}
 		if (!Array.isArray(options.elements)) {
@@ -23,8 +38,6 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		}
 
 		this.elements = [];
-		this.comparator = (nodeOneIndex: number, nodeTwoIndex: number) => false;
-
 		options.elements.forEach((element) => {
 			this.push(element);
 		});
