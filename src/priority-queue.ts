@@ -10,6 +10,17 @@ export interface ArmorPriorityQueueOptions<T> {
 	comparator?: (nodeOneIndex: number, nodeTwoIndex: number) => boolean;
 }
 
+const defaultComparator = function (nodeOneIndex: number, nodeTwoIndex: number) {
+	if (typeof nodeOneIndex !== 'number') {
+		return false;
+	}
+	if (typeof nodeTwoIndex !== 'number') {
+		return false;
+	}
+
+	return JSON.stringify(this.elements[nodeOneIndex]) < JSON.stringify(this.elements[nodeTwoIndex]);
+};
+
 export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 	public elements: T[];
 	public comparator: (nodeOneIndex: number, nodeTwoIndex: number) => boolean;
@@ -18,16 +29,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (typeof options.comparator === 'function') {
 			this.comparator = options.comparator;
 		} else {
-			this.comparator = (nodeOneIndex: number, nodeTwoIndex: number) => {
-				if (typeof nodeOneIndex !== 'number') {
-					return false;
-				}
-				if (typeof nodeTwoIndex !== 'number') {
-					return false;
-				}
-
-				return JSON.stringify(this.elements[nodeOneIndex]) < JSON.stringify(this.elements[nodeTwoIndex]);
-			};
+			this.comparator = defaultComparator;
 		}
 
 		if (options.elements === undefined) {
@@ -161,7 +163,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return leftIndex;
 		}
 		if (this.elements[leftIndex] === null) {
-			return null;
+			return rightIndex;
 		}
 		if (this.elements[rightIndex] === null) {
 			return leftIndex;
@@ -192,9 +194,12 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (nextValue === null) {
 			return false;
 		}
-		if (!startFromTop && nodeIndex <= 0) {
-			return false;
-		}
+
+		// i think this is superfluous, but not deleting until testing is complete
+		// if (!startFromTop && nodeIndex <= 0) {
+		// 	console.log(nodeIndex,nextIndex);
+		// 	return false;
+		// }
 
 		if (startFromTop) {
 			return this.comparator(nextIndex, nodeIndex);
