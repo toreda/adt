@@ -1,4 +1,5 @@
-import {ArmorPriorityQueue} from '../src/priority-queue';
+import ArmorPriorityQueue from '../src/priority-queue';
+import ArmorPriorityQueueComparator from '../src/priority-queue-comparator';
 import {type} from 'os';
 
 /**
@@ -14,19 +15,19 @@ describe('ArmorPriorityQueue', () => {
 	 * after initialization
 	 */
 
-	const comparator = function (nodeOneIndex: number, nodeTwoIndex: number) {
-		if (typeof nodeOneIndex !== 'number') {
+	const comparator: ArmorPriorityQueueComparator<number> = function (a, b) {
+		if (typeof a !== 'number') {
 			return false;
 		}
-		if (typeof nodeTwoIndex !== 'number') {
+		if (typeof b !== 'number') {
 			return false;
 		}
 
-		return this.elements[nodeOneIndex] < this.elements[nodeTwoIndex];
+		return a < b;
 	};
 
 	beforeAll(() => {
-		instance = new ArmorPriorityQueue<number>({comparator: comparator});
+		instance = new ArmorPriorityQueue<number>(comparator);
 	});
 
 	beforeEach(() => {
@@ -35,16 +36,13 @@ describe('ArmorPriorityQueue', () => {
 
 	describe('constructor', () => {
 		it('should initialize empty priority queue when no arguments are given', () => {
-			const custom = new ArmorPriorityQueue<number>();
+			const custom = new ArmorPriorityQueue<number>(comparator);
 			expect(custom.size()).toBe(0);
 		});
 
 		it('should initialize priority queue with arguments.elements using comparator', () => {
 			const expected = items.slice().sort((a, b) => a - b);
-			const custom = new ArmorPriorityQueue<number>({
-				elements: items,
-				comparator: comparator
-			});
+			const custom = new ArmorPriorityQueue<number>(comparator, {elements: items});
 
 			for (let i = 0; i < items.length; i++) {
 				const result = custom.pop();
@@ -52,29 +50,22 @@ describe('ArmorPriorityQueue', () => {
 				if (result) expect(result).toBe(expected[i]);
 			}
 		});
+	});
 
-		it('should throw when arguments.elements is not an array', () => {
+	describe('parseOptions', () => {
+		it('should throw if options.elements is include and not an array', () => {
 			const datatypes = [44091, '44091', false];
 			datatypes.forEach((data) => {
 				expect(() => {
-					const custom = new ArmorPriorityQueue<number>({
-						elements: data as any
-					});
+					instance.parseOptions({elements: data as any});
 				}).toThrow();
 			});
-		});
-	});
-
-	describe('comparator', () => {
-		it('should return false if either index is not a number', () => {
-			let data = [1, null, undefined];
-			data.forEach((type1) => {
-				data.forEach((type2) => {
-					if (type1 !== 1 || type2 !== 1) {
-						expect(instance.comparator(type1!, type2!)).toBe(false);
-					}
-				});
-			});
+			const spy = jest.spyOn(instance, 'push');
+			spy.mockClear();
+			expect(() => {
+				instance.parseOptions({elements: [4, 5, 6] as any});
+			}).not.toThrow();
+			expect(spy).toBeCalledTimes(3);
 		});
 	});
 
@@ -117,9 +108,7 @@ describe('ArmorPriorityQueue', () => {
 		let unchanged: ArmorPriorityQueue<number>;
 
 		beforeAll(() => {
-			unchanged = new ArmorPriorityQueue<number>({
-				comparator: comparator
-			});
+			unchanged = new ArmorPriorityQueue<number>(comparator);
 		});
 
 		beforeEach(() => {
@@ -169,8 +158,8 @@ describe('ArmorPriorityQueue', () => {
 		it('should move all properties of indexOne to indexTwo and vice-versa', () => {
 			const complexitems = [{depth1: {depth2: 10}}, {depth1: {depth2: 20}}, {depth1: {depth2: 99}}];
 
-			const deepSwapped = new ArmorPriorityQueue({elements: complexitems});
-			const deepUnchanged = new ArmorPriorityQueue({elements: complexitems});
+			const deepSwapped = new ArmorPriorityQueue<any>((a, b) => false, {elements: complexitems});
+			const deepUnchanged = new ArmorPriorityQueue<any>((a, b) => false, {elements: complexitems});
 
 			deepSwapped.swapNodes(0, 1);
 			expect(deepSwapped.elements[0]).toStrictEqual(deepUnchanged.elements[1]);
@@ -230,36 +219,36 @@ describe('ArmorPriorityQueue', () => {
 				instance.push(item);
 			});
 		});
-		it('should return [null, null] if null is passed', () => {
-			expect(instance.getChildNodesIndexes(null)).toStrictEqual([null, null]);
+		it('should return {left: null, right: null} if null is passed', () => {
+			expect(instance.getChildNodesIndexes(null)).toStrictEqual({left: null, right: null});
 		});
 
-		it('should return [null, null] if a negative number is passed', () => {
-			expect(instance.getChildNodesIndexes(-1)).toStrictEqual([null, null]);
+		it('should return {left: null, right: null} if a negative number is passed', () => {
+			expect(instance.getChildNodesIndexes(-1)).toStrictEqual({left: null, right: null});
 		});
 
-		it('should return [null, null] if a float is paseed', () => {
-			expect(instance.getChildNodesIndexes(Math.PI)).toStrictEqual([null, null]);
+		it('should return {left: null, right: null} if a float is paseed', () => {
+			expect(instance.getChildNodesIndexes(Math.PI)).toStrictEqual({left: null, right: null});
 		});
 
-		it('should return [null, null] if the index passed is outside the aray', () => {
-			expect(instance.getChildNodesIndexes(99)).toStrictEqual([null, null]);
+		it('should return {left: null, right: null} if the index passed is outside the aray', () => {
+			expect(instance.getChildNodesIndexes(99)).toStrictEqual({left: null, right: null});
 		});
 
-		it('should return [null, null] if the result would be outside the array', () => {
-			expect(instance.getChildNodesIndexes(8)).toStrictEqual([null, null]);
+		it('should return {left: null, right: null} if the result would be outside the array', () => {
+			expect(instance.getChildNodesIndexes(8)).toStrictEqual({left: null, right: null});
 		});
 
-		it('should return the children of a valid node as a tuple', () => {
-			expect(instance.getChildNodesIndexes(0)).toStrictEqual([1, 2]);
-			expect(instance.getChildNodesIndexes(1)).toStrictEqual([3, 4]);
-			expect(instance.getChildNodesIndexes(2)).toStrictEqual([5, 6]);
-			expect(instance.getChildNodesIndexes(3)).toStrictEqual([7, 8]);
-			expect(instance.getChildNodesIndexes(4)).toStrictEqual([null, null]);
-			expect(instance.getChildNodesIndexes(5)).toStrictEqual([null, null]);
-			expect(instance.getChildNodesIndexes(6)).toStrictEqual([null, null]);
-			expect(instance.getChildNodesIndexes(7)).toStrictEqual([null, null]);
-			expect(instance.getChildNodesIndexes(8)).toStrictEqual([null, null]);
+		it('should return the children of a valid node in the form of {left: number | null, right: number | null}', () => {
+			expect(instance.getChildNodesIndexes(0)).toStrictEqual({left: 1, right: 2});
+			expect(instance.getChildNodesIndexes(1)).toStrictEqual({left: 3, right: 4});
+			expect(instance.getChildNodesIndexes(2)).toStrictEqual({left: 5, right: 6});
+			expect(instance.getChildNodesIndexes(3)).toStrictEqual({left: 7, right: 8});
+			expect(instance.getChildNodesIndexes(4)).toStrictEqual({left: null, right: null});
+			expect(instance.getChildNodesIndexes(5)).toStrictEqual({left: null, right: null});
+			expect(instance.getChildNodesIndexes(6)).toStrictEqual({left: null, right: null});
+			expect(instance.getChildNodesIndexes(7)).toStrictEqual({left: null, right: null});
+			expect(instance.getChildNodesIndexes(8)).toStrictEqual({left: null, right: null});
 		});
 	});
 
@@ -350,10 +339,10 @@ describe('ArmorPriorityQueue', () => {
 			const spy = jest.spyOn(instance, 'comparator');
 			spy.mockClear();
 			instance.isHeapUnbalanced(0, 1);
-			expect(spy).toBeCalledWith(1, 0);
+			expect(spy).toBeCalledWith(10, 1);
 			spy.mockClear();
 			instance.isHeapUnbalanced(1, 0);
-			expect(spy).toBeCalledWith(1, 0);
+			expect(spy).toBeCalledWith(10, 1);
 		});
 	});
 

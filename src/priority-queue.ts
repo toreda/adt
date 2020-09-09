@@ -1,48 +1,35 @@
 import {ArmorCollection} from './collection';
 import {ArmorCollectionSelector} from './selector';
+import ArmorPriorityQueueComparator from './priority-queue-comparator';
+import ArmorPriorityQueueNodeChildren from './priority-queue-children';
+import ArmorPriorityQueueOptions from './priority-queue-options';
 
-/**
- * decide what to do when no comparator is passed
- */
-
-export interface ArmorPriorityQueueOptions<T> {
-	elements?: Array<T>;
-	comparator?: (nodeOneIndex: number, nodeTwoIndex: number) => boolean;
-}
-
-const defaultComparator = function (nodeOneIndex: number, nodeTwoIndex: number) {
-	if (typeof nodeOneIndex !== 'number') {
-		return false;
-	}
-	if (typeof nodeTwoIndex !== 'number') {
-		return false;
-	}
-
-	return JSON.stringify(this.elements[nodeOneIndex]) < JSON.stringify(this.elements[nodeTwoIndex]);
-};
-
-export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
+export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 	public elements: T[];
-	public comparator: (nodeOneIndex: number, nodeTwoIndex: number) => boolean;
+	public readonly comparator: ArmorPriorityQueueComparator<T>;
 
-	constructor(options: ArmorPriorityQueueOptions<T> = {}) {
-		if (typeof options.comparator === 'function') {
-			this.comparator = options.comparator;
-		} else {
-			this.comparator = defaultComparator;
-		}
-
-		if (options.elements === undefined) {
-			options.elements = [];
-		}
-		if (!Array.isArray(options.elements)) {
-			throw 'options.elements must be an array';
+	constructor(comparator: ArmorPriorityQueueComparator<T>, options?: ArmorPriorityQueueOptions<T>) {
+		if (typeof comparator !== 'function') {
+			throw new Error('Must have a comparator function for priority queue to operate properly');
 		}
 
 		this.elements = [];
-		options.elements.forEach((element) => {
-			this.push(element);
-		});
+		this.comparator = comparator;
+
+		if (options) {
+			this.parseOptions(options);
+		}
+	}
+
+	public parseOptions(options: ArmorPriorityQueueOptions<T>): void {
+		if (options.elements !== undefined) {
+			if (!Array.isArray(options.elements)) {
+				throw 'options.elements must be an array';
+			}
+			options.elements.forEach((element) => {
+				this.push(element);
+			});
+		}
 	}
 
 	public select(): ArmorCollectionSelector<T> {
@@ -61,6 +48,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (!Array.isArray(this.elements)) {
 			return 0;
 		}
+
 		return this.elements.length;
 	}
 
@@ -68,6 +56,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (this.size() === 0) {
 			return null;
 		}
+
 		return this.elements[0];
 	}
 
@@ -78,25 +67,29 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (typeof nodeTwoIndex !== 'number') {
 			return;
 		}
+
 		if (nodeOneIndex < 0) {
 			return;
 		}
 		if (nodeTwoIndex < 0) {
 			return;
 		}
+
 		if (nodeOneIndex >= this.size()) {
 			return;
 		}
 		if (nodeTwoIndex >= this.size()) {
 			return;
 		}
-		if (nodeOneIndex === nodeTwoIndex) {
-			return;
-		}
+
 		if (nodeOneIndex % 1 !== 0) {
 			return;
 		}
 		if (nodeTwoIndex % 1 !== 0) {
+			return;
+		}
+
+		if (nodeOneIndex === nodeTwoIndex) {
 			return;
 		}
 
@@ -120,6 +113,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		}
 
 		const parentIndex = Math.floor((nodeIndex - 1) / 2);
+		// check if this is necessary
 		if (parentIndex >= this.size()) {
 			return null;
 		}
@@ -127,30 +121,30 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return parentIndex;
 	}
 
-	public getChildNodesIndexes(nodeIndex: number | null): [number | null, number | null] {
+	public getChildNodesIndexes(nodeIndex: number | null): ArmorPriorityQueueNodeChildren {
 		if (typeof nodeIndex !== 'number') {
-			return [null, null];
+			return {left: null, right: null};
 		}
 		if (nodeIndex < 0) {
-			return [null, null];
+			return {left: null, right: null};
 		}
 		if (nodeIndex >= this.size()) {
-			return [null, null];
+			return {left: null, right: null};
 		}
 		if (nodeIndex % 1 !== 0) {
-			return [null, null];
+			return {left: null, right: null};
 		}
 
 		const childOneIndex = nodeIndex * 2 + 1;
 		const childTwoIndex = nodeIndex * 2 + 2;
 		if (childOneIndex >= this.size()) {
-			return [null, null];
+			return {left: null, right: null};
 		}
 		if (childTwoIndex >= this.size()) {
-			return [childOneIndex, null];
+			return {left: childOneIndex, right: null};
 		}
 
-		return [childOneIndex, childTwoIndex];
+		return {left: childOneIndex, right: childTwoIndex};
 	}
 
 	public getNextIndex(startFromTop: boolean, nodeIndex: number | null): number | null {
@@ -158,21 +152,22 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return this.getParentNodeIndex(nodeIndex);
 		}
 
-		const [leftIndex, rightIndex] = this.getChildNodesIndexes(nodeIndex);
-		if (leftIndex === null || rightIndex === null) {
-			return leftIndex;
-		}
-		if (this.elements[leftIndex] === null) {
-			return rightIndex;
-		}
-		if (this.elements[rightIndex] === null) {
-			return leftIndex;
+		const childIndexes = this.getChildNodesIndexes(nodeIndex);
+		if (childIndexes.left === null || childIndexes.right === null) {
+			return childIndexes.left;
 		}
 
-		if (this.comparator(leftIndex, rightIndex)) {
-			return leftIndex;
+		if (this.elements[childIndexes.left] === null) {
+			return childIndexes.right;
+		}
+		if (this.elements[childIndexes.right] === null) {
+			return childIndexes.left;
+		}
+
+		if (this.comparator(this.elements[childIndexes.left], this.elements[childIndexes.right])) {
+			return childIndexes.left;
 		} else {
-			return rightIndex;
+			return childIndexes.right;
 		}
 	}
 
@@ -202,9 +197,9 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		// }
 
 		if (startFromTop) {
-			return this.comparator(nextIndex, nodeIndex);
+			return this.comparator(this.elements[nextIndex], this.elements[nodeIndex]);
 		} else {
-			return this.comparator(nodeIndex, nextIndex);
+			return this.comparator(this.elements[nodeIndex], this.elements[nextIndex]);
 		}
 	}
 
@@ -238,6 +233,7 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 	public push(element: T): ArmorPriorityQueue<T> {
 		this.elements.push(element);
 		this.fixHeap(this.size() - 1);
+
 		return this;
 	}
 
@@ -245,10 +241,9 @@ export class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		if (this.size() === 0) {
 			return null;
 		}
+
 		if (this.size() === 1) {
-			const onlyitem = this.elements[0];
-			this.elements = [];
-			return onlyitem;
+			return this.elements.pop()!;
 		}
 
 		let highestPriority = this.front();
