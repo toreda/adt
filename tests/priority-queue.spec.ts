@@ -8,6 +8,11 @@ describe('ArmorPriorityQueue', () => {
 	/**
 	 * instance.state.elements is
 	 * [10, 20, 60, 30, 50, 80, 70, 90, 40]
+	 *               10
+	 *       20              60
+	 *   30      50      80      70
+	 * 90  40  __  __  __  __  __  __
+	 *
 	 * after initialization
 	 */
 
@@ -62,7 +67,7 @@ describe('ArmorPriorityQueue', () => {
 			const datatypes = [44091, true, {}];
 			datatypes.forEach((data) => {
 				expect(() => {
-					instance.parseOptions({state: {elements: data as any} });
+					instance.parseOptions({state: {elements: data as any}});
 				}).toThrow();
 			});
 			const spy = jest.spyOn(instance, 'push');
@@ -75,13 +80,18 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('size', () => {
+		it('should return 0 if elements are missing', () => {
+			delete instance.state.elements;
+			expect(instance.size()).toBe(0);
+		});
+
 		it('should return 0 when priority queue is empty', () => {
 			expect(instance.size()).toBe(0);
 		});
 
-		it('should return 0 if elements are missing', () => {
-			delete instance.state.elements;
-			expect(instance.size()).toBe(0);
+		it('should return 1 when pq has 1 item', () => {
+			instance.push(Math.floor(Math.random() * 99999));
+			expect(instance.size()).toBe(1);
 		});
 
 		it('should return the number of items in priority queue', () => {
@@ -98,6 +108,12 @@ describe('ArmorPriorityQueue', () => {
 		it('should return null when priority queue size is 0', () => {
 			expect(instance.size()).toBe(0);
 			expect(instance.front()).toBeNull();
+		});
+
+		it('should return the only item when the size is 1', () => {
+			instance.push(items[0]);
+			expect(instance.size()).toBe(1);
+			expect(instance.front()).toStrictEqual(items[0]);
 		});
 
 		it('should return the item with the lowest rank in priority queue', () => {
@@ -185,6 +201,7 @@ describe('ArmorPriorityQueue', () => {
 				instance.push(item);
 			});
 		});
+
 		it('should return null if null is passed', () => {
 			expect(instance.getParentNodeIndex(null)).toBeNull();
 		});
@@ -216,6 +233,24 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.getParentNodeIndex(6)).toBe(2);
 			expect(instance.getParentNodeIndex(7)).toBe(3);
 		});
+
+		it('should return the parent of a valid node before and after a push that moves node', () => {
+			expect(instance.state.elements[4]).toBe(50);
+			expect(instance.getParentNodeIndex(4)).toBe(1);
+			instance.push(45);
+			expect(instance.state.elements[4]).toBe(45);
+			expect(instance.state.elements[9]).toBe(50);
+			expect(instance.getParentNodeIndex(9)).toBe(4);
+		});
+
+		it('should return the parent of a valid node before and after a pop that moves node', () => {
+			expect(instance.state.elements[3]).toBe(30);
+			expect(instance.getParentNodeIndex(3)).toBe(1);
+			instance.pop();
+			expect(instance.state.elements[3]).toBe(40);
+			expect(instance.state.elements[1]).toBe(30);
+			expect(instance.getParentNodeIndex(1)).toBe(0);
+		});
 	});
 
 	describe('getChildNodesIndexes', () => {
@@ -224,6 +259,7 @@ describe('ArmorPriorityQueue', () => {
 				instance.push(item);
 			});
 		});
+
 		it('should return {left: null, right: null} if null is passed', () => {
 			expect(instance.getChildNodesIndexes(null)).toStrictEqual({left: null, right: null});
 		});
@@ -254,6 +290,24 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.getChildNodesIndexes(6)).toStrictEqual({left: null, right: null});
 			expect(instance.getChildNodesIndexes(7)).toStrictEqual({left: null, right: null});
 			expect(instance.getChildNodesIndexes(8)).toStrictEqual({left: null, right: null});
+		});
+
+		it('should return the children of a valid node before and after a push that moves node', () => {
+			expect(instance.state.elements[1]).toBe(20);
+			expect(instance.getChildNodesIndexes(1)).toStrictEqual({left: 3, right: 4});
+			instance.push(15);
+			expect(instance.state.elements[1]).toBe(15);
+			expect(instance.state.elements[4]).toBe(20);
+			expect(instance.getChildNodesIndexes(4)).toStrictEqual({left: 9, right: null});
+		});
+
+		it('should return the children of a valid node before and after a pop that moves node', () => {
+			expect(instance.state.elements[1]).toBe(20);
+			expect(instance.getChildNodesIndexes(1)).toStrictEqual({left: 3, right: 4});
+			instance.pop();
+			expect(instance.state.elements[1]).toBe(30);
+			expect(instance.state.elements[0]).toBe(20);
+			expect(instance.getChildNodesIndexes(0)).toStrictEqual({left: 1, right: 2});
 		});
 	});
 
@@ -340,7 +394,7 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.isHeapUnbalanced(0, 1)).toBe(false);
 		});
 
-		it('should use the proper parameter order decided by startFromTop', () => {
+		it('should call comparator with parameters (larger index, smaller index)', () => {
 			const spy = jest.spyOn(instance, 'comparator');
 			spy.mockClear();
 			instance.isHeapUnbalanced(0, 1);
@@ -547,6 +601,14 @@ describe('ArmorPriorityQueue', () => {
 			}
 		});
 
+		it('should return the only element and then null when called twice on a pq of size 1', () => {
+			instance.push(1);
+			expect(instance.size()).toBe(1);
+
+			expect(instance.pop()).toBe(1);
+			expect(instance.pop()).toBeNull();
+		});
+
 		it('should return first item in priority queue', () => {
 			const limit = 15;
 			let expectedResult = 99999;
@@ -580,6 +642,20 @@ describe('ArmorPriorityQueue', () => {
 				if (result) expect(result).toBe(expectedResults[i]);
 			}
 		});
+
+		it('should return all items from the list and then return null when called size + 1 times', () => {
+			const limit = 5;
+
+			for (let i = 0; i < limit; i++) {
+				instance.push(Math.floor(Math.random() * 999));
+			}
+
+			for (let i = 0; i < limit; i++) {
+				expect(instance.pop()).not.toBeNull();
+			}
+
+			expect(instance.pop()).toBeNull();
+		});
 	});
 
 	describe('clear', () => {
@@ -588,6 +664,16 @@ describe('ArmorPriorityQueue', () => {
 			expect(() => {
 				instance.clear();
 			}).not.toThrow();
+		});
+
+		it('should remove item from priority queue when size is 1', () => {
+			expect(instance.size()).toBe(0);
+
+			instance.push(Math.floor(Math.random() * 999));
+
+			expect(instance.size()).toBe(1);
+			instance.clear();
+			expect(instance.size()).toBe(0);
 		});
 
 		it('should remove all items from priority queue', () => {
