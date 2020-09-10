@@ -64,6 +64,49 @@ queue.reverse();
 
 ```
 
+### Priority Queue
+
+Typescript
+```
+// Import
+import {ArmorPriorityQueue} from '@armorjs/collections';
+
+// Instantiate
+const priorityQueueComparator: ArmorPriorityQueueComparator<number> = function(a, b) => a < b;
+const priorityQueue = new ArmorPriorityQueue<number>([], priorityQueueComparator);
+
+// Add elements to the queue
+priorityQueue.push(20);
+priorityQueue.push(10);
+
+// Returns 2
+const size = priorityQueue.size();
+
+// Returns 10
+const result = priorityQueue.front();
+
+// Returns 10 removes it from priorityQueue
+const result1 = priorityQueue.pop();
+
+// Returns 20 removes it from priorityQueue
+const result2 = priorityQueue.pop();
+
+// Returns null because priority queue is empty
+const result3 = priorityQueue.pop();
+
+// Reset priority queue and remove all elements
+priorityQueue.clear();
+
+// Add 3 elements via chained push calls
+priorityQueue.push(30).push(10).push(20);
+
+// Returns the current state of priorityQueue as string
+const serialized = priorityQueue.stringify();
+
+// Instantiate a Priority Queue using serialized state
+const priorityQueueFromSerialized = new ArmorPriorityQueue([], priorityQueueComparator, serialized);
+```
+
 ### LinkedList
 
 
