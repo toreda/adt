@@ -19,6 +19,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		}
 
 		this.state = {
+			type: 'pqState',
 			elements: []
 		};
 		this.comparator = comparator;
@@ -68,9 +69,8 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 	public stringify(): string | null {
 		let result: string | null = null;
 
-		try {
-			result = JSON.stringify(this.state);
-		} catch (error) {
+		result = JSON.stringify(this.state);
+		if (!this.parse(result)) {
 			result = null;
 		}
 
@@ -85,6 +85,9 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		let result: ArmorPriorityQueueState<T> | null = null;
 		try {
 			result = JSON.parse(o);
+			if (!result || !result.type || result.type !== 'pqState') {
+				return null;
+			}
 		} catch (error) {
 			result = null;
 		}
@@ -172,13 +175,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return null;
 		}
 
-		const parentIndex = Math.floor((nodeIndex - 1) / 2);
-		// check if this is necessary
-		if (parentIndex >= this.size()) {
-			return null;
-		}
-
-		return parentIndex;
+		return Math.floor((nodeIndex - 1) / 2);
 	}
 
 	public getChildNodesIndexes(nodeIndex: number | null): ArmorPriorityQueueNodeChildren {
@@ -243,18 +240,12 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		const nextValue = this.state.elements[nextIndex];
 		const startFromTop = nodeIndex < nextIndex;
 
-		if (nodeValue === null) {
+		if (nodeValue === null || nodeValue === undefined) {
 			return false;
 		}
-		if (nextValue === null) {
+		if (nextValue === null || nextValue === undefined) {
 			return false;
 		}
-
-		// i think this is superfluous, but not deleting until testing is complete
-		// if (!startFromTop && nodeIndex <= 0) {
-		// 	console.log(nodeIndex,nextIndex);
-		// 	return false;
-		// }
 
 		if (startFromTop) {
 			return this.comparator(this.state.elements[nextIndex], this.state.elements[nodeIndex]);

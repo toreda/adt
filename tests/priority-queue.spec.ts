@@ -1,5 +1,6 @@
 import ArmorPriorityQueue from '../src/priority-queue';
 import ArmorPriorityQueueComparator from '../src/priority-queue-comparator';
+import ArmorPriorityQueueState from '../src/priority-queue-state';
 import {type} from 'os';
 
 describe('ArmorPriorityQueue', () => {
@@ -36,6 +37,12 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('constructor', () => {
+		it('should throw if comparator is not a function', () => {
+			expect(()=>{
+				const custom = new ArmorPriorityQueue<number>([], null as any);
+			}).toThrow();
+		});
+
 		it('should initialize empty priority queue when no elements are given', () => {
 			const custom = new ArmorPriorityQueue<number>([], comparator);
 			expect(custom.size()).toBe(0);
@@ -43,7 +50,29 @@ describe('ArmorPriorityQueue', () => {
 
 		it('should initialize priority queue with arguments.elements using comparator', () => {
 			const expected = items.slice().sort((a, b) => a - b);
-			const custom = new ArmorPriorityQueue<number>([], comparator, {state: {elements: items}});
+			const custom = new ArmorPriorityQueue<number>(items, comparator);
+
+			for (let i = 0; i < items.length; i++) {
+				const result = custom.pop();
+				expect(result).not.toBeNull();
+				if (result) expect(result).toBe(expected[i]);
+			}
+		});
+
+		it('should initialize priority queue with state when passed one', () => {
+			const expected = items.slice().sort((a, b) => a - b);
+			const custom = new ArmorPriorityQueue<number>([], comparator, {state: {elements: items, type: 'pqState'}});
+
+			for (let i = 0; i < items.length; i++) {
+				const result = custom.pop();
+				expect(result).not.toBeNull();
+				if (result) expect(result).toBe(expected[i]);
+			}
+		});
+
+		it('should prioritize using a passed options.state.elements over elements', () => {
+			const expected = items.slice().sort((a, b) => a - b);
+			const custom = new ArmorPriorityQueue<number>([1,2,3], comparator, {state: {elements: items, type: 'pqState'}});
 
 			for (let i = 0; i < items.length; i++) {
 				const result = custom.pop();
@@ -54,28 +83,132 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('parseOptions', () => {
-		it('should not throw if options is included and elements is not included ', () => {
-			const spy = jest.spyOn(instance, 'push');
+		it('should not call parseOptionsState if options is falsy', () => {
+			const spy = jest.spyOn(instance, 'parseOptionsState');
+			spy.mockClear();
+			expect(() => {
+				instance.parseOptions(null!);
+			}).not.toThrow();
+			expect(spy).not.toBeCalled();
+		});
+
+		it('should not call parseOptionsState if options.state is undefined', () => {
+			const spy = jest.spyOn(instance, 'parseOptionsState');
 			spy.mockClear();
 			expect(() => {
 				instance.parseOptions({});
 			}).not.toThrow();
-			expect(spy).toBeCalledTimes(0);
+			expect(spy).not.toBeCalled();
 		});
 
-		it('should throw if options.elements is included and not an array or string', () => {
-			const datatypes = [44091, true, {}];
-			datatypes.forEach((data) => {
-				expect(() => {
-					instance.parseOptions({state: {elements: data as any}});
-				}).toThrow();
-			});
+		it('should call parseOptionsState if options.state is not undefined', () => {
+			const spy = jest.spyOn(instance, 'parseOptionsState');
+			spy.mockClear();
+			expect(() => {
+				instance.parseOptions({state: {elements: [], type: 'pqState'}});
+			}).not.toThrow();
+			expect(spy).toBeCalled();
+		});
+	});
+
+	describe('parseOptionsState', () => {
+		it('should do nothing if state is falsy', () => {
 			const spy = jest.spyOn(instance, 'push');
 			spy.mockClear();
 			expect(() => {
-				instance.parseOptions({state: {elements: [4, 5, 6] as any}});
+				instance.parseOptionsState(null!);
+			}).not.toThrow();
+			expect(spy).not.toBeCalled();
+		});
+
+		it('should throw if state is a string that does not parse into a valid state', () => {
+			const spy = jest.spyOn(instance, 'push');
+			spy.mockClear();
+			expect(() => {
+				instance.parseOptionsState('{"elmnts":[1,2,3]}');
+			}).toThrow();
+		});
+
+		it('should throw if state.elements is not an array', () => {
+			const spy = jest.spyOn(instance, 'push');
+			spy.mockClear();
+			expect(() => {
+				instance.parseOptionsState('{"elements":{}}');
+			}).toThrow();
+			expect(() => {
+				instance.parseOptionsState({elements: {} as Array<number>, type: 'pqState'});
+			}).toThrow();
+		});
+
+		it('should push if state is a valid ArmorPriorityQueueState', () => {
+			const spy = jest.spyOn(instance, 'push');
+
+			spy.mockClear();
+			expect(() => {
+				instance.parseOptionsState({elements: [4, 5, 6], type: 'pqState'});
 			}).not.toThrow();
 			expect(spy).toBeCalledTimes(3);
+
+			spy.mockClear();
+			expect(() => {
+				instance.parseOptionsState('{"elements": [4, 5, 6], "type": "pqState"}');
+			}).not.toThrow();
+			expect(spy).toBeCalledTimes(3);
+		});
+	});
+
+	describe('stringify', () => {
+		it('should return null if state is null or undefined', () => {
+			const custom = new ArmorPriorityQueue([], comparator);
+			custom.state = null!;
+			expect(custom.state).toBeNull();
+			expect(custom.stringify()).toBeNull();
+			delete custom.state;
+			expect(custom.state).toBeUndefined();
+			expect(custom.stringify()).toBeNull();
+		});
+
+		it('should return the state as a string if it exists', () => {
+			const custom = new ArmorPriorityQueue([], comparator);
+			expect(custom.state).not.toBeNull();
+			expect(custom.stringify()).toBe('{"type":"pqState","elements":[]}');
+
+			custom.push(1);
+			expect(custom.state).not.toBeNull();
+			expect(custom.stringify()).toBe('{"type":"pqState","elements":[1]}');
+
+			custom.push(2);
+			expect(custom.state).not.toBeNull();
+			expect(custom.stringify()).toBe('{"type":"pqState","elements":[1,2]}');
+		});
+	});
+
+	describe('parse', () => {
+		it('should return null if argument is not a string with length > 0', () => {
+			expect(instance.parse(4 as any)).toBeNull();
+			expect(instance.parse([] as any)).toBeNull();
+			expect(instance.parse({} as any)).toBeNull();
+			expect(instance.parse('' as any)).toBeNull();
+			expect(instance.parse(false as any)).toBeNull();
+		});
+
+		it('should return null if string cant be parsed', () => {
+			expect(instance.parse('[4,3,')).toBeNull();
+			expect(instance.parse('{left:f,right:')).toBeNull();
+		});
+
+		it('should return null when a parsable string does parse into an ArmorPriorityQueueState', () => {
+			expect(instance.parse('{elements:[], type: "pqState"}')).toBeNull()
+			expect(instance.parse('{}')).toBeNull();
+			expect(instance.parse('[1,2,3]')).toBeNull();
+		});
+
+		it('should return an ArmorPriorityQueueState when a parsable string is passed', () => {
+			const string = instance.stringify();
+			expect(string).not.toBeNull();
+			expect(instance.parse(string as string)).toStrictEqual(instance.state);
+			expect(instance.parse('{"type": "pqState", "elements":[]}')).toStrictEqual(instance.state);
+			expect(instance.parse('{"elements":[], "type": "pqState"}')).toStrictEqual(instance.state);
 		});
 	});
 
@@ -147,7 +280,14 @@ describe('ArmorPriorityQueue', () => {
 		params.forEach((param1) => {
 			params.forEach((param2) => {
 				if (param1.name === 'in array' && param2.name === 'in array') {
-					return false;
+					it('should do nothing if indexOne and indexTwo are equal',()=>{
+						items.forEach((item) => {
+							instance.push(item)
+							unchanged.push(item);
+						});
+						instance.swapNodes(param1.value, param2.value);
+						expect(instance.state.elements).toStrictEqual(unchanged.state.elements);
+					})
 				}
 				it(`should do nothing if indexOne is ${param1.name} and indexTwo is ${param2.name}`, () => {
 					items.forEach((item) => {
@@ -160,7 +300,7 @@ describe('ArmorPriorityQueue', () => {
 			});
 		});
 
-		it('should swap the order of the items properly', () => {
+		it('should swap the order of the items', () => {
 			items.forEach((item) => {
 				instance.push(item);
 			});
@@ -179,8 +319,12 @@ describe('ArmorPriorityQueue', () => {
 		it('should move all properties of indexOne to indexTwo and vice-versa', () => {
 			const complexitems = [{depth1: {depth2: 10}}, {depth1: {depth2: 20}}, {depth1: {depth2: 99}}];
 
-			const deepSwapped = new ArmorPriorityQueue<any>([], (a, b) => false, {state: {elements: complexitems}});
-			const deepUnchanged = new ArmorPriorityQueue<any>([], (a, b) => false, {state: {elements: complexitems}});
+			const deepSwapped = new ArmorPriorityQueue<any>([], (a, b) => false, {
+				state: {elements: complexitems, type: 'pqState'}
+			});
+			const deepUnchanged = new ArmorPriorityQueue<any>([], (a, b) => false, {
+				state: {elements: complexitems, type: 'pqState'}
+			});
 
 			deepSwapped.swapNodes(0, 1);
 			expect(deepSwapped.state.elements[0]).toStrictEqual(deepUnchanged.state.elements[1]);
@@ -378,13 +522,19 @@ describe('ArmorPriorityQueue', () => {
 			instance.push(1);
 		});
 
-		it('should return false if either parameter is not a number', () => {
+		it('should return false if either index is not a number', () => {
 			expect(instance.isHeapUnbalanced(null, null)).toBe(false);
 			expect(instance.isHeapUnbalanced(null, 0)).toBe(false);
 			expect(instance.isHeapUnbalanced(0, null)).toBe(false);
 		});
 
-		it('should return false if either node is null', () => {
+		it('should return false if either index < 0', () => {
+			expect(instance.isHeapUnbalanced(0, -1)).toBe(false);
+			expect(instance.isHeapUnbalanced(-1, 0)).toBe(false);
+			expect(instance.isHeapUnbalanced(-1, -1)).toBe(false);
+		});
+
+		it('should return false if either node is null or undefined', () => {
 			instance.state.elements[0] = null!;
 			expect(instance.isHeapUnbalanced(0, 1)).toBe(false);
 			instance.state.elements[0] = 10;
