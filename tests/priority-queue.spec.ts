@@ -2,15 +2,11 @@ import ArmorPriorityQueue from '../src/priority-queue';
 import ArmorPriorityQueueComparator from '../src/priority-queue-comparator';
 import {type} from 'os';
 
-/**
- * constructor: test if comparator missing
- */
-
 describe('ArmorPriorityQueue', () => {
 	let instance: ArmorPriorityQueue<number>;
 	const items = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 	/**
-	 * instance.elements is
+	 * instance.state.elements is
 	 * [10, 20, 60, 30, 50, 80, 70, 90, 40]
 	 * after initialization
 	 */
@@ -27,7 +23,7 @@ describe('ArmorPriorityQueue', () => {
 	};
 
 	beforeAll(() => {
-		instance = new ArmorPriorityQueue<number>(comparator);
+		instance = new ArmorPriorityQueue<number>([], comparator);
 	});
 
 	beforeEach(() => {
@@ -35,14 +31,14 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('constructor', () => {
-		it('should initialize empty priority queue when no arguments are given', () => {
-			const custom = new ArmorPriorityQueue<number>(comparator);
+		it('should initialize empty priority queue when no elements are given', () => {
+			const custom = new ArmorPriorityQueue<number>([], comparator);
 			expect(custom.size()).toBe(0);
 		});
 
 		it('should initialize priority queue with arguments.elements using comparator', () => {
 			const expected = items.slice().sort((a, b) => a - b);
-			const custom = new ArmorPriorityQueue<number>(comparator, {elements: items});
+			const custom = new ArmorPriorityQueue<number>([], comparator, {state: {elements: items}});
 
 			for (let i = 0; i < items.length; i++) {
 				const result = custom.pop();
@@ -53,17 +49,26 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('parseOptions', () => {
-		it('should throw if options.elements is include and not an array', () => {
-			const datatypes = [44091, '44091', false];
+		it('should not throw if options is included and elements is not included ', () => {
+			const spy = jest.spyOn(instance, 'push');
+			spy.mockClear();
+			expect(() => {
+				instance.parseOptions({});
+			}).not.toThrow();
+			expect(spy).toBeCalledTimes(0);
+		});
+
+		it('should throw if options.elements is included and not an array or string', () => {
+			const datatypes = [44091, true, {}];
 			datatypes.forEach((data) => {
 				expect(() => {
-					instance.parseOptions({elements: data as any});
+					instance.parseOptions({state: {elements: data as any} });
 				}).toThrow();
 			});
 			const spy = jest.spyOn(instance, 'push');
 			spy.mockClear();
 			expect(() => {
-				instance.parseOptions({elements: [4, 5, 6] as any});
+				instance.parseOptions({state: {elements: [4, 5, 6] as any}});
 			}).not.toThrow();
 			expect(spy).toBeCalledTimes(3);
 		});
@@ -75,7 +80,7 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		it('should return 0 if elements are missing', () => {
-			delete instance.elements;
+			delete instance.state.elements;
 			expect(instance.size()).toBe(0);
 		});
 
@@ -108,7 +113,7 @@ describe('ArmorPriorityQueue', () => {
 		let unchanged: ArmorPriorityQueue<number>;
 
 		beforeAll(() => {
-			unchanged = new ArmorPriorityQueue<number>(comparator);
+			unchanged = new ArmorPriorityQueue<number>([], comparator);
 		});
 
 		beforeEach(() => {
@@ -134,7 +139,7 @@ describe('ArmorPriorityQueue', () => {
 						unchanged.push(item);
 					});
 					instance.swapNodes(param1.value, param2.value);
-					expect(instance.elements).toStrictEqual(unchanged.elements);
+					expect(instance.state.elements).toStrictEqual(unchanged.state.elements);
 				});
 			});
 		});
@@ -148,27 +153,27 @@ describe('ArmorPriorityQueue', () => {
 			 * swap1: 10, 20, 60, 70, 50, 80, 30, 90, 40
 			 * swap2: 10, 70, 60, 20, 50, 80, 30, 90, 40
 			 */
-			expect(instance.elements).toStrictEqual([10, 20, 60, 30, 50, 80, 70, 90, 40]);
+			expect(instance.state.elements).toStrictEqual([10, 20, 60, 30, 50, 80, 70, 90, 40]);
 			instance.swapNodes(3, 6);
-			expect(instance.elements).toStrictEqual([10, 20, 60, 70, 50, 80, 30, 90, 40]);
+			expect(instance.state.elements).toStrictEqual([10, 20, 60, 70, 50, 80, 30, 90, 40]);
 			instance.swapNodes(1, 3);
-			expect(instance.elements).toStrictEqual([10, 70, 60, 20, 50, 80, 30, 90, 40]);
+			expect(instance.state.elements).toStrictEqual([10, 70, 60, 20, 50, 80, 30, 90, 40]);
 		});
 
 		it('should move all properties of indexOne to indexTwo and vice-versa', () => {
 			const complexitems = [{depth1: {depth2: 10}}, {depth1: {depth2: 20}}, {depth1: {depth2: 99}}];
 
-			const deepSwapped = new ArmorPriorityQueue<any>((a, b) => false, {elements: complexitems});
-			const deepUnchanged = new ArmorPriorityQueue<any>((a, b) => false, {elements: complexitems});
+			const deepSwapped = new ArmorPriorityQueue<any>([], (a, b) => false, {state: {elements: complexitems}});
+			const deepUnchanged = new ArmorPriorityQueue<any>([], (a, b) => false, {state: {elements: complexitems}});
 
 			deepSwapped.swapNodes(0, 1);
-			expect(deepSwapped.elements[0]).toStrictEqual(deepUnchanged.elements[1]);
-			expect(deepSwapped.elements[1]).toStrictEqual(deepUnchanged.elements[0]);
+			expect(deepSwapped.state.elements[0]).toStrictEqual(deepUnchanged.state.elements[1]);
+			expect(deepSwapped.state.elements[1]).toStrictEqual(deepUnchanged.state.elements[0]);
 			expect(deepSwapped[0] === deepUnchanged[1]).toBeTruthy();
 			expect(deepSwapped[1] === deepUnchanged[0]).toBeTruthy();
 			deepSwapped.swapNodes(1, 2);
-			expect(deepSwapped.elements[2]).toStrictEqual(deepUnchanged.elements[0]);
-			expect(deepSwapped.elements[1]).toStrictEqual(deepUnchanged.elements[2]);
+			expect(deepSwapped.state.elements[2]).toStrictEqual(deepUnchanged.state.elements[0]);
+			expect(deepSwapped.state.elements[1]).toStrictEqual(deepUnchanged.state.elements[2]);
 			expect(deepSwapped[2] === deepUnchanged[0]).toBeTruthy();
 			expect(deepSwapped[1] === deepUnchanged[2]).toBeTruthy();
 		});
@@ -289,24 +294,24 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		it('should return leftIndex if elements[rightIndex] is null', () => {
-			instance.elements[2] = null!;
+			instance.state.elements[2] = null!;
 			expect(instance.getNextIndex(true, 0)).toBe(1);
 		});
 
 		it('should return rightIndex if elements[leftIndex] is null', () => {
-			instance.elements[1] = null!;
+			instance.state.elements[1] = null!;
 			expect(instance.getNextIndex(true, 0)).toBe(2);
 		});
 
 		it('should return leftIndex if elements[leftIndex] < elements[rightIndex]', () => {
-			instance.elements[1] = 10;
-			instance.elements[2] = 20;
+			instance.state.elements[1] = 10;
+			instance.state.elements[2] = 20;
 			expect(instance.getNextIndex(true, 0)).toBe(1);
 		});
 
 		it('should return rightIndex if elements[leftIndex] > elements[rightIndex]', () => {
-			instance.elements[1] = 20;
-			instance.elements[2] = 10;
+			instance.state.elements[1] = 20;
+			instance.state.elements[2] = 10;
 			expect(instance.getNextIndex(true, 0)).toBe(2);
 		});
 	});
@@ -326,12 +331,12 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		it('should return false if either node is null', () => {
-			instance.elements[0] = null!;
+			instance.state.elements[0] = null!;
 			expect(instance.isHeapUnbalanced(0, 1)).toBe(false);
-			instance.elements[0] = 10;
-			instance.elements[1] = null!;
+			instance.state.elements[0] = 10;
+			instance.state.elements[1] = null!;
 			expect(instance.isHeapUnbalanced(0, 1)).toBe(false);
-			instance.elements[0] = null!;
+			instance.state.elements[0] = null!;
 			expect(instance.isHeapUnbalanced(0, 1)).toBe(false);
 		});
 
@@ -388,12 +393,12 @@ describe('ArmorPriorityQueue', () => {
 			spy.mockClear();
 
 			expect(instance.size()).toBe(items.length);
-			instance.elements[instance.size()] = 1;
-			instance.elements[0] = 50;
+			instance.state.elements[instance.size()] = 1;
+			instance.state.elements[0] = 50;
 
 			instance.fixHeap(4);
 			expect(spy).not.toBeCalled();
-			instance.elements[0] = 10;
+			instance.state.elements[0] = 10;
 		});
 
 		it('should do # swapNodes calls and be in heap order after adding new lowest rank to end', () => {
@@ -405,12 +410,12 @@ describe('ArmorPriorityQueue', () => {
 			spy.mockClear();
 
 			expect(instance.size()).toBe(items.length);
-			instance.elements[instance.size()] = 1;
+			instance.state.elements[instance.size()] = 1;
 			// [10, 20, 60, 30, 50, 80, 70, 90, 40, 1] --> [1, 10, 60, 30, 20, 80, 70, 90, 40, 50]
 			// 3 swapNode calls to fix
 			instance.fixHeap(instance.size() - 1);
 			expect(spy).toBeCalledTimes(3);
-			expect(instance.elements).toStrictEqual([1, 10, 60, 30, 20, 80, 70, 90, 40, 50]);
+			expect(instance.state.elements).toStrictEqual([1, 10, 60, 30, 20, 80, 70, 90, 40, 50]);
 		});
 
 		it('should do # swapNodes calls and be in heap order after adding middle value rank to end', () => {
@@ -422,12 +427,12 @@ describe('ArmorPriorityQueue', () => {
 			spy.mockClear();
 
 			expect(instance.size()).toBe(items.length);
-			instance.elements[instance.size()] = 45;
+			instance.state.elements[instance.size()] = 45;
 			// [10, 20, 60, 30, 50, 80, 70, 90, 40, 45] --> [10, 20, 60, 30, 45, 80, 70, 90, 40, 50]
 			// 1 swapNode calls to fix
 			instance.fixHeap(instance.size() - 1);
 			expect(spy).toBeCalledTimes(1);
-			expect(instance.elements).toStrictEqual([10, 20, 60, 30, 45, 80, 70, 90, 40, 50]);
+			expect(instance.state.elements).toStrictEqual([10, 20, 60, 30, 45, 80, 70, 90, 40, 50]);
 		});
 
 		it('should do # swapNodes calls and be in heap order after adding new highest rank to end', () => {
@@ -439,12 +444,12 @@ describe('ArmorPriorityQueue', () => {
 			spy.mockClear();
 
 			expect(instance.size()).toBe(items.length);
-			instance.elements[instance.size()] = 100;
+			instance.state.elements[instance.size()] = 100;
 			// [10, 20, 60, 30, 50, 80, 70, 90, 40, 100] --> [10, 20, 60, 30, 50, 80, 70, 90, 40, 100]
 			// 0 swapNode calls to fix
 			instance.fixHeap(instance.size() - 1);
 			expect(spy).toBeCalledTimes(0);
-			expect(instance.elements).toStrictEqual([10, 20, 60, 30, 50, 80, 70, 90, 40, 100]);
+			expect(instance.state.elements).toStrictEqual([10, 20, 60, 30, 50, 80, 70, 90, 40, 100]);
 		});
 
 		it('should do # swapNodes calls and be in heap order after adding new lowest rank to beginning', () => {
@@ -456,12 +461,12 @@ describe('ArmorPriorityQueue', () => {
 			spy.mockClear();
 
 			expect(instance.size()).toBe(items.length);
-			instance.elements[0] = 1;
+			instance.state.elements[0] = 1;
 			// [1, 20, 60, 30, 50, 80, 70, 90, 40] --> [1, 20, 60, 30, 50, 80, 70, 90, 40]
 			// 0 swapNode calls to fix
 			instance.fixHeap(0);
 			expect(spy).toBeCalledTimes(0);
-			expect(instance.elements).toStrictEqual([1, 20, 60, 30, 50, 80, 70, 90, 40]);
+			expect(instance.state.elements).toStrictEqual([1, 20, 60, 30, 50, 80, 70, 90, 40]);
 		});
 
 		it('should do # swapNodes calls and be in heap order after adding middle value rank to beginning', () => {
@@ -473,12 +478,12 @@ describe('ArmorPriorityQueue', () => {
 			spy.mockClear();
 
 			expect(instance.size()).toBe(items.length);
-			instance.elements[0] = 35;
+			instance.state.elements[0] = 35;
 			// [55, 20, 60, 30, 50, 80, 70, 90, 40] --> [20, 30, 60, 40, 50, 80, 70, 90, 55]
 			// 2 swapNode calls to fix
 			instance.fixHeap(0);
 			expect(spy).toBeCalledTimes(2);
-			expect(instance.elements).toStrictEqual([20, 30, 60, 35, 50, 80, 70, 90, 40]);
+			expect(instance.state.elements).toStrictEqual([20, 30, 60, 35, 50, 80, 70, 90, 40]);
 		});
 
 		it('should do # swapNodes calls and be in heap order after adding new highest rank to beginning', () => {
@@ -490,12 +495,12 @@ describe('ArmorPriorityQueue', () => {
 			spy.mockClear();
 
 			expect(instance.size()).toBe(items.length);
-			instance.elements[0] = 99;
+			instance.state.elements[0] = 99;
 			// [99, 20, 60, 30, 50, 80, 70, 90, 40] --> [20, 30, 60, 40, 50, 80, 70, 90, 99]
 			// 3 swapNode calls to fix
 			instance.fixHeap(0);
 			expect(spy).toBeCalledTimes(3);
-			expect(instance.elements).toStrictEqual([20, 30, 60, 40, 50, 80, 70, 90, 99]);
+			expect(instance.state.elements).toStrictEqual([20, 30, 60, 40, 50, 80, 70, 90, 99]);
 		});
 	});
 

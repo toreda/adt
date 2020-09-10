@@ -1,3 +1,5 @@
+import ArmorPriorityQueueState from './priority-queue-state';
+
 export default interface ArmorPriorityQueueOptions<T> {
-	elements?: Array<T>;
+	state?: ArmorPriorityQueueState<T> | string;
 }
