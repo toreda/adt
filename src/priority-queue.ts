@@ -18,10 +18,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			throw new Error('Must have a comparator function for priority queue to operate properly');
 		}
 
-		this.state = {
-			type: 'pqState',
-			elements: []
-		};
+		this.state = {type: 'pqState', elements: []};
 		this.comparator = comparator;
 
 		if (options) {
@@ -50,18 +47,23 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			return;
 		}
 
+		let result: ArmorPriorityQueueState<T> | null = null;
+
 		if (typeof state === 'string') {
-			state = this.parse(state)!;
-			if (!state) {
+			result = this.parse(state)!;
+
+			if (!result) {
 				throw new Error('state is not valid');
+			}
+		} else {
+			result = state;
+
+			if (result.elements && !Array.isArray(result.elements)) {
+				throw new Error('state elements needs to be an array');
 			}
 		}
 
-		if (state.elements && !Array.isArray(state.elements)) {
-			throw new Error('state elements needs to be an array');
-		}
-
-		state.elements.forEach((element) => {
+		result.elements.forEach((element) => {
 			this.push(element);
 		});
 	}
