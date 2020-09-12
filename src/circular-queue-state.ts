@@ -4,4 +4,5 @@ export default interface ArmorCircularQueueState<T> {
   elements: T[];
   front: number;
   rear: number;
+  size: number;
 }

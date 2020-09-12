@@ -11,14 +11,15 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 			type: 'cqState',
 			maxSize: 100,
 			elements: [],
-			front: -1,
-			rear: -1
+			front: 0,
+			rear: 0,
+			size: 0
 		};
 
-		if (maxSize > 1) {
+		if (maxSize > 0) {
 			this.state.maxSize = maxSize;
 		} else {
-			this.state.maxSize = 100;
+			this.state.maxSize = 256;
 		}
 
 		if (options) {
@@ -58,6 +59,9 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 			if (result.maxSize && typeof result.maxSize !== 'number') {
 				throw new Error('state maxSize must be a number');
 			}
+			if (result.size && typeof result.size !== 'number') {
+				throw new Error('state size must be a number');
+			}
 			if (result.maxSize && typeof result.front !== 'number') {
 				throw new Error('state front must be a number');
 			}
@@ -67,6 +71,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		}
 
 		this.state.maxSize = result.maxSize;
+		this.state.size = result.size;
 		this.state.front = result.front;
 		this.state.rear = result.rear;
 		this.state.elements = result.elements;
@@ -91,6 +96,10 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public stringify(): string | null {
+		if (!this.isStateValid()) {
+			return null;
+		}
+
 		let result: string | null = null;
 
 		result = JSON.stringify(this.state);
@@ -101,73 +110,138 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return result;
 	}
 
-	public nextIndex(n: number): number {
-		return (n + 1) % this.state.maxSize;
+	public wrapIndex(n: number): number {
+		if (n % 1 !== 0) {
+			throw new Error('Index must be an integer');
+		}
+
+		let index = n;
+		while (index < 0) {
+			index += this.state.maxSize;
+		}
+
+		return index % this.state.maxSize;
 	}
 
 	public front(): T | null {
+		if (!this.isStateValid()) {
+			return null;
+		}
+
+		if (!this.state.size) {
+			return null;
+		}
+
 		return this.state.elements[this.state.front];
 	}
 
 	public rear(): T | null {
-		return this.state.elements[this.state.rear];
+		if (!this.isStateValid()) {
+			return null;
+		}
+
+		if (!this.state.size) {
+			return null;
+		}
+
+		return this.state.elements[this.wrapIndex(this.state.rear - 1)];
 	}
 
 	public push(element: T): boolean {
+		if (!this.isStateValid()) {
+			return false;
+		}
+
 		if (this.isFull()) {
 			return false;
 		}
 
-		if (this.state.front === -1) {
-			this.state.front = 0;
-		}
-
-		this.state.rear = this.nextIndex(this.state.rear);
 		this.state.elements[this.state.rear] = element;
+		this.state.rear = this.wrapIndex(this.state.rear + 1);
+		this.state.size++;
 
 		return true;
 	}
 
 	public pop(): T | null {
+		if (!this.isStateValid()) {
+			return null;
+		}
+
 		if (this.isEmpty()) {
 			return null;
 		}
 
 		const front = this.front();
 
-		if (this.state.front == this.state.rear) {
-			this.state.front = this.state.rear = -1;
-		} else {
-			this.state.front = this.nextIndex(this.state.front);
-		}
+		this.state.front = this.wrapIndex(this.state.front + 1);
+		this.state.size--;
 
 		return front;
 	}
 
-	public size(): number {
-		if (this.state.front === -1) {
-			return 0;
+	public getIndex(n: number): T | null {
+		if (!this.isStateValid()) {
+			return null;
 		}
 
-		if (this.state.front > this.state.rear) {
-			return this.state.maxSize - (this.state.front - this.state.rear) + 1;
+		let index = n;
+		if (index > 0) {
+			index = this.state.front + index;
 		} else {
-			return this.state.rear - this.state.front + 1;
+			index = this.state.rear - index;
 		}
+
+		return this.state.elements[index];
 	}
 
 	public isEmpty(): boolean {
-		// return this.state.front === this.state.rear + 1;
-		return this.state.front === -1;
+		if (!this.isStateValid()) {
+			return false;
+		}
+
+		return this.state.size === 0;
 	}
 
 	public isFull(): boolean {
-		return this.state.front === this.nextIndex(this.state.rear);
+		if (!this.isStateValid()) {
+			return false;
+		}
+
+		return this.state.size >= this.state.maxSize;
+	}
+
+	public isStateValid(): boolean {
+		if (!this.state) {
+			return false;
+		}
+		if (this.state.type !== 'cqState') {
+			return false;
+		}
+
+		if (typeof this.state.maxSize !== 'number' || this.state.maxSize < 1 || this.state.maxSize % 1 !== 0) {
+			return false;
+		}
+		if (typeof this.state.size !== 'number' || this.state.size < 0 || this.state.size % 1 !== 0) {
+			return false;
+		}
+
+		if (typeof this.state.front !== 'number' || this.state.front % 1 !== 0) {
+			return false;
+		}
+		if (typeof this.state.rear !== 'number' || this.state.rear % 1 !== 0) {
+			return false;
+		}
+
+		if (!Array.isArray(this.state.elements)) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public clear(): ArmorCircularQueue<T> {
-		this.state.front = -1;
-		this.state.rear = -1;
+		this.state.front = this.state.rear = 0;
 		this.state.elements = [];
 
 		return this;
