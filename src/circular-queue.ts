@@ -5,6 +5,7 @@ import {ArmorCollectionSelector} from './selector';
 
 export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	public state: ArmorCircularQueueState<T>;
+	public overwrite: boolean;
 
 	constructor(maxSize: number, options?: ArmorCircularQueueOptions<T>) {
 		this.state = {
@@ -22,6 +23,8 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 			this.state.maxSize = 256;
 		}
 
+		this.overwrite = false;
+
 		if (options) {
 			this.parseOptions(options);
 		}
@@ -35,6 +38,14 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		if (options.state !== undefined) {
 			this.parseOptionsState(options.state);
 		}
+
+		if (options.overwrite !== undefined) {
+			this.parseOptionsOverwrite(options.overwrite);
+		}
+	}
+
+	public parseOptionsOverwrite(overwrite: boolean) {
+		this.overwrite = overwrite === true;
 	}
 
 	public parseOptionsState(state: ArmorCircularQueueState<T> | string): void {
@@ -53,8 +64,8 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		} else {
 			result = state;
 
-			if(!this.isValidState(result)){
-				throw new Error('options.state contains errors')
+			if (!this.isValidState(result)) {
+				throw new Error('options.state contains errors');
 			}
 
 			/* 
@@ -151,13 +162,18 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 			return false;
 		}
 
-		if (this.isFull()) {
+		if (!this.overwrite && this.isFull()) {
 			return false;
 		}
 
 		this.state.elements[this.state.rear] = element;
 		this.state.rear = this.wrapIndex(this.state.rear + 1);
-		this.state.size++;
+
+		if (this.overwrite && this.isFull()) {
+			this.state.front = this.wrapIndex(this.state.front + 1);
+		} else {
+			this.state.size++;
+		}
 
 		return true;
 	}
@@ -194,7 +210,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		if (index >= 0) {
 			index = this.state.front + index;
 		} else {
-			index = ( this.state.rear - 1 ) + index;
+			index = this.state.rear - 1 + index;
 		}
 
 		return this.state.elements[this.wrapIndex(index)];

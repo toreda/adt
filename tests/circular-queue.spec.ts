@@ -12,6 +12,7 @@ describe('ArmorCircularQueue', () => {
 
 	beforeEach(() => {
 		instance.clear();
+		instance.overwrite = false;
 	});
 
 	describe('constructor', () => {
@@ -399,7 +400,7 @@ describe('ArmorCircularQueue', () => {
 			expect(instance.push(0)).toBe(false);
 		});
 
-		it('should return false and leave cq alone if cq is full', () => {
+		it('should return false and leave cq alone if cq is full and overwrite is false', () => {
 			instance.state.elements = [10, 20, 30, 40];
 			instance.state.front = 0;
 			instance.state.rear = 0;
@@ -408,6 +409,19 @@ describe('ArmorCircularQueue', () => {
 			expect(instance.isFull()).toBe(true);
 			expect(instance.push(50)).toBe(false);
 			expect(instance.stringify()).toBe(state);
+		});
+
+		it('should return true, overwrite front, and increment if cq is full and overwrite is true', () => {
+			instance.overwrite = true;
+			instance.state.elements = [10, 20, 30, 40];
+			instance.state.front = 0;
+			instance.state.rear = 0;
+			instance.state.size = 4;
+			const state = instance.stringify();
+			expect(instance.isFull()).toBe(true);
+			expect(instance.push(50)).toBe(true);
+			expect(instance.state.elements).toEqual([50, 20, 30, 40]);
+			instance.overwrite = false;
 		});
 
 		it('should return true and increment rear and size when push is called once', () => {
@@ -434,7 +448,7 @@ describe('ArmorCircularQueue', () => {
 			expect(instance.state.elements).toStrictEqual([50, 20, 30, 40]);
 		});
 
-		it('should push 15 items into cq while maintaining a size of 1', () => {
+		it('should push 15 items into cq while maintaining a size of 1 if overwrite is false', () => {
 			expect(instance.state.size).toBe(0);
 			expect(instance.state.elements).toEqual([]);
 
@@ -447,6 +461,39 @@ describe('ArmorCircularQueue', () => {
 			}
 
 			expect(instance.state.elements).toEqual([120, 130, 140, 110]);
+		});
+
+		it('should push 15 items into cq while maintaining a size of 1 if overwrite is true', () => {
+			instance.overwrite = true;
+			expect(instance.state.size).toBe(0);
+			expect(instance.state.elements).toEqual([]);
+
+			const limit = 15;
+			for (let i = 0; i < limit; i++) {
+				instance.pop();
+				expect(instance.state.front).toBe(i % instance.state.maxSize);
+				expect(instance.push(i * 10)).toBe(true);
+				expect(instance.state.size).toBe(1);
+			}
+
+			expect(instance.state.elements).toEqual([120, 130, 140, 110]);
+			instance.overwrite = false;
+		});
+
+		it('should push items into cq and overwrite front when full', () => {
+			instance.overwrite = true;
+			expect(instance.state.size).toBe(0);
+			expect(instance.state.elements).toEqual([]);
+
+			const limit = 15;
+			const expected = [0, 0, 0, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+			for (let i = 0; i < limit; i++) {
+				expect(instance.push(i * 10)).toBe(true);
+				expect(instance.state.front).toBe(expected[i]);
+			}
+
+			expect(instance.state.elements).toEqual([120, 130, 140, 110]);
+			instance.overwrite = false;
 		});
 	});
 	describe('pop', () => {
@@ -623,6 +670,23 @@ describe('ArmorCircularQueue', () => {
 				instance.parseOptions({state: instance.stringify() as string});
 			} catch (e) {}
 			expect(spy).toBeCalled();
+		});
+	});
+	describe('parseOptionsOverwrite', () => {
+		it('should set cq overwrite property', () => {
+			expect(instance.overwrite).toBe(false);
+
+			instance.parseOptionsOverwrite(true);
+			expect(instance.overwrite).toBe(true);
+
+			instance.parseOptionsOverwrite(false);
+			expect(instance.overwrite).toBe(false);
+
+			instance.parseOptionsOverwrite(null!);
+			expect(instance.overwrite).toBe(false);
+
+			instance.parseOptionsOverwrite(undefined!);
+			expect(instance.overwrite).toBe(false);
 		});
 	});
 	describe('parseOptionsState', () => {
