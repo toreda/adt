@@ -111,8 +111,8 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public wrapIndex(n: number): number {
-		if (n % 1 !== 0) {
-			throw new Error('Index must be an integer');
+		if (!this.isInteger(n)) {
+			return -1;
 		}
 
 		let index = n;
@@ -184,15 +184,21 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		if (!this.isStateValid()) {
 			return null;
 		}
+		if (!this.isInteger(n)) {
+			return null;
+		}
+		if (!this.state.size) {
+			return null;
+		}
 
 		let index = n;
-		if (index > 0) {
+		if (index >= 0) {
 			index = this.state.front + index;
 		} else {
 			index = this.state.rear - index;
 		}
 
-		return this.state.elements[index];
+		return this.state.elements[this.wrapIndex(index)];
 	}
 
 	public isEmpty(): boolean {
@@ -211,6 +217,17 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return this.state.size >= this.state.maxSize;
 	}
 
+	public isInteger(n: number): boolean {
+		if (typeof n !== 'number') {
+			return false;
+		}
+		if (n % 1 !== 0) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public isStateValid(): boolean {
 		if (!this.state) {
 			return false;
@@ -219,17 +236,17 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 			return false;
 		}
 
-		if (typeof this.state.maxSize !== 'number' || this.state.maxSize < 1 || this.state.maxSize % 1 !== 0) {
+		if (!this.isInteger(this.state.size) || this.state.size < 0) {
 			return false;
 		}
-		if (typeof this.state.size !== 'number' || this.state.size < 0 || this.state.size % 1 !== 0) {
+		if (!this.isInteger(this.state.maxSize) || this.state.maxSize < 1) {
 			return false;
 		}
 
-		if (typeof this.state.front !== 'number' || this.state.front % 1 !== 0) {
+		if (!this.isInteger(this.state.front)) {
 			return false;
 		}
-		if (typeof this.state.rear !== 'number' || this.state.rear % 1 !== 0) {
+		if (!this.isInteger(this.state.rear)) {
 			return false;
 		}
 
@@ -241,7 +258,10 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public clear(): ArmorCircularQueue<T> {
-		this.state.front = this.state.rear = 0;
+		this.state.type = 'cqState';
+		this.state.front = 0;
+		this.state.rear = 0;
+		this.state.size = 0;
 		this.state.elements = [];
 
 		return this;
