@@ -197,7 +197,7 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.parse('{left:f,right:')).toBeNull();
 		});
 
-		it('should return null when a parsable string does parse into an ArmorPriorityQueueState', () => {
+		it('should return null when a parsable string does not parse into an ArmorPriorityQueueState', () => {
 			expect(instance.parse('{elements:[], type: "pqState"}')).toBeNull()
 			expect(instance.parse('{}')).toBeNull();
 			expect(instance.parse('[1,2,3]')).toBeNull();

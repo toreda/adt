@@ -53,21 +53,27 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		} else {
 			result = state;
 
+			if(!this.isValidState(result)){
+				throw new Error('options.state contains errors')
+			}
+
+			/* 
+			altenate error throwing
 			if (result.elements && !Array.isArray(result.elements)) {
 				throw new Error('state elements must be an array');
 			}
-			if (result.maxSize && typeof result.maxSize !== 'number') {
-				throw new Error('state maxSize must be a number');
+			if (result.maxSize && this.isInteger(result.maxSize)) {
+				throw new Error('state maxSize must be an integer');
 			}
-			if (result.size && typeof result.size !== 'number') {
-				throw new Error('state size must be a number');
+			if (result.size && this.isInteger(result.size)) {
+				throw new Error('state size must ben integer number');
 			}
-			if (result.maxSize && typeof result.front !== 'number') {
-				throw new Error('state front must be a number');
+			if (result.maxSize && this.isInteger(result.front)) {
+				throw new Error('state front must be an integer');
 			}
-			if (result.maxSize && typeof result.rear !== 'number') {
-				throw new Error('state rear must be a number');
-			}
+			if (result.maxSize && this.isInteger(result.rear)) {
+				throw new Error('state rear must be an integer');
+			} */
 		}
 
 		this.state.maxSize = result.maxSize;
@@ -85,7 +91,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		let result: ArmorCircularQueueState<T> | null = null;
 		try {
 			result = JSON.parse(data);
-			if (!result || !result.type || result.type !== 'cqState') {
+			if (!result || !result.type || !this.isValidState(result!)) {
 				return null;
 			}
 		} catch (error) {
@@ -96,7 +102,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public stringify(): string | null {
-		if (!this.isStateValid()) {
+		if (!this.isValidState(this.state)) {
 			return null;
 		}
 
@@ -124,7 +130,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public front(): T | null {
-		if (!this.isStateValid()) {
+		if (!this.isValidState(this.state)) {
 			return null;
 		}
 
@@ -136,7 +142,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public rear(): T | null {
-		if (!this.isStateValid()) {
+		if (!this.isValidState(this.state)) {
 			return null;
 		}
 
@@ -148,7 +154,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public push(element: T): boolean {
-		if (!this.isStateValid()) {
+		if (!this.isValidState(this.state)) {
 			return false;
 		}
 
@@ -164,7 +170,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public pop(): T | null {
-		if (!this.isStateValid()) {
+		if (!this.isValidState(this.state)) {
 			return null;
 		}
 
@@ -181,7 +187,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public getIndex(n: number): T | null {
-		if (!this.isStateValid()) {
+		if (!this.isValidState(this.state)) {
 			return null;
 		}
 		if (!this.isInteger(n)) {
@@ -202,7 +208,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public isEmpty(): boolean {
-		if (!this.isStateValid()) {
+		if (!this.isValidState(this.state)) {
 			return false;
 		}
 
@@ -210,7 +216,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 	}
 
 	public isFull(): boolean {
-		if (!this.isStateValid()) {
+		if (!this.isValidState(this.state)) {
 			return false;
 		}
 
@@ -228,29 +234,29 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return true;
 	}
 
-	public isStateValid(): boolean {
-		if (!this.state) {
+	public isValidState(state: ArmorCircularQueueState<T>): boolean {
+		if (!state) {
 			return false;
 		}
-		if (this.state.type !== 'cqState') {
-			return false;
-		}
-
-		if (!this.isInteger(this.state.size) || this.state.size < 0) {
-			return false;
-		}
-		if (!this.isInteger(this.state.maxSize) || this.state.maxSize < 1) {
+		if (state.type !== 'cqState') {
 			return false;
 		}
 
-		if (!this.isInteger(this.state.front)) {
+		if (!this.isInteger(state.size) || state.size < 0) {
 			return false;
 		}
-		if (!this.isInteger(this.state.rear)) {
+		if (!this.isInteger(state.maxSize) || state.maxSize < 1) {
 			return false;
 		}
 
-		if (!Array.isArray(this.state.elements)) {
+		if (!this.isInteger(state.front)) {
+			return false;
+		}
+		if (!this.isInteger(state.rear)) {
+			return false;
+		}
+
+		if (!Array.isArray(state.elements)) {
 			return false;
 		}
 

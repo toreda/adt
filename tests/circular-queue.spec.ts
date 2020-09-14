@@ -60,10 +60,10 @@ describe('ArmorCircularQueue', () => {
 		});
 	});
 
-	describe('isStateValid', () => {
+	describe('isValidState', () => {
 		it('should return true if state is a valid ArmorCircularQueueState', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			expect(custom.isStateValid()).toBe(true);
+			expect(custom.isValidState(custom.state)).toBe(true);
 		});
 
 		it('should return false if state is null or undefined', () => {
@@ -71,7 +71,7 @@ describe('ArmorCircularQueue', () => {
 			const types = [null, undefined];
 			types.forEach((type) => {
 				custom.state = type!;
-				expect(custom.isStateValid()).toBe(false);
+				expect(custom.isValidState(custom.state)).toBe(false);
 			});
 		});
 
@@ -80,7 +80,7 @@ describe('ArmorCircularQueue', () => {
 			const types = [null, undefined, ''];
 			types.forEach((type) => {
 				custom.state.type = type as 'cqState';
-				expect(custom.isStateValid()).toBe(false);
+				expect(custom.isValidState(custom.state)).toBe(false);
 			});
 		});
 
@@ -89,7 +89,7 @@ describe('ArmorCircularQueue', () => {
 			const types = [-9, -1.5, -1, 0.5, 10.5, null, undefined];
 			types.forEach((type) => {
 				custom.state.size = type!;
-				expect(custom.isStateValid()).toBe(false);
+				expect(custom.isValidState(custom.state)).toBe(false);
 			});
 		});
 
@@ -98,7 +98,7 @@ describe('ArmorCircularQueue', () => {
 			const types = [-9, -1.5, -1, 0, 0.5, 10.5, null, undefined];
 			types.forEach((type) => {
 				custom.state.maxSize = type!;
-				expect(custom.isStateValid()).toBe(false);
+				expect(custom.isValidState(custom.state)).toBe(false);
 			});
 		});
 
@@ -107,7 +107,7 @@ describe('ArmorCircularQueue', () => {
 			const types = [-1.5, 0.5, 7.5, null, undefined];
 			types.forEach((type) => {
 				custom.state.front = type!;
-				expect(custom.isStateValid()).toBe(false);
+				expect(custom.isValidState(custom.state)).toBe(false);
 			});
 		});
 
@@ -116,7 +116,7 @@ describe('ArmorCircularQueue', () => {
 			const types = [-1.5, 0.5, 7.5, null, undefined];
 			types.forEach((type) => {
 				custom.state.rear = type!;
-				expect(custom.isStateValid()).toBe(false);
+				expect(custom.isValidState(custom.state)).toBe(false);
 			});
 		});
 
@@ -125,7 +125,7 @@ describe('ArmorCircularQueue', () => {
 			const types = [{}, null, undefined];
 			types.forEach((type) => {
 				custom.state.elements = type as Array<number>;
-				expect(custom.isStateValid()).toBe(false);
+				expect(custom.isValidState(custom.state)).toBe(false);
 			});
 		});
 	});
@@ -149,17 +149,28 @@ describe('ArmorCircularQueue', () => {
 	});
 
 	describe('isEmpty', () => {
+		it('should run isValidState check', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			instance.isEmpty();
+
+			expect(spy).toBeCalled();
+		});
+
 		it('should return true if state.size === 0', () => {
 			instance.state.size = 0;
 			expect(instance.isEmpty()).toBe(true);
 		});
-		it('should return false if state.size is ', () => {
+
+		it('should return false if state.size is > 0', () => {
 			const sizes = [1, maxSize - 1, maxSize, maxSize * 2];
 			sizes.forEach((size) => {
 				instance.state.size = size;
 				expect(instance.isEmpty()).toBe(false);
 			});
 		});
+
 		it('should return false if state.size is not an integer >= 0', () => {
 			const sizes = [-1, 1.5, 99.9, null, undefined];
 			sizes.forEach((size) => {
@@ -169,6 +180,15 @@ describe('ArmorCircularQueue', () => {
 		});
 	});
 	describe('isFull', () => {
+		it('should run isValidState check', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			instance.isFull();
+
+			expect(spy).toBeCalled();
+		});
+
 		it('should return true if state.size >= maxSize', () => {
 			const sizes = [maxSize, maxSize * 2];
 			sizes.forEach((size) => {
@@ -176,6 +196,7 @@ describe('ArmorCircularQueue', () => {
 				expect(instance.isFull()).toBe(true);
 			});
 		});
+
 		it('should return false if 0 <= state.size < maxSize ', () => {
 			const sizes = [0, 1, instance.state.maxSize - 1];
 			sizes.forEach((size) => {
@@ -183,6 +204,7 @@ describe('ArmorCircularQueue', () => {
 				expect(instance.isFull()).toBe(false);
 			});
 		});
+
 		it('should return false if state.size is not an integer >= 0', () => {
 			const sizes = [-1, 1.5, 99.9, null, undefined];
 			sizes.forEach((size) => {
@@ -193,6 +215,15 @@ describe('ArmorCircularQueue', () => {
 	});
 
 	describe('front', () => {
+		it('should run isValidState check', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			instance.front();
+
+			expect(spy).toBeCalled();
+		});
+
 		it('should return null if state.front is not an integer', () => {
 			const indices = [-1.5, 0.5, 1.5, maxSize + 0.5, null, undefined];
 			indices.forEach((index) => {
@@ -229,6 +260,15 @@ describe('ArmorCircularQueue', () => {
 		});
 	});
 	describe('rear', () => {
+		it('should run isValidState check', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			instance.rear();
+
+			expect(spy).toBeCalled();
+		});
+
 		it('should return null if state.rear is not an integer', () => {
 			const indices = [-1.5, 0.5, 1.5, maxSize + 0.5, null, undefined];
 			indices.forEach((index) => {
@@ -266,6 +306,15 @@ describe('ArmorCircularQueue', () => {
 	});
 
 	describe('getIndex', () => {
+		it('should run isValidState check', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			instance.getIndex(0);
+
+			expect(spy).toBeCalled();
+		});
+
 		it('should return null if index is not an integer', () => {
 			const indices = [-1.5, 0.5, 1.5, maxSize + 0.5, null, undefined];
 			indices.forEach((index) => {
@@ -310,6 +359,15 @@ describe('ArmorCircularQueue', () => {
 	});
 
 	describe('push', () => {
+		it('should run isValidState check', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			instance.push(1);
+
+			expect(spy).toBeCalled();
+		});
+
 		it('should return false and leave cq alone if cq is full', () => {
 			instance.state.elements = [10, 20, 30, 40];
 			instance.state.front = 0;
@@ -361,8 +419,8 @@ describe('ArmorCircularQueue', () => {
 		});
 	});
 	describe('pop', () => {
-		it('should run isStateValid check', () => {
-			const spy = jest.spyOn(instance, 'isStateValid');
+		it('should run isValidState check', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
 
 			spy.mockClear();
 			instance.pop();
@@ -411,12 +469,234 @@ describe('ArmorCircularQueue', () => {
 		});
 	});
 
-	describe('parse', () => {});
-	describe('stringify', () => {});
+	describe('parse', () => {
+		it('should return null if argument is not a string with length > 0', () => {
+			expect(instance.parse(4 as any)).toBeNull();
+			expect(instance.parse([] as any)).toBeNull();
+			expect(instance.parse({} as any)).toBeNull();
+			expect(instance.parse('' as any)).toBeNull();
+			expect(instance.parse(false as any)).toBeNull();
+		});
 
-	describe('parseOptions', () => {});
-	describe('parseOptionsState', () => {});
+		it('should return null if string cant be parsed', () => {
+			expect(instance.parse('[4,3,')).toBeNull();
+			expect(instance.parse('{left:f,right:')).toBeNull();
+		});
 
-	describe('clear', () => {});
+		it('should return null when a parsable string does not parse into an ArmorCircularQueueState', () => {
+			expect(instance.parse('{elements:[], type: "pqState"}')).toBeNull();
+			expect(instance.parse('{}')).toBeNull();
+			expect(instance.parse('[1,2,3]')).toBeNull();
+		});
+
+		it('should return an ArmorCircularQueueState when a parsable string is passed', () => {
+			const string = instance.stringify();
+			expect(string).not.toBeNull();
+			expect(instance.parse(string as string)).toStrictEqual(instance.state);
+			expect(
+				instance.parse('{"elements": [], "front": 0, "maxSize": 4, "rear": 0, "size": 0, "type": "cqState"}')
+			).toStrictEqual(instance.state);
+		});
+	});
+	describe('stringify', () => {
+		it('should run isValidState check', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			instance.stringify();
+
+			expect(spy).toBeCalled();
+		});
+
+		it('should return null if state is invalid', () => {
+			const custom = new ArmorCircularQueue<number>(10);
+			custom.state.maxSize = 0;
+			expect(custom.stringify()).toBeNull();
+			custom.state = null!;
+			expect(custom.state).toBeNull();
+			expect(custom.stringify()).toBeNull();
+			delete custom.state;
+			expect(custom.state).toBeUndefined();
+			expect(custom.stringify()).toBeNull();
+		});
+
+		it('should return the state as a string if it is validated', () => {
+			const custom = new ArmorCircularQueue<number>(10);
+			expect(custom.stringify()).toBe(
+				'{"type":"cqState","maxSize":10,"elements":[],"front":0,"rear":0,"size":0}'
+			);
+
+			custom.push(1);
+			expect(custom.stringify()).toBe(
+				'{"type":"cqState","maxSize":10,"elements":[1],"front":0,"rear":1,"size":1}'
+			);
+
+			custom.push(2);
+			expect(custom.stringify()).toBe(
+				'{"type":"cqState","maxSize":10,"elements":[1,2],"front":0,"rear":2,"size":2}'
+			);
+
+			custom.pop();
+			expect(custom.stringify()).toBe(
+				'{"type":"cqState","maxSize":10,"elements":[1,2],"front":1,"rear":2,"size":1}'
+			);
+		});
+	});
+
+	describe('parseOptions', () => {
+		it('should return void if options is falsey', () => {
+			expect(instance.parseOptions(null!)).toBeFalsy();
+			expect(instance.parseOptions(undefined!)).toBeFalsy();
+		});
+
+		it('should call parseOptionsState if options has state property', () => {
+			const spy = jest.spyOn(instance, 'parseOptionsState');
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: ''});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: '{}'});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: {} as ArmorCircularQueueState<number>});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: null!});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: instance.state});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: instance.stringify() as string});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+		});
+	});
+	describe('parseOptionsState', () => {
+		it('should return void if state is falsey', () => {
+			expect(instance.parseOptionsState(null!)).toBeFalsy();
+			expect(instance.parseOptionsState(undefined!)).toBeFalsy();
+			expect(instance.parseOptionsState('')).toBeFalsy();
+		});
+
+		it('should run isValidState check', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			instance.parseOptionsState(instance.state);
+			expect(spy).toBeCalled();
+
+			spy.mockClear();
+			instance.parseOptionsState(instance.stringify()!);
+			expect(spy).toBeCalled();
+		});
+
+		it('should throw if state is not valid', () => {
+			expect(() => {
+				instance.parseOptionsState({} as ArmorCircularQueueState<number>);
+			}).toThrow();
+			expect(() => {
+				instance.parseOptionsState('{}');
+			}).toThrow();
+			const stateString = instance.stringify()!;
+			const stateObject = instance.parse(stateString)!;
+			stateObject.maxSize = null!;
+			expect(() => {
+				instance.parseOptionsState(stateString.replace(/elements/, 'elmnts'));
+			}).toThrow();
+			expect(() => {
+				instance.parseOptionsState(stateObject as ArmorCircularQueueState<number>);
+			}).toThrow();
+		});
+	});
+
+	describe('clear', () => {
+		const defstate = {
+			type: 'cqState',
+			front: 0,
+			rear: 0,
+			size: 0,
+			elements: [],
+			maxSize: maxSize
+		}
+		it('should not throw when state has errors', () => {
+			instance.state.size = .5;
+			instance.state.front = 99;
+			instance.state.rear = undefined!;
+			instance.state.elements = [];
+			expect(() => {
+				instance.clear();
+			}).not.toThrow();
+		});
+
+		it('should remove all data from cq when size is 1', () => {
+			expect(instance.state.size).toBe(0);
+
+			instance.push(Math.floor(Math.random() * 999));
+			expect(instance.state.size).toBe(1);
+			instance.clear();
+			expect(instance.state).toStrictEqual(defstate);
+			
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.pop();
+			expect(instance.state.size).toBe(1);
+			instance.clear();
+			expect(instance.state).toStrictEqual(defstate);
+		});
+
+		it('should remove all data from cq', () => {
+			expect(instance.state.size).toBe(0);
+
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			expect(instance.state.size).toBe(4);
+			instance.clear();
+			expect(instance.state).toStrictEqual(defstate);
+			
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.pop();
+			expect(instance.state.size).toBe(3);
+			instance.clear();
+			expect(instance.state).toStrictEqual(defstate);
+			
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.pop();
+			instance.pop();
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			instance.push(Math.floor(Math.random() * 999));
+			expect(instance.state.size).toBe(4);
+			instance.clear();
+			expect(instance.state).toStrictEqual(defstate);
+		});
+
+	});
 	describe('select', () => {});
 });
