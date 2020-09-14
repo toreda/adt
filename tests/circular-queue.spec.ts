@@ -9,8 +9,8 @@ describe('ArmorCircularQueue', () => {
 	const FALSY_INT_VALUES = [null, undefined, ''];
 	const INVALID_INT_VALUES = ['1.5', '-1', '0', '1', '1.5', NaN];
 	const FLOAT_VALUES = [-9.9, -0.5, 0.5, 9.9];
-	const NEG_INT_VALUES = [1, 10];
-	const POS_INT_VALUES = [-1, -10];
+	const NEG_INT_VALUES = [-1, -10];
+	const POS_INT_VALUES = [1, 10];
 
 	beforeAll(() => {
 		instance = new ArmorCircularQueue<number>(maxSize);
@@ -83,7 +83,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.type is not "cqState"', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [null, undefined];
+			const types = [null, undefined, ''];
 			types.forEach((type) => {
 				custom.state.type = type as 'cqState';
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -92,7 +92,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.size is not an integer >= 0', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [].concat(FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES, NEG_INT_VALUES);
+			const types: any[] = (FALSY_INT_VALUES as any[]).concat(FLOAT_VALUES, INVALID_INT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				custom.state.size = type!;
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -101,7 +101,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.maxSize is not an integer >= 1', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [].concat([0], FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES, NEG_INT_VALUES);
+			const types: any[] = [0 as any].concat(FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				custom.state.maxSize = type!;
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -110,7 +110,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.front is not an integer', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [].concat([FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES]);
+			const types = (FALSY_INT_VALUES as any[]).concat(FLOAT_VALUES, INVALID_INT_VALUES);
 			types.forEach((type) => {
 				custom.state.front = type!;
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -119,7 +119,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.rear is not an integer', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [].concat([FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES]);
+			const types = (FALSY_INT_VALUES as any[]).concat(FLOAT_VALUES, INVALID_INT_VALUES);
 			types.forEach((type) => {
 				custom.state.rear = type!;
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -147,7 +147,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should return -1 if value is not an integer', () => {
-			const indices = [].concat([FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES]);
+			const indices = (FALSY_INT_VALUES as any[]).concat(FLOAT_VALUES, INVALID_INT_VALUES);
 			indices.forEach((index) => {
 				expect(instance.wrapIndex(index as number)).toBe(-1);
 			});
@@ -705,12 +705,18 @@ describe('ArmorCircularQueue', () => {
 			const spy = jest.spyOn(instance, 'isValidState');
 
 			spy.mockClear();
-			instance.parseOptionsState(instance.state);
-			expect(spy).toBeCalled();
-
-			spy.mockClear();
 			instance.parseOptionsState(instance.stringify()!);
 			expect(spy).toBeCalled();
+		});
+
+		it('should not run isValidState check and not throw', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			expect( () => {
+				instance.parseOptionsState(instance.state);
+			}).not.toThrow();
+			expect(spy).not.toBeCalled();
 		});
 
 		it('should throw if state is not valid', () => {

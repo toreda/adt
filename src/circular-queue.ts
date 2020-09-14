@@ -64,19 +64,22 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		} else {
 			result = state;
 
-			if (result.elements && !Array.isArray(result.elements)) {
+			if (state.type !== 'cqState') {
+				throw new Error('state must be an ArmorCircularQueueState');
+			}
+			if (!Array.isArray(result.elements)) {
 				throw new Error('state elements must be an array');
 			}
-			if (result.maxSize && this.isInteger(result.maxSize)) {
+			if (!this.isInteger(result.maxSize)) {
 				throw new Error('state maxSize must be an integer');
 			}
-			if (result.size && this.isInteger(result.size)) {
-				throw new Error('state size must ben integer number');
+			if (!this.isInteger(result.size)) {
+				throw new Error('state size must be an integer number');
 			}
-			if (result.maxSize && this.isInteger(result.front)) {
+			if (!this.isInteger(result.front)) {
 				throw new Error('state front must be an integer');
 			}
-			if (result.maxSize && this.isInteger(result.rear)) {
+			if (!this.isInteger(result.rear)) {
 				throw new Error('state rear must be an integer');
 			}
 		}
