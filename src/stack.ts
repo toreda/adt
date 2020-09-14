@@ -1,7 +1,7 @@
-import {ArmorCollection} from './collection';
-import {ArmorCollectionSelector} from './selector';
+import ArmorCollection from './collection';
+import ArmorCollectionSelector from './selector';
 
-export class ArmorStack<T> implements ArmorCollection<T> {
+export default class ArmorStack<T> implements ArmorCollection<T> {
 	public _elements: T[];
 	public size: number;
 	public _top: number;
@@ -12,20 +12,6 @@ export class ArmorStack<T> implements ArmorCollection<T> {
 		this._top = -1;
 		this._bottom = 0;
 		this._elements = [];
-	}
-
-	public select(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
-
-		return selector;
-	}
-
-	public clear(): ArmorStack<T> {
-		this._elements = [];
-		this._bottom = 0;
-		this._top = -1;
-		this.size = 0;
-		return this;
 	}
 
 	public push(element: T): ArmorStack<T> {
@@ -63,7 +49,6 @@ export class ArmorStack<T> implements ArmorCollection<T> {
 		return this._elements[this._bottom];
 	}
 
-
 	public reverse(): ArmorStack<T> {
 		if (this.size <= 1) {
 			return this;
@@ -71,5 +56,34 @@ export class ArmorStack<T> implements ArmorCollection<T> {
 
 		this._elements = this._elements.reverse();
 		return this;
+	}
+
+	public parse(data: string): any | null {
+		return null;
+	}
+
+	public stringify(): string | null {
+		return null;
+	}
+
+	public clearElements(): ArmorStack<T> {
+		this._elements = [];
+		this._top = -1;
+		this.size = 0;
+
+		return this;
+	}
+
+	public reset(): ArmorStack<T> {
+		this.clearElements();
+		this._bottom = 0;
+
+		return this;
+	}
+
+	public select(): ArmorCollectionSelector<T> {
+		const selector = new ArmorCollectionSelector<T>(this);
+
+		return selector;
 	}
 }

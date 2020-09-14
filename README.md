@@ -54,7 +54,7 @@ const result2 = queue.pop();
 const result3 = queue.pop();
 
 // Reset queue and remove all elements.
-queue.clear();
+queue.reset();
 
 
 // Queue 3 items via chained push calls.
@@ -98,7 +98,7 @@ const result2 = priorityQueue.pop();
 const result3 = priorityQueue.pop();
 
 // Reset priority queue and remove all elements
-priorityQueue.clear();
+priorityQueue.reset();
 
 // Add 3 elements via chained push calls
 priorityQueue.push(30).push(10).push(20);
@@ -176,7 +176,7 @@ const serialized = circularQueue.stringify();
 const circularQueueFromSerialized = new ArmorCircularQueue([], circularQueueComparator, serialized);
 
 // Reset circular queue and remove all elements
-circularQueue.clear();
+circularQueue.reset();
 
 ```
 

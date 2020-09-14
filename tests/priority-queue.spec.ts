@@ -33,7 +33,7 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	beforeEach(() => {
-		instance.clear();
+		instance.reset();
 	});
 
 	describe('constructor', () => {
@@ -266,7 +266,7 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		beforeEach(() => {
-			unchanged.clear();
+			unchanged.reset();
 		});
 
 		const params = [
@@ -812,7 +812,7 @@ describe('ArmorPriorityQueue', () => {
 		it('should not throw when priority queue is empty', () => {
 			expect(instance.size()).toBe(0);
 			expect(() => {
-				instance.clear();
+				instance.reset();
 			}).not.toThrow();
 		});
 
@@ -822,7 +822,7 @@ describe('ArmorPriorityQueue', () => {
 			instance.push(Math.floor(Math.random() * 999));
 
 			expect(instance.size()).toBe(1);
-			instance.clear();
+			instance.reset();
 			expect(instance.size()).toBe(0);
 		});
 
@@ -833,7 +833,7 @@ describe('ArmorPriorityQueue', () => {
 				instance.push(Math.floor(Math.random() * 999));
 			}
 
-			instance.clear();
+			instance.reset();
 			expect(instance.size()).toBe(0);
 		});
 	});

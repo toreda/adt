@@ -1,7 +1,7 @@
-import { ArmorCollection } from './collection';
+import ArmorCollection from './collection';
 import { ArmorCollectionQuery } from './query';
 
-export class ArmorCollectionSelector<T> {
+export default class ArmorCollectionSelector<T> {
 	public readonly collection: ArmorCollection<T>;
 
 	constructor(collection: ArmorCollection<T>, query?: ArmorCollectionQuery) {

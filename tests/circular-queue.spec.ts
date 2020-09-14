@@ -6,13 +6,18 @@ describe('ArmorCircularQueue', () => {
 	const items = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 	const maxSize = 4;
 
+	const FALSY_INT_VALUES = [null, undefined, ''];
+	const INVALID_INT_VALUES = ['1.5', '-1', '0', '1', '1.5', NaN];
+	const FLOAT_VALUES = [-9.9, -0.5, 0.5, 9.9];
+	const NEG_INT_VALUES = [1, 10];
+	const POS_INT_VALUES = [-1, -10];
+
 	beforeAll(() => {
 		instance = new ArmorCircularQueue<number>(maxSize);
 	});
 
 	beforeEach(() => {
-		instance.clear();
-		instance.overwrite = false;
+		instance.reset();
 	});
 
 	describe('constructor', () => {
@@ -78,7 +83,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.type is not "cqState"', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [null, undefined, ''];
+			const types = [null, undefined];
 			types.forEach((type) => {
 				custom.state.type = type as 'cqState';
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -87,7 +92,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.size is not an integer >= 0', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [-9, -1.5, -1, 0.5, 10.5, null, undefined];
+			const types = [].concat(FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				custom.state.size = type!;
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -96,7 +101,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.maxSize is not an integer >= 1', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [-9, -1.5, -1, 0, 0.5, 10.5, null, undefined];
+			const types = [].concat([0], FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				custom.state.maxSize = type!;
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -105,7 +110,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.front is not an integer', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [-1.5, 0.5, 7.5, null, undefined];
+			const types = [].concat([FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES]);
 			types.forEach((type) => {
 				custom.state.front = type!;
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -114,7 +119,7 @@ describe('ArmorCircularQueue', () => {
 
 		it('should return false if state.rear is not an integer', () => {
 			const custom = new ArmorCircularQueue<number>(maxSize);
-			const types = [-1.5, 0.5, 7.5, null, undefined];
+			const types = [].concat([FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES]);
 			types.forEach((type) => {
 				custom.state.rear = type!;
 				expect(custom.isValidState(custom.state)).toBe(false);
@@ -142,7 +147,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should return -1 if value is not an integer', () => {
-			const indices = [-1.5, 0.5, 2.5, 99.9, null, undefined];
+			const indices = [].concat([FALSY_INT_VALUES, FLOAT_VALUES, INVALID_INT_VALUES]);
 			indices.forEach((index) => {
 				expect(instance.wrapIndex(index as number)).toBe(-1);
 			});
@@ -727,7 +732,7 @@ describe('ArmorCircularQueue', () => {
 		});
 	});
 
-	describe('clear', () => {
+	describe('reset', () => {
 		const defstate = {
 			type: 'cqState',
 			front: 0,
@@ -742,7 +747,7 @@ describe('ArmorCircularQueue', () => {
 			instance.state.rear = undefined!;
 			instance.state.elements = [];
 			expect(() => {
-				instance.clear();
+				instance.reset();
 			}).not.toThrow();
 		});
 
@@ -751,14 +756,14 @@ describe('ArmorCircularQueue', () => {
 
 			instance.push(Math.floor(Math.random() * 999));
 			expect(instance.state.size).toBe(1);
-			instance.clear();
+			instance.reset();
 			expect(instance.state).toStrictEqual(defstate);
 
 			instance.push(Math.floor(Math.random() * 999));
 			instance.push(Math.floor(Math.random() * 999));
 			instance.pop();
 			expect(instance.state.size).toBe(1);
-			instance.clear();
+			instance.reset();
 			expect(instance.state).toStrictEqual(defstate);
 		});
 
@@ -770,7 +775,7 @@ describe('ArmorCircularQueue', () => {
 			instance.push(Math.floor(Math.random() * 999));
 			instance.push(Math.floor(Math.random() * 999));
 			expect(instance.state.size).toBe(4);
-			instance.clear();
+			instance.reset();
 			expect(instance.state).toStrictEqual(defstate);
 
 			instance.push(Math.floor(Math.random() * 999));
@@ -779,7 +784,7 @@ describe('ArmorCircularQueue', () => {
 			instance.push(Math.floor(Math.random() * 999));
 			instance.pop();
 			expect(instance.state.size).toBe(3);
-			instance.clear();
+			instance.reset();
 			expect(instance.state).toStrictEqual(defstate);
 
 			instance.push(Math.floor(Math.random() * 999));
@@ -793,7 +798,7 @@ describe('ArmorCircularQueue', () => {
 			instance.push(Math.floor(Math.random() * 999));
 			instance.push(Math.floor(Math.random() * 999));
 			expect(instance.state.size).toBe(4);
-			instance.clear();
+			instance.reset();
 			expect(instance.state).toStrictEqual(defstate);
 		});
 	});

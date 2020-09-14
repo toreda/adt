@@ -1,10 +1,10 @@
-import {ArmorCollection} from './collection';
+import ArmorCollection from './collection';
 import {ArmorCollectionElement} from './collection-element';
 import {ArmorCollectionQuery} from './query';
-import {ArmorCollectionSelector} from './selector';
+import ArmorCollectionSelector from './selector';
 import {ArmorLinkedListElement} from './linked-list-element';
 
-export class ArmorLinkedList<T> implements ArmorCollection<T> {
+export default class ArmorLinkedList<T> implements ArmorCollection<T> {
 	public length: number;
 	public _head: ArmorLinkedListElement<T> | null;
 	public _tail: ArmorLinkedListElement<T> | null;
@@ -65,27 +65,6 @@ export class ArmorLinkedList<T> implements ArmorCollection<T> {
 	}
 
 	/**
-	 * Remove all elements from the linked list.
-	 */
-	public clear(): ArmorLinkedList<T> {
-		let curr = this._head;
-
-		while (curr !== null) {
-			const next = curr.next();
-			curr.prev(null);
-			curr.next(null);
-
-			curr = next;
-		}
-
-		this._head = null;
-		this._tail = null;
-		this.length = 0;
-
-		return this;
-	}
-
-	/**
 	 * Insert element at the end of the list.
 	 */
 	public insert(element: T): ArmorLinkedListElement<T> {
@@ -131,6 +110,41 @@ export class ArmorLinkedList<T> implements ArmorCollection<T> {
 
 		++this.length;
 		return node;
+	}
+
+	public parse(data: string): any | null {
+		return null;
+	}
+
+	public stringify(): string | null {
+		return null;
+	}
+
+	/**
+	 * Remove all elements from the linked list.
+	 */
+	public clearElements(): ArmorLinkedList<T> {
+		let curr = this._head;
+
+		while (curr !== null) {
+			const next = curr.next();
+			curr.prev(null);
+			curr.next(null);
+
+			curr = next;
+		}
+
+		this._head = null;
+		this._tail = null;
+		this.length = 0;
+
+		return this;
+	}
+
+	public reset(): ArmorLinkedList<T> {
+		this.clearElements();
+
+		return this;
 	}
 
 	public select(query?: ArmorCollectionQuery): ArmorCollectionSelector<T> {
