@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added Priority Queue ADT
+- Added Circular Queue ADT
 
 - Initial early release. Project API is not stable until v1.0.0. Types
 
