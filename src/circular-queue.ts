@@ -106,14 +106,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 			return null;
 		}
 
-		let result: string | null = null;
-
-		result = JSON.stringify(this.state);
-		if (!this.parse(result)) {
-			result = null;
-		}
-
-		return result;
+		return JSON.stringify(this.state);
 	}
 
 	public wrapIndex(n: number): number {
@@ -201,7 +194,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		if (index >= 0) {
 			index = this.state.front + index;
 		} else {
-			index = this.state.rear - index;
+			index = ( this.state.rear - 1 ) + index;
 		}
 
 		return this.state.elements[this.wrapIndex(index)];

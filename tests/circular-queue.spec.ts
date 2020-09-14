@@ -315,6 +315,11 @@ describe('ArmorCircularQueue', () => {
 			expect(spy).toBeCalled();
 		});
 
+		it('should return null if isValidState returns false', () => {
+			instance.state.size = -1;
+			expect(instance.getIndex(0)).toBeNull();
+		});
+
 		it('should return null if index is not an integer', () => {
 			const indices = [-1.5, 0.5, 1.5, maxSize + 0.5, null, undefined];
 			indices.forEach((index) => {
@@ -356,6 +361,27 @@ describe('ArmorCircularQueue', () => {
 			expect(instance.getIndex(3)).toBe(5);
 			expect(instance.getIndex(4)).toBe(2);
 		});
+
+		it('should return the element n indices after front if n is a negative integer', () => {
+			instance.state.elements = [-1, -1, -1, -1];
+			instance.push(1);
+			instance.push(2);
+			// [1,2,-1,-1]
+			expect(instance.getIndex(-1)).toBe(1);
+			expect(instance.getIndex(-2)).toBe(-1);
+			instance.pop();
+			// [1,2,-1,-1]
+			expect(instance.getIndex(-1)).toBe(1);
+			expect(instance.getIndex(-2)).toBe(-1);
+			instance.push(3);
+			instance.push(4);
+			instance.push(5);
+			// [5,2,3,4]
+			expect(instance.getIndex(-1)).toBe(4);
+			expect(instance.getIndex(-2)).toBe(3);
+			expect(instance.getIndex(-3)).toBe(2);
+			expect(instance.getIndex(-4)).toBe(5);
+		});
 	});
 
 	describe('push', () => {
@@ -366,6 +392,11 @@ describe('ArmorCircularQueue', () => {
 			instance.push(1);
 
 			expect(spy).toBeCalled();
+		});
+
+		it('should return false if isValidState returns false', () => {
+			instance.state.size = -1;
+			expect(instance.push(0)).toBe(false);
 		});
 
 		it('should return false and leave cq alone if cq is full', () => {
@@ -430,6 +461,11 @@ describe('ArmorCircularQueue', () => {
 			instance.pop();
 
 			expect(spy).toBeCalled();
+		});
+
+		it('should return null if isValidState returns false', () => {
+			instance.state.size = -1;
+			expect(instance.pop()).toBeNull();
 		});
 
 		it('should return null when cq is empty', () => {
@@ -635,9 +671,9 @@ describe('ArmorCircularQueue', () => {
 			size: 0,
 			elements: [],
 			maxSize: maxSize
-		}
+		};
 		it('should not throw when state has errors', () => {
-			instance.state.size = .5;
+			instance.state.size = 0.5;
 			instance.state.front = 99;
 			instance.state.rear = undefined!;
 			instance.state.elements = [];
@@ -653,7 +689,7 @@ describe('ArmorCircularQueue', () => {
 			expect(instance.state.size).toBe(1);
 			instance.clear();
 			expect(instance.state).toStrictEqual(defstate);
-			
+
 			instance.push(Math.floor(Math.random() * 999));
 			instance.push(Math.floor(Math.random() * 999));
 			instance.pop();
@@ -672,7 +708,7 @@ describe('ArmorCircularQueue', () => {
 			expect(instance.state.size).toBe(4);
 			instance.clear();
 			expect(instance.state).toStrictEqual(defstate);
-			
+
 			instance.push(Math.floor(Math.random() * 999));
 			instance.push(Math.floor(Math.random() * 999));
 			instance.push(Math.floor(Math.random() * 999));
@@ -681,7 +717,7 @@ describe('ArmorCircularQueue', () => {
 			expect(instance.state.size).toBe(3);
 			instance.clear();
 			expect(instance.state).toStrictEqual(defstate);
-			
+
 			instance.push(Math.floor(Math.random() * 999));
 			instance.push(Math.floor(Math.random() * 999));
 			instance.push(Math.floor(Math.random() * 999));
@@ -696,7 +732,6 @@ describe('ArmorCircularQueue', () => {
 			instance.clear();
 			expect(instance.state).toStrictEqual(defstate);
 		});
-
 	});
 	describe('select', () => {});
 });
