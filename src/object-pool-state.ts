@@ -1,7 +1,4 @@
-import { ArmorObjectPoolOptions } from './object-pool-options';
-
-export class ArmorObjectPoolState {
-	constructor(options?: ArmorObjectPoolOptions) {
-
-	}
+export default interface ArmorObjectPoolState<T> {
+	type: 'opState';
+	elements: Array<T>;
 }
