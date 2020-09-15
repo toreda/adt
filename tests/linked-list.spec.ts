@@ -1,6 +1,6 @@
 import { ArmorCollectionQuery } from '../src/query';
-import { ArmorCollectionSelector } from '../src/selector';
-import {ArmorLinkedList} from '../src/linked-list';
+import ArmorCollectionSelector from '../src/selector';
+import ArmorLinkedList from '../src/linked-list';
 
 describe('ArmorLinkedList', () => {
 	let instance: ArmorLinkedList<number>;
@@ -10,7 +10,7 @@ describe('ArmorLinkedList', () => {
 	});
 
 	beforeEach(() => {
-		instance.clear();
+		instance.reset();
 	});
 
 	describe('Constructor', () => {
@@ -199,18 +199,18 @@ describe('ArmorLinkedList', () => {
 			});
 		});
 
-		describe('clear', () => {
+		describe('reset', () => {
 			it('should set _head to null', () => {
 				instance.insert(55019);
 				expect(instance._head).not.toBeNull();
-				instance.clear();
+				instance.reset();
 				expect(instance._head).toBeNull();
 			});
 
 			it('should set _tail to null', () => {
 				instance.insert(66019);
 				expect(instance._tail).not.toBeNull();
-				instance.clear();
+				instance.reset();
 				expect(instance._tail).toBeNull();
 			});
 
@@ -218,12 +218,12 @@ describe('ArmorLinkedList', () => {
 				instance.insert(66019);
 				instance.insert(11102);
 				expect(instance.length).toBe(2);
-				instance.clear();
+				instance.reset();
 				expect(instance.length).toBe(0);
 			});
 
 			it('should return the linked list instance', () => {
-				const result = instance.clear();
+				const result = instance.reset();
 				expect(result instanceof ArmorLinkedList).toBe(true);
 				expect(result).toBe(instance);
 			});

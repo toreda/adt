@@ -1,12 +1,12 @@
 import {ArmorActionResult} from '@armorjs/action-result';
-import {ArmorCollection} from './collection';
+import ArmorCollection from './collection';
 import {ArmorCollectionElement} from './collection-element';
-import {ArmorCollectionSelector} from './selector';
+import ArmorCollectionSelector from './selector';
 import {ArmorQueueCallable} from './callable';
 import {ArmorQueueCallableSync} from './callable-sync';
 import {ArmorQueueOptions} from './options';
 
-export class ArmorQueue<T> implements ArmorCollection<T> {
+export default class ArmorQueue<T> implements ArmorCollection<T> {
 	public elements: T[];
 
 	constructor(elements: T[] = []) {
@@ -17,12 +17,6 @@ export class ArmorQueue<T> implements ArmorCollection<T> {
 		} else {
 			this.elements = [];
 		}
-	}
-
-	public select(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
-
-		return selector;
 	}
 
 	/**
@@ -77,20 +71,40 @@ export class ArmorQueue<T> implements ArmorCollection<T> {
 		return this.elements.length === 0;
 	}
 
-	/**
-	 * Clear all elements from queue.
-	 */
-	public clear(): ArmorQueue<T> {
-		this.elements = [];
-
-		return this;
-	}
-
 	/** Reverse stored element order. */
 	public reverse(): ArmorQueue<T> {
 		this.elements.reverse();
 
 		return this;
+	}
+
+	public parse(data: string): any | null {
+		return null;
+	}
+
+	public stringify(): string | null {
+		return null;
+	}
+
+	/**
+	 * Clear all elements from queue.
+	 */
+	public clearElements(): ArmorQueue<T> {
+		this.elements = [];
+
+		return this;
+	}
+
+	public reset(): ArmorQueue<T> {
+		this.clearElements();
+
+		return this;
+	}
+
+	public select(): ArmorCollectionSelector<T> {
+		const selector = new ArmorCollectionSelector<T>(this);
+
+		return selector;
 	}
 
 	public executeOnAllSync(callable: ArmorQueueCallableSync): ArmorActionResult {

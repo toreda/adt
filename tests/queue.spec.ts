@@ -1,4 +1,4 @@
-import { ArmorQueue } from '../src/queue';
+import ArmorQueue from '../src/queue';
 import {ArmorQueueCallable} from '../src/callable';
 
 const mockItem = 14;
@@ -17,7 +17,7 @@ describe('ArmorQueue', () => {
 	});
 
 	beforeEach(() => {
-		instance.clear();
+		instance.reset();
 	});
 
 	describe('Constructor', () => {
@@ -151,7 +151,7 @@ describe('ArmorQueue', () => {
 
 	describe('isEmpty', () => {
 		it('should return true when queue has no items', () => {
-			instance.clear();
+			instance.clearElements();
 			expect(instance.size()).toBe(0);
 			expect(instance.isEmpty()).toBe(true);
 		});
@@ -170,11 +170,11 @@ describe('ArmorQueue', () => {
 		});
 	});
 
-	describe('clear', () => {
+	describe('reset', () => {
 		it('should not throw when queue is empty', () => {
 			expect(instance.size()).toBe(0);
 			expect(() => {
-				instance.clear();
+				instance.reset();
 			}).not.toThrow();
 		});
 
@@ -187,7 +187,7 @@ describe('ArmorQueue', () => {
 			});
 
 			expect(instance.front()).toBe(items[0]);
-			instance.clear();
+			instance.reset();
 			expect(instance.size()).toBe(0);
 		});
 	});

@@ -1,5 +1,5 @@
-import {ArmorCollection} from './collection';
-import {ArmorCollectionSelector} from './selector';
+import ArmorCollection from './collection';
+import ArmorCollectionSelector from './selector';
 import ArmorPriorityQueueComparator from './priority-queue-comparator';
 import ArmorPriorityQueueNodeChildren from './priority-queue-children';
 import ArmorPriorityQueueOptions from './priority-queue-options';
@@ -66,47 +66,6 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		result.elements.forEach((element) => {
 			this.push(element);
 		});
-	}
-
-	public stringify(): string | null {
-		let result: string | null = null;
-
-		result = JSON.stringify(this.state);
-		if (!this.parse(result)) {
-			result = null;
-		}
-
-		return result;
-	}
-
-	public parse(o: string): ArmorPriorityQueueState<T> | null {
-		if (typeof o !== 'string' || o === '') {
-			return null;
-		}
-
-		let result: ArmorPriorityQueueState<T> | null = null;
-		try {
-			result = JSON.parse(o);
-			if (!result || !result.type || result.type !== 'pqState') {
-				return null;
-			}
-		} catch (error) {
-			result = null;
-		}
-
-		return result;
-	}
-
-	public select(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
-
-		return selector;
-	}
-
-	public clear(): ArmorPriorityQueue<T> {
-		this.state.elements = [];
-
-		return this;
 	}
 
 	public size(): number {
@@ -306,5 +265,52 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		this.fixHeap(0);
 
 		return highestPriority;
+	}
+
+	public stringify(): string | null {
+		let result: string | null = null;
+
+		result = JSON.stringify(this.state);
+		if (!this.parse(result)) {
+			result = null;
+		}
+
+		return result;
+	}
+
+	public parse(o: string): ArmorPriorityQueueState<T> | null {
+		if (typeof o !== 'string' || o === '') {
+			return null;
+		}
+
+		let result: ArmorPriorityQueueState<T> | null = null;
+		try {
+			result = JSON.parse(o);
+			if (!result || !result.type || result.type !== 'pqState') {
+				return null;
+			}
+		} catch (error) {
+			result = null;
+		}
+
+		return result;
+	}
+
+	public clearElements(): ArmorPriorityQueue<T> {
+		this.state.elements = [];
+
+		return this;
+	}
+
+	public reset(): ArmorPriorityQueue<T> {
+		this.clearElements();
+
+		return this;
+	}
+
+	public select(): ArmorCollectionSelector<T> {
+		const selector = new ArmorCollectionSelector<T>(this);
+
+		return selector;
 	}
 }

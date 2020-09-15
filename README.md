@@ -14,6 +14,7 @@ Collection of simple data structures with typescript interfaces.
 -   [License](#license)
 
 ## About ArmorJS
+
 [Learn more about ArmorJS](https://github.com/armorjs/_project-home)
 
 ## Install
@@ -29,6 +30,7 @@ With NPM:
 ### Queue
 
 Typescript
+
 ```
 // Import
 import {ArmorQueue} from '@armorjs/collections';
@@ -52,7 +54,7 @@ const result2 = queue.pop();
 const result3 = queue.pop();
 
 // Reset queue and remove all elements.
-queue.clear();
+queue.reset();
 
 
 // Queue 3 items via chained push calls.
@@ -67,6 +69,7 @@ queue.reverse();
 ### Priority Queue
 
 Typescript
+
 ```
 // Import
 import {ArmorPriorityQueue} from '@armorjs/collections';
@@ -95,7 +98,7 @@ const result2 = priorityQueue.pop();
 const result3 = priorityQueue.pop();
 
 // Reset priority queue and remove all elements
-priorityQueue.clear();
+priorityQueue.reset();
 
 // Add 3 elements via chained push calls
 priorityQueue.push(30).push(10).push(20);
@@ -107,11 +110,79 @@ const serialized = priorityQueue.stringify();
 const priorityQueueFromSerialized = new ArmorPriorityQueue([], priorityQueueComparator, serialized);
 ```
 
+### Circular Queue
+
+Typescript
+
+```
+// Import
+import {ArmorCircularQueue} from '@armorjs/collections';
+
+// Instantiate
+const maxSize = 4;
+const circularQueue = new ArmorCircularQueue<number>(maxSize);
+const circularBuffer = new ArmorCircularQueue<number>(maxSize, {overwrite: true});
+
+// Add element to the queue
+circularQueue.push(10) // returns true;
+circularQueue.push(20) // returns true;
+circularQueue.push(30) // returns true;
+circularQueue.push(40) // returns true;
+circularQueue.push(50) // returns false;
+
+circularBuffer.push(10) // returns true;
+circularBuffer.push(20) // returns true;
+circularBuffer.push(30) // returns true;
+circularBuffer.push(40) // returns true;
+circularBuffer.push(50) // returns true;
+
+// Get first element added to queue
+circularQueue.front(); // returns 10
+circularBuffer.front(); // returns 20
+
+// Get last element added to queue
+circularQueue.rear(); // returns 40
+circularBuffer.rear(); // returns 50
+
+// Get nth-after-first element added to queue
+circularQueue.getIndex(1); // returns 20
+circularQueue.getIndex(2); // returns 30
+circularBuffer.getIndex(1); // returns 30
+circularBuffer.getIndex(2); // returns 40
+
+// Get nth-to-last element added to queue
+circularQueue.getIndex(-1); // returns 30
+circularQueue.getIndex(-2); // returns 20
+circularBuffer.getIndex(-1); // returns 40
+circularBuffer.getIndex(-2); // returns 30
+
+// Remove element from the queue
+circularQueue.pop(); // returns 10
+circularQueue.pop(); // returns 20
+circularQueue.pop(); // returns 30
+circularQueue.pop(); // returns 40
+circularQueue.pop(); // returns null
+
+circularBuffer.pop(); // returns 20
+circularBuffer.pop(); // returns 30
+circularBuffer.pop(); // returns 40
+circularBuffer.pop(); // returns 50
+circularBuffer.pop(); // returns null
+
+// Returns the current state of priorityQueue as string
+const serialized = circularQueue.stringify();
+
+// Instantiate a Priority Queue using serialized state
+const circularQueueFromSerialized = new ArmorCircularQueue([], circularQueueComparator, serialized);
+
+// Reset circular queue and remove all elements
+circularQueue.reset();
+
+```
+
 ### LinkedList
 
-
 ### Stack
-
 
 ## Build
 

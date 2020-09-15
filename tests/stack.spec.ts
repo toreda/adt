@@ -1,4 +1,4 @@
-import { ArmorStack } from '../src/stack';
+import ArmorStack from '../src/stack';
 
 describe('ArmorStack', () => {
 	let instance: ArmorStack<number>;
@@ -8,7 +8,7 @@ describe('ArmorStack', () => {
 	});
 
 	beforeEach(() => {
-		instance.clear();
+		instance.reset();
 	});
 
 	describe('Constructor', () => {
@@ -67,12 +67,12 @@ describe('ArmorStack', () => {
 			});
 		});
 
-		describe('clear', () => {
+		describe('reset', () => {
 			it('should reset size to 0', () => {
 				instance.push(111);
 				instance.push(333);
 				instance.push(444);
-				instance.clear();
+				instance.reset();
 				expect(instance.size).toBe(0);
 			});
 
@@ -80,7 +80,7 @@ describe('ArmorStack', () => {
 				instance.push(1211);
 				instance.push(1233);
 				instance.push(1255);
-				instance.clear();
+				instance.reset();
 				expect(instance._top).toBe(-1);
 			});
 
@@ -88,10 +88,9 @@ describe('ArmorStack', () => {
 				instance.push(1211);
 				instance.push(1233);
 				instance.push(1255);
-				instance.clear();
+				instance.reset();
 				expect(instance._elements).toEqual([]);
 			});
-
 		});
 
 		describe('top', () => {

@@ -1,6 +1,9 @@
-import {ArmorCollectionSelector} from './selector';
+import ArmorCollectionSelector from './selector';
 
-export interface ArmorCollection<T> {
+export default interface ArmorCollection<T> {
 	select(...args: any[]): ArmorCollectionSelector<T>;
-	clear(): void;
+	clearElements(): void;
+	reset(): void;
+	parse(s: string): any;
+	stringify(): string | null;
 }
