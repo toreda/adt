@@ -6,6 +6,7 @@ import ArmorObjectPoolState from './object-pool-state';
 
 export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 	public state: ArmorObjectPoolState<T>;
+	public startSize: number = 10;
 	public readonly poolObj: ArmorObjectPoolInstance<T>;
 
 	constructor(poolObj: ArmorObjectPoolInstance<T>, options?: ArmorObjectPoolOptions<T>) {
@@ -20,6 +21,12 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			increaseFactor: 2,
 			increaseBreakPoint: 0.8
 		};
+
+		if (options) {
+			this.parseOptions(options);
+		}
+
+		this.increase(this.startSize);
 	}
 	public parseOptions(options: ArmorObjectPoolOptions<T>): void {
 		if (!options) {
@@ -75,33 +82,37 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		}
 
 		this.state.autoIncrease = result.autoIncrease;
-		this.state.objectCount = result.objectCount;
 		this.state.maxSize = result.maxSize;
 		this.state.increaseFactor = result.increaseFactor;
 		this.state.increaseBreakPoint = result.increaseBreakPoint;
 
+		this.startSize = this.state.objectCount;
 	}
 	public parseOptionsStartSize(startSize: number): void {
-		if (!this.isInteger(startSize) || startSize < 1){
+		if (!this.isInteger(startSize)) {
 			return;
 		}
 
-		this.increase(startSize);
+		this.startSize = startSize;
 	}
 
 	public utilization(n: number = 0): number {
 		if (!this.isValidState(this.state)) {
 			return NaN;
 		}
+		if (this.state.objectCount === 0) {
+			return Infinity;
+		}
 
-		const freeObj = this.state.elements.length - n;
+		let num: number = n;
+		if (isNaN(num)) {
+			num = 0;
+		}
+
+		const freeObj = this.state.elements.length - num;
 		return (this.state.objectCount - freeObj) / this.state.objectCount;
 	}
 	public isAboveThreshold(n: number = 0): boolean {
-		if (!this.isValidState(this.state)) {
-			return false;
-		}
-
 		return this.utilization(n) >= this.state.increaseBreakPoint;
 	}
 
@@ -198,11 +209,14 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			return false;
 		}
 
+		if (!this.isInteger(state.objectCount) || state.objectCount < 0) {
+			return false;
+		}
 		if (!this.isInteger(state.maxSize) || state.maxSize < 1) {
 			return false;
 		}
 
-		if (typeof state.increaseFactor !== 'number' || state.increaseFactor < 0) {
+		if (typeof state.increaseFactor !== 'number' || !(state.increaseFactor >= 0)) {
 			return false;
 		}
 
@@ -241,12 +255,19 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 
 	public clearElements(): ArmorObjectPool<T> {
 		this.state.elements = [];
+		this.state.objectCount = 0;
 
 		return this;
 	}
 	public reset(): ArmorObjectPool<T> {
 		this.clearElements();
+
 		this.state.type = 'opState';
+		this.state.maxSize = 1000;
+		this.state.increaseFactor = 2;
+		this.state.increaseBreakPoint = 0.8;
+
+		this.increase(this.startSize);
 
 		return this;
 	}

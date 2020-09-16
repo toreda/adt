@@ -7,8 +7,8 @@ describe('ArmorCircularQueue', () => {
 	const maxSize = 4;
 
 	const FALSY_INT_VALUES = [null, undefined, ''];
-	const INVALID_INT_VALUES = ['1.5', '-1', '0', '1', '1.5', NaN];
 	const FLOAT_VALUES = [-9.9, -0.5, 0.5, 9.9];
+	const INVALID_INT_VALUES = ['1.5', '-1', '0', '1', '1.5', NaN];
 	const NEG_INT_VALUES = [-1, -10];
 	const POS_INT_VALUES = [1, 10];
 
@@ -52,14 +52,14 @@ describe('ArmorCircularQueue', () => {
 
 	describe('isInteger', () => {
 		it('should return true if n is an integer', () => {
-			const types = [-9, -1, 0, 1, 9];
+			const types: any[] = ([0] as any[]).concat(NEG_INT_VALUES, POS_INT_VALUES);
 			types.forEach((type) => {
 				expect(instance.isInteger(type)).toBe(true);
 			});
 		});
 
 		it('should return false if n is not an integer', () => {
-			const types = [-9.9, -1.5, -0.5, 0.5, 1.5, 9.5, null, undefined];
+			const types: any[] = (FALSY_INT_VALUES as any[]).concat(FLOAT_VALUES, INVALID_INT_VALUES);
 			types.forEach((type) => {
 				expect(instance.isInteger(type!)).toBe(false);
 			});
