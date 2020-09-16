@@ -6,24 +6,21 @@ import ArmorObjectPoolState from './object-pool-state';
 
 export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 	public state: ArmorObjectPoolState<T>;
-	public readonly startSize: number;
-	public objectCount: number = 0;
 	public readonly poolObj: ArmorObjectPoolInstance<T>;
 
 	constructor(poolObj: ArmorObjectPoolInstance<T>, options?: ArmorObjectPoolOptions<T>) {
 		this.poolObj = poolObj;
-		this.startSize = 0;
 
 		this.state = {
 			type: 'opState',
 			elements: [],
-			maxSize: 256,
+			objectCount: 0,
+			maxSize: 1000,
 			autoIncrease: false,
 			increaseFactor: 2,
 			increaseBreakPoint: 0.8
 		};
 	}
-
 	public parseOptions(options: ArmorObjectPoolOptions<T>): void {
 		if (!options) {
 			return;
@@ -37,7 +34,6 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			this.parseOptionsStartSize(options.startSize);
 		}
 	}
-
 	public parseOptionsState(state: ArmorObjectPoolState<T> | string): void {
 		if (!state) {
 			return;
@@ -61,10 +57,9 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 				throw new Error('state autoIncrease must be a boolean');
 			}
 
-			if (!Array.isArray(result.elements)) {
-				throw new Error('state elements must be an array');
+			if (!this.isInteger(result.objectCount)) {
+				throw new Error('state objectCount must be an integer');
 			}
-
 			if (!this.isInteger(result.maxSize)) {
 				throw new Error('state maxSize must be an integer');
 			}
@@ -73,28 +68,50 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 				throw new Error('state increaseFactor must be a positive number');
 			}
 
-			const between0and1 = state.increaseBreakPoint >= 0 && state.increaseBreakPoint <= 1
-			if ( typeof result.increaseBreakPoint !== 'number' || !between0and1 ) {
+			const between0and1 = state.increaseBreakPoint >= 0 && state.increaseBreakPoint <= 1;
+			if (typeof result.increaseBreakPoint !== 'number' || !between0and1) {
 				throw new Error('state increaseBreakPoint must be a number between 0 and 1');
 			}
 		}
 
 		this.state.autoIncrease = result.autoIncrease;
+		this.state.objectCount = result.objectCount;
 		this.state.maxSize = result.maxSize;
-		this.state.elements = result.elements;
 		this.state.increaseFactor = result.increaseFactor;
 		this.state.increaseBreakPoint = result.increaseBreakPoint;
 
-		this.objectCount = this.state.elements.length;
 	}
-
 	public parseOptionsStartSize(startSize: number): void {
+		if (!this.isInteger(startSize) || startSize < 1){
+			return;
+		}
+
 		this.increase(startSize);
 	}
 
+	public utilization(n: number = 0): number {
+		if (!this.isValidState(this.state)) {
+			return NaN;
+		}
+
+		const freeObj = this.state.elements.length - n;
+		return (this.state.objectCount - freeObj) / this.state.objectCount;
+	}
+	public isAboveThreshold(n: number = 0): boolean {
+		if (!this.isValidState(this.state)) {
+			return false;
+		}
+
+		return this.utilization(n) >= this.state.increaseBreakPoint;
+	}
+
 	public get(): T | null {
-		if (this.isEmpty() && this.state.autoIncrease) {
-			this.increase(1);
+		if (!this.isValidState(this.state)) {
+			return null;
+		}
+
+		if (this.state.autoIncrease && this.isAboveThreshold(1)) {
+			this.increase(Math.ceil(this.state.objectCount * this.state.increaseFactor));
 		}
 
 		let result = this.state.elements.pop();
@@ -105,31 +122,58 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			return result;
 		}
 	}
+	public allocate(n?: number): Array<T> {
+		if (!this.isValidState(this.state)) {
+			return [];
+		}
 
-	public isEmpty(): boolean {
-		return this.state.elements.length === 0;
+		let num: number;
+		if (typeof n !== 'number') {
+			num = 1;
+		} else {
+			num = Math.max(1, Math.round(n));
+		}
+
+		let result: Array<T> = [];
+
+		while (this.state.autoIncrease && this.isAboveThreshold(num)) {
+			this.increase(Math.ceil(this.state.objectCount * this.state.increaseFactor));
+		}
+
+		for (let i = 0; i < num && this.state.elements.length; i++) {
+			result.push(this.state.elements.pop()!);
+		}
+
+		return result;
 	}
-
 	public increase(n: number): void {
-		if (this.objectCount < this.state.maxSize) {
-			this.allocate(n);
+		if (!this.isValidState(this.state)) {
+			return;
 		}
-	}
 
-	public allocate(n: number = 1): void {
-		for (let i = 0; i < n; i++) {
+		for (let i = 0; i < n && this.state.objectCount < this.state.maxSize; i++) {
 			this.store(new this.poolObj());
-			this.objectCount++;
+			this.state.objectCount++;
 		}
-	}
-
-	public store(object: T): void {
-		this.state.elements.push(object);
 	}
 
 	public release(object: T): void {
+		if (!this.isValidState(this.state)) {
+			return;
+		}
+		if (!this.poolObj || !this.poolObj.cleanObj) {
+			return;
+		}
+
 		this.poolObj.cleanObj(object);
 		this.store(object);
+	}
+	public store(object: T): void {
+		if (!this.isValidState(this.state)) {
+			return;
+		}
+
+		this.state.elements.push(object);
 	}
 
 	public isInteger(n: number): boolean {
@@ -142,7 +186,6 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 
 		return true;
 	}
-
 	public isValidState(state: ArmorObjectPoolState<T>): boolean {
 		if (!state) {
 			return false;
@@ -163,8 +206,8 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			return false;
 		}
 
-		const between0and1 = state.increaseBreakPoint >= 0 && state.increaseBreakPoint <= 1
-		if ( typeof state.increaseBreakPoint !== 'number' || !between0and1 ) {
+		const between0and1 = state.increaseBreakPoint >= 0 && state.increaseBreakPoint <= 1;
+		if (typeof state.increaseBreakPoint !== 'number' || !between0and1) {
 			return false;
 		}
 
@@ -188,7 +231,6 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 
 		return result;
 	}
-
 	public stringify(): string | null {
 		if (!this.isValidState(this.state)) {
 			return null;
@@ -202,7 +244,6 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 
 		return this;
 	}
-
 	public reset(): ArmorObjectPool<T> {
 		this.clearElements();
 		this.state.type = 'opState';

@@ -2,50 +2,81 @@ import ArmorObjectPool from '../src/object-pool';
 import ArmorObjectPoolInstance from '../src/object-pool-instance';
 
 describe('ArmorObjectPool', () => {
-	class poolObjClass{
+	class poolObjClass {
 		public name!: string;
 		public amount!: number;
 
 		constructor() {
-			this.cleanObj(this);
+			poolObjClass.cleanObj(this);
 		}
 
-		cleanObj(obj: poolObjClass): void {
-			this.name = '';
-			this.amount = 0;
+		static cleanObj(obj: poolObjClass): void{
+			obj.name = '';
+			obj.amount = 0;
 		}
 	}
 
 	let instance: ArmorObjectPool<poolObjClass>;
 
 	beforeAll(() => {
-		instance = new ArmorObjectPool(poolObjClass as ArmorObjectPoolInstance<poolObjClass>);
+		instance = new ArmorObjectPool(poolObjClass);
 	});
 
 	beforeEach(() => {
 		instance.reset();
 	});
 
-	it('Basic Testing', () => {
+	it.skip('Basic Testing', () => {
 		const log: Array<string | null> = [];
 		const logstate = function () {
-			log.push(instance.stringify());
+			log.push(((instance.stringify() as string).match(/"elements":\[.*?\]/) as Array<string>)[0]);
 		};
 
 		logstate();
 		instance.increase(2);
-		
-		logstate();
-		
-		const obj = instance.get();
-		if (obj){
-		obj.name = 'testing';
-		}
+
 		logstate();
 
-		instance.release(obj);
+		const obj = instance.get();
+		if (obj) {
+			obj.name = 'testing';
+			logstate();
+			instance.release(obj);
+		}
+
 		logstate();
 
 		console.log(log.map((v, i) => i + 1 + ') ' + v).join('\n'));
 	});
+
+	describe('constructor', () => {})
+
+	describe('isInteger', () => {})
+
+	describe('isValidState', () => {})
+
+	describe('wrapIndex', () => {})
+
+	describe('isEmpty', () => {})
+	describe('isFull', () => {})
+
+	describe('front', () => {})
+	describe('rear', () => {})
+
+	describe('getIndex', () => {})
+
+	describe('push', () => {})
+	describe('pop', () => {})
+
+	describe('parse', () => {})
+	describe('stringify', () => {})
+
+	describe('parseOptions', () => {})
+	describe('parseOptionsOverwrite', () => {})
+	describe('parseOptionsState', () => {})
+
+	describe('clearElements', () => {})
+	describe('reset', () => {})
+	describe('select', () => {});
+
 });
