@@ -39,7 +39,8 @@ describe('ArmorObjectPool', () => {
 			const custom: ArmorObjectPool<poolObjClass> = new ArmorObjectPool<poolObjClass>(poolObjClass);
 			const spy = jest.spyOn(custom, 'isValidState');
 			spy.mockClear();
-			action(custom);
+			custom.state.type = '' as any;
+			expect(action(custom)).toBeUndefined();
 			expect(spy).toBeCalled();
 		});
 	};
@@ -218,8 +219,43 @@ describe('ArmorObjectPool', () => {
 	describe('allocate', () => {});
 	describe('increase', () => {});
 
-	describe('release', () => {});
-	describe('store', () => {});
+	describe('release', () => {
+		it('should call cleanObj and store if cleanObj is defined', () => {
+			const spy1 = jest.spyOn(instance, 'store');
+			const spy2 = jest.spyOn(instance.poolObj, 'cleanObj');
+
+			spy1.mockClear();
+			spy2.mockClear();
+
+			instance.release({} as any);
+
+			expect(spy1).toBeCalled();
+			expect(spy2).toBeCalled();
+		});
+
+		it('should not call store if cleanObj is not defined', () => {
+			const custom = new ArmorObjectPool({} as any, {startSize: 0});
+			const spy = jest.spyOn(custom, 'store');
+
+			spy.mockClear();
+
+			custom.poolObj.cleanObj = undefined as any;
+			custom.release({} as any);
+
+			expect(spy).not.toBeCalled();
+		});
+	});
+	describe('store', () => {
+		isValidStateRuns((obj) => {
+			obj.store();
+		});
+
+		it('should add obj to elements', () => {
+			expect(instance.state.elements.length).toBe(10);
+			instance.store({} as any);
+			expect(instance.state.elements.length).toBe(11);
+		});
+	});
 
 	describe('parse', () => {
 		it('should return null if argument is not a string with length > 0', () => {
@@ -379,7 +415,7 @@ describe('ArmorObjectPool', () => {
 			expect(instance.state.type).toBe('opState');
 			expect(instance.state.maxSize).toBe(1000);
 			expect(instance.state.autoIncrease).toBe(false);
-			expect(instance.state.increaseBreakPoint).toBe(.8);
+			expect(instance.state.increaseBreakPoint).toBe(0.8);
 			expect(instance.state.increaseFactor).toBe(2);
 		});
 	});
