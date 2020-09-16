@@ -1,4 +1,4 @@
-export default interface ArmorObjectPoolInstance<T extends Object> {
+export default interface ArmorObjectPoolInstance<T> {
 	new (): T;
-	cleanObj?(obj: T): void;
+	cleanObj(obj: T): void;
 }

@@ -7,6 +7,7 @@ import ArmorObjectPoolState from './object-pool-state';
 export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 	public state: ArmorObjectPoolState<T>;
 	public readonly startSize: number;
+	public objectCount: number = 0;
 	public readonly poolObj: ArmorObjectPoolInstance<T>;
 
 	constructor(poolObj: ArmorObjectPoolInstance<T>, options?: ArmorObjectPoolOptions<T>) {
@@ -17,7 +18,9 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			type: 'opState',
 			elements: [],
 			maxSize: 256,
-			autoIncrease: false
+			autoIncrease: false,
+			increaseFactor: 2,
+			increaseBreakPoint: 0.8
 		};
 	}
 
@@ -65,50 +68,68 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			if (!this.isInteger(result.maxSize)) {
 				throw new Error('state maxSize must be an integer');
 			}
+
+			if (typeof result.increaseFactor !== 'number' || result.increaseFactor < 0) {
+				throw new Error('state increaseFactor must be a positive number');
+			}
+
+			const between0and1 = state.increaseBreakPoint >= 0 && state.increaseBreakPoint <= 1
+			if ( typeof result.increaseBreakPoint !== 'number' || !between0and1 ) {
+				throw new Error('state increaseBreakPoint must be a number between 0 and 1');
+			}
 		}
 
 		this.state.autoIncrease = result.autoIncrease;
 		this.state.maxSize = result.maxSize;
 		this.state.elements = result.elements;
+		this.state.increaseFactor = result.increaseFactor;
+		this.state.increaseBreakPoint = result.increaseBreakPoint;
+
+		this.objectCount = this.state.elements.length;
 	}
 
 	public parseOptionsStartSize(startSize: number): void {
 		this.increase(startSize);
 	}
 
+	public get(): T | null {
+		if (this.isEmpty() && this.state.autoIncrease) {
+			this.increase(1);
+		}
+
+		let result = this.state.elements.pop();
+
+		if (result === undefined) {
+			return null;
+		} else {
+			return result;
+		}
+	}
+
 	public isEmpty(): boolean {
 		return this.state.elements.length === 0;
 	}
 
-	public get(): T {
-		if (this.isEmpty()) {
-			this.increase(1);
+	public increase(n: number): void {
+		if (this.objectCount < this.state.maxSize) {
+			this.allocate(n);
 		}
+	}
 
-		return this.state.elements.pop()!;
+	public allocate(n: number = 1): void {
+		for (let i = 0; i < n; i++) {
+			this.store(new this.poolObj());
+			this.objectCount++;
+		}
 	}
 
 	public store(object: T): void {
 		this.state.elements.push(object);
 	}
 
-	public allocate(n: number = 1): void {
-		for (let i = 0; i < n; i++) {
-			this.state.elements.push(new this.poolObj());
-		}
-	}
-
 	public release(object: T): void {
-		if (this.poolObj.cleanObj === undefined) {
-			return;
-		}
-
 		this.poolObj.cleanObj(object);
 		this.store(object);
-	}
-
-	public increase(n: number): void {
-		this.allocate(n);
 	}
 
 	public isInteger(n: number): boolean {
@@ -130,11 +151,20 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			return false;
 		}
 
+		if (!Array.isArray(state.elements)) {
+			return false;
+		}
+
 		if (!this.isInteger(state.maxSize) || state.maxSize < 1) {
 			return false;
 		}
 
-		if (!Array.isArray(state.elements)) {
+		if (typeof state.increaseFactor !== 'number' || state.increaseFactor < 0) {
+			return false;
+		}
+
+		const between0and1 = state.increaseBreakPoint >= 0 && state.increaseBreakPoint <= 1
+		if ( typeof state.increaseBreakPoint !== 'number' || !between0and1 ) {
 			return false;
 		}
 

@@ -2,7 +2,7 @@ import ArmorObjectPool from '../src/object-pool';
 import ArmorObjectPoolInstance from '../src/object-pool-instance';
 
 describe('ArmorObjectPool', () => {
-	class poolObjClass {
+	class poolObjClass{
 		public name!: string;
 		public amount!: number;
 
@@ -19,7 +19,7 @@ describe('ArmorObjectPool', () => {
 	let instance: ArmorObjectPool<poolObjClass>;
 
 	beforeAll(() => {
-		instance = new ArmorObjectPool(poolObjClass);
+		instance = new ArmorObjectPool(poolObjClass as ArmorObjectPoolInstance<poolObjClass>);
 	});
 
 	beforeEach(() => {
@@ -27,13 +27,25 @@ describe('ArmorObjectPool', () => {
 	});
 
 	it('Basic Testing', () => {
-		let log: Array<string | null> = [];
-		log.push(instance.stringify());
+		const log: Array<string | null> = [];
+		const logstate = function () {
+			log.push(instance.stringify());
+		};
 
-		instance.increase(5);
+		logstate();
+		instance.increase(2);
+		
+		logstate();
+		
+		const obj = instance.get();
+		if (obj){
+		obj.name = 'testing';
+		}
+		logstate();
 
-		log.push(instance.stringify());
+		instance.release(obj);
+		logstate();
 
-		console.log(log.map((v,i)=>(i+1)+') '+v).join('\n'));
+		console.log(log.map((v, i) => i + 1 + ') ' + v).join('\n'));
 	});
 });
