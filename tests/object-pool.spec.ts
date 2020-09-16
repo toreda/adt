@@ -40,7 +40,7 @@ describe('ArmorObjectPool', () => {
 			const spy = jest.spyOn(custom, 'isValidState');
 			spy.mockClear();
 			custom.state.type = '' as any;
-			expect(action(custom)).toBeUndefined();
+			action(custom);
 			expect(spy).toBeCalled();
 		});
 	};
@@ -215,9 +215,112 @@ describe('ArmorObjectPool', () => {
 		});
 	});
 
-	describe('get', () => {});
-	describe('allocate', () => {});
-	describe('increase', () => {});
+	describe('get', () => {
+		isValidStateRuns((obj) => {
+			obj.get();
+		});
+
+		it("should return null if pool has no more objects and can't increase", () => {
+			instance.clearElements();
+			expect(instance.state.autoIncrease).toBe(false);
+			instance.state.objectCount = 10;
+			expect(instance.state.objectCount).toBe(10);
+			expect(instance.state.elements.length).toBe(0);
+			expect(instance.get()).toBeNull();
+		});
+
+		it('should return 1 element from pool if only 1 is available', () => {
+			instance.clearElements();
+			expect(instance.state.autoIncrease).toBe(false);
+			instance.increase(1);
+			expect(instance.state.objectCount).toBe(1);
+			expect(instance.state.elements.length).toBe(1);
+			expect(instance.get()).not.toBeNull();
+			expect(instance.state.elements.length).toBe(0);
+		});
+
+		it('should return 1 element from pool if multiple are available', () => {
+			expect(instance.state.autoIncrease).toBe(false);
+			expect(instance.state.objectCount).toBe(10);
+			expect(instance.state.elements.length).toBe(10);
+			expect(instance.get()).not.toBeNull();
+			expect(instance.state.elements.length).toBe(9);
+		});
+	});
+	describe('allocate', () => {
+		isValidStateRuns((obj) => {
+			obj.allocate();
+		});
+
+		describe('should return n elements from the pool if n >= 0', () => {
+			const types: any[] = ([50] as any[]).concat(POS_INT_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					let objs: any[] = [];
+					expect(objs.length).toBe(0);
+
+					objs = instance.allocate(type);
+					expect(objs.length).toBe(Math.min(type, instance.state.objectCount));
+					objs.forEach((obj) => {
+						instance.release(obj);
+					});
+
+					instance.state.autoIncrease = true;
+					objs = instance.allocate(type);
+					expect(objs.length).toBe(type);
+				});
+			});
+		});
+
+		describe('should grab 1 element from the pool if n is anything other than an int > 0', () => {
+			const types: any[] = ([0] as any[]).concat(FLOAT_VALUES, NAN_VALUES, NEG_INT_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					let objs: any[] = [];
+					expect(objs.length).toBe(0);
+
+					objs = instance.allocate(type!);
+					expect(objs.length).toBe(1);
+					objs.forEach((obj) => {
+						instance.release(obj);
+					});
+
+					instance.state.autoIncrease = true;
+					objs = instance.allocate(type!);
+					expect(objs.length).toBe(1);
+				});
+			});
+		});
+	});
+	describe('increase', () => {
+		isValidStateRuns((obj) => {
+			obj.increase();
+		});
+
+		describe('should do nothing if n is not an integer 1 or greater', () => {
+			const types: any[] = ([0] as any[]).concat(FLOAT_VALUES, NAN_VALUES, NEG_NUM_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					expect(instance.state.objectCount).toBe(10);
+					instance.increase(type!);
+					expect(instance.state.objectCount).toBe(10);
+				});
+			});
+		});
+
+		it('should increase the objectCount by n up to maxSize and create that many new elements', () => {
+			expect(instance.state.objectCount).toBe(10);
+			expect(instance.state.elements.length).toBe(10);
+
+			instance.increase(1);
+			expect(instance.state.objectCount).toBe(11);
+			expect(instance.state.elements.length).toBe(11);
+
+			instance.increase(10);
+			expect(instance.state.objectCount).toBe(21);
+			expect(instance.state.elements.length).toBe(21);
+		});
+	});
 
 	describe('release', () => {
 		it('should call cleanObj and store if cleanObj is defined', () => {

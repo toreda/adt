@@ -133,16 +133,16 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			return result;
 		}
 	}
-	public allocate(n?: number): Array<T> {
+	public allocate(n: number = 1): Array<T> {
 		if (!this.isValidState(this.state)) {
 			return [];
 		}
 
 		let num: number;
-		if (typeof n !== 'number') {
+		if (!this.isInteger(n) || n < 1) {
 			num = 1;
 		} else {
-			num = Math.max(1, Math.round(n));
+			num = n;
 		}
 
 		let result: Array<T> = [];
@@ -161,6 +161,9 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		if (!this.isValidState(this.state)) {
 			return;
 		}
+		if (!this.isInteger(n)) {
+			return;
+		}
 
 		for (let i = 0; i < n && this.state.objectCount < this.state.maxSize; i++) {
 			this.store(new this.poolObj());
@@ -169,9 +172,6 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 	}
 
 	public release(object: T): void {
-		if (!this.isValidState(this.state)) {
-			return;
-		}
 		if (!this.poolObj || !this.poolObj.cleanObj) {
 			return;
 		}
