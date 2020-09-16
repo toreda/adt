@@ -10,6 +10,9 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 	public readonly poolObj: ArmorObjectPoolInstance<T>;
 
 	constructor(poolObj: ArmorObjectPoolInstance<T>, options?: ArmorObjectPoolOptions<T>) {
+		if (typeof poolObj !== 'function') {
+			throw new Error('Must have a comparator function for priority queue to operate properly');
+		}
 		this.poolObj = poolObj;
 
 		this.state = {
@@ -40,6 +43,16 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		if (options.startSize !== undefined) {
 			this.parseOptionsStartSize(options.startSize);
 		}
+	}
+	public parseOptionsStartSize(startSize: number): void {
+		if (!this.isInteger(startSize)) {
+			return;
+		}
+		if (startSize < 0) {
+			return;
+		}
+
+		this.startSize = startSize;
 	}
 	public parseOptionsState(state: ArmorObjectPoolState<T> | string): void {
 		if (!state) {
@@ -86,14 +99,7 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		this.state.increaseFactor = result.increaseFactor;
 		this.state.increaseBreakPoint = result.increaseBreakPoint;
 
-		this.startSize = this.state.objectCount;
-	}
-	public parseOptionsStartSize(startSize: number): void {
-		if (!this.isInteger(startSize)) {
-			return;
-		}
-
-		this.startSize = startSize;
+		this.startSize = result.objectCount;
 	}
 
 	public utilization(n: number = 0): number {

@@ -713,7 +713,7 @@ describe('ArmorCircularQueue', () => {
 			const spy = jest.spyOn(instance, 'isValidState');
 
 			spy.mockClear();
-			expect( () => {
+			expect(() => {
 				instance.parseOptionsState(instance.state);
 			}).not.toThrow();
 			expect(spy).not.toBeCalled();

@@ -1,5 +1,6 @@
 import ArmorObjectPool from '../src/object-pool';
 import ArmorObjectPoolInstance from '../src/object-pool-instance';
+import ArmorObjectPoolState from '../src/object-pool-state';
 
 describe('ArmorObjectPool', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -53,33 +54,183 @@ describe('ArmorObjectPool', () => {
 		instance.reset();
 	});
 
-	it.skip('Basic Testing', () => {
-		const log: Array<string | null> = [];
-		const logstate = function () {
-			log.push(((instance.stringify() as string).match(/"elements":\[.*?\]/) as Array<string>)[0]);
-		};
+	describe('constructor', () => {
+		it('should throw if no class is passed', () => {
+			expect(() => {
+				const custom = new ArmorObjectPool({} as any);
+			}).toThrow();
+		});
 
-		logstate();
-		instance.increase(2);
+		it('should initialize with state when passed one', () => {
+			const state: ArmorObjectPoolState<poolObjClass> = {
+				elements: [],
+				type: 'opState',
+				maxSize: 9,
+				objectCount: 2,
+				autoIncrease: true,
+				increaseBreakPoint: 1,
+				increaseFactor: 5
+			};
 
-		logstate();
+			const custom = new ArmorObjectPool<poolObjClass>(poolObjClass, {state: state});
+			expect(JSON.parse(custom.stringify()!)).toStrictEqual(state);
+		});
 
-		const obj = instance.get();
-		if (obj) {
-			obj.name = 'testing';
-			logstate();
-			instance.release(obj);
-		}
+		it('should initialize with startSize overriding state', () => {
+			const state: ArmorObjectPoolState<poolObjClass> = {
+				elements: [],
+				type: 'opState',
+				maxSize: 9,
+				objectCount: 2,
+				autoIncrease: true,
+				increaseBreakPoint: 1,
+				increaseFactor: 5
+			};
 
-		logstate();
-
-		console.log(log.map((v, i) => i + 1 + ') ' + v).join('\n'));
+			const custom = new ArmorObjectPool<poolObjClass>(poolObjClass, {state: state, startSize: 5});
+			expect(custom.state.objectCount).toBe(5);
+		});
 	});
+	describe('parseOptions', () => {
+		it('should return void if options is falsey', () => {
+			expect(instance.parseOptions(null!)).toBeFalsy();
+			expect(instance.parseOptions(undefined!)).toBeFalsy();
+		});
 
-	describe('constructor', () => {});
-	describe('parseOptions', () => {});
-	describe('parseOptionsStartSize', () => {});
-	describe('parseOptionsState', () => {});
+		it('should call parseOptionsState if options has state property', () => {
+			const spy = jest.spyOn(instance, 'parseOptionsState');
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: ''});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: '{}'});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: {} as any});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: null!});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: instance.state});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({state: instance.stringify() as string});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+		});
+
+		it('should call parseOptionsStartSize if options has startSize property', () => {
+			const spy = jest.spyOn(instance, 'parseOptionsStartSize');
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({startSize: '' as any});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({startSize: '{}' as any});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({startSize: {} as any});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({startSize: null!});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+
+			try {
+				spy.mockClear();
+				instance.parseOptions({startSize: instance.startSize!});
+			} catch (e) {}
+			expect(spy).toBeCalled();
+		});
+	});
+	describe('parseOptionsStartSize', () => {
+		describe('should set startSize if an integer >= 0 is passed', () => {
+			const types: any[] = ([0] as any[]).concat(POS_INT_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					instance.parseOptionsStartSize(type);
+					expect(instance.startSize).toBe(type);
+				});
+			});
+		});
+		describe('should set startSize if anything else is passed', () => {
+			const types: any[] = ([] as any[]).concat(NEG_INT_VALUES, FLOAT_VALUES, NAN_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					const startSize = instance.startSize;
+					instance.parseOptionsStartSize(type);
+					expect(instance.startSize).toBe(startSize);
+				});
+			});
+		});
+	});
+	describe('parseOptionsState', () => {
+		isValidStateRuns((obj) => {
+			obj.parseOptionsState(instance.stringify()!);
+		});
+
+		it('should return void if state is falsey', () => {
+			expect(instance.parseOptionsState(null!)).toBeFalsy();
+			expect(instance.parseOptionsState(undefined!)).toBeFalsy();
+			expect(instance.parseOptionsState('')).toBeFalsy();
+		});
+
+		it('should not run isValidState check and not throw', () => {
+			const spy = jest.spyOn(instance, 'isValidState');
+
+			spy.mockClear();
+			expect(() => {
+				instance.parseOptionsState(instance.state);
+			}).not.toThrow();
+			expect(spy).not.toBeCalled();
+		});
+
+		it('should throw if state is not valid', () => {
+			expect(() => {
+				instance.parseOptionsState({} as any);
+			}).toThrow();
+			expect(() => {
+				instance.parseOptionsState('{}');
+			}).toThrow();
+			const stateString = instance.stringify()!;
+			const stateObject = instance.parse(stateString)!;
+			stateObject.maxSize = null!;
+			expect(() => {
+				instance.parseOptionsState(stateString.replace(/elements/, 'elmnts'));
+			}).toThrow();
+			expect(() => {
+				instance.parseOptionsState(stateObject as any);
+			}).toThrow();
+		});
+	});
 
 	describe('isInteger', () => {
 		describe('should return true if n is an integer', () => {
@@ -337,15 +488,17 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should not call store if cleanObj is not defined', () => {
-			const custom = new ArmorObjectPool({} as any, {startSize: 0});
+			const custom = new ArmorObjectPool<poolObjClass>(poolObjClass, {startSize: 0});
 			const spy = jest.spyOn(custom, 'store');
 
 			spy.mockClear();
 
+			const cleanObj = custom.poolObj.cleanObj;
 			custom.poolObj.cleanObj = undefined as any;
 			custom.release({} as any);
 
 			expect(spy).not.toBeCalled();
+			custom.poolObj.cleanObj = cleanObj;
 		});
 	});
 	describe('store', () => {
