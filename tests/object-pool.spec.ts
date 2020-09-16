@@ -323,8 +323,66 @@ describe('ArmorObjectPool', () => {
 		});
 	});
 
-	describe('clearElements', () => {});
-	describe('reset', () => {});
+	describe('clearElements', () => {
+		it('should not throw if state has errors', () => {
+			instance.state.elements = '' as any;
+			expect(() => {
+				instance.clearElements();
+			}).not.toThrow();
+		});
+
+		it('should remove all elements from op and reset objectCount to 0', () => {
+			expect(instance.state.elements).not.toEqual([]);
+			expect(instance.state.objectCount).not.toBe(0);
+			instance.clearElements();
+			expect(instance.state.elements).toEqual([]);
+			expect(instance.state.objectCount).toBe(0);
+		});
+
+		it('should not change any other state variables', () => {
+			instance.state.type = 'test' as any;
+			instance.state.maxSize = 'test' as any;
+			instance.state.autoIncrease = 'test' as any;
+			instance.state.increaseBreakPoint = 'test' as any;
+			instance.state.increaseFactor = 'test' as any;
+			instance.clearElements();
+			expect(instance.state.type).toBe('test');
+			expect(instance.state.maxSize).toBe('test');
+			expect(instance.state.autoIncrease).toBe('test');
+			expect(instance.state.increaseBreakPoint).toBe('test');
+			expect(instance.state.increaseFactor).toBe('test');
+		});
+	});
+	describe('reset', () => {
+		it('should not throw if state has errors', () => {
+			instance.state.elements = '' as any;
+			expect(() => {
+				instance.reset();
+			}).not.toThrow();
+		});
+
+		it('should set objectCount to startSize and initialize that many elements', () => {
+			expect(instance.state.elements).not.toEqual([]);
+			expect(instance.state.objectCount).not.toBe(0);
+			instance.reset();
+			expect(instance.state.elements.length).toBe(instance.startSize);
+			expect(instance.state.objectCount).toBe(instance.startSize);
+		});
+
+		it('should change other state variables to default', () => {
+			instance.state.type = 'test' as any;
+			instance.state.maxSize = 'test' as any;
+			instance.state.autoIncrease = 'test' as any;
+			instance.state.increaseBreakPoint = 'test' as any;
+			instance.state.increaseFactor = 'test' as any;
+			instance.reset();
+			expect(instance.state.type).toBe('opState');
+			expect(instance.state.maxSize).toBe(1000);
+			expect(instance.state.autoIncrease).toBe(false);
+			expect(instance.state.increaseBreakPoint).toBe(.8);
+			expect(instance.state.increaseFactor).toBe(2);
+		});
+	});
 
 	describe('select', () => {});
 });

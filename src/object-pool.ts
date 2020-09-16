@@ -264,6 +264,7 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 
 		this.state.type = 'opState';
 		this.state.maxSize = 1000;
+		this.state.autoIncrease = false;
 		this.state.increaseFactor = 2;
 		this.state.increaseBreakPoint = 0.8;
 
