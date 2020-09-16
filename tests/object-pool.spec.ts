@@ -34,11 +34,14 @@ describe('ArmorObjectPool', () => {
 
 	let instance: ArmorObjectPool<poolObjClass>;
 
-	const isValidStateRuns = function (obj: ArmorObjectPool<poolObjClass>, action: Function) {
-		const spy = jest.spyOn(obj, 'isValidState');
-		spy.mockClear();
-		action();
-		expect(spy).toBeCalled();
+	const isValidStateRuns = function (action: Function) {
+		it('should run isValidState check', () => {
+			const custom: ArmorObjectPool<poolObjClass> = new ArmorObjectPool<poolObjClass>(poolObjClass);
+			const spy = jest.spyOn(custom, 'isValidState');
+			spy.mockClear();
+			action(custom);
+			expect(spy).toBeCalled();
+		});
 	};
 
 	beforeAll(() => {
@@ -175,10 +178,8 @@ describe('ArmorObjectPool', () => {
 	});
 
 	describe('utilization', () => {
-		it('should run isValidState', () => {
-			isValidStateRuns(instance, () => {
-				instance.utilization(0);
-			});
+		isValidStateRuns((obj) => {
+			obj.utilization(0);
 		});
 
 		describe('should return % of objects used as a decimal', () => {
@@ -191,10 +192,8 @@ describe('ArmorObjectPool', () => {
 		});
 	});
 	describe('isAboveThreshold', () => {
-		it('should run isValidState', () => {
-			isValidStateRuns(instance, () => {
-				instance.isAboveThreshold();
-			});
+		isValidStateRuns((obj) => {
+			obj.isAboveThreshold();
 		});
 
 		describe('should always return a boolean', () => {
@@ -222,8 +221,107 @@ describe('ArmorObjectPool', () => {
 	describe('release', () => {});
 	describe('store', () => {});
 
-	describe('parse', () => {});
-	describe('stringify', () => {});
+	describe('parse', () => {
+		it('should return null if argument is not a string with length > 0', () => {
+			expect(instance.parse(4 as any)).toBeNull();
+			expect(instance.parse([] as any)).toBeNull();
+			expect(instance.parse({} as any)).toBeNull();
+			expect(instance.parse('' as any)).toBeNull();
+			expect(instance.parse(false as any)).toBeNull();
+		});
+
+		it('should return null if string cant be parsed', () => {
+			expect(instance.parse('[4,3,')).toBeNull();
+			expect(instance.parse('{left:f,right:')).toBeNull();
+		});
+
+		it('should return null when a parsable string does not parse into an ArmorObjectPoolState', () => {
+			expect(instance.parse('{elements:[], type: "opState"}')).toBeNull();
+			expect(instance.parse('{}')).toBeNull();
+			expect(instance.parse('[1,2,3]')).toBeNull();
+		});
+
+		it('should return an ArmorObjectPoolState when a parsable string is passed', () => {
+			const string = instance.stringify();
+			expect(string).not.toBeNull();
+			expect(instance.parse(string as string)).toStrictEqual(JSON.parse(instance.stringify()!));
+			const state = [
+				'{',
+				'"type": "opState",',
+				'"elements": [],',
+				'"objectCount": 1,',
+				'"maxSize": 4,',
+				'"autoincrease": true,',
+				'"increaseBreakPoint": 0,',
+				'"increaseFactor": 1',
+				'}'
+			].join('');
+			expect(instance.parse(state)).toStrictEqual(JSON.parse(state));
+		});
+	});
+	describe('stringify', () => {
+		isValidStateRuns((obj) => {
+			obj.stringify();
+		});
+
+		it('should return null if state is invalid', () => {
+			const custom = new ArmorObjectPool<poolObjClass>(poolObjClass);
+			custom.state.maxSize = 0;
+			expect(custom.stringify()).toBeNull();
+			custom.state = null!;
+			expect(custom.state).toBeNull();
+			expect(custom.stringify()).toBeNull();
+			delete custom.state;
+			expect(custom.state).toBeUndefined();
+			expect(custom.stringify()).toBeNull();
+		});
+
+		it('should return the state as a string if it is validated', () => {
+			const custom = new ArmorObjectPool<poolObjClass>(poolObjClass);
+			expect(JSON.parse(custom.stringify()!)).toEqual({
+				type: 'opState',
+				elements: [],
+				objectCount: 10,
+				maxSize: 1000,
+				autoIncrease: false,
+				increaseFactor: 2,
+				increaseBreakPoint: 0.8
+			});
+
+			custom.increase(1);
+			expect(JSON.parse(custom.stringify()!)).toEqual({
+				type: 'opState',
+				elements: [],
+				objectCount: 11,
+				maxSize: 1000,
+				autoIncrease: false,
+				increaseFactor: 2,
+				increaseBreakPoint: 0.8
+			});
+
+			custom.increase(2);
+			expect(JSON.parse(custom.stringify()!)).toEqual({
+				type: 'opState',
+				elements: [],
+				objectCount: 13,
+				maxSize: 1000,
+				autoIncrease: false,
+				increaseFactor: 2,
+				increaseBreakPoint: 0.8
+			});
+
+			custom.increase(10);
+			expect(JSON.parse(custom.stringify()!)).toEqual({
+				type: 'opState',
+				elements: [],
+				objectCount: 23,
+				maxSize: 1000,
+				autoIncrease: false,
+				increaseFactor: 2,
+				increaseBreakPoint: 0.8
+			});
+		});
+	});
 
 	describe('clearElements', () => {});
 	describe('reset', () => {});

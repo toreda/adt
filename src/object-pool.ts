@@ -250,7 +250,7 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			return null;
 		}
 
-		return JSON.stringify(this.state);
+		return JSON.stringify(this.state).replace(/"elements":\[.*?\]/, '"elements":[]');
 	}
 
 	public clearElements(): ArmorObjectPool<T> {
