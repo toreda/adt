@@ -3,6 +3,8 @@ import ArmorObjectPoolInstance from '../src/object-pool-instance';
 import ArmorObjectPoolState from '../src/object-pool-state';
 
 describe('ArmorObjectPool', () => {
+	let instance: ArmorObjectPool<objectClass>;
+
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
 	const TRUTHY_NAN_VALUES = ['1.5', '-1', '0', '1', '1.5'];
 	const NAN_VALUES = ([] as any[]).concat(FALSY_NAN_VALUES, TRUTHY_NAN_VALUES);
@@ -19,6 +21,27 @@ describe('ArmorObjectPool', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
+	const DEFAULT_STATE = {
+		type: 'opState',
+		elements: [],
+		maxSize: 1000,
+		objectCount: 10,
+		autoIncrease: false,
+		increaseBreakPoint: 0.8,
+		increaseFactor: 2
+	};
+	const VALID_SERIALIZED_STATE = [
+		'{',
+		'"type": "opState",',
+		'"elements": [],',
+		'"objectCount": 1,',
+		'"maxSize": 4,',
+		'"autoIncrease": true,',
+		'"increaseBreakPoint": 0,',
+		'"increaseFactor": 1',
+		'}'
+	].join('');
+
 	class objectClass {
 		public name!: string;
 		public amount!: number;
@@ -32,8 +55,6 @@ describe('ArmorObjectPool', () => {
 			obj.amount = 0;
 		}
 	}
-
-	let instance: ArmorObjectPool<objectClass>;
 
 	const isValidStateRuns = function (action: Function) {
 		it('should run isValidState check', () => {
@@ -49,7 +70,6 @@ describe('ArmorObjectPool', () => {
 	beforeAll(() => {
 		instance = new ArmorObjectPool(objectClass);
 	});
-
 	beforeEach(() => {
 		instance.reset();
 	});
@@ -57,108 +77,64 @@ describe('ArmorObjectPool', () => {
 	describe('constructor', () => {
 		it('should throw if no class is passed', () => {
 			expect(() => {
-				const custom = new ArmorObjectPool({} as any);
+				const custom = new ArmorObjectPool(null as any);
 			}).toThrow();
 		});
 
 		it('should initialize with default state when no options are paseed', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-				type: 'opState',
-				elements: [],
-				maxSize: 1000,
-				objectCount: 10,
-				autoIncrease: false,
-				increaseBreakPoint: 0.8,
-				increaseFactor: 2
-			});
+			expect(JSON.parse(custom.stringify()!)).toStrictEqual(DEFAULT_STATE);
 			expect(custom.startSize).toBe(10);
 		});
 
 		it('should initialize with serializedState', () => {
-			const state = [
-				'{',
-				'"type": "opState",',
-				'"elements": [],',
-				'"objectCount": 1,',
-				'"maxSize": 4,',
-				'"autoIncrease": true,',
-				'"increaseBreakPoint": 0,',
-				'"increaseFactor": 1',
-				'}'
-			].join('');
-
-			const custom = new ArmorObjectPool<objectClass>(objectClass, {serializedState: state});
+			const custom = new ArmorObjectPool<objectClass>(objectClass, {serializedState: VALID_SERIALIZED_STATE});
 			expect(custom.state.objectCount).toBe(1);
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-				type: 'opState',
-				elements: [],
-				objectCount: 1,
-				maxSize: 4,
-				autoIncrease: true,
-				increaseBreakPoint: 0,
-				increaseFactor: 1
-			});
+			expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 			expect(custom.startSize).toBe(1);
 		});
 
-		it('should initialize with state settings', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass, {
-				state: {maxSize: 2000} as ArmorObjectPoolState<objectClass>
+		it('should initialize with state settings overriding serializedState', () => {
+			const expected1 = {...DEFAULT_STATE};
+			expected1.maxSize = 2000;
+
+			const custom1 = new ArmorObjectPool<objectClass>(objectClass, {
+				state: {maxSize: expected1.maxSize} as ArmorObjectPoolState<objectClass>
 			});
 
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-				type: 'opState',
-				elements: [],
-				objectCount: 10,
-				maxSize: 2000,
-				autoIncrease: false,
-				increaseBreakPoint: 0.8,
-				increaseFactor: 2
+			expect(JSON.parse(custom1.stringify()!)).toStrictEqual(expected1);
+
+			const expected2 = JSON.parse(VALID_SERIALIZED_STATE);
+			expected2.maxSize = 2000;
+
+			const custom2 = new ArmorObjectPool<objectClass>(objectClass, {
+				state: {maxSize: expected2.maxSize} as ArmorObjectPoolState<objectClass>,
+				serializedState: VALID_SERIALIZED_STATE
 			});
+
+			expect(JSON.parse(custom2.stringify()!)).toStrictEqual(expected2);
 		});
 
 		it('should initialize with startSize overriding serializedState', () => {
-			const state = [
-				'{',
-				'"type": "opState",',
-				'"elements": [],',
-				'"objectCount": 1,',
-				'"maxSize": 6,',
-				'"autoIncrease": true,',
-				'"increaseBreakPoint": 0,',
-				'"increaseFactor": 1',
-				'}'
-			].join('');
+			const expected = JSON.parse(VALID_SERIALIZED_STATE);
+			expected.objectCount = 3;
 
-			const custom = new ArmorObjectPool<objectClass>(objectClass, {serializedState: state, startSize: 5});
-			expect(custom.state.objectCount).toBe(5);
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-				type: 'opState',
-				elements: [],
-				objectCount: 5,
-				maxSize: 6,
-				autoIncrease: true,
-				increaseBreakPoint: 0,
-				increaseFactor: 1
+			const custom = new ArmorObjectPool<objectClass>(objectClass, {
+				serializedState: VALID_SERIALIZED_STATE,
+				startSize: expected.objectCount
 			});
-			expect(custom.startSize).toBe(5);
+			expect(custom.startSize).toBe(expected.objectCount);
+			expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
 		});
 	});
 	describe('parseOptions', () => {
 		it('should return default properties if options is falsey', () => {
 			const defaults = {
 				startSize: 10,
-				state: {
-					type: 'opState',
-					elements: [],
-					objectCount: 0,
-					maxSize: 1000,
-					autoIncrease: false,
-					increaseBreakPoint: 0.8,
-					increaseFactor: 2
-				}
+				state: {...DEFAULT_STATE}
 			};
+
+			defaults.state.objectCount = 0;
 
 			expect(instance.parseOptions()).toStrictEqual(defaults);
 			expect(instance.parseOptions(null!)).toStrictEqual(defaults);
@@ -167,35 +143,23 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should return properties from parsed options', () => {
-			const state = [
-				'{',
-				'"type": "opState",',
-				'"elements": [],',
-				'"objectCount": 0,',
-				'"maxSize": 4,',
-				'"autoIncrease": true,',
-				'"increaseBreakPoint": 0,',
-				'"increaseFactor": 1',
-				'}'
-			].join('');
-
 			expect(
 				instance.parseOptions({
-					serializedState: state
+					serializedState: VALID_SERIALIZED_STATE
 				})
 			).toStrictEqual({
-				startSize: 0,
-				state: JSON.parse(state)
+				startSize: 1,
+				state: JSON.parse(VALID_SERIALIZED_STATE.replace(/objectCount": 1/, 'objectCount":0'))
 			});
 
 			expect(
 				instance.parseOptions({
 					startSize: 2,
-					serializedState: state
+					serializedState: VALID_SERIALIZED_STATE
 				})
 			).toStrictEqual({
 				startSize: 2,
-				state: JSON.parse(state)
+				state: JSON.parse(VALID_SERIALIZED_STATE.replace(/objectCount": 1/, 'objectCount":0'))
 			});
 		});
 	});
@@ -229,13 +193,13 @@ describe('ArmorObjectPool', () => {
 
 			expect(() => {
 				instance.parseOptionsState({
-					serializedState: instance.stringify()!.replace(/objectCount":10/, 'objectCount":null')
+					serializedState: instance.stringify()!.replace(/maxSize":1000/, 'maxSize":null')
 				});
 			}).toThrow();
 
 			expect(() => {
 				instance.parseOptionsState({
-					serializedState: instance.stringify()!.replace(/maxSize":1000/, 'maxSize":null')
+					serializedState: instance.stringify()!.replace(/objectCount":10/, 'objectCount":null')
 				});
 			}).toThrow();
 
@@ -255,18 +219,11 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should return serializedState as ArmorObjectPoolState if it is valid', () => {
-			const state = [
-				'{',
-				'"type": "opState",',
-				'"elements": [],',
-				'"objectCount": 1,',
-				'"maxSize": 4,',
-				'"autoIncrease": true,',
-				'"increaseBreakPoint": 0,',
-				'"increaseFactor": 1',
-				'}'
-			].join('');
-			expect(instance.parseOptionsState({serializedState: state})).toEqual(JSON.parse(state));
+			expect(
+				instance.parseOptionsState({
+					serializedState: VALID_SERIALIZED_STATE
+				})
+			).toEqual(JSON.parse(VALID_SERIALIZED_STATE));
 		});
 	});
 	describe('parseOptionsStartSize', () => {
@@ -306,121 +263,6 @@ describe('ArmorObjectPool', () => {
 		});
 	});
 
-	describe('isInteger', () => {
-		describe('should return true if n is an integer', () => {
-			const types: any[] = INT_VALUES;
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					expect(instance.isInteger(type)).toBe(true);
-				});
-			});
-		});
-
-		describe('should return false if n is not an integer', () => {
-			const types: any[] = ([] as any[]).concat(FLOAT_VALUES, NAN_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					expect(instance.isInteger(type!)).toBe(false);
-				});
-			});
-		});
-	});
-	describe('isFloat', () => {
-		describe('should return true if n is a float', () => {
-			const types: any[] = ([] as any[]).concat(NUM_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					expect(instance.isFloat(type)).toBe(true);
-				});
-			});
-		});
-
-		describe('should return false if n is not a float', () => {
-			const types: any[] = ([] as any[]).concat(NAN_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					expect(instance.isFloat(type!)).toBe(false);
-				});
-			});
-		});
-	});
-	describe('isValidState', () => {
-		it('should return true if state is a valid ArmorObjectPoolState', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			expect(custom.isValidState(custom.state)).toBe(true);
-		});
-
-		it('should return false if state is null or undefined', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types = [null, undefined];
-			types.forEach((type) => {
-				expect(custom.isValidState(type!)).toBe(false);
-			});
-		});
-
-		it('should return false if state.type is not "opState"', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types = [null, undefined, ''];
-			types.forEach((type) => {
-				custom.state.type = type as 'opState';
-				expect(custom.isValidState(custom.state)).toBe(false);
-			});
-		});
-
-		describe('should return false if state.objectCount is not an integer >= 0', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types: any[] = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					custom.state.objectCount = type!;
-					expect(custom.isValidState(custom.state)).toBe(false);
-				});
-			});
-		});
-
-		describe('should return false if state.maxSize is not an integer >= 1', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types: any[] = ([0] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					custom.state.maxSize = type!;
-					expect(custom.isValidState(custom.state)).toBe(false);
-				});
-			});
-		});
-
-		describe('should return false if state.increaseFactor is not a number > 0', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types = ([] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					custom.state.increaseFactor = type!;
-					expect(custom.isValidState(custom.state)).toBe(false);
-				});
-			});
-		});
-
-		describe('should return false if state.increaseBreakPoint is not (0 <= number <= 1)', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types = ([2, 2.5] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					custom.state.increaseBreakPoint = type!;
-					expect(custom.isValidState(custom.state)).toBe(false);
-				});
-			});
-		});
-
-		it('should return false if state.elements is not an array', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types = [{}, null, undefined];
-			types.forEach((type) => {
-				custom.state.elements = type as Array<objectClass>;
-				expect(custom.isValidState(custom.state)).toBe(false);
-			});
-		});
-	});
-
 	describe('utilization', () => {
 		isValidStateRuns((obj) => {
 			obj.utilization(0);
@@ -434,10 +276,10 @@ describe('ArmorObjectPool', () => {
 				});
 			});
 
-			it('this.state.objectCount === 0', ()=>{
+			it('this.state.objectCount === 0', () => {
 				instance.state.objectCount = 0;
 				expect(instance.utilization()).toBe(Infinity);
-			})
+			});
 		});
 	});
 	describe('isAboveThreshold', () => {
@@ -612,6 +454,119 @@ describe('ArmorObjectPool', () => {
 		});
 	});
 
+	describe('isInteger', () => {
+		describe('should return true if n is an integer', () => {
+			const types: any[] = INT_VALUES;
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					expect(instance.isInteger(type)).toBe(true);
+				});
+			});
+		});
+
+		describe('should return false if n is not an integer', () => {
+			const types: any[] = ([] as any[]).concat(FLOAT_VALUES, NAN_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					expect(instance.isInteger(type!)).toBe(false);
+				});
+			});
+		});
+	});
+	describe('isFloat', () => {
+		describe('should return true if n is a float', () => {
+			const types: any[] = ([] as any[]).concat(NUM_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					expect(instance.isFloat(type)).toBe(true);
+				});
+			});
+		});
+
+		describe('should return false if n is not a float', () => {
+			const types: any[] = ([] as any[]).concat(NAN_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					expect(instance.isFloat(type!)).toBe(false);
+				});
+			});
+		});
+	});
+	describe('isValidState', () => {
+		it('should return true if state is a valid ArmorObjectPoolState', () => {
+			expect(instance.isValidState(instance.state)).toBe(true);
+		});
+
+		it('should return false if state is null or undefined', () => {
+			const types = [null, undefined];
+			types.forEach((type) => {
+				expect(instance.isValidState(type!)).toBe(false);
+			});
+		});
+
+		it('should return false if state.type is not "opState"', () => {
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const types = [null, undefined, ''];
+			types.forEach((type) => {
+				custom.state.type = type as 'opState';
+				expect(custom.isValidState(custom.state)).toBe(false);
+			});
+		});
+
+		it('should return false if state.elements is not an array', () => {
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const types = [{}, null, undefined];
+			types.forEach((type) => {
+				custom.state.elements = type as Array<objectClass>;
+				expect(custom.isValidState(custom.state)).toBe(false);
+			});
+		});
+
+		describe('should return false if state.maxSize is not an integer >= 1', () => {
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const types: any[] = ([0] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					custom.state.maxSize = type!;
+					expect(custom.isValidState(custom.state)).toBe(false);
+				});
+			});
+		});
+
+		describe('should return false if state.objectCount is not an integer >= 0', () => {
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const types: any[] = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					custom.state.objectCount = type!;
+					expect(custom.isValidState(custom.state)).toBe(false);
+				});
+			});
+		});
+
+		describe('should return false if state.increaseFactor is not a number > 0', () => {
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const types = ([] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					custom.state.increaseFactor = type!;
+					expect(custom.isValidState(custom.state)).toBe(false);
+				});
+			});
+		});
+
+		describe('should return false if state.increaseBreakPoint is not (0 <= number <= 1)', () => {
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const types = ([2, 2.5] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					custom.state.increaseBreakPoint = type!;
+					expect(custom.isValidState(custom.state)).toBe(false);
+				});
+			});
+		});
+	});
+
 	describe('parse', () => {
 		it('should return null if argument is not a string with length > 0', () => {
 			expect(instance.parse(4 as any)).toBeNull();
@@ -636,20 +591,11 @@ describe('ArmorObjectPool', () => {
 
 		it('should return an ArmorObjectPoolState when a parsable string is passed', () => {
 			const string = instance.stringify();
+			const expected = {...instance.state};
+			expected.elements = [];
 			expect(string).not.toBeNull();
-			expect(instance.parse(string as string)).toStrictEqual(JSON.parse(instance.stringify()!));
-			const state = [
-				'{',
-				'"type": "opState",',
-				'"elements": [],',
-				'"objectCount": 1,',
-				'"maxSize": 4,',
-				'"autoIncrease": true,',
-				'"increaseBreakPoint": 0,',
-				'"increaseFactor": 1',
-				'}'
-			].join('');
-			expect(instance.parse(state)).toStrictEqual(JSON.parse(state));
+			expect(instance.parse(string as string)).toStrictEqual(expected);
+			expect(instance.parse(VALID_SERIALIZED_STATE)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 		});
 	});
 	describe('stringify', () => {
@@ -661,10 +607,10 @@ describe('ArmorObjectPool', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
 			const types = [
 				'type',
-				'autoIncrease',
 				'elements',
-				'objectCount',
+				'autoIncrease',
 				'maxSize',
+				'objectCount',
 				'increaseBreakPoint',
 				'increaseFactor'
 			];
@@ -735,23 +681,29 @@ describe('ArmorObjectPool', () => {
 		it('should remove all elements from op and reset objectCount to 0', () => {
 			expect(instance.state.elements).not.toEqual([]);
 			expect(instance.state.objectCount).not.toBe(0);
+
 			instance.clearElements();
+
 			expect(instance.state.elements).toEqual([]);
 			expect(instance.state.objectCount).toBe(0);
 		});
 
 		it('should not change any other state variables', () => {
-			instance.state.type = 'test' as any;
-			instance.state.maxSize = 'test' as any;
-			instance.state.autoIncrease = 'test' as any;
-			instance.state.increaseBreakPoint = 'test' as any;
-			instance.state.increaseFactor = 'test' as any;
-			instance.clearElements();
-			expect(instance.state.type).toBe('test');
-			expect(instance.state.maxSize).toBe('test');
-			expect(instance.state.autoIncrease).toBe('test');
-			expect(instance.state.increaseBreakPoint).toBe('test');
-			expect(instance.state.increaseFactor).toBe('test');
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+
+			custom.state.type = 'test' as any;
+			custom.state.autoIncrease = 'test' as any;
+			custom.state.maxSize = 'test' as any;
+			custom.state.increaseBreakPoint = 'test' as any;
+			custom.state.increaseFactor = 'test' as any;
+
+			custom.clearElements();
+
+			expect(custom.state.type).toBe('test');
+			expect(custom.state.autoIncrease).toBe('test');
+			expect(custom.state.maxSize).toBe('test');
+			expect(custom.state.increaseBreakPoint).toBe('test');
+			expect(custom.state.increaseFactor).toBe('test');
 		});
 	});
 	describe('reset', () => {
@@ -763,6 +715,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should set objectCount to startSize and initialize that many elements', () => {
+			console.log(instance.stringify());
 			expect(instance.state.elements).not.toEqual([]);
 			expect(instance.state.objectCount).not.toBe(0);
 			instance.reset();
@@ -770,18 +723,22 @@ describe('ArmorObjectPool', () => {
 			expect(instance.state.objectCount).toBe(instance.startSize);
 		});
 
-		it('should change other state variables to default', () => {
-			instance.state.type = 'test' as any;
-			instance.state.maxSize = 'test' as any;
-			instance.state.autoIncrease = 'test' as any;
-			instance.state.increaseBreakPoint = 'test' as any;
-			instance.state.increaseFactor = 'test' as any;
-			instance.reset();
-			expect(instance.state.type).toBe('opState');
-			expect(instance.state.maxSize).toBe(1000);
-			expect(instance.state.autoIncrease).toBe(false);
-			expect(instance.state.increaseBreakPoint).toBe(0.8);
-			expect(instance.state.increaseFactor).toBe(2);
+		it('should change state variables to default', () => {
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+
+			custom.state.type = 'test' as any;
+			custom.state.autoIncrease = 'test' as any;
+			custom.state.maxSize = 'test' as any;
+			custom.state.increaseBreakPoint = 'test' as any;
+			custom.state.increaseFactor = 'test' as any;
+
+			custom.reset();
+
+			expect(custom.state.type).toBe('opState');
+			expect(custom.state.autoIncrease).toBe(false);
+			expect(custom.state.maxSize).toBe('test');
+			expect(custom.state.increaseBreakPoint).toBe(0.8);
+			expect(custom.state.increaseFactor).toBe(2);
 		});
 	});
 
