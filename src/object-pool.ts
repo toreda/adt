@@ -19,8 +19,8 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		this.errorFlags = [];
 
 		const properties = this.parseOptions(options);
-		this.state = properties.state!;
-		this.startSize = properties.startSize!;
+		this.state = this.parseOptions(options).state!;
+		this.startSize = this.parseOptions(options).startSize!;
 
 		this.increaseCapacity(this.startSize);
 	}
@@ -30,8 +30,8 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 
 		state.objectCount = 0;
 		const properties = {
-			state: state,
-			startSize: startSize
+			state: this.parseOptionsState(options),
+			startSize: this.parseOptionsStartSize(state, options)
 		};
 
 		return properties;
@@ -45,7 +45,7 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			objectCount: 10,
 			increaseBreakPoint: 0.8,
 			increaseFactor: 2
-		};
+		}
 
 		if (!options) {
 			return state;
