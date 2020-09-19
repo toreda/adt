@@ -163,7 +163,7 @@ describe('ArmorPriorityQueue', () => {
 			custom.state = null!;
 			expect(custom.state).toBeNull();
 			expect(custom.stringify()).toBeNull();
-			delete custom.state;
+			custom.state = undefined!;
 			expect(custom.state).toBeUndefined();
 			expect(custom.stringify()).toBeNull();
 		});
@@ -214,7 +214,7 @@ describe('ArmorPriorityQueue', () => {
 
 	describe('size', () => {
 		it('should return 0 if elements are missing', () => {
-			delete instance.state.elements;
+			instance.state.elements = undefined!;
 			expect(instance.size()).toBe(0);
 		});
 

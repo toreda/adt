@@ -603,7 +603,7 @@ describe('ArmorCircularQueue', () => {
 			custom.state = null!;
 			expect(custom.state).toBeNull();
 			expect(custom.stringify()).toBeNull();
-			delete custom.state;
+			custom.state = undefined!;
 			expect(custom.state).toBeUndefined();
 			expect(custom.stringify()).toBeNull();
 		});
