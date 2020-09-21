@@ -1,6 +1,12 @@
 import ArmorCircularQueueState from './circular-queue-state';
 
 export default interface ArmorCircularQueueOptions<T> {
-	state?: ArmorCircularQueueState<T> | string;
+	serializedState?: string;
+
+	elements?: [];
 	overwrite?: boolean;
+  size?: number;
+	maxSize?: number;
+  front?: number;
+  rear?: number;
 }
