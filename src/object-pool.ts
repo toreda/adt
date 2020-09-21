@@ -75,34 +75,34 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 	}
 
 	public parseOptionsOther(s: ArmorObjectPoolState<T>, options?: ArmorObjectPoolOptions<T>): ArmorObjectPoolState<T> {
-		let result: ArmorObjectPoolState<T> | null = s;
+		let state: ArmorObjectPoolState<T> | null = s;
 
 		if (!s) {
-			result = this.getDefaultState();
+			state = this.getDefaultState();
 		}
 
 		if (!options) {
-			return result;
+			return state;
 		}
 
 		if (options.startSize && this.isInteger(options.startSize) && options.startSize >= 0) {
-			result.startSize = options.startSize;
+			state.startSize = options.startSize;
 		}
 		if (options.maxSize && this.isInteger(options.maxSize) && options.maxSize >= 1) {
-			result.maxSize = options.maxSize;
+			state.maxSize = options.maxSize;
 		}
 
 		if (options.increaseBreakPoint) {
 			const between0and1 = options.increaseBreakPoint >= 0 && options.increaseBreakPoint <= 1;
 			if (this.isFloat(options.increaseBreakPoint) && between0and1) {
-				result.increaseBreakPoint = options.increaseBreakPoint;
+				state.increaseBreakPoint = options.increaseBreakPoint;
 			}
 		}
 		if (options.increaseFactor && this.isFloat(options.increaseFactor) && options.increaseFactor >= 0) {
-			result.increaseFactor = options.increaseFactor;
+			state.increaseFactor = options.increaseFactor;
 		}
 
-		return result;
+		return state;
 	}
 
 	public utilization(allocationsPending: number = 0): number {
@@ -185,6 +185,12 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 
 		this.objectClass.cleanObj(object);
 		this.store(object);
+	}
+
+	public releaseMultiple(objects: Array<T>): void {
+		for (let i = 0; i < objects.length; i++) {
+			this.release(objects[i]);
+		}
 	}
 
 	public store(object: T): void {
@@ -300,7 +306,10 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			return null;
 		}
 
-		return JSON.stringify(this.state).replace(/"elements":\[.*?\]/, '"elements":[]');
+		let state = JSON.stringify(this.state);
+		state = state.replace(/"elements":\[.*?\]/, '"elements":[]');
+
+		return state;
 	}
 
 	public clearElements(): ArmorObjectPool<T> {

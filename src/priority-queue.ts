@@ -9,67 +9,82 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 	public state: ArmorPriorityQueueState<T>;
 	public readonly comparator: ArmorPriorityQueueComparator<T>;
 
-	constructor(
-		elements: Array<T>,
-		comparator: ArmorPriorityQueueComparator<T>,
-		options?: ArmorPriorityQueueOptions<T>
-	) {
+	constructor(comparator: ArmorPriorityQueueComparator<T>, options?: ArmorPriorityQueueOptions<T>) {
 		if (typeof comparator !== 'function') {
 			throw new Error('Must have a comparator function for priority queue to operate properly');
 		}
 
-		this.state = {type: 'pqState', elements: []};
 		this.comparator = comparator;
 
-		if (options) {
-			this.parseOptions(options);
-		}
-
-		if (!this.size()) {
-			elements.forEach((element) => {
-				this.push(element);
-			});
-		}
+		this.state = this.parseOptions(options);
 	}
 
-	public parseOptions(options: ArmorPriorityQueueOptions<T>): void {
+	public getDefaultState(): ArmorPriorityQueueState<T> {
+		const state: ArmorPriorityQueueState<T> = {
+			type: 'pqState',
+			elements: []
+		};
+
+		return state;
+	}
+
+	public parseOptions(options?: ArmorPriorityQueueOptions<T>): ArmorPriorityQueueState<T> {
+		const state = this.parseOptionsState(options);
+		const finalState = this.parseOptionsOther(state, options);
+
+		return finalState;
+	}
+
+	public parseOptionsState(options?: ArmorPriorityQueueOptions<T>): ArmorPriorityQueueState<T> {
+		const state: ArmorPriorityQueueState<T> = this.getDefaultState();
+
 		if (!options) {
-			return;
+			return state;
 		}
 
-		if (options.state !== undefined) {
-			this.parseOptionsState(options.state);
-		}
-	}
-
-	public parseOptionsState(state: ArmorPriorityQueueState<T> | string): void {
-		if (!state) {
-			return;
-		}
-
+		let parsed: ArmorPriorityQueueState<T> | Array<string> | null = null;
 		let result: ArmorPriorityQueueState<T> | null = null;
 
-		if (typeof state === 'string') {
-			result = this.parse(state)!;
+		if (typeof options.serializedState === 'string') {
+			parsed = this.parse(options.serializedState)!;
 
-			if (!result) {
-				throw new Error('state is not valid');
+			if (Array.isArray(parsed)) {
+				throw new Error(parsed.join('\n'));
 			}
-		} else {
-			result = state;
 
-			if (result.elements && !Array.isArray(result.elements)) {
-				throw new Error('state elements needs to be an array');
-			}
+			result = parsed;
 		}
 
-		result.elements.forEach((element) => {
-			this.push(element);
-		});
+		if (result) {
+			state.elements = result.elements;
+		}
+
+		return state;
+	}
+
+	public parseOptionsOther(
+		s: ArmorPriorityQueueState<T>,
+		options?: ArmorPriorityQueueOptions<T>
+	): ArmorPriorityQueueState<T> {
+		let state: ArmorPriorityQueueState<T> | null = s;
+
+		if (!s) {
+			state = this.getDefaultState();
+		}
+
+		if (!options) {
+			return state;
+		}
+
+		if (options.elements && Array.isArray(options.elements)) {
+			state.elements = options.elements;
+		}
+
+		return state;
 	}
 
 	public size(): number {
-		if (!Array.isArray(this.state.elements)) {
+		if (!this.isValidState(this.state)) {
 			return 0;
 		}
 
@@ -267,33 +282,68 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return highestPriority;
 	}
 
-	public stringify(): string | null {
-		let result: string | null = null;
+	public isValidState(state: ArmorPriorityQueueState<T>): boolean {
+		const errors = this.getStateErrors(state);
 
-		result = JSON.stringify(this.state);
-		if (!this.parse(result)) {
-			result = null;
+		if (errors.length) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public getStateErrors(state: ArmorPriorityQueueState<T>): Array<string> {
+		const errors: Array<string> = [];
+
+		if (!state) {
+			errors.push('state is null or undefined');
+			return errors;
+		}
+
+		if (state.type !== 'pqState') {
+			errors.push('state type must be pqState');
+		}
+		if (!Array.isArray(state.elements)) {
+			errors.push('state elements must be an array');
+		}
+
+		return errors;
+	}
+
+	public parse(data: string): ArmorPriorityQueueState<T> | Array<string> | null {
+		if (typeof data !== 'string' || data === '') {
+			return null;
+		}
+
+		let result: ArmorPriorityQueueState<T> | Array<string> | null = null;
+		let parsed: ArmorPriorityQueueState<T> | null = null;
+		let errors: Array<string> = [];
+
+		try {
+			parsed = JSON.parse(data);
+
+			if (parsed) {
+				errors = this.getStateErrors(parsed);
+			}
+
+			if (errors.length) {
+				throw new Error('state is not a valid ArmorPriorityQueueState');
+			}
+
+			result = parsed
+		} catch (error) {
+			result = [error.message].concat(errors);
 		}
 
 		return result;
 	}
 
-	public parse(o: string): ArmorPriorityQueueState<T> | null {
-		if (typeof o !== 'string' || o === '') {
+	public stringify(): string | null {
+		if (!this.isValidState(this.state)) {
 			return null;
 		}
 
-		let result: ArmorPriorityQueueState<T> | null = null;
-		try {
-			result = JSON.parse(o);
-			if (!result || !result.type || result.type !== 'pqState') {
-				return null;
-			}
-		} catch (error) {
-			result = null;
-		}
-
-		return result;
+		return JSON.stringify(this.state);
 	}
 
 	public clearElements(): ArmorPriorityQueue<T> {
@@ -304,6 +354,8 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 
 	public reset(): ArmorPriorityQueue<T> {
 		this.clearElements();
+		
+		this.state.type = 'pqState';
 
 		return this;
 	}

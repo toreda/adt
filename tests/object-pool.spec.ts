@@ -21,16 +21,17 @@ describe('ArmorObjectPool', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	const DEFAULT_STATE: ArmorObjectPoolState<objectClass> = {
-		type: 'opState',
-		elements: [],
-		startSize: 10,
-		objectCount: 10,
-		maxSize: 1000,
-		autoIncrease: false,
-		increaseBreakPoint: 0.8,
-		increaseFactor: 2
-	};
+	let DEFAULT_STATE: ArmorObjectPoolState<objectClass>;
+	let STATE_PROPERTIES = [
+		'type',
+		'elements',
+		'startSize',
+		'objectCount',
+		'maxSize',
+		'autoIncrease',
+		'increaseBreakPoint',
+		'increaseFactor'
+	];
 	const VALID_SERIALIZED_STATE = [
 		'{',
 		'"type": "opState",',
@@ -71,7 +72,10 @@ describe('ArmorObjectPool', () => {
 
 	beforeAll(() => {
 		instance = new ArmorObjectPool(objectClass);
+		DEFAULT_STATE = instance.getDefaultState();
+		DEFAULT_STATE.objectCount = DEFAULT_STATE.startSize;
 	});
+
 	beforeEach(() => {
 		instance.reset();
 	});
@@ -115,7 +119,7 @@ describe('ArmorObjectPool', () => {
 			expect(JSON.parse(custom2.stringify()!)).toStrictEqual(expected2);
 		});
 
-		it('should initialize with other options overriding serializedState', () => {
+		it('should initialize with other options overriding serializedState if they are valid', () => {
 			const expected: ArmorObjectPoolState<objectClass> = JSON.parse(VALID_SERIALIZED_STATE);
 			expected.startSize = 20;
 			expected.objectCount = expected.startSize;
@@ -134,6 +138,7 @@ describe('ArmorObjectPool', () => {
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
 		});
 	});
+
 	describe('parseOptions', () => {
 		it('should return default properties if options is falsey', () => {
 			const defaults = {...DEFAULT_STATE};
@@ -172,19 +177,20 @@ describe('ArmorObjectPool', () => {
 			).toStrictEqual(expected2);
 		});
 	});
+
 	describe('parseOptionsState', () => {
 		it('should return the default state if options is falsey', () => {
 			const expected = {...instance.state};
 			expected.elements = [];
 			expected.objectCount = 0;
 
-			expect(instance.parseOptionsState(null!)).toEqual(expected);
-			expect(instance.parseOptionsState('' as any)).toEqual(expected);
-			expect(instance.parseOptionsState(undefined!)).toEqual(expected);
+			expect(instance.parseOptionsState(null!)).toStrictEqual(expected);
+			expect(instance.parseOptionsState('' as any)).toStrictEqual(expected);
+			expect(instance.parseOptionsState(undefined!)).toStrictEqual(expected);
 		});
 
 		describe('should throw if serializedState is not valid', () => {
-			Object.keys(DEFAULT_STATE).forEach((v) => {
+			STATE_PROPERTIES.forEach((v) => {
 				it(v + ' is null', () => {
 					const state = {...DEFAULT_STATE};
 					state[v] = null!;
@@ -207,30 +213,29 @@ describe('ArmorObjectPool', () => {
 				instance.parseOptionsState({
 					serializedState: VALID_SERIALIZED_STATE
 				})
-			).toEqual(expected);
+			).toStrictEqual(expected);
 		});
 	});
+
 	describe('parseOptionsOther', () => {
-		it('should return default if state is not valid', () => {
+		it('should return the default state if state is falsey', () => {
 			const expected = {...DEFAULT_STATE};
+			expected.elements = [];
 			expected.objectCount = 0;
 
-			expect(instance.parseOptionsOther(null as any)).toEqual(expected);
+			expect(instance.parseOptionsOther(null!)).toStrictEqual(expected);
+			expect(instance.parseOptionsOther('' as any)).toStrictEqual(expected);
+			expect(instance.parseOptionsOther(undefined!)).toStrictEqual(expected);
 		});
 
 		it('should return passed state if options is null or undefined', () => {
 			const types = [null, undefined];
 			types.forEach((type) => {
-				expect(instance.parseOptionsOther(instance.state, type!)).toEqual(instance.state);
-				expect(instance.parseOptionsOther(DEFAULT_STATE as ArmorObjectPoolState<objectClass>, type!)).toEqual(
-					DEFAULT_STATE
+				expect(instance.parseOptionsOther(instance.state, type!)).toStrictEqual(instance.state);
+				expect(instance.parseOptionsOther(DEFAULT_STATE as any, type!)).toStrictEqual(DEFAULT_STATE);
+				expect(instance.parseOptionsOther(instance.parse(VALID_SERIALIZED_STATE) as any, type!)).toStrictEqual(
+					instance.parse(VALID_SERIALIZED_STATE)
 				);
-				expect(
-					instance.parseOptionsOther(
-						instance.parse(VALID_SERIALIZED_STATE) as ArmorObjectPoolState<objectClass>,
-						type!
-					)
-				).toEqual(instance.parse(VALID_SERIALIZED_STATE));
 			});
 		});
 
@@ -286,6 +291,7 @@ describe('ArmorObjectPool', () => {
 			});
 		});
 	});
+
 	describe('isAboveThreshold', () => {
 		isValidStateRuns((obj) => {
 			obj.isAboveThreshold();
@@ -342,6 +348,7 @@ describe('ArmorObjectPool', () => {
 			expect(instance.state.elements.length).toBe(9);
 		});
 	});
+
 	describe('allocateMultiple', () => {
 		isValidStateRuns((obj) => {
 			obj.allocateMultiple();
@@ -446,6 +453,40 @@ describe('ArmorObjectPool', () => {
 			custom.objectClass.cleanObj = cleanObj;
 		});
 	});
+
+	describe('release', () => {
+		it('should not throw if array is empty',()=>{
+			expect(instance.state.elements.length).toBe(10);
+
+			expect(()=>{
+				instance.releaseMultiple([]);
+			}).not.toThrow();
+
+			expect(instance.state.elements.length).toBe(10);
+		})
+
+		it('should release element from array if there is only 1', () => {
+			expect(instance.state.elements.length).toBe(instance.state.objectCount);
+
+			const objs = instance.allocateMultiple(1);
+			expect(instance.state.elements.length).toBe(instance.state.objectCount - 1);
+			
+			instance.releaseMultiple(objs);
+			expect(instance.state.elements.length).toBe(instance.state.objectCount);
+		});
+
+		it('should release all elements from the array', () => {
+			expect(instance.state.elements.length).toBe(instance.state.objectCount);
+
+			const amount = 5;
+			const objs = instance.allocateMultiple(amount);
+			expect(instance.state.elements.length).toBe(instance.state.objectCount - amount);
+			
+			instance.releaseMultiple(objs);
+			expect(instance.state.elements.length).toBe(instance.state.objectCount);
+		});
+	});
+
 	describe('store', () => {
 		isValidStateRuns((obj) => {
 			obj.store();
@@ -457,8 +498,6 @@ describe('ArmorObjectPool', () => {
 			expect(instance.state.elements.length).toBe(11);
 		});
 	});
-
-	// TESTS.isIntegerTests(new ArmorObjectPool(objectClass));
 
 	describe('isInteger', () => {
 		describe('should return true if n is an integer', () => {
@@ -479,6 +518,7 @@ describe('ArmorObjectPool', () => {
 			});
 		});
 	});
+
 	describe('isFloat', () => {
 		describe('should return true if n is a float', () => {
 			const types: any[] = ([] as any[]).concat(NUM_VALUES);
@@ -498,6 +538,7 @@ describe('ArmorObjectPool', () => {
 			});
 		});
 	});
+
 	describe('isValidState', () => {
 		it('should return true if state is a valid ArmorObjectPoolState', () => {
 			expect(instance.isValidState(instance.state)).toBe(true);
@@ -510,66 +551,109 @@ describe('ArmorObjectPool', () => {
 			});
 		});
 
-		it('should return false if state.type is not "opState"', () => {
+		describe('should return false if a state property is not valid', () => {
+			STATE_PROPERTIES.forEach((v) => {
+				it(v + ' is null', () => {
+					const state = {...DEFAULT_STATE};
+					state[v] = null!;
+					expect(instance.isValidState(state)).toBe(false);
+				});
+			});
+		});
+	});
+
+	describe('getStateErrors', () => {
+		it('should return array of errors if state is falsy', () => {
+			const types = [null, undefined];
+			types.forEach((type) => {
+				expect(instance.getStateErrors(type!)).toContain('state is null or undefined');
+			});
+		});
+
+		it('should return array of errors if state.type is not "opState"', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
 			const types = [null, undefined, ''];
 			types.forEach((type) => {
-				custom.state.type = type as 'opState';
-				expect(custom.isValidState(custom.state)).toBe(false);
+				custom.state.type = type as any;
+				expect(custom.getStateErrors(custom.state)).toContain('state type must be opState');
 			});
 		});
 
-		it('should return false if state.elements is not an array', () => {
+		it('should return array of errors if state.elements is not an array', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
 			const types = [{}, null, undefined];
 			types.forEach((type) => {
-				custom.state.elements = type as Array<objectClass>;
-				expect(custom.isValidState(custom.state)).toBe(false);
+				custom.state.elements = type as any;
+				expect(custom.getStateErrors(custom.state)).toContain('state elements must be an array');
 			});
 		});
 
-		describe('should return false if state.maxSize is not an integer >= 1', () => {
+		it('should return array of errors if state.autoIncrease is not a boolean', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types: any[] = ([0] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
+			const types = [{}, '', 0, null, undefined];
+			types.forEach((type) => {
+				custom.state.autoIncrease = type as any;
+				expect(custom.getStateErrors(custom.state)).toContain('state autoIncrease must be a boolean');
+			});
+		});
+
+		describe('should return array of errors if state.startSize is not an integer >= 0', () => {
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const types: any[] = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
-					custom.state.maxSize = type!;
-					expect(custom.isValidState(custom.state)).toBe(false);
+					custom.state.startSize = type!;
+					expect(custom.getStateErrors(custom.state)).toContain('state startSize must be an integer >= 0');
 				});
 			});
 		});
 
-		describe('should return false if state.objectCount is not an integer >= 0', () => {
+		describe('should return array of errors if state.objectCount is not an integer >= 0', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
 			const types: any[] = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
 					custom.state.objectCount = type!;
-					expect(custom.isValidState(custom.state)).toBe(false);
+					expect(custom.getStateErrors(custom.state)).toContain('state objectCount must be an integer >= 0');
 				});
 			});
 		});
 
-		describe('should return false if state.increaseFactor is not a number > 0', () => {
+		describe('should return array of errors if state.maxSize is not an integer >= 1', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types = ([] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES);
+			const types: any[] = ([0] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
-					custom.state.increaseFactor = type!;
-					expect(custom.isValidState(custom.state)).toBe(false);
+					custom.state.maxSize = type!;
+					expect(custom.getStateErrors(custom.state)).toContain('state maxSize must be an integer >= 1');
 				});
 			});
 		});
 
-		describe('should return false if state.increaseBreakPoint is not (0 <= number <= 1)', () => {
+		describe('should return array of errors if state.increaseBreakPoint is not (0 <= number <= 1)', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
 			const types = ([2, 2.5] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
 					custom.state.increaseBreakPoint = type!;
-					expect(custom.isValidState(custom.state)).toBe(false);
+					expect(custom.getStateErrors(custom.state)).toContain('state increaseBreakPoint must be a number between 0 and 1');
 				});
 			});
+		});
+
+		describe('should return array of errors if state.increaseFactor is not a number > 0', () => {
+			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const types = ([] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES);
+			types.forEach((type) => {
+				it(typeof type + ': ' + type, () => {
+					custom.state.increaseFactor = type!;
+					expect(custom.getStateErrors(custom.state)).toContain('state increaseFactor must be a positive number');
+				});
+			});
+		});
+
+		it('should return an empty array if state is valid', () => {
+			expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
 		});
 	});
 
@@ -583,47 +667,48 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should return array of errors if string cant be parsed', () => {
-			expect(instance.parse('[4,3,')).toEqual(['Unexpected end of JSON input']);
-			expect(instance.parse('{left:f,right:')).toEqual(['Unexpected token l in JSON at position 1']);
+			expect(instance.parse('[4,3,')).toContain('Unexpected end of JSON input');
+			expect(instance.parse('{left:f,right:')).toContain('Unexpected token l in JSON at position 1');
 		});
 
-		it('should return null when a parsable string does not parse into an ArmorObjectPoolState', () => {
+		it('should return array of errors when a parsable string does not parse into an ArmorObjectPoolState', () => {
 			let errors: Array<string> = [];
 			let toParse: any;
 
 			errors = instance.getStateErrors({} as any);
 			errors.unshift('state is not a valid ArmorObjectPoolState');
-			expect(instance.parse('"null"')).toEqual(errors);
+			expect(instance.parse('"null"')).toStrictEqual(errors);
 
 			errors = instance.getStateErrors({} as any);
 			errors.unshift('state is not a valid ArmorObjectPoolState');
-			expect(instance.parse('"undefined"')).toEqual(errors);
+			expect(instance.parse('"undefined"')).toStrictEqual(errors);
 
 			toParse = '{}';
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
 			errors.unshift('state is not a valid ArmorObjectPoolState');
-			expect(instance.parse(toParse)).toEqual(errors);
+			expect(instance.parse(toParse)).toStrictEqual(errors);
 
 			toParse = '{"elements":[], "type": "opState"}';
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
 			errors.unshift('state is not a valid ArmorObjectPoolState');
-			expect(instance.parse(toParse)).toEqual(errors);
+			expect(instance.parse(toParse)).toStrictEqual(errors);
 
 			toParse = VALID_SERIALIZED_STATE.replace('0', '-5');
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
 			errors.unshift('state is not a valid ArmorObjectPoolState');
-			expect(instance.parse(toParse)).toEqual(errors);
+			expect(instance.parse(toParse)).toStrictEqual(errors);
 		});
 
 		it('should return an ArmorObjectPoolState when a parsable string is passed', () => {
 			const string = instance.stringify();
 			const expected = {...instance.state};
 			expected.elements = [];
-			expect(string).not.toBeNull();
-			expect(instance.parse(string as string)).toStrictEqual(expected);
+			expect(string!).not.toBeNull();
+			expect(instance.parse(string as any)).toStrictEqual(expected);
 			expect(instance.parse(VALID_SERIALIZED_STATE)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 		});
 	});
+
 	describe('stringify', () => {
 		isValidStateRuns((obj) => {
 			obj.stringify();
@@ -631,17 +716,7 @@ describe('ArmorObjectPool', () => {
 
 		describe('should return null if state is invalid', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			const types = [
-				'type',
-				'elements',
-				'autoIncrease',
-				'startSize',
-				'objectCount',
-				'maxSize',
-				'increaseBreakPoint',
-				'increaseFactor'
-			];
-			types.forEach((type) => {
+			STATE_PROPERTIES.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
 					custom.reset();
 					custom.state[type] = null as any;
@@ -652,7 +727,7 @@ describe('ArmorObjectPool', () => {
 
 		it('should return the state as a string if it is validated', () => {
 			const custom = new ArmorObjectPool<objectClass>(objectClass);
-			expect(JSON.parse(custom.stringify()!)).toEqual({
+			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 				type: 'opState',
 				elements: [],
 				startSize: 10,
@@ -664,7 +739,7 @@ describe('ArmorObjectPool', () => {
 			});
 
 			custom.increaseCapacity(1);
-			expect(JSON.parse(custom.stringify()!)).toEqual({
+			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 				type: 'opState',
 				elements: [],
 				startSize: 10,
@@ -676,7 +751,7 @@ describe('ArmorObjectPool', () => {
 			});
 
 			custom.increaseCapacity(2);
-			expect(JSON.parse(custom.stringify()!)).toEqual({
+			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 				type: 'opState',
 				elements: [],
 				startSize: 10,
@@ -688,7 +763,7 @@ describe('ArmorObjectPool', () => {
 			});
 
 			custom.increaseCapacity(10);
-			expect(JSON.parse(custom.stringify()!)).toEqual({
+			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 				type: 'opState',
 				elements: [],
 				startSize: 10,
@@ -702,20 +777,20 @@ describe('ArmorObjectPool', () => {
 	});
 
 	describe('clearElements', () => {
-		it('should not throw if state has errors', () => {
-			instance.state.elements = '' as any;
+		it('should not throw if object pool is empty', () => {
+			instance.state.elements = [];
 			expect(() => {
 				instance.clearElements();
 			}).not.toThrow();
 		});
 
 		it('should remove all elements from op and reset objectCount to 0', () => {
-			expect(instance.state.elements).not.toEqual([]);
+			expect(instance.state.elements).not.toStrictEqual([]);
 			expect(instance.state.objectCount).not.toBe(0);
 
 			instance.clearElements();
 
-			expect(instance.state.elements).toEqual([]);
+			expect(instance.state.elements).toStrictEqual([]);
 			expect(instance.state.objectCount).toBe(0);
 		});
 
@@ -737,6 +812,7 @@ describe('ArmorObjectPool', () => {
 			expect(custom.state.increaseFactor).toBe('test');
 		});
 	});
+
 	describe('reset', () => {
 		it('should not throw if state has errors', () => {
 			instance.state.elements = '' as any;
@@ -746,7 +822,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should set objectCount to startSize and initialize that many elements', () => {
-			expect(instance.state.elements).not.toEqual([]);
+			expect(instance.state.elements).not.toStrictEqual([]);
 			expect(instance.state.objectCount).not.toBe(0);
 			instance.reset();
 			expect(instance.state.elements.length).toBe(instance.state.startSize);
