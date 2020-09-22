@@ -1,4 +1,5 @@
 import ADTCollection from './collection';
+import { ADTCollectionQuery } from './query';
 import ADTCollectionSelector from './selector';
 import ADTPriorityQueueComparator from './priority-queue-comparator';
 import ADTPriorityQueueNodeChildren from './priority-queue-children';
@@ -360,8 +361,8 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 		return this;
 	}
 
-	public find(query: ArmorCollectionQuery): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this, query);
+	public find(query: ADTCollectionQuery): ADTCollectionSelector<T> {
+		const selector = new ADTCollectionSelector<T>(this, query);
 
 		return selector;
 	}

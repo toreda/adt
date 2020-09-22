@@ -225,8 +225,8 @@ export default class ADTLinkedList<T> implements ADTCollection<T> {
 		return this;
 	}
 
-	public find(query?: ArmorCollectionQuery): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<ArmorLinkedListElement<T>>(this, query);
+	public find(query?: ADTCollectionQuery): ADTCollectionSelector<T> {
+		const selector = new ADTCollectionSelector<ADTLinkedListElement<T>>(this, query);
 
 		return selector;
 	}

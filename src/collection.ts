@@ -1,7 +1,7 @@
 import ADTCollectionSelector from './selector';
 
-export default interface ArmorCollection<T> {
-	find(...args: any[]): ArmorCollectionSelector<T>;
+export default interface ADTCollection<T> {
+	find(...args: any[]): ADTCollectionSelector<T>;
 	clearElements(): void;
 	reset(): void;
 	parse(s: string): any | Array<string> | null;

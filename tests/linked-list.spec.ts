@@ -258,11 +258,11 @@ describe('ADTLinkedList', () => {
 
 		describe('select', () => {
 			it('should return an ADTCollectionSelector instance when no arguments provided', () => {
-				expect(instance.select() instanceof ADTCollectionSelector).toBe(true);
+				expect(instance.find() instanceof ADTCollectionSelector).toBe(true);
 			});
 
 			it('should return an ADTCollectionSelector instance', () => {
-				expect(instance.select() instanceof ADTCollectionSelector).toBe(true);
+				expect(instance.find() instanceof ADTCollectionSelector).toBe(true);
 			});
 		});
 	});

@@ -332,8 +332,8 @@ export default class ADTObjectPool<T> implements ADTCollection<T> {
 		return this;
 	}
 
-	public find(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
+	public find(): ADTCollectionSelector<T> {
+		const selector = new ADTCollectionSelector<T>(this);
 
 		return selector;
 	}
