@@ -81,7 +81,7 @@ export default class ArmorStack<T> implements ArmorCollection<T> {
 		return this;
 	}
 
-	public select(): ArmorCollectionSelector<T> {
+	public find(): ArmorCollectionSelector<T> {
 		const selector = new ArmorCollectionSelector<T>(this);
 
 		return selector;

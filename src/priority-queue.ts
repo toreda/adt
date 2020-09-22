@@ -1,4 +1,5 @@
 import ArmorCollection from './collection';
+import { ArmorCollectionQuery } from './query';
 import ArmorCollectionSelector from './selector';
 import ArmorPriorityQueueComparator from './priority-queue-comparator';
 import ArmorPriorityQueueNodeChildren from './priority-queue-children';
@@ -360,8 +361,8 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return this;
 	}
 
-	public select(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
+	public find(query: ArmorCollectionQuery): ArmorCollectionSelector<T> {
+		const selector = new ArmorCollectionSelector<T>(this, query);
 
 		return selector;
 	}

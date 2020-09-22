@@ -147,7 +147,7 @@ export default class ArmorLinkedList<T> implements ArmorCollection<T> {
 		return this;
 	}
 
-	public select(query?: ArmorCollectionQuery): ArmorCollectionSelector<T> {
+	public find(query?: ArmorCollectionQuery): ArmorCollectionSelector<T> {
 		const selector = new ArmorCollectionSelector<ArmorLinkedListElement<T>>(this, query);
 
 		return selector;
