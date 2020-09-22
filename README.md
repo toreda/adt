@@ -175,7 +175,7 @@ const size = priorityQueue.size(); // returns 2
 const result = priorityQueue.front(); // Returns 10
 
 // Get the root element of the queue and remove it
-const result1 = priorityQueue.pop(); // Returns 10 
+const result1 = priorityQueue.pop(); // Returns 10
 const result2 = priorityQueue.pop(); // Returns 20
 const result3 = priorityQueue.pop(); // Returns null
 
@@ -254,7 +254,6 @@ const serialized = objectPool.stringify();
 // Instantiate an Object Pool using serialized state
 const objectPoolFromSerialized = new ArmorPriorityQueue<objectClass>(objectClass, {serializedState: serialized});
 ```
-
 
 ### LinkedList
 
