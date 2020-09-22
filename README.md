@@ -1,6 +1,6 @@
 # ArmorJS - Collections
 
-![CI](https://github.com/armorjs/collections/workflows/CI/badge.svg?branch=master) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=armorjs_collections&metric=coverage)](https://sonarcloud.io/dashboard?id=armorjs_collections) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=armorjs_collections&metric=alert_status)](https://sonarcloud.io/dashboard?id=armorjs_collections)
+![CI](https://github.com/toreda/adt/workflows/CI/badge.svg?branch=master) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=coverage)](https://sonarcloud.io/dashboard?id=toreda_adt) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=alert_status)](https://sonarcloud.io/dashboard?id=toreda_adt)
 
 Collection of simple data structures with typescript interfaces.
 
