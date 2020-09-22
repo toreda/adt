@@ -77,7 +77,7 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 		}
 
 		if (options.elements && Array.isArray(options.elements)) {
-			state.elements = options.elements;
+			state.elements = options.elements.slice();
 		}
 
 		return state;

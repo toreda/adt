@@ -453,7 +453,7 @@ describe('ADTObjectPool', () => {
 		});
 	});
 
-	describe('release', () => {
+	describe('releaseMultiple', () => {
 		it('should not throw if array is empty',()=>{
 			expect(instance.state.elements.length).toBe(10);
 

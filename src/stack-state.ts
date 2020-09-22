@@ -3,5 +3,5 @@ export default interface ADTStackState<T> {
 	elements: Array<T>;
 	size: number;
 	top: number;
-	bottom: number;
+	bottom: 0;
 }
