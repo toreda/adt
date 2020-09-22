@@ -1,1 +1,1 @@
-export type ArmorQueueCallable = (element: any, ndx: number) => Promise<void>;
+export type ADTQueueCallable = (element: any, ndx: number) => Promise<void>;

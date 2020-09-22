@@ -1,116 +1,90 @@
-import {ArmorCollection} from './collection';
-import {ArmorCollectionSelector} from './selector';
-import ArmorPriorityQueueComparator from './priority-queue-comparator';
-import ArmorPriorityQueueNodeChildren from './priority-queue-children';
-import ArmorPriorityQueueOptions from './priority-queue-options';
-import ArmorPriorityQueueState from './priority-queue-state';
+import ADTCollection from './collection';
+import ADTCollectionSelector from './selector';
+import ADTPriorityQueueComparator from './priority-queue-comparator';
+import ADTPriorityQueueNodeChildren from './priority-queue-children';
+import ADTPriorityQueueOptions from './priority-queue-options';
+import ADTPriorityQueueState from './priority-queue-state';
 
-export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
-	public state: ArmorPriorityQueueState<T>;
-	public readonly comparator: ArmorPriorityQueueComparator<T>;
+export default class ADTPriorityQueue<T> implements ADTCollection<T> {
+	public state: ADTPriorityQueueState<T>;
+	public readonly comparator: ADTPriorityQueueComparator<T>;
 
-	constructor(
-		elements: Array<T>,
-		comparator: ArmorPriorityQueueComparator<T>,
-		options?: ArmorPriorityQueueOptions<T>
-	) {
+	constructor(comparator: ADTPriorityQueueComparator<T>, options?: ADTPriorityQueueOptions<T>) {
 		if (typeof comparator !== 'function') {
 			throw new Error('Must have a comparator function for priority queue to operate properly');
 		}
 
-		this.state = {type: 'pqState', elements: []};
 		this.comparator = comparator;
 
-		if (options) {
-			this.parseOptions(options);
-		}
-
-		if (!this.size()) {
-			elements.forEach((element) => {
-				this.push(element);
-			});
-		}
+		this.state = this.parseOptions(options);
 	}
 
-	public parseOptions(options: ArmorPriorityQueueOptions<T>): void {
+	public getDefaultState(): ADTPriorityQueueState<T> {
+		const state: ADTPriorityQueueState<T> = {
+			type: 'pqState',
+			elements: []
+		};
+
+		return state;
+	}
+
+	public parseOptions(options?: ADTPriorityQueueOptions<T>): ADTPriorityQueueState<T> {
+		const state = this.parseOptionsState(options);
+		const finalState = this.parseOptionsOther(state, options);
+
+		return finalState;
+	}
+
+	public parseOptionsState(options?: ADTPriorityQueueOptions<T>): ADTPriorityQueueState<T> {
+		const state: ADTPriorityQueueState<T> = this.getDefaultState();
+
 		if (!options) {
-			return;
+			return state;
 		}
 
-		if (options.state !== undefined) {
-			this.parseOptionsState(options.state);
-		}
-	}
+		let parsed: ADTPriorityQueueState<T> | Array<string> | null = null;
+		let result: ADTPriorityQueueState<T> | null = null;
 
-	public parseOptionsState(state: ArmorPriorityQueueState<T> | string): void {
-		if (!state) {
-			return;
-		}
+		if (typeof options.serializedState === 'string') {
+			parsed = this.parse(options.serializedState)!;
 
-		let result: ArmorPriorityQueueState<T> | null = null;
-
-		if (typeof state === 'string') {
-			result = this.parse(state)!;
-
-			if (!result) {
-				throw new Error('state is not valid');
+			if (Array.isArray(parsed)) {
+				throw new Error(parsed.join('\n'));
 			}
-		} else {
-			result = state;
 
-			if (result.elements && !Array.isArray(result.elements)) {
-				throw new Error('state elements needs to be an array');
-			}
+			result = parsed;
 		}
 
-		result.elements.forEach((element) => {
-			this.push(element);
-		});
-	}
-
-	public stringify(): string | null {
-		let result: string | null = null;
-
-		result = JSON.stringify(this.state);
-		if (!this.parse(result)) {
-			result = null;
+		if (result) {
+			state.elements = result.elements;
 		}
 
-		return result;
+		return state;
 	}
 
-	public parse(o: string): ArmorPriorityQueueState<T> | null {
-		if (typeof o !== 'string' || o === '') {
-			return null;
+	public parseOptionsOther(
+		s: ADTPriorityQueueState<T>,
+		options?: ADTPriorityQueueOptions<T>
+	): ADTPriorityQueueState<T> {
+		let state: ADTPriorityQueueState<T> | null = s;
+
+		if (!s) {
+			state = this.getDefaultState();
 		}
 
-		let result: ArmorPriorityQueueState<T> | null = null;
-		try {
-			result = JSON.parse(o);
-			if (!result || !result.type || result.type !== 'pqState') {
-				return null;
-			}
-		} catch (error) {
-			result = null;
+		if (!options) {
+			return state;
 		}
 
-		return result;
-	}
+		if (options.elements && Array.isArray(options.elements)) {
+			state.elements = options.elements.slice();
+		}
 
-	public select(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
-
-		return selector;
-	}
-
-	public clear(): ArmorPriorityQueue<T> {
-		this.state.elements = [];
-
-		return this;
+		return state;
 	}
 
 	public size(): number {
-		if (!Array.isArray(this.state.elements)) {
+		if (!this.isValidState(this.state)) {
 			return 0;
 		}
 
@@ -180,7 +154,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return Math.floor((nodeIndex - 1) / 2);
 	}
 
-	public getChildNodesIndexes(nodeIndex: number | null): ArmorPriorityQueueNodeChildren {
+	public getChildNodesIndexes(nodeIndex: number | null): ADTPriorityQueueNodeChildren {
 		if (typeof nodeIndex !== 'number') {
 			return {left: null, right: null};
 		}
@@ -283,7 +257,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		}
 	}
 
-	public push(element: T): ArmorPriorityQueue<T> {
+	public push(element: T): ADTPriorityQueue<T> {
 		this.state.elements.push(element);
 		this.fixHeap(this.size() - 1);
 
@@ -306,5 +280,89 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		this.fixHeap(0);
 
 		return highestPriority;
+	}
+
+	public isValidState(state: ADTPriorityQueueState<T>): boolean {
+		const errors = this.getStateErrors(state);
+
+		if (errors.length) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public getStateErrors(state: ADTPriorityQueueState<T>): Array<string> {
+		const errors: Array<string> = [];
+
+		if (!state) {
+			errors.push('state is null or undefined');
+			return errors;
+		}
+
+		if (state.type !== 'pqState') {
+			errors.push('state type must be pqState');
+		}
+		if (!Array.isArray(state.elements)) {
+			errors.push('state elements must be an array');
+		}
+
+		return errors;
+	}
+
+	public parse(data: string): ADTPriorityQueueState<T> | Array<string> | null {
+		if (typeof data !== 'string' || data === '') {
+			return null;
+		}
+
+		let result: ADTPriorityQueueState<T> | Array<string> | null = null;
+		let parsed: ADTPriorityQueueState<T> | null = null;
+		let errors: Array<string> = [];
+
+		try {
+			parsed = JSON.parse(data);
+
+			if (parsed) {
+				errors = this.getStateErrors(parsed);
+			}
+
+			if (errors.length) {
+				throw new Error('state is not a valid ADTPriorityQueueState');
+			}
+
+			result = parsed
+		} catch (error) {
+			result = [error.message].concat(errors);
+		}
+
+		return result;
+	}
+
+	public stringify(): string | null {
+		if (!this.isValidState(this.state)) {
+			return null;
+		}
+
+		return JSON.stringify(this.state);
+	}
+
+	public clearElements(): ADTPriorityQueue<T> {
+		this.state.elements = [];
+
+		return this;
+	}
+
+	public reset(): ADTPriorityQueue<T> {
+		this.clearElements();
+		
+		this.state.type = 'pqState';
+
+		return this;
+	}
+
+	public select(): ADTCollectionSelector<T> {
+		const selector = new ADTCollectionSelector<T>(this);
+
+		return selector;
 	}
 }

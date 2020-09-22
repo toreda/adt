@@ -1,44 +1,43 @@
-import { ArmorCollectionQuery } from '../src/query';
-import { ArmorCollectionSelector } from '../src/selector';
-import {ArmorLinkedList} from '../src/linked-list';
+import ADTCollectionSelector from '../src/selector';
+import ADTLinkedList from '../src/linked-list';
 
-describe('ArmorLinkedList', () => {
-	let instance: ArmorLinkedList<number>;
+describe('ADTLinkedList', () => {
+	let instance: ADTLinkedList<number>;
 
 	beforeAll(() => {
-		instance = new ArmorLinkedList<number>();
+		instance = new ADTLinkedList<number>();
 	});
 
 	beforeEach(() => {
-		instance.clear();
+		instance.reset();
 	});
 
 	describe('Constructor', () => {
 		it('should initialize _head to null when no elements argument provided', () => {
-			const custom = new ArmorLinkedList<number>();
+			const custom = new ADTLinkedList<number>();
 			expect(custom._head).toBeNull();
 		});
 
 		it('should initialize _tail to null when no elements argument provided', () => {
-			const custom = new ArmorLinkedList<number>();
+			const custom = new ADTLinkedList<number>();
 			expect(custom._tail).toBeNull();
 		});
 
 		it('should initialize list with provided single element', () => {
 			const expectedValue = 66182;
-			const custom = new ArmorLinkedList<number>(expectedValue);
+			const custom = new ADTLinkedList<number>(expectedValue);
 			expect(custom!.head()!.value()).toBe(expectedValue);
 		});
 
 		it('should initialize list length to 1 when elements argument is a single element', () => {
 			const expectedValue = 32145;
-			const custom = new ArmorLinkedList<number>(expectedValue);
+			const custom = new ADTLinkedList<number>(expectedValue);
 			expect(custom.length).toBe(1);
 		});
 
 		it('should initialize list with elements array argument', () => {
 			const elements = [331, 441, 551, 323, 333];
-			const custom = new ArmorLinkedList<number>(elements);
+			const custom = new ADTLinkedList<number>(elements);
 
 			let curr = custom.head();
 			elements.forEach((element: number) => {
@@ -199,18 +198,18 @@ describe('ArmorLinkedList', () => {
 			});
 		});
 
-		describe('clear', () => {
+		describe('reset', () => {
 			it('should set _head to null', () => {
 				instance.insert(55019);
 				expect(instance._head).not.toBeNull();
-				instance.clear();
+				instance.reset();
 				expect(instance._head).toBeNull();
 			});
 
 			it('should set _tail to null', () => {
 				instance.insert(66019);
 				expect(instance._tail).not.toBeNull();
-				instance.clear();
+				instance.reset();
 				expect(instance._tail).toBeNull();
 			});
 
@@ -218,13 +217,13 @@ describe('ArmorLinkedList', () => {
 				instance.insert(66019);
 				instance.insert(11102);
 				expect(instance.length).toBe(2);
-				instance.clear();
+				instance.reset();
 				expect(instance.length).toBe(0);
 			});
 
 			it('should return the linked list instance', () => {
-				const result = instance.clear();
-				expect(result instanceof ArmorLinkedList).toBe(true);
+				const result = instance.reset();
+				expect(result instanceof ADTLinkedList).toBe(true);
 				expect(result).toBe(instance);
 			});
 		});
@@ -232,7 +231,7 @@ describe('ArmorLinkedList', () => {
 		describe('reverse', () => {
 			it('should return linked list instance when list is empty', () => {
 				const result = instance.reverse();
-				expect(result instanceof ArmorLinkedList).toBe(true);
+				expect(result instanceof ADTLinkedList).toBe(true);
 				expect(result).toBe(instance);
 			});
 
@@ -241,18 +240,107 @@ describe('ArmorLinkedList', () => {
 				instance.insert(11440);
 				instance.insert(99012);
 				const result = instance.reverse();
-				expect(result instanceof ArmorLinkedList).toBe(true);
+				expect(result instanceof ADTLinkedList).toBe(true);
 				expect(result).toBe(instance);
 			});
+
+			it('should reverse the order of the list',()=>{
+				const list = [1,2,3,4,5];
+				list.forEach((elem)=>{
+					instance.insert(elem);
+				});
+				expect(JSON.parse(instance.stringify()!)).toEqual(list);
+				list.reverse();
+				instance.reverse();
+				expect(JSON.parse(instance.stringify()!)).toEqual(list);
+			})
 		});
 
 		describe('select', () => {
-			it('should return an ArmorCollectionSelector instance when no arguments provided', () => {
-				expect(instance.select() instanceof ArmorCollectionSelector).toBe(true);
+			it('should return an ADTCollectionSelector instance when no arguments provided', () => {
+				expect(instance.select() instanceof ADTCollectionSelector).toBe(true);
 			});
 
-			it('should return an ArmorCollectionSelector instance', () => {
-				expect(instance.select() instanceof ArmorCollectionSelector).toBe(true);
+			it('should return an ADTCollectionSelector instance', () => {
+				expect(instance.select() instanceof ADTCollectionSelector).toBe(true);
+			});
+		});
+	});
+
+	describe('Serialization', () => {
+		describe('getStateErrors', () => {
+			it('should return array of errors if state is falsy', () => {
+				const types = [null, undefined];
+				types.forEach((type) => {
+					expect(instance.getStateErrors(type!)).toContain('Must be an array');
+				});
+			});
+
+			it('should return array of errors if elements are not the same type', () => {
+				const custom = new ADTLinkedList<any>();
+				const items = [{d1: 1}, {d2: 2}, {d3: 3}];
+				expect(custom.getStateErrors(items)).toContain('All elements must be the same type');
+			});
+
+			it('should return an empty array if state is valid', () => {
+				const custom = new ADTLinkedList<any>();
+				const items = [{d1: 1}, {d1: 2}, {d1: 3}];
+				expect(custom.getStateErrors(items)).toStrictEqual([]);
+			});
+		});
+
+		describe('parse', () => {
+			it('should return null if argument is not a string with length > 0', () => {
+				expect(instance.parse(4 as any)).toBeNull();
+				expect(instance.parse([] as any)).toBeNull();
+				expect(instance.parse({} as any)).toBeNull();
+				expect(instance.parse('' as any)).toBeNull();
+				expect(instance.parse(false as any)).toBeNull();
+			});
+
+			it('should return array of errors if string cant be parsed', () => {
+				expect(instance.parse('[4,3,')).toContain('Unexpected end of JSON input');
+				expect(instance.parse('{left:f,right:')).toContain('Unexpected token l in JSON at position 1');
+			});
+
+			it('should return array of errors when a parsable string does not parse into an ADTStackState', () => {
+				expect(instance.parse('"null"')).toContain('not a valid ADTLinkedList');
+				expect(instance.parse('"undefined"')).toContain('not a valid ADTLinkedList');
+				expect(instance.parse('{}')).toContain('not a valid ADTLinkedList');
+				expect(instance.parse('[1,"-2",4]')).toContain(
+					'not a valid ADTLinkedList'
+				);
+			});
+
+			describe('should return an ADTStackState when a parsable string is passed', () => {
+				const tests = ['[]', '[1, 2]', '[{"d1": 1}, {"d1": 2}]'];
+				tests.forEach((test) => {
+					it(test, () => {
+						const expected = new ADTLinkedList<any>(JSON.parse(test));
+						expect(instance.parse(test)).toEqual(expected);
+					});
+				});
+			});
+		});
+
+		describe('stringify', () => {
+			it('should return a stringified list of all elements', () => {
+				const custom = new ADTLinkedList<number>([1, 2, 3]);
+				const expected = [1, 2, 3];
+
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
+
+				custom.insert(4);
+				expected.push(4);
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
+
+				custom.insertAtFront(0);
+				expected.unshift(0);
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
+
+				custom.clearElements();
+				expected.length = 0;
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
 			});
 		});
 	});

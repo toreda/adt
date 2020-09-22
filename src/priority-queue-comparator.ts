@@ -1,3 +1,3 @@
-export default interface ArmorPriorityQueueComparator<T> {
+export default interface ADTPriorityQueueComparator<T> {
   (a: T, b: T): boolean;
 }

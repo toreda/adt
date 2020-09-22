@@ -1,5 +1,4 @@
-import ArmorPriorityQueueState from './priority-queue-state';
-
-export default interface ArmorPriorityQueueOptions<T> {
-	state?: ArmorPriorityQueueState<T> | string;
+export default interface ADTPriorityQueueOptions<T> {
+	serializedState?: string;
+	elements?: Array<T>;
 }

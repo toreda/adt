@@ -7,6 +7,8 @@ on:
   # a pull request. 
   push:
     branches:
+      - master
+      - develop
   pull_request:
       types: [opened, synchronize, reopened]
 jobs:
@@ -45,4 +47,4 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_OSS_TOKEN }}

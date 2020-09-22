@@ -1,16 +1,17 @@
-import { ArmorCollectionQuery, ArmorCollectionQueryFilter } from './query';
-export interface ArmorCollectionSelectorStateRange {
+import { ADTCollectionQuery, ADTCollectionQueryFilter } from './query';
+
+export interface ADTCollectionSelectorStateRange {
 	min: number | null;
 	max: number | null;
 }
 
-export class ArmorCollectionSelectorState {
-	public readonly range: ArmorCollectionSelectorStateRange;
+export class ADTCollectionSelectorState {
+	public readonly range: ADTCollectionSelectorStateRange;
 	public readonly index: number | null;
-	public readonly filters: ArmorCollectionQueryFilter[];
+	public readonly filters: ADTCollectionQueryFilter[];
 	public readonly limit: number | null;
 
-	constructor(query?: ArmorCollectionQuery) {
+	constructor(query?: ADTCollectionQuery) {
 		this.index = null;
 		this.range = {
 			min: null,
@@ -22,7 +23,7 @@ export class ArmorCollectionSelectorState {
 		this.limit = this.createLimit(query);
 	}
 
-	public createLimit(query?: ArmorCollectionQuery): number|null {
+	public createLimit(query?: ADTCollectionQuery): number|null {
 		if (!query || typeof query.limit !== 'number') {
 			return null;
 		}
@@ -30,8 +31,8 @@ export class ArmorCollectionSelectorState {
 		return query.limit;
 	}
 
-	public createRange(query?: ArmorCollectionQuery): any {
-		const range: ArmorCollectionSelectorStateRange = {
+	public createRange(query?: ADTCollectionQuery): any {
+		const range: ADTCollectionSelectorStateRange = {
 			min: null,
 			max: null
 		};
@@ -51,7 +52,7 @@ export class ArmorCollectionSelectorState {
 		return range;
 	}
 
-	public createIndex(query?: ArmorCollectionQuery): number | null {
+	public createIndex(query?: ADTCollectionQuery): number | null {
 		if (!query || typeof query.index !== 'number') {
 			return null;
 		}
@@ -59,7 +60,7 @@ export class ArmorCollectionSelectorState {
 		return query.index;
 	}
 
-	public createFilters(query?: ArmorCollectionQuery): ArmorCollectionQueryFilter[] {
+	public createFilters(query?: ADTCollectionQuery): ADTCollectionQueryFilter[] {
 		if (!query) {
 			return [];
 		}

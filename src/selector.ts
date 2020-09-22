@@ -1,10 +1,10 @@
-import { ArmorCollection } from './collection';
-import { ArmorCollectionQuery } from './query';
+import ADTCollection from './collection';
+import { ADTCollectionQuery } from './query';
 
-export class ArmorCollectionSelector<T> {
-	public readonly collection: ArmorCollection<T>;
+export default class ADTCollectionSelector<T> {
+	public readonly collection: ADTCollection<T>;
 
-	constructor(collection: ArmorCollection<T>, query?: ArmorCollectionQuery) {
+	constructor(collection: ADTCollection<T>, query?: ADTCollectionQuery) {
 		this.collection = collection;
 	}
 

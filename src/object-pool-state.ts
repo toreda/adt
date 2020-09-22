@@ -1,7 +1,13 @@
-import { ArmorObjectPoolOptions } from './object-pool-options';
+export default interface ADTObjectPoolState<T> {
+	type: 'opState';
+	elements: Array<T>;
 
-export class ArmorObjectPoolState {
-	constructor(options?: ArmorObjectPoolOptions) {
-
-	}
+	autoIncrease: boolean;
+	
+	startSize: number;
+	objectCount: number;
+	maxSize: number;
+	
+	increaseBreakPoint: number;
+	increaseFactor: number;
 }
