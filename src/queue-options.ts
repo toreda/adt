@@ -1,5 +1,6 @@
-export default interface ADTQueueOptions {
-	objectPool?: {
-		enabled?: boolean;
-	}
+export default interface ADTQueueOptions<T> {
+	serializedState?: string;
+	elements?: Array<T>;
+	objectPool?: boolean;
+	deepClone?: boolean;
 }
