@@ -243,6 +243,17 @@ describe('ADTLinkedList', () => {
 				expect(result instanceof ADTLinkedList).toBe(true);
 				expect(result).toBe(instance);
 			});
+
+			it('should reverse the order of the list',()=>{
+				const list = [1,2,3,4,5];
+				list.forEach((elem)=>{
+					instance.insert(elem);
+				});
+				expect(JSON.parse(instance.stringify()!)).toEqual(list);
+				list.reverse();
+				instance.reverse();
+				expect(JSON.parse(instance.stringify()!)).toEqual(list);
+			})
 		});
 
 		describe('select', () => {
@@ -252,6 +263,84 @@ describe('ADTLinkedList', () => {
 
 			it('should return an ADTCollectionSelector instance', () => {
 				expect(instance.select() instanceof ADTCollectionSelector).toBe(true);
+			});
+		});
+	});
+
+	describe('Serialization', () => {
+		describe('getStateErrors', () => {
+			it('should return array of errors if state is falsy', () => {
+				const types = [null, undefined];
+				types.forEach((type) => {
+					expect(instance.getStateErrors(type!)).toContain('Must be an array');
+				});
+			});
+
+			it('should return array of errors if elements are not the same type', () => {
+				const custom = new ADTLinkedList<any>();
+				const items = [{d1: 1}, {d2: 2}, {d3: 3}];
+				expect(custom.getStateErrors(items)).toContain('All elements must be the same type');
+			});
+
+			it('should return an empty array if state is valid', () => {
+				const custom = new ADTLinkedList<any>();
+				const items = [{d1: 1}, {d1: 2}, {d1: 3}];
+				expect(custom.getStateErrors(items)).toStrictEqual([]);
+			});
+		});
+
+		describe('parse', () => {
+			it('should return null if argument is not a string with length > 0', () => {
+				expect(instance.parse(4 as any)).toBeNull();
+				expect(instance.parse([] as any)).toBeNull();
+				expect(instance.parse({} as any)).toBeNull();
+				expect(instance.parse('' as any)).toBeNull();
+				expect(instance.parse(false as any)).toBeNull();
+			});
+
+			it('should return array of errors if string cant be parsed', () => {
+				expect(instance.parse('[4,3,')).toContain('Unexpected end of JSON input');
+				expect(instance.parse('{left:f,right:')).toContain('Unexpected token l in JSON at position 1');
+			});
+
+			it('should return array of errors when a parsable string does not parse into an ADTStackState', () => {
+				expect(instance.parse('"null"')).toContain('not a valid ADTLinkedList');
+				expect(instance.parse('"undefined"')).toContain('not a valid ADTLinkedList');
+				expect(instance.parse('{}')).toContain('not a valid ADTLinkedList');
+				expect(instance.parse('[1,"-2",4]')).toContain(
+					'not a valid ADTLinkedList'
+				);
+			});
+
+			describe('should return an ADTStackState when a parsable string is passed', () => {
+				const tests = ['[]', '[1, 2]', '[{"d1": 1}, {"d1": 2}]'];
+				tests.forEach((test) => {
+					it(test, () => {
+						const expected = new ADTLinkedList<any>(JSON.parse(test));
+						expect(instance.parse(test)).toEqual(expected);
+					});
+				});
+			});
+		});
+
+		describe('stringify', () => {
+			it('should return a stringified list of all elements', () => {
+				const custom = new ADTLinkedList<number>([1, 2, 3]);
+				const expected = [1, 2, 3];
+
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
+
+				custom.insert(4);
+				expected.push(4);
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
+
+				custom.insertAtFront(0);
+				expected.unshift(0);
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
+
+				custom.clearElements();
+				expected.length = 0;
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
 			});
 		});
 	});

@@ -40,12 +40,13 @@ export default class ADTLinkedList<T> implements ADTCollection<T> {
 	 * Reverse the linked list in place.
 	 */
 	public reverse(): ADTLinkedList<T> {
-		if (this.length <= 1) {
+		let curr = this._head;
+
+		if (!curr || this.length <= 1) {
 			return this;
 		}
 
-		let prev = null;
-		let curr = this._head;
+		let prev = curr.prev();
 		this._tail = curr;
 
 		while (curr !== null) {
@@ -57,6 +58,7 @@ export default class ADTLinkedList<T> implements ADTCollection<T> {
 				this._head = curr;
 			}
 
+			prev = curr;
 			curr = next;
 		}
 
@@ -69,15 +71,20 @@ export default class ADTLinkedList<T> implements ADTCollection<T> {
 	public insert(element: T): ADTLinkedListElement<T> {
 		const node = new ADTLinkedListElement<T>(element);
 
-		if (this._head === null) {
+		if (this.length === 0) {
 			this._head = node;
 			this._tail = node;
+
 			this._head.prev(null);
 			this._head.next(null);
 		} else {
-			const tmp = this._tail;
+			const temp = this._tail!;
+			temp.next(node);
+
+			node.prev(temp);
+			node.next(null);
+
 			this._tail = node;
-			this._tail.next(tmp);
 		}
 
 		++this.length;
@@ -97,13 +104,19 @@ export default class ADTLinkedList<T> implements ADTCollection<T> {
 	 */
 	public insertAtFront(element: T): ADTLinkedListElement<T> | null {
 		const node = new ADTLinkedListElement<T>(element);
-		if (this._head === null) {
+		if (this.length === 0) {
 			this._head = node;
 			this._tail = node;
+
+			this._tail.prev(null);
+			this._tail.next(null);
 		} else {
-			const tmp = this._head;
-			tmp.prev(node);
-			node.next(tmp);
+			const temp = this._head!;
+			temp.prev(node);
+
+			node.prev(null);
+			node.next(temp);
+
 			this._head = node;
 		}
 
@@ -111,12 +124,78 @@ export default class ADTLinkedList<T> implements ADTCollection<T> {
 		return node;
 	}
 
-	public parse(data: string): any | null {
-		return null;
+	public getStateErrors(state: Array<T>): Array<string> {
+		const errors: Array<string> = [];
+
+		if (!Array.isArray(state)) {
+			errors.push('Must be an array');
+			return errors;
+		}
+
+		if (state.length === 0) {
+			return errors;
+		}
+
+		const properties = Object.keys(state[0]);
+
+		const allSameType = state.every((elem) => {
+			return Object.keys(elem).every((key, index) => {
+				const sameKeyName = key == properties[index];
+				const sameType = typeof key === typeof properties[index];
+				return sameKeyName && sameType;
+			});
+		});
+
+		if (!allSameType) {
+			errors.push('All elements must be the same type');
+		}
+
+		return errors;
 	}
 
-	public stringify(): string | null {
-		return null;
+	public parse(data: string): ADTLinkedList<T> | Array<string> | null {
+		if (typeof data !== 'string' || data === '') {
+			return null;
+		}
+
+		let result: ADTLinkedList<T> | Array<string> | null = null;
+		let parsed: Array<T> | null = null;
+		let errors: Array<string> = [];
+
+		try {
+			parsed = JSON.parse(data);
+
+			if (parsed) {
+				errors = this.getStateErrors(parsed);
+			}
+
+			if (errors.length) {
+				throw new Error('not a valid ADTLinkedList');
+			}
+
+			result = new ADTLinkedList<T>(parsed!);
+		} catch (error) {
+			result = [error.message]
+		}
+
+		return result;
+	}
+
+	public stringify(): string {
+		const list: Array<T> = [];
+
+		if (!this.head() || !this.tail() || this.length === 0) {
+			return '[]';
+		}
+
+		let curr = this.head();
+		while (curr !== null) {
+			const value = curr.value();
+			if (value !== null) list.push(value);
+			curr = curr.next();
+		}
+
+		return JSON.stringify(list);
 	}
 
 	/**
