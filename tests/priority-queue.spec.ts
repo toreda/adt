@@ -1,10 +1,9 @@
-import ArmorPriorityQueue from '../src/priority-queue';
-import ArmorPriorityQueueComparator from '../src/priority-queue-comparator';
-import ArmorPriorityQueueState from '../src/priority-queue-state';
-import {type} from 'os';
+import ADTPriorityQueue from '../src/priority-queue';
+import ADTPriorityQueueComparator from '../src/priority-queue-comparator';
+import ADTPriorityQueueState from '../src/priority-queue-state';
 
-describe('ArmorPriorityQueue', () => {
-	let instance: ArmorPriorityQueue<number>;
+describe('ADTPriorityQueue', () => {
+	let instance: ADTPriorityQueue<number>;
 	const items = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 	/**
 	 * instance.state.elements is
@@ -17,7 +16,7 @@ describe('ArmorPriorityQueue', () => {
 	 * after initialization
 	 */
 
-	const comparator: ArmorPriorityQueueComparator<number> = function (a, b) {
+	const comparator: ADTPriorityQueueComparator<number> = function (a, b) {
 		if (typeof a !== 'number') {
 			return false;
 		}
@@ -28,13 +27,13 @@ describe('ArmorPriorityQueue', () => {
 		return a < b;
 	};
 
-	let DEFAULT_STATE: ArmorPriorityQueueState<number>;
+	let DEFAULT_STATE: ADTPriorityQueueState<number>;
 	let STATE_PROPERTIES = ['type', 'elements'];
 	const VALID_SERIALIZED_STATE = ['{', '"type": "pqState",', '"elements": [1,2]', '}'].join('');
 
 	const isValidStateRuns = function (action: Function) {
 		it('should run isValidState check', () => {
-			const custom: ArmorPriorityQueue<number> = new ArmorPriorityQueue<number>(comparator);
+			const custom: ADTPriorityQueue<number> = new ADTPriorityQueue<number>(comparator);
 			const spy = jest.spyOn(custom, 'isValidState');
 			spy.mockClear();
 			custom.state.type = '' as any;
@@ -44,7 +43,7 @@ describe('ArmorPriorityQueue', () => {
 	};
 
 	beforeAll(() => {
-		instance = new ArmorPriorityQueue<number>(comparator);
+		instance = new ADTPriorityQueue<number>(comparator);
 		DEFAULT_STATE = instance.getDefaultState();
 	});
 
@@ -55,17 +54,17 @@ describe('ArmorPriorityQueue', () => {
 	describe('constructor', () => {
 		it('should throw if comparator is not a function', () => {
 			expect(() => {
-				const custom = new ArmorPriorityQueue<number>(null as any);
+				const custom = new ADTPriorityQueue<number>(null as any);
 			}).toThrow('Must have a comparator function for priority queue to operate properly');
 		});
 
 		it('should initialize with default state when no options are paseed', () => {
-			const custom = new ArmorPriorityQueue<number>(comparator);
+			const custom = new ADTPriorityQueue<number>(comparator);
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual(DEFAULT_STATE);
 		});
 
 		it('should initialize with serializedState', () => {
-			const custom = new ArmorPriorityQueue<number>(comparator, {serializedState: VALID_SERIALIZED_STATE});
+			const custom = new ADTPriorityQueue<number>(comparator, {serializedState: VALID_SERIALIZED_STATE});
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 		});
 
@@ -73,7 +72,7 @@ describe('ArmorPriorityQueue', () => {
 			const expected1 = {...DEFAULT_STATE};
 			expected1.elements = [3, 4];
 
-			const custom1 = new ArmorPriorityQueue<number>(comparator, {
+			const custom1 = new ADTPriorityQueue<number>(comparator, {
 				elements: expected1.elements
 			});
 
@@ -82,7 +81,7 @@ describe('ArmorPriorityQueue', () => {
 			const expected2 = JSON.parse(VALID_SERIALIZED_STATE);
 			expected2.elements = [3, 4];
 
-			const custom2 = new ArmorPriorityQueue<number>(comparator, {
+			const custom2 = new ADTPriorityQueue<number>(comparator, {
 				serializedState: VALID_SERIALIZED_STATE,
 				elements: expected2.elements
 			});
@@ -145,7 +144,7 @@ describe('ArmorPriorityQueue', () => {
 			});
 		});
 
-		it('should return serializedState as ArmorPriorityQueueState if it is valid', () => {
+		it('should return serializedState as ADTPriorityQueueState if it is valid', () => {
 			const expected = JSON.parse(VALID_SERIALIZED_STATE);
 
 			expect(
@@ -178,7 +177,7 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		it('should return passed state with values changed to match other passed options', () => {
-			const expected: ArmorPriorityQueueState<number> = {...DEFAULT_STATE};
+			const expected: ADTPriorityQueueState<number> = {...DEFAULT_STATE};
 			expected.elements = [3, 4];
 
 			const result = instance.parseOptionsOther(DEFAULT_STATE, {
@@ -189,7 +188,7 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		it('should return passed state with values changed to match other passed options if those are valid', () => {
-			const expected: ArmorPriorityQueueState<number> = {...DEFAULT_STATE};
+			const expected: ADTPriorityQueueState<number> = {...DEFAULT_STATE};
 
 			const result = instance.parseOptionsOther(DEFAULT_STATE, {
 				elements: {} as any
@@ -246,10 +245,10 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('swapNodes', () => {
-		let unchanged: ArmorPriorityQueue<number>;
+		let unchanged: ADTPriorityQueue<number>;
 
 		beforeAll(() => {
-			unchanged = new ArmorPriorityQueue<number>(comparator);
+			unchanged = new ADTPriorityQueue<number>(comparator);
 		});
 
 		beforeEach(() => {
@@ -307,10 +306,10 @@ describe('ArmorPriorityQueue', () => {
 			const complexitems1 = [{depth1: {depth2: 10}}, {depth1: {depth2: 20}}, {depth1: {depth2: 30}}];
 			const complexitems2 = [{depth1: {depth2: 10}}, {depth1: {depth2: 20}}, {depth1: {depth2: 30}}];
 
-			const deepSwapped = new ArmorPriorityQueue<any>((a, b) => false, {
+			const deepSwapped = new ADTPriorityQueue<any>((a, b) => false, {
 				elements: complexitems1
 			});
-			const deepUnchanged = new ArmorPriorityQueue<any>((a, b) => false, {
+			const deepUnchanged = new ADTPriorityQueue<any>((a, b) => false, {
 				elements: complexitems2
 			});
 
@@ -797,7 +796,7 @@ describe('ArmorPriorityQueue', () => {
 	});
 
 	describe('isValidState', () => {
-		it('should return true if state is a valid ArmorPriorityQueueState', () => {
+		it('should return true if state is a valid ADTPriorityQueueState', () => {
 			expect(instance.isValidState(instance.state)).toBe(true);
 		});
 
@@ -828,7 +827,7 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		it('should return array of errors if state.type is not "pqState"', () => {
-			const custom = new ArmorPriorityQueue<number>(comparator);
+			const custom = new ADTPriorityQueue<number>(comparator);
 			const types = [null, undefined, ''];
 			types.forEach((type) => {
 				custom.state.type = type as any;
@@ -837,7 +836,7 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		it('should return array of errors if state.elements is not an array', () => {
-			const custom = new ArmorPriorityQueue<number>(comparator);
+			const custom = new ADTPriorityQueue<number>(comparator);
 			const types = [{}, null, undefined];
 			types.forEach((type) => {
 				custom.state.elements = type as any;
@@ -864,35 +863,35 @@ describe('ArmorPriorityQueue', () => {
 			expect(instance.parse('{left:f,right:')).toContain('Unexpected token l in JSON at position 1');
 		});
 
-		it('should return array of errors when a parsable string does not parse into an ArmorPriorityQueueState', () => {
+		it('should return array of errors when a parsable string does not parse into an ADTPriorityQueueState', () => {
 			let errors: Array<string> = [];
 			let toParse: any;
 
 			errors = instance.getStateErrors({} as any);
-			errors.unshift('state is not a valid ArmorPriorityQueueState');
+			errors.unshift('state is not a valid ADTPriorityQueueState');
 			expect(instance.parse('"null"')).toStrictEqual(errors);
 
 			errors = instance.getStateErrors({} as any);
-			errors.unshift('state is not a valid ArmorPriorityQueueState');
+			errors.unshift('state is not a valid ADTPriorityQueueState');
 			expect(instance.parse('"undefined"')).toStrictEqual(errors);
 
 			toParse = '{}';
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ArmorPriorityQueueState');
+			errors.unshift('state is not a valid ADTPriorityQueueState');
 			expect(instance.parse(toParse)).toStrictEqual(errors);
 
 			toParse = '{"type": "pqState"}';
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ArmorPriorityQueueState');
+			errors.unshift('state is not a valid ADTPriorityQueueState');
 			expect(instance.parse(toParse)).toStrictEqual(errors);
 
 			toParse = '{"elements":4, "type": "pqState"}';
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ArmorPriorityQueueState');
+			errors.unshift('state is not a valid ADTPriorityQueueState');
 			expect(instance.parse(toParse)).toStrictEqual(errors);
 		});
 
-		it('should return an ArmorPriorityQueueState when a parsable string is passed', () => {
+		it('should return an ADTPriorityQueueState when a parsable string is passed', () => {
 			const string = instance.stringify();
 			const expected = {...instance.state};
 			expect(string).not.toBeNull();
@@ -907,7 +906,7 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		describe('should return null if state is invalid', () => {
-			const custom = new ArmorPriorityQueue<number>(comparator);
+			const custom = new ADTPriorityQueue<number>(comparator);
 			STATE_PROPERTIES.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
 					custom.reset();
@@ -918,7 +917,7 @@ describe('ArmorPriorityQueue', () => {
 		});
 
 		it('should return the state as a string if it is validated', () => {
-			const custom = new ArmorPriorityQueue<number>(comparator);
+			const custom = new ADTPriorityQueue<number>(comparator);
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 				type: 'pqState',
 				elements: []

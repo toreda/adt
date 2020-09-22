@@ -1,3 +1,3 @@
-export interface ArmorCollectionElement<T> {
+export default interface ADTCollectionElement<T> {
 	value(elementValue?: T): T|null;
 }

@@ -1,17 +1,17 @@
-import ArmorCircularQueueOptions from './circular-queue-options';
-import ArmorCircularQueueState from './circular-queue-state';
-import ArmorCollection from './collection';
-import ArmorCollectionSelector from './selector';
+import ADTCircularQueueOptions from './circular-queue-options';
+import ADTCircularQueueState from './circular-queue-state';
+import ADTCollection from './collection';
+import ADTCollectionSelector from './selector';
 
-export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
-	public state: ArmorCircularQueueState<T>;
+export default class ADTCircularQueue<T> implements ADTCollection<T> {
+	public state: ADTCircularQueueState<T>;
 
-	constructor(options?: ArmorCircularQueueOptions<T>) {
+	constructor(options?: ADTCircularQueueOptions<T>) {
 		this.state = this.parseOptions(options);
 	}
 
-	public getDefaultState(): ArmorCircularQueueState<T> {
-		const state: ArmorCircularQueueState<T> = {
+	public getDefaultState(): ADTCircularQueueState<T> {
+		const state: ADTCircularQueueState<T> = {
 			type: 'cqState',
 			elements: [],
 			overwrite: false,
@@ -24,22 +24,22 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return state;
 	}
 
-	public parseOptions(options?: ArmorCircularQueueOptions<T>): ArmorCircularQueueState<T> {
+	public parseOptions(options?: ADTCircularQueueOptions<T>): ADTCircularQueueState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: ArmorCircularQueueOptions<T>): ArmorCircularQueueState<T> {
-		const state: ArmorCircularQueueState<T> = this.getDefaultState();
+	public parseOptionsState(options?: ADTCircularQueueOptions<T>): ADTCircularQueueState<T> {
+		const state: ADTCircularQueueState<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: ArmorCircularQueueState<T> | Array<string> | null = null;
-		let result: ArmorCircularQueueState<T> | null = null;
+		let parsed: ADTCircularQueueState<T> | Array<string> | null = null;
+		let result: ADTCircularQueueState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parse(options.serializedState);
@@ -63,8 +63,8 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return state;
 	}
 
-	public parseOptionsOther(s: ArmorCircularQueueState<T>, options?: ArmorCircularQueueOptions<T>): ArmorCircularQueueState<T> {
-		let state: ArmorCircularQueueState<T> | null = s;
+	public parseOptionsOther(s: ADTCircularQueueState<T>, options?: ADTCircularQueueOptions<T>): ADTCircularQueueState<T> {
+		let state: ADTCircularQueueState<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -218,7 +218,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return true;
 	}
 
-	public isValidState(state: ArmorCircularQueueState<T>): boolean {
+	public isValidState(state: ADTCircularQueueState<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -228,7 +228,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return true;
 	}
 
-	public getStateErrors(state: ArmorCircularQueueState<T>): Array<string> {
+	public getStateErrors(state: ADTCircularQueueState<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -263,13 +263,13 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return errors;
 	}
 
-	public parse(data: string): ArmorCircularQueueState<T> | Array<string> | null {
+	public parse(data: string): ADTCircularQueueState<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: ArmorCircularQueueState<T> | Array<string> | null = null;
-		let parsed: ArmorCircularQueueState<T> | null = null;
+		let result: ADTCircularQueueState<T> | Array<string> | null = null;
+		let parsed: ADTCircularQueueState<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -280,7 +280,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 			}
 
 			if (errors.length) {
-				throw new Error('state is not a valid ArmorCircularQueueState');
+				throw new Error('state is not a valid ADTCircularQueueState');
 			}
 
 			result = parsed;
@@ -299,7 +299,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return JSON.stringify(this.state);
 	}
 
-	public clearElements(): ArmorCircularQueue<T> {
+	public clearElements(): ADTCircularQueue<T> {
 		this.state.elements = [];
 		this.state.front = 0;
 		this.state.rear = 0;
@@ -308,7 +308,7 @@ export default class ArmorCircularQueue<T> implements ArmorCollection<T> {
 		return this;
 	}
 
-	public reset(): ArmorCircularQueue<T> {
+	public reset(): ADTCircularQueue<T> {
 		this.clearElements();
 
 		this.state.type = 'cqState';

@@ -1,1 +1,1 @@
-export type ArmorQueueCallableSync = (element: any, ndx: number) => void;
+export type ADTQueueCallableSync = (element: any, ndx: number) => void;
