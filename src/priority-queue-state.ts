@@ -1,4 +1,4 @@
-export default interface ArmorPriorityQueueState<T> {
+export default interface ADTPriorityQueueState<T> {
 	type: "pqState";
 	elements: T[];
 }

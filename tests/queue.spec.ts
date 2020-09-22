@@ -1,10 +1,9 @@
-import ArmorQueue from '../src/queue';
-import {ArmorQueueCallable} from '../src/callable';
+import ADTQueue from '../src/queue';
 
 const mockItem = 14;
 
-describe('ArmorQueue', () => {
-	let instance: ArmorQueue<number>;
+describe('ADTQueue', () => {
+	let instance: ADTQueue<number>;
 
 	function pushToQueue(elements: number[]) {
 		elements.forEach((element: number) => {
@@ -13,7 +12,7 @@ describe('ArmorQueue', () => {
 	}
 
 	beforeAll(() => {
-		instance = new ArmorQueue<number>();
+		instance = new ADTQueue<number>();
 	});
 
 	beforeEach(() => {
@@ -22,13 +21,13 @@ describe('ArmorQueue', () => {
 
 	describe('Constructor', () => {
 		it('should initialize empty queue', () => {
-			const custom = new ArmorQueue<number>();
+			const custom = new ADTQueue<number>();
 			expect(custom.size()).toBe(0);
 		});
 
 		it('should initialize queue with provided contents argument', () => {
 			const contents = [99910, 49810, 40091];
-			const custom = new ArmorQueue<number>(contents);
+			const custom = new ADTQueue<number>(contents);
 
 			for (let i = 0; i < contents.length; i++) {
 				const result = custom.pop();
@@ -37,7 +36,7 @@ describe('ArmorQueue', () => {
 		});
 
 		it('should initialize empty queue when contents argument is not an array', () => {
-			const custom = new ArmorQueue<number>(44091 as any);
+			const custom = new ADTQueue<number>(44091 as any);
 			expect(custom.size()).toBe(0);
 		});
 	});
@@ -302,7 +301,7 @@ describe('ArmorQueue', () => {
 		it('should execute callable once per element', async() => {
 			expect(callable).not.toHaveBeenCalled();
 			const elements = [440194, 11129, 321330];
-			const custom = new ArmorQueue(elements);
+			const custom = new ADTQueue(elements);
 
 			expect.assertions(2);
 
@@ -366,20 +365,20 @@ describe('ArmorQueue', () => {
 		});
 
 		it('should not execute the callable when queue is empty', () => {
-			const custom = new ArmorQueue<number>();
+			const custom = new ADTQueue<number>();
 			custom.executeSync(callable, null);
 			expect(callable).not.toHaveBeenCalled();
 		});
 
 		it('should execute callable once when queue has one item', () => {
-			const custom = new ArmorQueue<number>();
+			const custom = new ADTQueue<number>();
 			custom.push(31091);
 			custom.executeSync(callable, null);
 			expect(callable).toHaveBeenCalledTimes(1);
 		});
 
 		it('should execute callable once for every item in queue', () => {
-			const custom = new ArmorQueue<number>();
+			const custom = new ADTQueue<number>();
 			custom.push(11201);
 			custom.push(22081);
 			custom.push(333100);

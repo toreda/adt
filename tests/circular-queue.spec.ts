@@ -1,8 +1,8 @@
-import ArmorCircularQueue from '../src/circular-queue';
-import ArmorCircularQueueState from '../src/circular-queue-state';
+import ADTCircularQueue from '../src/circular-queue';
+import ADTCircularQueueState from '../src/circular-queue-state';
 
-describe('ArmorCircularQueue', () => {
-	let instance: ArmorCircularQueue<number>;
+describe('ADTCircularQueue', () => {
+	let instance: ADTCircularQueue<number>;
 	const items = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 	const maxSize = 4;
 
@@ -22,7 +22,7 @@ describe('ArmorCircularQueue', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	let DEFAULT_STATE: ArmorCircularQueueState<number>;
+	let DEFAULT_STATE: ADTCircularQueueState<number>;
 	const STATE_PROPERTIES = ['type', 'elements', 'overwrite', 'maxSize', 'size', 'front', 'rear'];
 	const VALID_SERIALIZED_STATE = [
 		'{',
@@ -38,7 +38,7 @@ describe('ArmorCircularQueue', () => {
 
 	const isValidStateRuns = function (action: Function) {
 		it('should run isValidState check', () => {
-			const custom: ArmorCircularQueue<number> = new ArmorCircularQueue<number>();
+			const custom: ADTCircularQueue<number> = new ADTCircularQueue<number>();
 			const spy = jest.spyOn(custom, 'isValidState');
 			spy.mockClear();
 			custom.state.type = '' as any;
@@ -48,7 +48,7 @@ describe('ArmorCircularQueue', () => {
 	};
 
 	beforeAll(() => {
-		instance = new ArmorCircularQueue<number>({maxSize: maxSize});
+		instance = new ADTCircularQueue<number>({maxSize: maxSize});
 		DEFAULT_STATE = instance.getDefaultState();
 	});
 
@@ -58,12 +58,12 @@ describe('ArmorCircularQueue', () => {
 
 	describe('constructor', () => {
 		it('should initialize with default state when no options are paseed', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual(DEFAULT_STATE);
 		});
 
 		it('should initialize with serializedState', () => {
-			const custom = new ArmorCircularQueue<number>({serializedState: VALID_SERIALIZED_STATE});
+			const custom = new ADTCircularQueue<number>({serializedState: VALID_SERIALIZED_STATE});
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 		});
 
@@ -71,7 +71,7 @@ describe('ArmorCircularQueue', () => {
 			const expected1 = {...DEFAULT_STATE};
 			expected1.maxSize = 2000;
 
-			const custom1 = new ArmorCircularQueue<number>({
+			const custom1 = new ADTCircularQueue<number>({
 				maxSize: expected1.maxSize
 			});
 
@@ -80,7 +80,7 @@ describe('ArmorCircularQueue', () => {
 			const expected2 = JSON.parse(VALID_SERIALIZED_STATE);
 			expected2.maxSize = 2000;
 
-			const custom2 = new ArmorCircularQueue<number>({
+			const custom2 = new ADTCircularQueue<number>({
 				serializedState: VALID_SERIALIZED_STATE,
 				maxSize: expected2.maxSize
 			});
@@ -89,10 +89,10 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should initialize with other options overriding serializedState if they are valid', () => {
-			const expected: ArmorCircularQueueState<number> = JSON.parse(VALID_SERIALIZED_STATE);
+			const expected: ADTCircularQueueState<number> = JSON.parse(VALID_SERIALIZED_STATE);
 			expected.maxSize = 40;
 
-			const custom = new ArmorCircularQueue<number>({
+			const custom = new ADTCircularQueue<number>({
 				serializedState: VALID_SERIALIZED_STATE,
 				maxSize: expected.maxSize,
 				size: -1
@@ -156,7 +156,7 @@ describe('ArmorCircularQueue', () => {
 			});
 		});
 
-		it('should return serializedState as ArmorCircularQueueState if it is valid', () => {
+		it('should return serializedState as ADTCircularQueueState if it is valid', () => {
 			const expected = JSON.parse(VALID_SERIALIZED_STATE);
 
 			expect(
@@ -186,7 +186,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should return passed state with values changed to match other passed options', () => {
-			const expected: ArmorCircularQueueState<number> = {...DEFAULT_STATE};
+			const expected: ADTCircularQueueState<number> = {...DEFAULT_STATE};
 			expected.maxSize = 99;
 
 			const result = instance.parseOptionsOther(DEFAULT_STATE, {
@@ -197,7 +197,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should return passed state with values changed to match other passed options if those are valid', () => {
-			const expected: ArmorCircularQueueState<number> = {...DEFAULT_STATE};
+			const expected: ADTCircularQueueState<number> = {...DEFAULT_STATE};
 			expected.maxSize = 99;
 
 			const result = instance.parseOptionsOther(DEFAULT_STATE, {
@@ -608,7 +608,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should return elements until cq is empty and then return null', () => {
-			const custom = new ArmorCircularQueue<number>({maxSize: 10});
+			const custom = new ADTCircularQueue<number>({maxSize: 10});
 			for (let i = 0; i < custom.state.maxSize; i++) {
 				custom.push(i + 1);
 			}
@@ -643,7 +643,7 @@ describe('ArmorCircularQueue', () => {
 	});
 
 	describe('isValidState', () => {
-		it('should return true if state is a valid ArmorCircularQueueState', () => {
+		it('should return true if state is a valid ADTCircularQueueState', () => {
 			expect(instance.isValidState(instance.state)).toBe(true);
 		});
 
@@ -674,7 +674,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should return array of errors if state.type is not "cqState"', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			const types = [null, undefined, ''];
 			types.forEach((type) => {
 				custom.state.type = type as any;
@@ -683,7 +683,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should return array of errors if state.elements is not an array', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			const types = [{}, null, undefined];
 			types.forEach((type) => {
 				custom.state.elements = type as any;
@@ -692,7 +692,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should return array of errors if state.overwrite is not a boolean', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			const types = [{}, '', 0, null, undefined];
 			types.forEach((type) => {
 				custom.state.overwrite = type as any;
@@ -701,7 +701,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		describe('should return array of errors if state.size is not an integer >= 0', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			const types: any[] = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
@@ -712,7 +712,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		describe('should return array of errors if state.maxSize is not an integer >= 1', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			const types: any[] = ([0] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
@@ -723,7 +723,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		describe('should return array of errors if state.front is not an integer', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			const types = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
@@ -734,7 +734,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		describe('should return array of errors if state.rear is not an integer', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			const types = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
@@ -763,35 +763,35 @@ describe('ArmorCircularQueue', () => {
 			expect(instance.parse('{left:f,right:')).toContain('Unexpected token l in JSON at position 1');
 		});
 
-		it('should return array of errors when a parsable string does not parse into an ArmorCircularQueueState', () => {
+		it('should return array of errors when a parsable string does not parse into an ADTCircularQueueState', () => {
 			let errors: Array<string> = [];
 			let toParse: any;
 
 			errors = instance.getStateErrors({} as any);
-			errors.unshift('state is not a valid ArmorCircularQueueState');
+			errors.unshift('state is not a valid ADTCircularQueueState');
 			expect(instance.parse('"null"')).toStrictEqual(errors);
 
 			errors = instance.getStateErrors({} as any);
-			errors.unshift('state is not a valid ArmorCircularQueueState');
+			errors.unshift('state is not a valid ADTCircularQueueState');
 			expect(instance.parse('"undefined"')).toStrictEqual(errors);
 
 			toParse = '{}';
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ArmorCircularQueueState');
+			errors.unshift('state is not a valid ADTCircularQueueState');
 			expect(instance.parse(toParse)).toStrictEqual(errors);
 
 			toParse = '{"elements":[], "type": "cqState"}';
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ArmorCircularQueueState');
+			errors.unshift('state is not a valid ADTCircularQueueState');
 			expect(instance.parse(toParse)).toStrictEqual(errors);
 
 			toParse = VALID_SERIALIZED_STATE.replace('9', '-5');
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ArmorCircularQueueState');
+			errors.unshift('state is not a valid ADTCircularQueueState');
 			expect(instance.parse(toParse)).toStrictEqual(errors);
 		});
 
-		it('should return an ArmorCircularQueueState when a parsable string is passed', () => {
+		it('should return an ADTCircularQueueState when a parsable string is passed', () => {
 			const string = instance.stringify();
 			const expected = {...instance.state};
 			expect(string).not.toBeNull();
@@ -806,7 +806,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		describe('should return null if state is invalid', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			STATE_PROPERTIES.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
 					custom.reset();
@@ -817,7 +817,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should return the state as a string if it is validated', () => {
-			const custom = new ArmorCircularQueue<number>({maxSize: 10});
+			const custom = new ADTCircularQueue<number>({maxSize: 10});
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 				type: 'cqState',
 				elements: [],
@@ -890,7 +890,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should not change any other state variables', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 
 			custom.state.type = 'test' as any;
 			custom.state.overwrite = 'test' as any;
@@ -916,7 +916,7 @@ describe('ArmorCircularQueue', () => {
 		});
 
 		it('should remove all data from cq', () => {
-			const custom = new ArmorCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 
 			custom.state.type = 'test' as any;
 			custom.state.overwrite = 'test' as any;

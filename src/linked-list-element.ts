@@ -1,9 +1,9 @@
-import {ArmorCollectionElement} from './collection-element';
+import ADTCollectionElement from './collection-element';
 
-export class ArmorLinkedListElement<T> implements ArmorCollectionElement<T> {
+export default class ADTLinkedListElement<T> implements ADTCollectionElement<T> {
 	private _value: T | null;
-	public _next: ArmorLinkedListElement<T> | null;
-	public _prev: ArmorLinkedListElement<T> | null;
+	public _next: ADTLinkedListElement<T> | null;
+	public _prev: ADTLinkedListElement<T> | null;
 
 	constructor(element?: T) {
 		this._next = null;
@@ -25,7 +25,7 @@ export class ArmorLinkedListElement<T> implements ArmorCollectionElement<T> {
 		return null;
 	}
 
-	public prev(element?: ArmorLinkedListElement<T>|null): ArmorLinkedListElement<T> | null {
+	public prev(element?: ADTLinkedListElement<T>|null): ADTLinkedListElement<T> | null {
 		if (typeof element === 'undefined') {
 			return this._prev;
 		}
@@ -34,7 +34,7 @@ export class ArmorLinkedListElement<T> implements ArmorCollectionElement<T> {
 		return null;
 	}
 
-	public next(element?: ArmorLinkedListElement<T>|null): ArmorLinkedListElement<T> | null {
+	public next(element?: ADTLinkedListElement<T>|null): ADTLinkedListElement<T> | null {
 		if (typeof element === 'undefined') {
 			return this._next;
 		}

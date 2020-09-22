@@ -1,12 +1,10 @@
+import ADTCollection from './collection';
+import ADTCollectionSelector from './selector';
+import {ADTQueueCallable} from './callable';
+import {ADTQueueCallableSync} from './callable-sync';
 import {ArmorActionResult} from '@armorjs/action-result';
-import ArmorCollection from './collection';
-import {ArmorCollectionElement} from './collection-element';
-import ArmorCollectionSelector from './selector';
-import {ArmorQueueCallable} from './callable';
-import {ArmorQueueCallableSync} from './callable-sync';
-import {ArmorQueueOptions} from './options';
 
-export default class ArmorQueue<T> implements ArmorCollection<T> {
+export default class ADTQueue<T> implements ADTCollection<T> {
 	public elements: T[];
 
 	constructor(elements: T[] = []) {
@@ -22,7 +20,7 @@ export default class ArmorQueue<T> implements ArmorCollection<T> {
 	/**
 	 * Add element to the end of the queue.
 	 */
-	public push(element: any): ArmorQueue<T> {
+	public push(element: any): ADTQueue<T> {
 		this.elements.push(element);
 
 		return this;
@@ -72,7 +70,7 @@ export default class ArmorQueue<T> implements ArmorCollection<T> {
 	}
 
 	/** Reverse stored element order. */
-	public reverse(): ArmorQueue<T> {
+	public reverse(): ADTQueue<T> {
 		this.elements.reverse();
 
 		return this;
@@ -89,33 +87,33 @@ export default class ArmorQueue<T> implements ArmorCollection<T> {
 	/**
 	 * Clear all elements from queue.
 	 */
-	public clearElements(): ArmorQueue<T> {
+	public clearElements(): ADTQueue<T> {
 		this.elements = [];
 
 		return this;
 	}
 
-	public reset(): ArmorQueue<T> {
+	public reset(): ADTQueue<T> {
 		this.clearElements();
 
 		return this;
 	}
 
-	public select(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
+	public select(): ADTCollectionSelector<T> {
+		const selector = new ADTCollectionSelector<T>(this);
 
 		return selector;
 	}
 
-	public executeOnAllSync(callable: ArmorQueueCallableSync): ArmorActionResult {
+	public executeOnAllSync(callable: ADTQueueCallableSync): ArmorActionResult {
 		return this.executeSync(callable, null);
 	}
 
-	public executeOnMatchSync(callable: ArmorQueueCallableSync, element: T): ArmorActionResult {
+	public executeOnMatchSync(callable: ADTQueueCallableSync, element: T): ArmorActionResult {
 		return this.executeSync(callable, element);
 	}
 
-	public executeSync(callable: ArmorQueueCallableSync, element: T | null): ArmorActionResult {
+	public executeSync(callable: ADTQueueCallableSync, element: T | null): ArmorActionResult {
 		const result = new ArmorActionResult();
 		for (let i = 0; i < this.elements.length; i++) {
 			try {
@@ -126,15 +124,15 @@ export default class ArmorQueue<T> implements ArmorCollection<T> {
 		return result;
 	}
 
-	public async executeOnAll(callable: ArmorQueueCallable): Promise<ArmorActionResult> {
+	public async executeOnAll(callable: ADTQueueCallable): Promise<ArmorActionResult> {
 		return await this.execute(callable, null);
 	}
 
-	public async executeOnMatch(callable: ArmorQueueCallable, element: T): Promise<ArmorActionResult> {
+	public async executeOnMatch(callable: ADTQueueCallable, element: T): Promise<ArmorActionResult> {
 		return await this.execute(callable, element);
 	}
 
-	public async execute(callable: ArmorQueueCallable, element: T | null): Promise<ArmorActionResult> {
+	public async execute(callable: ADTQueueCallable, element: T | null): Promise<ArmorActionResult> {
 		const result = new ArmorActionResult();
 		for (let i = 0; i < this.elements.length; i++) {
 			try {

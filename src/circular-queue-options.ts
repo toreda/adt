@@ -1,6 +1,4 @@
-import ArmorCircularQueueState from './circular-queue-state';
-
-export default interface ArmorCircularQueueOptions<T> {
+export default interface ADTCircularQueueOptions<T> {
 	serializedState?: string;
 
 	elements?: [];

@@ -1,3 +1,3 @@
-export interface ArmorQueueOptions {
+export default interface ADTQueueOptions {
 	deepClone?: boolean;
 }

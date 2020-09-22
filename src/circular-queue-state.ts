@@ -1,4 +1,4 @@
-export default interface ArmorCircularQueueState<T> {
+export default interface ADTCircularQueueState<T> {
   type: 'cqState';
   elements: T[];
   overwrite: boolean;

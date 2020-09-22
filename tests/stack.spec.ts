@@ -1,10 +1,10 @@
-import ArmorStack from '../src/stack';
+import ADTStack from '../src/stack';
 
-describe('ArmorStack', () => {
-	let instance: ArmorStack<number>;
+describe('ADTStack', () => {
+	let instance: ADTStack<number>;
 
 	beforeAll(() => {
-		instance = new ArmorStack<number>();
+		instance = new ADTStack<number>();
 	});
 
 	beforeEach(() => {
@@ -18,7 +18,7 @@ describe('ArmorStack', () => {
 	describe('Implementation', () => {
 		describe('push', () => {
 			it('should return the stack instance', () => {
-				expect(instance.push(11141) instanceof ArmorStack).toBe(true);
+				expect(instance.push(11141) instanceof ADTStack).toBe(true);
 			});
 
 			it('should increase the size for each element added', () => {
@@ -152,14 +152,14 @@ describe('ArmorStack', () => {
 
 			it('should return stack instance when stack is empty', () => {
 				expect(instance.size).toBe(0);
-				expect(instance.reverse() instanceof ArmorStack).toBe(true);
+				expect(instance.reverse() instanceof ADTStack).toBe(true);
 			});
 
 			it('should return stack instance', () => {
 				instance.push(44113);
 				instance.push(44712);
 				instance.push(55710);
-				expect(instance.reverse() instanceof ArmorStack).toBe(true);
+				expect(instance.reverse() instanceof ADTStack).toBe(true);
 			});
 		});
 	});

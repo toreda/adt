@@ -1,6 +1,4 @@
-import ArmorObjectPoolInstance from './object-pool-instance';
-
-export default interface ArmorObjectPoolState<T> {
+export default interface ADTObjectPoolState<T> {
 	type: 'opState';
 	elements: Array<T>;
 

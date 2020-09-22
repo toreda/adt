@@ -1,14 +1,14 @@
-import ArmorCollection from './collection';
-import ArmorCollectionSelector from './selector';
-import ArmorObjectPoolInstance from './object-pool-instance';
-import ArmorObjectPoolOptions from './object-pool-options';
-import ArmorObjectPoolState from './object-pool-state';
+import ADTCollection from './collection';
+import ADTCollectionSelector from './selector';
+import ADTObjectPoolInstance from './object-pool-instance';
+import ADTObjectPoolOptions from './object-pool-options';
+import ADTObjectPoolState from './object-pool-state';
 
-export default class ArmorObjectPool<T> implements ArmorCollection<T> {
-	public readonly state: ArmorObjectPoolState<T>;
-	public readonly objectClass: ArmorObjectPoolInstance<T>;
+export default class ADTObjectPool<T> implements ADTCollection<T> {
+	public readonly state: ADTObjectPoolState<T>;
+	public readonly objectClass: ADTObjectPoolInstance<T>;
 
-	constructor(objectClass: ArmorObjectPoolInstance<T>, options?: ArmorObjectPoolOptions<T>) {
+	constructor(objectClass: ADTObjectPoolInstance<T>, options?: ADTObjectPoolOptions<T>) {
 		if (typeof objectClass !== 'function') {
 			throw new Error('Must have a class contructor for object pool to operate properly');
 		}
@@ -19,8 +19,8 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		this.increaseCapacity(this.state.startSize);
 	}
 
-	public getDefaultState(): ArmorObjectPoolState<T> {
-		const state: ArmorObjectPoolState<T> = {
+	public getDefaultState(): ADTObjectPoolState<T> {
+		const state: ADTObjectPoolState<T> = {
 			type: 'opState',
 			elements: [],
 			autoIncrease: false,
@@ -34,22 +34,22 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		return state;
 	}
 
-	public parseOptions(options?: ArmorObjectPoolOptions<T>): ArmorObjectPoolState<T> {
+	public parseOptions(options?: ADTObjectPoolOptions<T>): ADTObjectPoolState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: ArmorObjectPoolOptions<T>): ArmorObjectPoolState<T> {
-		const state: ArmorObjectPoolState<T> = this.getDefaultState();
+	public parseOptionsState(options?: ADTObjectPoolOptions<T>): ADTObjectPoolState<T> {
+		const state: ADTObjectPoolState<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: ArmorObjectPoolState<T> | Array<string> | null = null;
-		let result: ArmorObjectPoolState<T> | null = null;
+		let parsed: ADTObjectPoolState<T> | Array<string> | null = null;
+		let result: ADTObjectPoolState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parse(options.serializedState);
@@ -74,8 +74,8 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		return state;
 	}
 
-	public parseOptionsOther(s: ArmorObjectPoolState<T>, options?: ArmorObjectPoolOptions<T>): ArmorObjectPoolState<T> {
-		let state: ArmorObjectPoolState<T> | null = s;
+	public parseOptionsOther(s: ADTObjectPoolState<T>, options?: ADTObjectPoolOptions<T>): ADTObjectPoolState<T> {
+		let state: ADTObjectPoolState<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -223,7 +223,7 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		return true;
 	}
 
-	public isValidState(state: ArmorObjectPoolState<T>): boolean {
+	public isValidState(state: ADTObjectPoolState<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -233,7 +233,7 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		return true;
 	}
 
-	public getStateErrors(state: ArmorObjectPoolState<T>): Array<string> {
+	public getStateErrors(state: ADTObjectPoolState<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -273,13 +273,13 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		return errors;
 	}
 
-	public parse(data: string): ArmorObjectPoolState<T> | Array<string> | null {
+	public parse(data: string): ADTObjectPoolState<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: ArmorObjectPoolState<T> | Array<string> | null = null;
-		let parsed: ArmorObjectPoolState<T> | null = null;
+		let result: ADTObjectPoolState<T> | Array<string> | null = null;
+		let parsed: ADTObjectPoolState<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -290,7 +290,7 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 			}
 
 			if (errors.length) {
-				throw new Error('state is not a valid ArmorObjectPoolState');
+				throw new Error('state is not a valid ADTObjectPoolState');
 			}
 
 			result = parsed;
@@ -312,14 +312,14 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		return state;
 	}
 
-	public clearElements(): ArmorObjectPool<T> {
+	public clearElements(): ADTObjectPool<T> {
 		this.state.elements = [];
 		this.state.objectCount = 0;
 
 		return this;
 	}
 
-	public reset(): ArmorObjectPool<T> {
+	public reset(): ADTObjectPool<T> {
 		this.clearElements();
 
 		this.state.type = 'opState';
@@ -332,8 +332,8 @@ export default class ArmorObjectPool<T> implements ArmorCollection<T> {
 		return this;
 	}
 
-	public select(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
+	public select(): ADTCollectionSelector<T> {
+		const selector = new ADTCollectionSelector<T>(this);
 
 		return selector;
 	}

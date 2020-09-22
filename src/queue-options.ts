@@ -1,4 +1,4 @@
-export interface ArmorQueueOptions {
+export default interface ADTQueueOptions {
 	objectPool?: {
 		enabled?: boolean;
 	}

@@ -1,4 +1,4 @@
-export default interface ArmorObjectPoolInstance<T> {
+export default interface ADTObjectPoolInstance<T> {
 	new (): T;
 	cleanObj(obj: T): void;
 }

@@ -1,12 +1,11 @@
-import { ArmorCollectionQuery } from '../src/query';
-import ArmorCollectionSelector from '../src/selector';
-import ArmorLinkedList from '../src/linked-list';
+import ADTCollectionSelector from '../src/selector';
+import ADTLinkedList from '../src/linked-list';
 
-describe('ArmorLinkedList', () => {
-	let instance: ArmorLinkedList<number>;
+describe('ADTLinkedList', () => {
+	let instance: ADTLinkedList<number>;
 
 	beforeAll(() => {
-		instance = new ArmorLinkedList<number>();
+		instance = new ADTLinkedList<number>();
 	});
 
 	beforeEach(() => {
@@ -15,30 +14,30 @@ describe('ArmorLinkedList', () => {
 
 	describe('Constructor', () => {
 		it('should initialize _head to null when no elements argument provided', () => {
-			const custom = new ArmorLinkedList<number>();
+			const custom = new ADTLinkedList<number>();
 			expect(custom._head).toBeNull();
 		});
 
 		it('should initialize _tail to null when no elements argument provided', () => {
-			const custom = new ArmorLinkedList<number>();
+			const custom = new ADTLinkedList<number>();
 			expect(custom._tail).toBeNull();
 		});
 
 		it('should initialize list with provided single element', () => {
 			const expectedValue = 66182;
-			const custom = new ArmorLinkedList<number>(expectedValue);
+			const custom = new ADTLinkedList<number>(expectedValue);
 			expect(custom!.head()!.value()).toBe(expectedValue);
 		});
 
 		it('should initialize list length to 1 when elements argument is a single element', () => {
 			const expectedValue = 32145;
-			const custom = new ArmorLinkedList<number>(expectedValue);
+			const custom = new ADTLinkedList<number>(expectedValue);
 			expect(custom.length).toBe(1);
 		});
 
 		it('should initialize list with elements array argument', () => {
 			const elements = [331, 441, 551, 323, 333];
-			const custom = new ArmorLinkedList<number>(elements);
+			const custom = new ADTLinkedList<number>(elements);
 
 			let curr = custom.head();
 			elements.forEach((element: number) => {
@@ -224,7 +223,7 @@ describe('ArmorLinkedList', () => {
 
 			it('should return the linked list instance', () => {
 				const result = instance.reset();
-				expect(result instanceof ArmorLinkedList).toBe(true);
+				expect(result instanceof ADTLinkedList).toBe(true);
 				expect(result).toBe(instance);
 			});
 		});
@@ -232,7 +231,7 @@ describe('ArmorLinkedList', () => {
 		describe('reverse', () => {
 			it('should return linked list instance when list is empty', () => {
 				const result = instance.reverse();
-				expect(result instanceof ArmorLinkedList).toBe(true);
+				expect(result instanceof ADTLinkedList).toBe(true);
 				expect(result).toBe(instance);
 			});
 
@@ -241,18 +240,18 @@ describe('ArmorLinkedList', () => {
 				instance.insert(11440);
 				instance.insert(99012);
 				const result = instance.reverse();
-				expect(result instanceof ArmorLinkedList).toBe(true);
+				expect(result instanceof ADTLinkedList).toBe(true);
 				expect(result).toBe(instance);
 			});
 		});
 
 		describe('select', () => {
-			it('should return an ArmorCollectionSelector instance when no arguments provided', () => {
-				expect(instance.select() instanceof ArmorCollectionSelector).toBe(true);
+			it('should return an ADTCollectionSelector instance when no arguments provided', () => {
+				expect(instance.select() instanceof ADTCollectionSelector).toBe(true);
 			});
 
-			it('should return an ArmorCollectionSelector instance', () => {
-				expect(instance.select() instanceof ArmorCollectionSelector).toBe(true);
+			it('should return an ADTCollectionSelector instance', () => {
+				expect(instance.select() instanceof ADTCollectionSelector).toBe(true);
 			});
 		});
 	});

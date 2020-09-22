@@ -1,7 +1,7 @@
-import ArmorCollection from './collection';
-import ArmorCollectionSelector from './selector';
+import ADTCollection from './collection';
+import ADTCollectionSelector from './selector';
 
-export default class ArmorStack<T> implements ArmorCollection<T> {
+export default class ADTStack<T> implements ADTCollection<T> {
 	public _elements: T[];
 	public size: number;
 	public _top: number;
@@ -14,7 +14,7 @@ export default class ArmorStack<T> implements ArmorCollection<T> {
 		this._elements = [];
 	}
 
-	public push(element: T): ArmorStack<T> {
+	public push(element: T): ADTStack<T> {
 		this._elements.push(element);
 		this._top++;
 		this.size++;
@@ -49,7 +49,7 @@ export default class ArmorStack<T> implements ArmorCollection<T> {
 		return this._elements[this._bottom];
 	}
 
-	public reverse(): ArmorStack<T> {
+	public reverse(): ADTStack<T> {
 		if (this.size <= 1) {
 			return this;
 		}
@@ -66,7 +66,7 @@ export default class ArmorStack<T> implements ArmorCollection<T> {
 		return null;
 	}
 
-	public clearElements(): ArmorStack<T> {
+	public clearElements(): ADTStack<T> {
 		this._elements = [];
 		this._top = -1;
 		this.size = 0;
@@ -74,15 +74,15 @@ export default class ArmorStack<T> implements ArmorCollection<T> {
 		return this;
 	}
 
-	public reset(): ArmorStack<T> {
+	public reset(): ADTStack<T> {
 		this.clearElements();
 		this._bottom = 0;
 
 		return this;
 	}
 
-	public select(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
+	public select(): ADTCollectionSelector<T> {
+		const selector = new ADTCollectionSelector<T>(this);
 
 		return selector;
 	}

@@ -1,18 +1,17 @@
-
-export interface ArmorCollectionQueryRange {
+export interface ADTCollectionQueryRange {
 	min?: number;
 	max?: number;
 }
 
-export interface ArmorCollectionQueryProperties {}
+export interface ADTCollectionQueryProperties {}
 
-export interface ArmorCollectionQueryMatch {}
+export interface ADTCollectionQueryMatch {}
 
-export type ArmorCollectionQueryFilter = (value: any) => boolean;
+export type ADTCollectionQueryFilter = (value: any) => boolean;
 
-export interface ArmorCollectionQuery {
-	range?: ArmorCollectionQueryRange;
+export interface ADTCollectionQuery {
+	range?: ADTCollectionQueryRange;
 	index?: number;
 	limit?: number;
-	filters?: ArmorCollectionQueryFilter | ArmorCollectionQueryFilter[];
+	filters?: ADTCollectionQueryFilter | ADTCollectionQueryFilter[];
 }

@@ -1,13 +1,12 @@
-import ArmorCollection from './collection';
-import {ArmorCollectionElement} from './collection-element';
-import {ArmorCollectionQuery} from './query';
-import ArmorCollectionSelector from './selector';
-import {ArmorLinkedListElement} from './linked-list-element';
+import ADTCollection from './collection';
+import {ADTCollectionQuery} from './query';
+import ADTCollectionSelector from './selector';
+import ADTLinkedListElement from './linked-list-element';
 
-export default class ArmorLinkedList<T> implements ArmorCollection<T> {
+export default class ADTLinkedList<T> implements ADTCollection<T> {
 	public length: number;
-	public _head: ArmorLinkedListElement<T> | null;
-	public _tail: ArmorLinkedListElement<T> | null;
+	public _head: ADTLinkedListElement<T> | null;
+	public _tail: ADTLinkedListElement<T> | null;
 
 	constructor(elements?: T | T[]) {
 		this.length = 0;
@@ -25,7 +24,7 @@ export default class ArmorLinkedList<T> implements ArmorCollection<T> {
 		}
 	}
 
-	public head(): ArmorLinkedListElement<T> | null {
+	public head(): ADTLinkedListElement<T> | null {
 		return this._head;
 	}
 
@@ -33,14 +32,14 @@ export default class ArmorLinkedList<T> implements ArmorCollection<T> {
 	 * Return the tail element if present. Returns null
 	 * on empty list.
 	 */
-	public tail(): ArmorLinkedListElement<T> | null {
+	public tail(): ADTLinkedListElement<T> | null {
 		return this._tail;
 	}
 
 	/**
 	 * Reverse the linked list in place.
 	 */
-	public reverse(): ArmorLinkedList<T> {
+	public reverse(): ADTLinkedList<T> {
 		if (this.length <= 1) {
 			return this;
 		}
@@ -67,8 +66,8 @@ export default class ArmorLinkedList<T> implements ArmorCollection<T> {
 	/**
 	 * Insert element at the end of the list.
 	 */
-	public insert(element: T): ArmorLinkedListElement<T> {
-		const node = new ArmorLinkedListElement<T>(element);
+	public insert(element: T): ADTLinkedListElement<T> {
+		const node = new ADTLinkedListElement<T>(element);
 
 		if (this._head === null) {
 			this._head = node;
@@ -88,7 +87,7 @@ export default class ArmorLinkedList<T> implements ArmorCollection<T> {
 	/**
 	 * Alias of insert for consistency.
 	 */
-	public insertAtBack(element: T): ArmorLinkedListElement<T> | null {
+	public insertAtBack(element: T): ADTLinkedListElement<T> | null {
 		return this.insert(element);
 	}
 
@@ -96,8 +95,8 @@ export default class ArmorLinkedList<T> implements ArmorCollection<T> {
 	 * Insert element at the front of the list, replacing the current
 	 * head if one exists.
 	 */
-	public insertAtFront(element: T): ArmorLinkedListElement<T> | null {
-		const node = new ArmorLinkedListElement<T>(element);
+	public insertAtFront(element: T): ADTLinkedListElement<T> | null {
+		const node = new ADTLinkedListElement<T>(element);
 		if (this._head === null) {
 			this._head = node;
 			this._tail = node;
@@ -123,7 +122,7 @@ export default class ArmorLinkedList<T> implements ArmorCollection<T> {
 	/**
 	 * Remove all elements from the linked list.
 	 */
-	public clearElements(): ArmorLinkedList<T> {
+	public clearElements(): ADTLinkedList<T> {
 		let curr = this._head;
 
 		while (curr !== null) {
@@ -141,14 +140,14 @@ export default class ArmorLinkedList<T> implements ArmorCollection<T> {
 		return this;
 	}
 
-	public reset(): ArmorLinkedList<T> {
+	public reset(): ADTLinkedList<T> {
 		this.clearElements();
 
 		return this;
 	}
 
-	public select(query?: ArmorCollectionQuery): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<ArmorLinkedListElement<T>>(this, query);
+	public select(query?: ADTCollectionQuery): ADTCollectionSelector<T> {
+		const selector = new ADTCollectionSelector<ADTLinkedListElement<T>>(this, query);
 
 		return selector;
 	}

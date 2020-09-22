@@ -20,10 +20,10 @@ Collection of simple data structures with typescript interfaces.
 ## Install
 
 **_With yarn (preferred):_**
-`yarn add @armorjs/collections`
+`yarn add @toreda/adt`
 
 With NPM:
-`npm install @armorjs/collections`
+`npm install @toreda/adt`
 
 ## Usage
 
@@ -33,7 +33,7 @@ Typescript
 
 ```
 // Import
-import {ArmorQueue} from '@armorjs/collections';
+import {ArmorQueue} from '@toreda/adt';
 // Instantiate
 const queue = new ArmorQueue<string>();
 
@@ -71,7 +71,7 @@ Typescript
 
 ```
 // Import
-import {ArmorCircularQueue} from '@armorjs/collections';
+import {ArmorCircularQueue} from '@toreda/adt';
 
 // Instantiate
 const circularQueueDefault = new ArmorCircularQueue<number>();
@@ -155,7 +155,7 @@ Typescript
 
 ```
 // Import
-import {ArmorPriorityQueue} from '@armorjs/collections';
+import {ArmorPriorityQueue} from '@toreda/adt';
 
 // Instantiate
 const priorityQueueComparator: ArmorPriorityQueueComparator<number> = function(a, b) => a < b;
@@ -201,7 +201,7 @@ Typescript
 
 ```
 // Import
-import {ArmorObjectPool} from '@armorjs/collections';
+import {ArmorObjectPool} from '@toreda/adt';
 
 // Instantiate
 class objectClass {
@@ -280,7 +280,7 @@ npm run-script build
 
 ## Testing
 
-`@armorjs/collections` implements unit tests using jest. Run the following commands from the directory where `@armorjs/collections` has been installed.
+`@toreda/adt` implements unit tests using jest. Run the following commands from the directory where `@toreda/adt` has been installed.
 
 **_With yarn (preferred):_**
 
