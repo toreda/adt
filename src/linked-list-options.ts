@@ -1,4 +1,4 @@
-export interface ArmorLinkedListOptions {
+export default interface ADTLinkedListOptions {
 	objectPool?: {
 		enabled?: boolean;
 	}

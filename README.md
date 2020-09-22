@@ -1,6 +1,6 @@
 # ArmorJS - Collections
 
-![CI](https://github.com/armorjs/collections/workflows/CI/badge.svg?branch=master) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=armorjs_collections&metric=coverage)](https://sonarcloud.io/dashboard?id=armorjs_collections) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=armorjs_collections&metric=alert_status)](https://sonarcloud.io/dashboard?id=armorjs_collections)
+![CI](https://github.com/Toreda/ADT/workflows/CI/badge.svg?branch=master) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=coverage)](https://sonarcloud.io/dashboard?id=toreda_adt) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=alert_status)](https://sonarcloud.io/dashboard?id=toreda_adt)
 
 Collection of simple data structures with typescript interfaces.
 
@@ -20,20 +20,21 @@ Collection of simple data structures with typescript interfaces.
 ## Install
 
 **_With yarn (preferred):_**
-`yarn add @armorjs/collections`
+`yarn add @toreda/adt`
 
 With NPM:
-`npm install @armorjs/collections`
+`npm install @toreda/adt`
 
 ## Usage
 
 ### Queue
 
+
 Typescript
 
 ```
 // Import
-import {ArmorQueue} from '@armorjs/collections';
+import {ArmorQueue} from '@toreda/adt';
 // Instantiate
 const queue = new ArmorQueue<string>();
 
@@ -71,7 +72,7 @@ Typescript
 
 ```
 // Import
-import {ArmorCircularQueue} from '@armorjs/collections';
+import {ArmorCircularQueue} from '@toreda/adt';
 
 // Instantiate
 const circularQueueDefault = new ArmorCircularQueue<number>();
@@ -155,7 +156,7 @@ Typescript
 
 ```
 // Import
-import {ArmorPriorityQueue} from '@armorjs/collections';
+import {ArmorPriorityQueue} from '@toreda/adt';
 
 // Instantiate
 const priorityQueueComparator: ArmorPriorityQueueComparator<number> = function(a, b) => a < b;
@@ -175,7 +176,7 @@ const size = priorityQueue.size(); // returns 2
 const result = priorityQueue.front(); // Returns 10
 
 // Get the root element of the queue and remove it
-const result1 = priorityQueue.pop(); // Returns 10 
+const result1 = priorityQueue.pop(); // Returns 10
 const result2 = priorityQueue.pop(); // Returns 20
 const result3 = priorityQueue.pop(); // Returns null
 
@@ -201,7 +202,7 @@ Typescript
 
 ```
 // Import
-import {ArmorObjectPool} from '@armorjs/collections';
+import {ArmorObjectPool} from '@toreda/adt';
 
 // Instantiate
 class objectClass {
@@ -255,7 +256,6 @@ const serialized = objectPool.stringify();
 const objectPoolFromSerialized = new ArmorPriorityQueue<objectClass>(objectClass, {serializedState: serialized});
 ```
 
-
 ### LinkedList
 
 ### Stack
@@ -280,7 +280,7 @@ npm run-script build
 
 ## Testing
 
-`@armorjs/collections` implements unit tests using jest. Run the following commands from the directory where `@armorjs/collections` has been installed.
+`@toreda/adt` implements unit tests using jest. Run the following commands from the directory where `@toreda/adt` has been installed.
 
 **_With yarn (preferred):_**
 

@@ -1,15 +1,15 @@
-import ArmorCollection from './collection';
-import ArmorCollectionSelector from './selector';
-import ArmorPriorityQueueComparator from './priority-queue-comparator';
-import ArmorPriorityQueueNodeChildren from './priority-queue-children';
-import ArmorPriorityQueueOptions from './priority-queue-options';
-import ArmorPriorityQueueState from './priority-queue-state';
+import ADTCollection from './collection';
+import ADTCollectionSelector from './selector';
+import ADTPriorityQueueComparator from './priority-queue-comparator';
+import ADTPriorityQueueNodeChildren from './priority-queue-children';
+import ADTPriorityQueueOptions from './priority-queue-options';
+import ADTPriorityQueueState from './priority-queue-state';
 
-export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
-	public state: ArmorPriorityQueueState<T>;
-	public readonly comparator: ArmorPriorityQueueComparator<T>;
+export default class ADTPriorityQueue<T> implements ADTCollection<T> {
+	public state: ADTPriorityQueueState<T>;
+	public readonly comparator: ADTPriorityQueueComparator<T>;
 
-	constructor(comparator: ArmorPriorityQueueComparator<T>, options?: ArmorPriorityQueueOptions<T>) {
+	constructor(comparator: ADTPriorityQueueComparator<T>, options?: ADTPriorityQueueOptions<T>) {
 		if (typeof comparator !== 'function') {
 			throw new Error('Must have a comparator function for priority queue to operate properly');
 		}
@@ -19,8 +19,8 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		this.state = this.parseOptions(options);
 	}
 
-	public getDefaultState(): ArmorPriorityQueueState<T> {
-		const state: ArmorPriorityQueueState<T> = {
+	public getDefaultState(): ADTPriorityQueueState<T> {
+		const state: ADTPriorityQueueState<T> = {
 			type: 'pqState',
 			elements: []
 		};
@@ -28,22 +28,22 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return state;
 	}
 
-	public parseOptions(options?: ArmorPriorityQueueOptions<T>): ArmorPriorityQueueState<T> {
+	public parseOptions(options?: ADTPriorityQueueOptions<T>): ADTPriorityQueueState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: ArmorPriorityQueueOptions<T>): ArmorPriorityQueueState<T> {
-		const state: ArmorPriorityQueueState<T> = this.getDefaultState();
+	public parseOptionsState(options?: ADTPriorityQueueOptions<T>): ADTPriorityQueueState<T> {
+		const state: ADTPriorityQueueState<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: ArmorPriorityQueueState<T> | Array<string> | null = null;
-		let result: ArmorPriorityQueueState<T> | null = null;
+		let parsed: ADTPriorityQueueState<T> | Array<string> | null = null;
+		let result: ADTPriorityQueueState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parse(options.serializedState)!;
@@ -63,10 +63,10 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 	}
 
 	public parseOptionsOther(
-		s: ArmorPriorityQueueState<T>,
-		options?: ArmorPriorityQueueOptions<T>
-	): ArmorPriorityQueueState<T> {
-		let state: ArmorPriorityQueueState<T> | null = s;
+		s: ADTPriorityQueueState<T>,
+		options?: ADTPriorityQueueOptions<T>
+	): ADTPriorityQueueState<T> {
+		let state: ADTPriorityQueueState<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -77,7 +77,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		}
 
 		if (options.elements && Array.isArray(options.elements)) {
-			state.elements = options.elements;
+			state.elements = options.elements.slice();
 		}
 
 		return state;
@@ -154,7 +154,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return Math.floor((nodeIndex - 1) / 2);
 	}
 
-	public getChildNodesIndexes(nodeIndex: number | null): ArmorPriorityQueueNodeChildren {
+	public getChildNodesIndexes(nodeIndex: number | null): ADTPriorityQueueNodeChildren {
 		if (typeof nodeIndex !== 'number') {
 			return {left: null, right: null};
 		}
@@ -257,7 +257,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		}
 	}
 
-	public push(element: T): ArmorPriorityQueue<T> {
+	public push(element: T): ADTPriorityQueue<T> {
 		this.state.elements.push(element);
 		this.fixHeap(this.size() - 1);
 
@@ -282,7 +282,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return highestPriority;
 	}
 
-	public isValidState(state: ArmorPriorityQueueState<T>): boolean {
+	public isValidState(state: ADTPriorityQueueState<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -292,7 +292,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return true;
 	}
 
-	public getStateErrors(state: ArmorPriorityQueueState<T>): Array<string> {
+	public getStateErrors(state: ADTPriorityQueueState<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -310,13 +310,13 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return errors;
 	}
 
-	public parse(data: string): ArmorPriorityQueueState<T> | Array<string> | null {
+	public parse(data: string): ADTPriorityQueueState<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: ArmorPriorityQueueState<T> | Array<string> | null = null;
-		let parsed: ArmorPriorityQueueState<T> | null = null;
+		let result: ADTPriorityQueueState<T> | Array<string> | null = null;
+		let parsed: ADTPriorityQueueState<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -327,7 +327,7 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 			}
 
 			if (errors.length) {
-				throw new Error('state is not a valid ArmorPriorityQueueState');
+				throw new Error('state is not a valid ADTPriorityQueueState');
 			}
 
 			result = parsed
@@ -346,13 +346,13 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return JSON.stringify(this.state);
 	}
 
-	public clearElements(): ArmorPriorityQueue<T> {
+	public clearElements(): ADTPriorityQueue<T> {
 		this.state.elements = [];
 
 		return this;
 	}
 
-	public reset(): ArmorPriorityQueue<T> {
+	public reset(): ADTPriorityQueue<T> {
 		this.clearElements();
 		
 		this.state.type = 'pqState';
@@ -360,8 +360,8 @@ export default class ArmorPriorityQueue<T> implements ArmorCollection<T> {
 		return this;
 	}
 
-	public select(): ArmorCollectionSelector<T> {
-		const selector = new ArmorCollectionSelector<T>(this);
+	public select(): ADTCollectionSelector<T> {
+		const selector = new ADTCollectionSelector<T>(this);
 
 		return selector;
 	}

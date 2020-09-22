@@ -1,9 +1,8 @@
-import ArmorObjectPool from '../src/object-pool';
-import ArmorObjectPoolInstance from '../src/object-pool-instance';
-import ArmorObjectPoolState from '../src/object-pool-state';
+import ADTObjectPool from '../src/object-pool';
+import ADTObjectPoolState from '../src/object-pool-state';
 
-describe('ArmorObjectPool', () => {
-	let instance: ArmorObjectPool<objectClass>;
+describe('ADTObjectPool', () => {
+	let instance: ADTObjectPool<objectClass>;
 
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
 	const TRUTHY_NAN_VALUES = ['1.5', '-1', '0', '1', '1.5'];
@@ -21,7 +20,7 @@ describe('ArmorObjectPool', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	let DEFAULT_STATE: ArmorObjectPoolState<objectClass>;
+	let DEFAULT_STATE: ADTObjectPoolState<objectClass>;
 	let STATE_PROPERTIES = [
 		'type',
 		'elements',
@@ -61,7 +60,7 @@ describe('ArmorObjectPool', () => {
 
 	const isValidStateRuns = function (action: Function) {
 		it('should run isValidState check', () => {
-			const custom: ArmorObjectPool<objectClass> = new ArmorObjectPool<objectClass>(objectClass);
+			const custom: ADTObjectPool<objectClass> = new ADTObjectPool<objectClass>(objectClass);
 			const spy = jest.spyOn(custom, 'isValidState');
 			spy.mockClear();
 			custom.state.type = '' as any;
@@ -71,7 +70,7 @@ describe('ArmorObjectPool', () => {
 	};
 
 	beforeAll(() => {
-		instance = new ArmorObjectPool(objectClass);
+		instance = new ADTObjectPool(objectClass);
 		DEFAULT_STATE = instance.getDefaultState();
 		DEFAULT_STATE.objectCount = DEFAULT_STATE.startSize;
 	});
@@ -83,17 +82,17 @@ describe('ArmorObjectPool', () => {
 	describe('constructor', () => {
 		it('should throw if no class is passed', () => {
 			expect(() => {
-				const custom = new ArmorObjectPool(null as any);
+				const custom = new ADTObjectPool(null as any);
 			}).toThrow('Must have a class contructor for object pool to operate properly');
 		});
 
 		it('should initialize with default state when no options are paseed', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual(DEFAULT_STATE);
 		});
 
 		it('should initialize with serializedState', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass, {serializedState: VALID_SERIALIZED_STATE});
+			const custom = new ADTObjectPool<objectClass>(objectClass, {serializedState: VALID_SERIALIZED_STATE});
 			expect(custom.state.objectCount).toBe(1);
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 		});
@@ -102,7 +101,7 @@ describe('ArmorObjectPool', () => {
 			const expected1 = {...DEFAULT_STATE};
 			expected1.maxSize = 2000;
 
-			const custom1 = new ArmorObjectPool<objectClass>(objectClass, {
+			const custom1 = new ADTObjectPool<objectClass>(objectClass, {
 				maxSize: expected1.maxSize
 			});
 
@@ -111,7 +110,7 @@ describe('ArmorObjectPool', () => {
 			const expected2 = JSON.parse(VALID_SERIALIZED_STATE);
 			expected2.maxSize = 2000;
 
-			const custom2 = new ArmorObjectPool<objectClass>(objectClass, {
+			const custom2 = new ADTObjectPool<objectClass>(objectClass, {
 				maxSize: expected2.maxSize,
 				serializedState: VALID_SERIALIZED_STATE
 			});
@@ -120,14 +119,14 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should initialize with other options overriding serializedState if they are valid', () => {
-			const expected: ArmorObjectPoolState<objectClass> = JSON.parse(VALID_SERIALIZED_STATE);
+			const expected: ADTObjectPoolState<objectClass> = JSON.parse(VALID_SERIALIZED_STATE);
 			expected.startSize = 20;
 			expected.objectCount = expected.startSize;
 			expected.maxSize = 40;
 			expected.increaseBreakPoint = 0.5;
 			expected.increaseFactor = 10;
 
-			const custom = new ArmorObjectPool<objectClass>(objectClass, {
+			const custom = new ADTObjectPool<objectClass>(objectClass, {
 				serializedState: VALID_SERIALIZED_STATE,
 				startSize: expected.startSize,
 				maxSize: expected.maxSize,
@@ -205,7 +204,7 @@ describe('ArmorObjectPool', () => {
 			});
 		});
 
-		it('should return serializedState as ArmorObjectPoolState if it is valid', () => {
+		it('should return serializedState as ADTObjectPoolState if it is valid', () => {
 			const expected = JSON.parse(VALID_SERIALIZED_STATE);
 			expected.objectCount = 0;
 
@@ -240,7 +239,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should return passed state with values changed to match other passed options', () => {
-			const expected: ArmorObjectPoolState<objectClass> = {...DEFAULT_STATE};
+			const expected: ADTObjectPoolState<objectClass> = {...DEFAULT_STATE};
 			expected.startSize = 20;
 			expected.maxSize = 40;
 			expected.increaseBreakPoint = 0.5;
@@ -257,7 +256,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should return passed state with values changed to match other passed options if those are valid', () => {
-			const expected: ArmorObjectPoolState<objectClass> = {...DEFAULT_STATE};
+			const expected: ADTObjectPoolState<objectClass> = {...DEFAULT_STATE};
 			expected.startSize = 20;
 			expected.increaseFactor = 10;
 
@@ -440,7 +439,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should not call store if cleanObj is not defined', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass, {startSize: 0});
+			const custom = new ADTObjectPool<objectClass>(objectClass, {startSize: 0});
 			const spy = jest.spyOn(custom, 'store');
 
 			spy.mockClear();
@@ -454,7 +453,7 @@ describe('ArmorObjectPool', () => {
 		});
 	});
 
-	describe('release', () => {
+	describe('releaseMultiple', () => {
 		it('should not throw if array is empty',()=>{
 			expect(instance.state.elements.length).toBe(10);
 
@@ -540,7 +539,7 @@ describe('ArmorObjectPool', () => {
 	});
 
 	describe('isValidState', () => {
-		it('should return true if state is a valid ArmorObjectPoolState', () => {
+		it('should return true if state is a valid ADTObjectPoolState', () => {
 			expect(instance.isValidState(instance.state)).toBe(true);
 		});
 
@@ -571,7 +570,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should return array of errors if state.type is not "opState"', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			const types = [null, undefined, ''];
 			types.forEach((type) => {
 				custom.state.type = type as any;
@@ -580,7 +579,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should return array of errors if state.elements is not an array', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			const types = [{}, null, undefined];
 			types.forEach((type) => {
 				custom.state.elements = type as any;
@@ -589,7 +588,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should return array of errors if state.autoIncrease is not a boolean', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			const types = [{}, '', 0, null, undefined];
 			types.forEach((type) => {
 				custom.state.autoIncrease = type as any;
@@ -598,7 +597,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		describe('should return array of errors if state.startSize is not an integer >= 0', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			const types: any[] = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
@@ -609,7 +608,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		describe('should return array of errors if state.objectCount is not an integer >= 0', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			const types: any[] = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
@@ -620,7 +619,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		describe('should return array of errors if state.maxSize is not an integer >= 1', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			const types: any[] = ([0] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
@@ -631,7 +630,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		describe('should return array of errors if state.increaseBreakPoint is not (0 <= number <= 1)', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			const types = ([2, 2.5] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
@@ -642,7 +641,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		describe('should return array of errors if state.increaseFactor is not a number > 0', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			const types = ([] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES);
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
@@ -671,35 +670,35 @@ describe('ArmorObjectPool', () => {
 			expect(instance.parse('{left:f,right:')).toContain('Unexpected token l in JSON at position 1');
 		});
 
-		it('should return array of errors when a parsable string does not parse into an ArmorObjectPoolState', () => {
+		it('should return array of errors when a parsable string does not parse into an ADTObjectPoolState', () => {
 			let errors: Array<string> = [];
 			let toParse: any;
 
 			errors = instance.getStateErrors({} as any);
-			errors.unshift('state is not a valid ArmorObjectPoolState');
+			errors.unshift('state is not a valid ADTObjectPoolState');
 			expect(instance.parse('"null"')).toStrictEqual(errors);
 
 			errors = instance.getStateErrors({} as any);
-			errors.unshift('state is not a valid ArmorObjectPoolState');
+			errors.unshift('state is not a valid ADTObjectPoolState');
 			expect(instance.parse('"undefined"')).toStrictEqual(errors);
 
 			toParse = '{}';
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ArmorObjectPoolState');
+			errors.unshift('state is not a valid ADTObjectPoolState');
 			expect(instance.parse(toParse)).toStrictEqual(errors);
 
 			toParse = '{"elements":[], "type": "opState"}';
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ArmorObjectPoolState');
+			errors.unshift('state is not a valid ADTObjectPoolState');
 			expect(instance.parse(toParse)).toStrictEqual(errors);
 
 			toParse = VALID_SERIALIZED_STATE.replace('0', '-5');
 			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ArmorObjectPoolState');
+			errors.unshift('state is not a valid ADTObjectPoolState');
 			expect(instance.parse(toParse)).toStrictEqual(errors);
 		});
 
-		it('should return an ArmorObjectPoolState when a parsable string is passed', () => {
+		it('should return an ADTObjectPoolState when a parsable string is passed', () => {
 			const string = instance.stringify();
 			const expected = {...instance.state};
 			expected.elements = [];
@@ -715,7 +714,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		describe('should return null if state is invalid', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			STATE_PROPERTIES.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
 					custom.reset();
@@ -726,7 +725,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should return the state as a string if it is validated', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 				type: 'opState',
 				elements: [],
@@ -795,7 +794,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should not change any other state variables', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 
 			custom.state.type = 'test' as any;
 			custom.state.autoIncrease = 'test' as any;
@@ -830,7 +829,7 @@ describe('ArmorObjectPool', () => {
 		});
 
 		it('should change state variables to default', () => {
-			const custom = new ArmorObjectPool<objectClass>(objectClass);
+			const custom = new ADTObjectPool<objectClass>(objectClass);
 
 			custom.state.type = 'test' as any;
 			custom.state.autoIncrease = 'test' as any;

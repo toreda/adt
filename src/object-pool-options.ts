@@ -1,6 +1,4 @@
-import ArmorObjectPoolState from './object-pool-state';
-
-export default interface ArmorObjectPoolOptions<T> {
+export default interface ADTObjectPoolOptions<T> {
 	serializedState?: string;
 
 	autoIncrease?: boolean;
