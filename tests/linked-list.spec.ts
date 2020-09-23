@@ -1,4 +1,3 @@
-import ADTCollectionSelector from '../src/selector';
 import ADTLinkedList from '../src/linked-list';
 
 describe('ADTLinkedList', () => {
