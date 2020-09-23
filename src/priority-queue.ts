@@ -1,10 +1,11 @@
 import ADTCollection from './collection';
-import { ADTCollectionQuery } from './query';
+import {ADTCollectionQuery} from './query';
 import ADTCollectionSelector from './selector';
 import ADTPriorityQueueComparator from './priority-queue-comparator';
 import ADTPriorityQueueNodeChildren from './priority-queue-children';
 import ADTPriorityQueueOptions from './priority-queue-options';
 import ADTPriorityQueueState from './priority-queue-state';
+import ADTSearchResult from './query-search-result';
 
 export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 	public state: ADTPriorityQueueState<T>;
@@ -331,7 +332,7 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 				throw new Error('state is not a valid ADTPriorityQueueState');
 			}
 
-			result = parsed
+			result = parsed;
 		} catch (error) {
 			result = [error.message].concat(errors);
 		}
@@ -355,10 +356,59 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 
 	public reset(): ADTPriorityQueue<T> {
 		this.clearElements();
-		
+
 		this.state.type = 'pqState';
 
 		return this;
+	}
+
+	public query(query: any): Array<ADTSearchResult<T>> {
+		let result: Array<ADTSearchResult<T>> = [];
+
+		this.state.elements.forEach((element, index) => {
+			if (!query(element)) {
+				return false;
+			}
+
+			const res: ADTSearchResult<T> = {} as ADTSearchResult<T>;
+			res.element = element;
+			res.key = () => null;
+			res.index = this.queryIndex.bind(this, element);
+			(res.delete = this.queryDelete.bind(this, res)), result.push(res);
+		});
+
+		return result;
+	}
+
+	public queryDelete(query: ADTSearchResult<T>): T | null {
+		if (!query){
+			return null;
+		}
+
+		if (!query.index){
+			return null;
+		}
+
+		const index = query.index();
+
+		if (index === null){
+			return null;
+		}
+
+		const result = this.state.elements.splice(index, 1);
+		console.log(this.state.elements);
+
+		if (!result.length) {
+			return null;
+		}
+
+		return result[0];
+	}
+
+	public queryIndex(query: T): number | null {
+		return this.state.elements.findIndex((element) => {
+			return element === query;
+		});
 	}
 
 	public find(query: ADTCollectionQuery): ADTCollectionSelector<T> {
