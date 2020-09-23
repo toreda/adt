@@ -1,19 +1,21 @@
-import ADTCollection from './collection';
-import ADTCollectionSelector from './selector';
+import ADTBase from './base';
+import ADTQueryFilter from './query-filter';
+import ADTQueryOptions from './query-options';
+import ADTQueryResult from './query-result';
 import {ADTQueueCallable} from './callable';
 import {ADTQueueCallableSync} from './callable-sync';
 import ADTQueueOptions from './queue-options';
 import ADTQueueState from './queue-state';
 import {ArmorActionResult} from '@armorjs/action-result';
 
-export default class ADTQueue<T> implements ADTCollection<T> {
+export default class ADTQueue<T> implements ADTBase<T> {
 	public state: ADTQueueState<T>;
 
 	constructor(options?: ADTQueueOptions<T>) {
-			// Shallow clone by default.
-			// TODO: Add deep copy option.
-			this.state = this.parseOptions(options);
-		}
+		// Shallow clone by default.
+		// TODO: Add deep copy option.
+		this.state = this.parseOptions(options);
+	}
 
 	public getDefaultState(): ADTQueueState<T> {
 		const state: ADTQueueState<T> = {
@@ -21,12 +23,11 @@ export default class ADTQueue<T> implements ADTCollection<T> {
 			elements: [],
 			deepClone: false,
 			objectPool: false
-		}
+		};
 
 		return state;
 	}
 
-	
 	public parseOptions(options?: ADTQueueOptions<T>): ADTQueueState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
@@ -234,10 +235,55 @@ export default class ADTQueue<T> implements ADTCollection<T> {
 		return this;
 	}
 
-	public find(): ADTCollectionSelector<T> {
-		const selector = new ADTCollectionSelector<T>(this);
+	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
+		let result: ADTQueryResult<T>[] = [];
 
-		return selector;
+		this.state.elements.forEach((element, index) => {
+			let skip = true;
+
+			if (Array.isArray(filters)) {
+				skip = filters.every((filter) => {
+					return filter(element);
+				});
+			} else {
+				skip = filters(element);
+			}
+
+			if (skip) {
+				return false;
+			}
+
+			const res: ADTQueryResult<T> = {} as ADTQueryResult<T>;
+			res.element = element;
+			res.key = () => null;
+			res.index = this.queryIndex.bind(this, element);
+			res.delete = this.queryDelete.bind(this, res);
+			result.push(res);
+		});
+
+		return result;
+	}
+
+	public queryDelete(query: ADTQueryResult<T>): T | null {
+		const index = query.index();
+
+		if (index === null) {
+			return null;
+		}
+
+		const result = this.state.elements.splice(index, 1);
+
+		if (!result.length) {
+			return null;
+		}
+
+		return result[0];
+	}
+
+	public queryIndex(query: T): number | null {
+		return this.state.elements.findIndex((element) => {
+			return element === query;
+		});
 	}
 
 	public executeOnAllSync(callable: ADTQueueCallableSync): ArmorActionResult {

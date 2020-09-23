@@ -1,10 +1,12 @@
-import ADTCollection from './collection';
-import ADTCollectionSelector from './selector';
+import ADTBase from './base';
 import ADTObjectPoolInstance from './object-pool-instance';
 import ADTObjectPoolOptions from './object-pool-options';
 import ADTObjectPoolState from './object-pool-state';
+import ADTQueryFilter from './query-filter';
+import ADTQueryOptions from './query-options';
+import ADTQueryResult from './query-result';
 
-export default class ADTObjectPool<T> implements ADTCollection<T> {
+export default class ADTObjectPool<T> implements ADTBase<T> {
 	public readonly state: ADTObjectPoolState<T>;
 	public readonly objectClass: ADTObjectPoolInstance<T>;
 
@@ -319,6 +321,10 @@ export default class ADTObjectPool<T> implements ADTCollection<T> {
 		return this;
 	}
 
+	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
+		return [];
+	}
+
 	public reset(): ADTObjectPool<T> {
 		this.clearElements();
 
@@ -330,11 +336,5 @@ export default class ADTObjectPool<T> implements ADTCollection<T> {
 		this.increaseCapacity(this.state.startSize);
 
 		return this;
-	}
-
-	public find(): ADTCollectionSelector<T> {
-		const selector = new ADTCollectionSelector<T>(this);
-
-		return selector;
 	}
 }

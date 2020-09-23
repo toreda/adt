@@ -1,9 +1,10 @@
-import ADTCollection from './collection';
-import {ADTCollectionQuery} from './query';
-import ADTCollectionSelector from './selector';
+import ADTBase from './base';
 import ADTLinkedListElement from './linked-list-element';
+import ADTQueryFilter from './query-filter';
+import ADTQueryOptions from './query-options';
+import ADTQueryResult from './query-result';
 
-export default class ADTLinkedList<T> implements ADTCollection<T> {
+export default class ADTLinkedList<T> implements ADTBase<T> {
 	public length: number;
 	public _head: ADTLinkedListElement<T> | null;
 	public _tail: ADTLinkedListElement<T> | null;
@@ -124,6 +125,17 @@ export default class ADTLinkedList<T> implements ADTCollection<T> {
 		return node;
 	}
 
+	public forEach(func: (...args) => void): ADTLinkedList<T> {
+		let node = this.head();
+
+		while (node) {
+			func(node);
+			node = node.next();
+		}
+
+		return this;
+	}
+
 	public getStateErrors(state: Array<T>): Array<string> {
 		const errors: Array<string> = [];
 
@@ -175,7 +187,7 @@ export default class ADTLinkedList<T> implements ADTCollection<T> {
 
 			result = new ADTLinkedList<T>(parsed!);
 		} catch (error) {
-			result = [error.message]
+			result = [error.message];
 		}
 
 		return result;
@@ -225,9 +237,52 @@ export default class ADTLinkedList<T> implements ADTCollection<T> {
 		return this;
 	}
 
-	public find(query?: ADTCollectionQuery): ADTCollectionSelector<T> {
-		const selector = new ADTCollectionSelector<ADTLinkedListElement<T>>(this, query);
+	public query(
+		filters: ADTQueryFilter | ADTQueryFilter[],
+		options?: ADTQueryOptions
+	): ADTQueryResult<ADTLinkedListElement<T>>[] {
+		let result: ADTQueryResult<ADTLinkedListElement<T>>[] = [];
 
-		return selector;
+		this.forEach((element) => {
+			let skip = true;
+
+			if (Array.isArray(filters)) {
+				skip = filters.every((filter) => {
+					return filter(element);
+				});
+			} else {
+				skip = filters(element);
+			}
+
+			if (skip) {
+				return false;
+			}
+
+			const res: ADTQueryResult<ADTLinkedListElement<T>> = {} as ADTQueryResult<ADTLinkedListElement<T>>;
+			res.element = element;
+			res.key = () => null;
+			res.index = () => null;
+			res.delete = this.queryDelete.bind(this, res);
+			result.push(res);
+		});
+
+		return result;
+	}
+
+	public queryDelete(query: ADTQueryResult<ADTLinkedListElement<T>>): T | null {
+		const next = query.element.next();
+		const prev = query.element.prev();
+
+		if (next) {
+			next.prev(prev);
+		}
+		if (prev) {
+			prev.next(next);
+		}
+
+		query.element.next(null);
+		query.element.prev(null);
+
+		return query.element.value();
 	}
 }

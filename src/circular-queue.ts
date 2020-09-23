@@ -1,9 +1,11 @@
+import ADTBase from './base';
 import ADTCircularQueueOptions from './circular-queue-options';
 import ADTCircularQueueState from './circular-queue-state';
-import ADTCollection from './collection';
-import ADTCollectionSelector from './selector';
+import ADTQueryFilter from './query-filter';
+import ADTQueryOptions from './query-options';
+import ADTQueryResult from './query-result';
 
-export default class ADTCircularQueue<T> implements ADTCollection<T> {
+export default class ADTCircularQueue<T> implements ADTBase<T> {
 	public state: ADTCircularQueueState<T>;
 
 	constructor(options?: ADTCircularQueueOptions<T>) {
@@ -63,7 +65,10 @@ export default class ADTCircularQueue<T> implements ADTCollection<T> {
 		return state;
 	}
 
-	public parseOptionsOther(s: ADTCircularQueueState<T>, options?: ADTCircularQueueOptions<T>): ADTCircularQueueState<T> {
+	public parseOptionsOther(
+		s: ADTCircularQueueState<T>,
+		options?: ADTCircularQueueOptions<T>
+	): ADTCircularQueueState<T> {
 		let state: ADTCircularQueueState<T> | null = s;
 
 		if (!s) {
@@ -316,9 +321,72 @@ export default class ADTCircularQueue<T> implements ADTCollection<T> {
 		return this;
 	}
 
-	public find(): ADTCollectionSelector<T> {
-		const selector = new ADTCollectionSelector<T>(this);
+	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
+		let result: ADTQueryResult<T>[] = [];
 
-		return selector;
+		this.state.elements.forEach((element, index) => {
+			let skip = true;
+
+			if (Array.isArray(filters)) {
+				skip = filters.every((filter) => {
+					return filter(element);
+				});
+			} else {
+				skip = filters(element);
+			}
+
+			if (skip) {
+				return false;
+			}
+
+			const res: ADTQueryResult<T> = {} as ADTQueryResult<T>;
+			res.element = element;
+			res.key = () => null;
+			res.index = this.queryIndex.bind(this, element);
+			res.delete = this.queryDelete.bind(this, res);
+			result.push(res);
+		});
+
+		return result;
+	}
+
+	public queryDelete(query: ADTQueryResult<T>): T | null {
+		let index = query.index();
+
+		if (index === null) {
+			return null;
+		}
+
+		let front = this.wrapIndex(this.state.front);
+		let rear = this.wrapIndex(this.state.rear);
+
+		if (rear < front) {
+			rear = rear + this.state.maxSize;
+		}
+
+		if (index < front) {
+			index = index + this.state.maxSize;
+		}
+
+		if (index >= rear) {
+			delete this.state.elements[this.wrapIndex(index)];
+			return query.element;
+		}
+
+		const result = this.state.elements.splice(this.wrapIndex(index), 1);
+		this.state.size--;
+		this.state.rear = this.wrapIndex(this.state.rear - 1);
+
+		if (!result.length) {
+			return null;
+		}
+
+		return result[0];
+	}
+
+	public queryIndex(query: T): number | null {
+		return this.state.elements.findIndex((element) => {
+			return element === query;
+		});
 	}
 }

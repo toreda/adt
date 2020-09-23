@@ -1,4 +1,4 @@
-export default interface ADTSearchResult<T> {
+export default interface ADTQueryResult<T> {
 	element: T;
 	delete: () => void;
 	index: () => number | null;

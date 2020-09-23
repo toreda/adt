@@ -3,7 +3,6 @@ import ADTPriorityQueueComparator from '../src/priority-queue-comparator';
 import ADTPriorityQueueState from '../src/priority-queue-state';
 
 describe('ADTPriorityQueue', () => {
-	let instance: ADTPriorityQueue<number>;
 	const items = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 	/**
 	 * instance.state.elements is
@@ -28,7 +27,7 @@ describe('ADTPriorityQueue', () => {
 	};
 
 	let DEFAULT_STATE: ADTPriorityQueueState<number>;
-	let STATE_PROPERTIES = ['type', 'elements'];
+	const STATE_PROPERTIES = ['type', 'elements'];
 	const VALID_SERIALIZED_STATE = ['{', '"type": "pqState",', '"elements": [1,2]', '}'].join('');
 
 	const isValidStateRuns = function (action: Function) {
@@ -42,6 +41,8 @@ describe('ADTPriorityQueue', () => {
 		});
 	};
 
+	let instance: ADTPriorityQueue<number>;
+
 	beforeAll(() => {
 		instance = new ADTPriorityQueue<number>(comparator);
 		DEFAULT_STATE = instance.getDefaultState();
@@ -49,42 +50,6 @@ describe('ADTPriorityQueue', () => {
 
 	beforeEach(() => {
 		instance.reset();
-	});
-
-	it.only('query tests', () => {
-		const custom1 = new ADTPriorityQueue<number>(comparator);
-		const custom2 = new ADTPriorityQueue<number>(comparator, {elements: items});
-		items.forEach((item) => {
-			custom1.push(item);
-		});
-
-		const logs: Array<any> = [];
-		const log = (...args: Array<any>) => args.forEach((v) => logs.push(v));
-		const logstate = () => {
-			log(custom1.stringify());
-			log(custom2.stringify());
-		};
-
-		log(items);
-		logstate();
-
-		const query = (test: number, element: number): boolean => element === test;
-
-		const results1 = custom1.query(query.bind(this, 10));
-		const results2 = custom2.query(query.bind(this, 50));
-
-		log(JSON.stringify(results1));
-		log(JSON.stringify(results2));
-
-		([] as any).concat(results1, results2).forEach((res) => {
-			log(JSON.stringify(res));
-			log(res.index());
-			log(res.delete());
-		});
-
-		logstate();
-
-		console.log(logs.join('\n'));
 	});
 
 	describe('Constructor', () => {
@@ -95,7 +60,7 @@ describe('ADTPriorityQueue', () => {
 				}).toThrow('Must have a comparator function for priority queue to operate properly');
 			});
 
-			it('should initialize with default state when no options are paseed', () => {
+			it('should initialize with default state when no options are passed', () => {
 				const custom = new ADTPriorityQueue<number>(comparator);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual(DEFAULT_STATE);
 			});
@@ -369,6 +334,10 @@ describe('ADTPriorityQueue', () => {
 				});
 			});
 
+			afterEach(() => {
+				instance.clearElements();
+			});
+
 			it('should return null if null is passed', () => {
 				expect(instance.getParentNodeIndex(null)).toBeNull();
 			});
@@ -427,6 +396,10 @@ describe('ADTPriorityQueue', () => {
 				});
 			});
 
+			afterEach(() => {
+				instance.clearElements();
+			});
+
 			it('should return {left: null, right: null} if null is passed', () => {
 				expect(instance.getChildNodesIndexes(null)).toStrictEqual({left: null, right: null});
 			});
@@ -483,6 +456,10 @@ describe('ADTPriorityQueue', () => {
 				items.forEach((item) => {
 					instance.push(item);
 				});
+			});
+
+			afterEach(() => {
+				instance.clearElements();
 			});
 
 			it('should call getParentNodeIndex and not call getChildNodesIndexes if startFromTop is false', () => {
@@ -609,23 +586,6 @@ describe('ADTPriorityQueue', () => {
 					instance.fixHeap(type);
 					expect(spy).not.toBeCalled();
 				});
-			});
-
-			it('should do 0 swapNodes calls if the number passed is not the node that made heap invalid', () => {
-				const spy = jest.spyOn(instance, 'swapNodes');
-
-				items.forEach((item) => {
-					instance.push(item);
-				});
-				spy.mockClear();
-
-				expect(instance.size()).toBe(items.length);
-				instance.state.elements[instance.size()] = 1;
-				instance.state.elements[0] = 50;
-
-				instance.fixHeap(4);
-				expect(spy).not.toBeCalled();
-				instance.state.elements[0] = 10;
 			});
 
 			it('should do # swapNodes calls and be in heap order after adding new lowest rank to end', () => {

@@ -1,13 +1,13 @@
-import ADTCollection from './collection';
-import {ADTCollectionQuery} from './query';
-import ADTCollectionSelector from './selector';
+import ADTBase from './base';
+import ADTPriorityQueueChildren from './priority-queue-children';
 import ADTPriorityQueueComparator from './priority-queue-comparator';
-import ADTPriorityQueueNodeChildren from './priority-queue-children';
 import ADTPriorityQueueOptions from './priority-queue-options';
 import ADTPriorityQueueState from './priority-queue-state';
-import ADTSearchResult from './query-search-result';
+import ADTQueryFilter from './query-filter';
+import ADTQueryOptions from './query-options';
+import ADTQueryResult from './query-result';
 
-export default class ADTPriorityQueue<T> implements ADTCollection<T> {
+export default class ADTPriorityQueue<T> implements ADTBase<T> {
 	public state: ADTPriorityQueueState<T>;
 	public readonly comparator: ADTPriorityQueueComparator<T>;
 
@@ -157,7 +157,7 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 		return Math.floor((nodeIndex - 1) / 2);
 	}
 
-	public getChildNodesIndexes(nodeIndex: number | null): ADTPriorityQueueNodeChildren {
+	public getChildNodesIndexes(nodeIndex: number | null): ADTPriorityQueueChildren {
 		if (typeof nodeIndex !== 'number') {
 			return {left: null, right: null};
 		}
@@ -377,33 +377,36 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 		return this;
 	}
 
-	public query(query: any): Array<ADTSearchResult<T>> {
-		let result: Array<ADTSearchResult<T>> = [];
+	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
+		let result: ADTQueryResult<T>[] = [];
 
 		this.state.elements.forEach((element, index) => {
-			if (!query(element)) {
+			let skip = true;
+
+			if (Array.isArray(filters)) {
+				skip = filters.every((filter) => {
+					return filter(element);
+				});
+			} else {
+				skip = filters(element);
+			}
+
+			if (skip) {
 				return false;
 			}
 
-			const res: ADTSearchResult<T> = {} as ADTSearchResult<T>;
+			const res: ADTQueryResult<T> = {} as ADTQueryResult<T>;
 			res.element = element;
 			res.key = () => null;
 			res.index = this.queryIndex.bind(this, element);
-			(res.delete = this.queryDelete.bind(this, res)), result.push(res);
+			res.delete = this.queryDelete.bind(this, res);
+			result.push(res);
 		});
 
 		return result;
 	}
 
-	public queryDelete(query: ADTSearchResult<T>): T | null {
-		if (!query) {
-			return null;
-		}
-
-		if (!query.index) {
-			return null;
-		}
-
+	public queryDelete(query: ADTQueryResult<T>): T | null {
 		const index = query.index();
 
 		if (index === null) {
@@ -412,12 +415,12 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 
 		const result = this.state.elements.splice(index, 1);
 
-		if (!result.length) {
-			return null;
-		}
-
 		if (this.size() > 1) {
 			this.heapify();
+		}
+
+		if (!result.length) {
+			return null;
 		}
 
 		return result[0];
@@ -427,11 +430,5 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 		return this.state.elements.findIndex((element) => {
 			return element === query;
 		});
-	}
-
-	public find(query: ADTCollectionQuery): ADTCollectionSelector<T> {
-		const selector = new ADTCollectionSelector<T>(this, query);
-
-		return selector;
 	}
 }

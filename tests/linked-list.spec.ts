@@ -244,25 +244,15 @@ describe('ADTLinkedList', () => {
 				expect(result).toBe(instance);
 			});
 
-			it('should reverse the order of the list',()=>{
-				const list = [1,2,3,4,5];
-				list.forEach((elem)=>{
+			it('should reverse the order of the list', () => {
+				const list = [1, 2, 3, 4, 5];
+				list.forEach((elem) => {
 					instance.insert(elem);
 				});
 				expect(JSON.parse(instance.stringify()!)).toEqual(list);
 				list.reverse();
 				instance.reverse();
 				expect(JSON.parse(instance.stringify()!)).toEqual(list);
-			})
-		});
-
-		describe('select', () => {
-			it('should return an ADTCollectionSelector instance when no arguments provided', () => {
-				expect(instance.find() instanceof ADTCollectionSelector).toBe(true);
-			});
-
-			it('should return an ADTCollectionSelector instance', () => {
-				expect(instance.find() instanceof ADTCollectionSelector).toBe(true);
 			});
 		});
 	});
@@ -307,9 +297,7 @@ describe('ADTLinkedList', () => {
 				expect(instance.parse('"null"')).toContain('not a valid ADTLinkedList');
 				expect(instance.parse('"undefined"')).toContain('not a valid ADTLinkedList');
 				expect(instance.parse('{}')).toContain('not a valid ADTLinkedList');
-				expect(instance.parse('[1,"-2",4]')).toContain(
-					'not a valid ADTLinkedList'
-				);
+				expect(instance.parse('[1,"-2",4]')).toContain('not a valid ADTLinkedList');
 			});
 
 			describe('should return an ADTStackState when a parsable string is passed', () => {

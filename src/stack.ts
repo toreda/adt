@@ -1,9 +1,11 @@
-import ADTCollection from './collection';
-import ADTCollectionSelector from './selector';
+import ADTBase from './base';
+import ADTQueryFilter from './query-filter';
+import ADTQueryOptions from './query-options';
+import ADTQueryResult from './query-result';
 import ADTStackOptions from './stack-options';
 import ADTStackState from './stack-state';
 
-export default class ADTStack<T> implements ADTCollection<T> {
+export default class ADTStack<T> implements ADTBase<T> {
 	public state: ADTStackState<T>;
 
 	constructor(options?: ADTStackOptions<T>) {
@@ -231,9 +233,54 @@ export default class ADTStack<T> implements ADTCollection<T> {
 		return this;
 	}
 
-	public find(): ADTCollectionSelector<T> {
-		const selector = new ADTCollectionSelector<T>(this);
+	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
+		let result: ADTQueryResult<T>[] = [];
 
-		return selector;
+		this.state.elements.forEach((element, index) => {
+			let skip = true;
+
+			if (Array.isArray(filters)) {
+				skip = filters.every((filter) => {
+					return filter(element);
+				});
+			} else {
+				skip = filters(element);
+			}
+
+			if (skip) {
+				return false;
+			}
+
+			const res: ADTQueryResult<T> = {} as ADTQueryResult<T>;
+			res.element = element;
+			res.key = () => null;
+			res.index = this.queryIndex.bind(this, element);
+			res.delete = this.queryDelete.bind(this, res);
+			result.push(res);
+		});
+
+		return result;
+	}
+
+	public queryDelete(query: ADTQueryResult<T>): T | null {
+		const index = query.index();
+
+		if (index === null) {
+			return null;
+		}
+
+		const result = this.state.elements.splice(index, 1);
+
+		if (!result.length) {
+			return null;
+		}
+
+		return result[0];
+	}
+
+	public queryIndex(query: T): number | null {
+		return this.state.elements.findIndex((element) => {
+			return element === query;
+		});
 	}
 }
