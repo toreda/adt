@@ -52,20 +52,31 @@ describe('ADTPriorityQueue', () => {
 	});
 
 	it.only('query tests', () => {
-		const custom = new ADTPriorityQueue<number>(comparator, {elements: items});
+		const custom1 = new ADTPriorityQueue<number>(comparator);
+		const custom2 = new ADTPriorityQueue<number>(comparator, {elements: items});
+		items.forEach((item) => {
+			custom1.push(item);
+		});
 
 		const logs: Array<any> = [];
 		const log = (...args: Array<any>) => args.forEach((v) => logs.push(v));
-		const logstate = ()=>log(custom.stringify());
+		const logstate = () => {
+			log(custom1.stringify());
+			log(custom2.stringify());
+		};
 
+		log(items);
 		logstate();
 
 		const query = (test: number, element: number): boolean => element === test;
 
-		const results = custom.query(query.bind(custom, 10));
+		const results1 = custom1.query(query.bind(this, 10));
+		const results2 = custom2.query(query.bind(this, 50));
 
-		log(JSON.stringify(results));
-		results.forEach((res) => {
+		log(JSON.stringify(results1));
+		log(JSON.stringify(results2));
+
+		([] as any).concat(results1, results2).forEach((res) => {
 			log(JSON.stringify(res));
 			log(res.index());
 			log(res.delete());

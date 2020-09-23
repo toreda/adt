@@ -19,6 +19,7 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 		this.comparator = comparator;
 
 		this.state = this.parseOptions(options);
+		this.heapify();
 	}
 
 	public getDefaultState(): ADTPriorityQueueState<T> {
@@ -249,13 +250,27 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 			return;
 		}
 
-		const startFromTop = nodeIndex === 0;
+		const startFromTop = nodeIndex < this.size() - 1;
 		let nextIndex = this.getNextIndex(startFromTop, nodeIndex);
 
 		while (this.isHeapUnbalanced(nodeIndex, nextIndex)) {
 			this.swapNodes(nodeIndex, nextIndex);
 			nodeIndex = nextIndex;
 			nextIndex = this.getNextIndex(startFromTop, nodeIndex);
+		}
+	}
+
+	public heapify(): void {
+		if (this.size() <= 1) {
+			return;
+		}
+
+		let nodeIndex = this.getParentNodeIndex(this.state.elements.length - 1);
+
+		while (nodeIndex !== null && nodeIndex >= 0) {
+			let nextIndex = this.getNextIndex(true, nodeIndex);
+			this.fixHeap(nodeIndex);
+			nodeIndex--;
 		}
 	}
 
@@ -381,25 +396,28 @@ export default class ADTPriorityQueue<T> implements ADTCollection<T> {
 	}
 
 	public queryDelete(query: ADTSearchResult<T>): T | null {
-		if (!query){
+		if (!query) {
 			return null;
 		}
 
-		if (!query.index){
+		if (!query.index) {
 			return null;
 		}
 
 		const index = query.index();
 
-		if (index === null){
+		if (index === null) {
 			return null;
 		}
 
 		const result = this.state.elements.splice(index, 1);
-		console.log(this.state.elements);
 
 		if (!result.length) {
 			return null;
+		}
+
+		if (this.size() > 1) {
+			this.heapify();
 		}
 
 		return result[0];
