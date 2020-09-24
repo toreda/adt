@@ -1,7 +1,7 @@
-import ADTBase from './base';
-import ADTQueryFilter from './query-filter';
-import ADTQueryOptions from './query-options';
-import ADTQueryResult from './query-result';
+import ADTBase from '../base/base';
+import ADTQueryFilter from '../query/query-filter';
+import ADTQueryOptions from '../query/query-options';
+import ADTQueryResult from '../query/query-result';
 import ADTStackOptions from './stack-options';
 import ADTStackState from './stack-state';
 

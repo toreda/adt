@@ -1,8 +1,8 @@
-import ADTBase from './base';
+import ADTBase from '../base/base';
 import ADTLinkedListElement from './linked-list-element';
-import ADTQueryFilter from './query-filter';
-import ADTQueryOptions from './query-options';
-import ADTQueryResult from './query-result';
+import ADTQueryFilter from '../query/query-filter';
+import ADTQueryOptions from '../query/query-options';
+import ADTQueryResult from '../query/query-result';
 
 export default class ADTLinkedList<T> implements ADTBase<T> {
 	public length: number;

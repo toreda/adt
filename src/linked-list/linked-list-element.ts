@@ -1,4 +1,4 @@
-import ADTBaseElement from './base-element';
+import ADTBaseElement from '../base/base-element';
 
 export default class ADTLinkedListElement<T> implements ADTBaseElement<T> {
 	private _value: T | null;
@@ -25,7 +25,7 @@ export default class ADTLinkedListElement<T> implements ADTBaseElement<T> {
 		return null;
 	}
 
-	public prev(element?: ADTLinkedListElement<T>|null): ADTLinkedListElement<T> | null {
+	public prev(element?: ADTLinkedListElement<T> | null): ADTLinkedListElement<T> | null {
 		if (typeof element === 'undefined') {
 			return this._prev;
 		}
@@ -34,7 +34,7 @@ export default class ADTLinkedListElement<T> implements ADTBaseElement<T> {
 		return null;
 	}
 
-	public next(element?: ADTLinkedListElement<T>|null): ADTLinkedListElement<T> | null {
+	public next(element?: ADTLinkedListElement<T> | null): ADTLinkedListElement<T> | null {
 		if (typeof element === 'undefined') {
 			return this._next;
 		}

@@ -1,11 +1,11 @@
-import ADTBase from './base';
+import ADTBase from '../base/base';
 import ADTPriorityQueueChildren from './priority-queue-children';
 import ADTPriorityQueueComparator from './priority-queue-comparator';
 import ADTPriorityQueueOptions from './priority-queue-options';
 import ADTPriorityQueueState from './priority-queue-state';
-import ADTQueryFilter from './query-filter';
-import ADTQueryOptions from './query-options';
-import ADTQueryResult from './query-result';
+import ADTQueryFilter from '../query/query-filter';
+import ADTQueryOptions from '../query/query-options';
+import ADTQueryResult from '../query/query-result';
 
 export default class ADTPriorityQueue<T> implements ADTBase<T> {
 	public state: ADTPriorityQueueState<T>;
