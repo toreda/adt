@@ -1,6 +1,6 @@
-import ADTPriorityQueue from '../src/priority-queue';
-import ADTPriorityQueueComparator from '../src/priority-queue-comparator';
-import ADTPriorityQueueState from '../src/priority-queue-state';
+import ADTPriorityQueue from '../src/priority-queue/priority-queue';
+import ADTPriorityQueueComparator from '../src/priority-queue/priority-queue-comparator';
+import ADTPriorityQueueState from '../src/priority-queue/priority-queue-state';
 
 describe('ADTPriorityQueue', () => {
 	const items = [90, 70, 50, 30, 10, 80, 60, 40, 20];

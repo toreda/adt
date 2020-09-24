@@ -1,4 +1,4 @@
-import ADTLinkedList from '../src/linked-list';
+import ADTLinkedList from '../src/linked-list/linked-list';
 
 describe('ADTLinkedList', () => {
 	let instance: ADTLinkedList<number>;

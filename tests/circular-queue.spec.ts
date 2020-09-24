@@ -1,5 +1,5 @@
-import ADTCircularQueue from '../src/circular-queue';
-import ADTCircularQueueState from '../src/circular-queue-state';
+import ADTCircularQueue from '../src/circular-queue/circular-queue';
+import ADTCircularQueueState from '../src/circular-queue/circular-queue-state';
 
 describe('ADTCircularQueue', () => {
 	let instance: ADTCircularQueue<number>;

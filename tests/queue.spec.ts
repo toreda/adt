@@ -1,5 +1,5 @@
-import ADTQueue from '../src/queue';
-import ADTQueueState from '../src/queue-state';
+import ADTQueue from '../src/queue/queue';
+import ADTQueueState from '../src/queue/queue-state';
 
 describe('ADTQueue', () => {
 	let instance: ADTQueue<number>;

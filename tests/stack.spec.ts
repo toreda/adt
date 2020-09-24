@@ -1,5 +1,5 @@
-import ADTStack from '../src/stack';
-import ADTStackState from '../src/stack-state';
+import ADTStack from '../src/stack/stack';
+import ADTStackState from '../src/stack/stack-state';
 
 describe('ADTStack', () => {
 	let instance: ADTStack<number>;

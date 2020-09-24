@@ -1,5 +1,5 @@
-import ADTObjectPool from '../src/object-pool';
-import ADTObjectPoolState from '../src/object-pool-state';
+import ADTObjectPool from '../src/object-pool/object-pool';
+import ADTObjectPoolState from '../src/object-pool/object-pool-state';
 
 describe('ADTObjectPool', () => {
 	let instance: ADTObjectPool<objectClass>;
@@ -454,22 +454,22 @@ describe('ADTObjectPool', () => {
 	});
 
 	describe('releaseMultiple', () => {
-		it('should not throw if array is empty',()=>{
+		it('should not throw if array is empty', () => {
 			expect(instance.state.elements.length).toBe(10);
 
-			expect(()=>{
+			expect(() => {
 				instance.releaseMultiple([]);
 			}).not.toThrow();
 
 			expect(instance.state.elements.length).toBe(10);
-		})
+		});
 
 		it('should release element from array if there is only 1', () => {
 			expect(instance.state.elements.length).toBe(instance.state.objectCount);
 
 			const objs = instance.allocateMultiple(1);
 			expect(instance.state.elements.length).toBe(instance.state.objectCount - 1);
-			
+
 			instance.releaseMultiple(objs);
 			expect(instance.state.elements.length).toBe(instance.state.objectCount);
 		});
@@ -480,7 +480,7 @@ describe('ADTObjectPool', () => {
 			const amount = 5;
 			const objs = instance.allocateMultiple(amount);
 			expect(instance.state.elements.length).toBe(instance.state.objectCount - amount);
-			
+
 			instance.releaseMultiple(objs);
 			expect(instance.state.elements.length).toBe(instance.state.objectCount);
 		});
@@ -635,7 +635,9 @@ describe('ADTObjectPool', () => {
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
 					custom.state.increaseBreakPoint = type!;
-					expect(custom.getStateErrors(custom.state)).toContain('state increaseBreakPoint must be a number between 0 and 1');
+					expect(custom.getStateErrors(custom.state)).toContain(
+						'state increaseBreakPoint must be a number between 0 and 1'
+					);
 				});
 			});
 		});
@@ -646,7 +648,9 @@ describe('ADTObjectPool', () => {
 			types.forEach((type) => {
 				it(typeof type + ': ' + type, () => {
 					custom.state.increaseFactor = type!;
-					expect(custom.getStateErrors(custom.state)).toContain('state increaseFactor must be a positive number');
+					expect(custom.getStateErrors(custom.state)).toContain(
+						'state increaseFactor must be a positive number'
+					);
 				});
 			});
 		});
