@@ -125,7 +125,7 @@ export default class ADTLinkedList<T> implements ADTBase<T> {
 		return node;
 	}
 
-	public forEach(func: (...args) => void): ADTLinkedList<T> {
+	public forEach(func: (element: ADTLinkedListElement<T>) => void): ADTLinkedList<T> {
 		let node = this.head();
 
 		while (node) {

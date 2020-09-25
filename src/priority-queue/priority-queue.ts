@@ -392,13 +392,6 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		return this.state.elements[0];
 	}
 
-	public push(element: T): ADTPriorityQueue<T> {
-		this.state.elements.push(element);
-		this.fixHeap(this.size() - 1);
-
-		return this;
-	}
-
 	public pop(): T | null {
 		if (this.size() === 0) {
 			return null;
@@ -417,6 +410,13 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		return highestPriority;
 	}
 
+	public push(element: T): ADTPriorityQueue<T> {
+		this.state.elements.push(element);
+		this.fixHeap(this.size() - 1);
+
+		return this;
+	}
+
 	public query(filters: ADTQueryFilter | ADTQueryFilter[], opts?: ADTQueryOptions): ADTQueryResult<T>[] {
 		let result: ADTQueryResult<T>[] = [];
 		let options = this.queryOptions(opts);
@@ -429,9 +429,11 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 			}
 
 			if (Array.isArray(filters)) {
-				take = !!filters.length && filters.every((filter) => {
-					return filter(element);
-				});
+				take =
+					!!filters.length &&
+					filters.every((filter) => {
+						return filter(element);
+					});
 			} else {
 				take = filters(element);
 			}

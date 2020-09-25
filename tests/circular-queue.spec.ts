@@ -1,11 +1,10 @@
 import ADTCircularQueue from '../src/circular-queue/circular-queue';
 import ADTCircularQueueState from '../src/circular-queue/circular-queue-state';
+import ADTQueryFilter from '../src/query/query-filter';
+import ADTQueryOptions from '../src/query/query-options';
+import ADTQueryResult from '../src/query/query-result';
 
 describe('ADTCircularQueue', () => {
-	let instance: ADTCircularQueue<number>;
-	const items = [90, 70, 50, 30, 10, 80, 60, 40, 20];
-	const maxSize = 4;
-
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
 	const TRUTHY_NAN_VALUES = ['1.5', '-1', '0', '1', '1.5'];
 	const NAN_VALUES = ([] as any[]).concat(FALSY_NAN_VALUES, TRUTHY_NAN_VALUES);
@@ -22,7 +21,6 @@ describe('ADTCircularQueue', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	let DEFAULT_STATE: ADTCircularQueueState<number>;
 	const STATE_PROPERTIES = ['type', 'elements', 'overwrite', 'maxSize', 'size', 'front', 'rear'];
 	const VALID_SERIALIZED_STATE = [
 		'{',
@@ -35,6 +33,18 @@ describe('ADTCircularQueue', () => {
 		'"rear": 5',
 		'}'
 	].join('');
+	const DEFAULT_STATE: ADTCircularQueueState<number> = {
+		type: 'cqState',
+		elements: [],
+		overwrite: false,
+		size: 0,
+		maxSize: 100,
+		front: 0,
+		rear: 0
+	};
+
+	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
+	const MAX_SIZE = 4;
 
 	const isValidStateRuns = function (action: Function) {
 		it('should run isValidState check', () => {
@@ -46,887 +56,1089 @@ describe('ADTCircularQueue', () => {
 			expect(spy).toBeCalled();
 		});
 	};
+	const queryFilter = function (target: number): ADTQueryFilter {
+		const filter: ADTQueryFilter = (element): boolean => {
+			return element === target;
+		};
+
+		return filter;
+	};
+
+	let instance: ADTCircularQueue<number>;
 
 	beforeAll(() => {
-		instance = new ADTCircularQueue<number>({maxSize: maxSize});
-		DEFAULT_STATE = instance.getDefaultState();
+		instance = new ADTCircularQueue<number>({ maxSize: MAX_SIZE });
 	});
 
 	beforeEach(() => {
 		instance.reset();
 	});
 
-	describe('constructor', () => {
-		it('should initialize with default state when no options are paseed', () => {
-			const custom = new ADTCircularQueue<number>();
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual(DEFAULT_STATE);
-		});
-
-		it('should initialize with serializedState', () => {
-			const custom = new ADTCircularQueue<number>({serializedState: VALID_SERIALIZED_STATE});
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
-		});
-
-		it('should initialize with state settings overriding serializedState', () => {
-			const expected1 = {...DEFAULT_STATE};
-			expected1.maxSize = 2000;
-
-			const custom1 = new ADTCircularQueue<number>({
-				maxSize: expected1.maxSize
+	describe('Constructor', () => {
+		describe('constructor', () => {
+			it('should initialize with default state when no options are paseed', () => {
+				const custom = new ADTCircularQueue<number>();
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(DEFAULT_STATE);
 			});
 
-			expect(JSON.parse(custom1.stringify()!)).toStrictEqual(expected1);
-
-			const expected2 = JSON.parse(VALID_SERIALIZED_STATE);
-			expected2.maxSize = 2000;
-
-			const custom2 = new ADTCircularQueue<number>({
-				serializedState: VALID_SERIALIZED_STATE,
-				maxSize: expected2.maxSize
+			it('should initialize with serializedState', () => {
+				const custom = new ADTCircularQueue<number>({ serializedState: VALID_SERIALIZED_STATE });
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 			});
 
-			expect(JSON.parse(custom2.stringify()!)).toStrictEqual(expected2);
-		});
+			it('should initialize with other options overriding serializedState if they are valid', () => {
+				const expected: ADTCircularQueueState<number> = JSON.parse(VALID_SERIALIZED_STATE);
+				expected.maxSize = 40;
 
-		it('should initialize with other options overriding serializedState if they are valid', () => {
-			const expected: ADTCircularQueueState<number> = JSON.parse(VALID_SERIALIZED_STATE);
-			expected.maxSize = 40;
-
-			const custom = new ADTCircularQueue<number>({
-				serializedState: VALID_SERIALIZED_STATE,
-				maxSize: expected.maxSize,
-				size: -1
-			});
-
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
-		});
-	});
-
-	describe('parseOptions', () => {
-		it('should return default properties if options is falsey', () => {
-			const defaults = {...DEFAULT_STATE};
-
-			expect(instance.parseOptions()).toStrictEqual(defaults);
-			expect(instance.parseOptions(null!)).toStrictEqual(defaults);
-			expect(instance.parseOptions(undefined!)).toStrictEqual(defaults);
-			expect(instance.parseOptions({} as any)).toStrictEqual(defaults);
-		});
-
-		it('should return properties from parsed options', () => {
-			const expected1 = JSON.parse(VALID_SERIALIZED_STATE);
-
-			expect(
-				instance.parseOptions({
-					serializedState: VALID_SERIALIZED_STATE
-				})
-			).toStrictEqual(expected1);
-
-			const expected2 = JSON.parse(VALID_SERIALIZED_STATE);
-			expected2.maxSize = 999;
-
-			expect(
-				instance.parseOptions({
+				const custom = new ADTCircularQueue<number>({
 					serializedState: VALID_SERIALIZED_STATE,
-					maxSize: expected2.maxSize
-				})
-			).toStrictEqual(expected2);
-		});
-	});
-
-	describe('parseOptionsState', () => {
-		it('should return the default state if options is falsey', () => {
-			expect(instance.parseOptionsState(null!)).toStrictEqual(DEFAULT_STATE);
-			expect(instance.parseOptionsState('' as any)).toStrictEqual(DEFAULT_STATE);
-			expect(instance.parseOptionsState(undefined!)).toStrictEqual(DEFAULT_STATE);
-		});
-
-		describe('should throw if serializedState is not valid', () => {
-			STATE_PROPERTIES.forEach((v) => {
-				it(v + ' is null', () => {
-					const state = {...DEFAULT_STATE};
-					state[v] = null!;
-					const errors = instance.getStateErrors(state);
-
-					expect(() => {
-						instance.parseOptionsState({
-							serializedState: JSON.stringify(state)
-						});
-					}).toThrow(errors.join('\n'));
+					maxSize: expected.maxSize,
+					size: -1
 				});
+
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
 			});
 		});
 
-		it('should return serializedState as ADTCircularQueueState if it is valid', () => {
-			const expected = JSON.parse(VALID_SERIALIZED_STATE);
+		describe('parseOptions', () => {
+			it('should return default properties if options is falsey', () => {
+				expect(instance.parseOptions()).toStrictEqual(DEFAULT_STATE);
+				expect(instance.parseOptions(null!)).toStrictEqual(DEFAULT_STATE);
+				expect(instance.parseOptions(undefined!)).toStrictEqual(DEFAULT_STATE);
+				expect(instance.parseOptions({} as any)).toStrictEqual(DEFAULT_STATE);
+			});
 
-			expect(
-				instance.parseOptionsState({
-					serializedState: VALID_SERIALIZED_STATE
-				})
-			).toStrictEqual(expected);
+			it('should return properties from parsed options', () => {
+				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
+
+				expect(
+					instance.parseOptions({
+						serializedState: VALID_SERIALIZED_STATE
+					})
+				).toStrictEqual(expectedV);
+
+				expectedV.maxSize = 999;
+				expect(
+					instance.parseOptions({
+						serializedState: VALID_SERIALIZED_STATE,
+						maxSize: expectedV.maxSize
+					})
+				).toStrictEqual(expectedV);
+			});
 		});
-	});
 
-	describe('parseOptionsOther', () => {
-		it('should return the default state if options is falsey', () => {
-			expect(instance.parseOptionsOther(null!)).toStrictEqual(DEFAULT_STATE);
-			expect(instance.parseOptionsOther('' as any)).toStrictEqual(DEFAULT_STATE);
-			expect(instance.parseOptionsOther(undefined!)).toStrictEqual(DEFAULT_STATE);
+		describe('parseOptionsState', () => {
+			it('should return the default state if options is falsey', () => {
+				expect(instance.parseOptionsState(null!)).toStrictEqual(DEFAULT_STATE);
+				expect(instance.parseOptionsState('' as any)).toStrictEqual(DEFAULT_STATE);
+				expect(instance.parseOptionsState(undefined!)).toStrictEqual(DEFAULT_STATE);
+			});
+
+			it.each(STATE_PROPERTIES)('should throw when state.%s is null', (myTest) => {
+				const state = { ...DEFAULT_STATE };
+				state[myTest] = null!;
+				const errors = instance.getStateErrors(state);
+
+				expect(() => {
+					instance.parseOptionsState({
+						serializedState: JSON.stringify(state)
+					});
+				}).toThrow(errors.join('\n'));
+			});
+
+			it('should return serializedState as ADTCircularQueueState if it is valid', () => {
+				const expected = JSON.parse(VALID_SERIALIZED_STATE);
+
+				expect(
+					instance.parseOptionsState({
+						serializedState: VALID_SERIALIZED_STATE
+					})
+				).toStrictEqual(expected);
+			});
 		});
 
-		it('should return passed state if options is null or undefined', () => {
-			const types = [null, undefined];
-			types.forEach((type) => {
-				expect(instance.parseOptionsOther(instance.state, type!)).toStrictEqual(instance.state);
-				expect(instance.parseOptionsOther(DEFAULT_STATE, type!)).toStrictEqual(DEFAULT_STATE);
-				expect(instance.parseOptionsOther(instance.parse(VALID_SERIALIZED_STATE) as any, type!)).toStrictEqual(
-					instance.parse(VALID_SERIALIZED_STATE)
+		describe('parseOptionsStateString', () => {
+			it('should return null if argument is not a string with length > 0', () => {
+				expect(instance.parseOptionsStateString(4 as any)).toBeNull();
+				expect(instance.parseOptionsStateString([] as any)).toBeNull();
+				expect(instance.parseOptionsStateString({} as any)).toBeNull();
+				expect(instance.parseOptionsStateString('' as any)).toBeNull();
+				expect(instance.parseOptionsStateString(false as any)).toBeNull();
+			});
+
+			it('should return array of errors if string cant be parsed', () => {
+				expect(instance.parseOptionsStateString('[4,3,')).toContain('Unexpected end of JSON input');
+				expect(instance.parseOptionsStateString('{left:f,right:')).toContain(
+					'Unexpected token l in JSON at position 1'
 				);
 			});
-		});
 
-		it('should return passed state with values changed to match other passed options', () => {
-			const expected: ADTCircularQueueState<number> = {...DEFAULT_STATE};
-			expected.maxSize = 99;
-
-			const result = instance.parseOptionsOther(DEFAULT_STATE, {
-				maxSize: expected.maxSize
+			const toParseList = ['{}', '{"type": "cqState"}', '{"elements":4, "type": "cqState"}'];
+			it.each(toParseList)('should return errors, %p wont parse into an ADTCircularQueueState', (toParse) => {
+				let errors: Array<string> = [];
+				errors = instance.getStateErrors(JSON.parse(toParse) as any);
+				errors.unshift('state is not a valid ADTCircularQueueState');
+				expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
 			});
 
-			expect(result).toStrictEqual(expected);
+			it('should return an ADTCircularQueueState when a parsable string is passed', () => {
+				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
+				expect(instance.parseOptionsStateString(VALID_SERIALIZED_STATE)).toStrictEqual(expectedV);
+			});
 		});
 
-		it('should return passed state with values changed to match other passed options if those are valid', () => {
-			const expected: ADTCircularQueueState<number> = {...DEFAULT_STATE};
-			expected.maxSize = 99;
-
-			const result = instance.parseOptionsOther(DEFAULT_STATE, {
-				maxSize: expected.maxSize,
-				size: -1
+		describe('parseOptionsOther', () => {
+			it('should return the default state if options is falsey', () => {
+				expect(instance.parseOptionsOther(null!)).toStrictEqual(DEFAULT_STATE);
+				expect(instance.parseOptionsOther('' as any)).toStrictEqual(DEFAULT_STATE);
+				expect(instance.parseOptionsOther(undefined!)).toStrictEqual(DEFAULT_STATE);
 			});
 
-			expect(result).toStrictEqual(expected);
+			it('should return passed state if options is null or undefined', () => {
+				const testSuite = [null, undefined];
+				testSuite.forEach((myTest) => {
+					expect(instance.parseOptionsOther(instance.state, myTest!)).toStrictEqual(instance.state);
+					expect(instance.parseOptionsOther(DEFAULT_STATE, myTest!)).toStrictEqual(DEFAULT_STATE);
+
+					const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
+					expect(instance.parseOptionsOther(expectedV as any, myTest!)).toStrictEqual(expectedV);
+				});
+			});
+
+			it('should return passed state with values changed to match other passed options if those are valid', () => {
+				const expectedV: ADTCircularQueueState<number> = { ...DEFAULT_STATE };
+				expectedV.maxSize = 99;
+
+				const result = instance.parseOptionsOther(
+					{ ...DEFAULT_STATE },
+					{
+						maxSize: expectedV.maxSize,
+						size: -1
+					}
+				);
+
+				expect(result).toStrictEqual(expectedV);
+			});
 		});
 	});
 
-	describe('wrapIndex', () => {
-		describe('should return a value from 0 to maxSize - 1 when an integer is passed', () => {
-			const indices = INT_VALUES.concat([maxSize - 1, maxSize, Math.round(maxSize * 3.5)]);
-			indices.forEach((index) => {
-				it(typeof index + ': ' + index, () => {
-					const res = instance.wrapIndex(index);
-					expect(res).toBeGreaterThanOrEqual(0);
-					expect(res).toBeLessThan(instance.state.maxSize);
-				});
+	describe('Helpers', () => {
+		describe('getDefaultState', () => {
+			it('should return the default state', () => {
+				expect(instance.getDefaultState()).toStrictEqual(DEFAULT_STATE);
 			});
 		});
 
-		describe('should return -1 if value is not an integer', () => {
-			const indices = ([] as any[]).concat(FLOAT_VALUES, NAN_VALUES);
-			indices.forEach((index) => {
-				it(typeof index + ': ' + index, () => {
-					expect(instance.wrapIndex(index as any)).toBe(-1);
+		describe('getStateErrors', () => {
+			it('should return an empty array if state is valid', () => {
+				expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
+			});
+
+			let testSuite = [null, undefined, '', 0];
+			it.each(testSuite)('should return errors if state is %p', (myTest) => {
+				const expectedV = 'state is null or undefined';
+				const errors = instance.getStateErrors(myTest as any);
+
+				expect(Array.isArray(errors)).toBe(true);
+				expect(errors).toContain(expectedV);
+			});
+
+			let stateTestSuite: Array<[prop: string, result: string, testSuite: any[], expectedV: string]> = [
+				[
+					'type',
+					'not "cqState"',
+					([] as any).concat([null, undefined, '', 'state']),
+					'state type must be cqState'
+				],
+				[
+					'elements',
+					'not an array',
+					([] as any).concat([{}, null, undefined, '', 'teststring']),
+					'state elements must be an array'
+				],
+				[
+					'overwrite',
+					'not a boolean',
+					([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
+					'state overwrite must be a boolean'
+				],
+				[
+					'maxSize',
+					'not an integer >= 0',
+					([0] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
+					'state maxSize must be an integer >= 1'
+				],
+				[
+					'size',
+					'not an integer >= 1',
+					([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
+					'state size must be an integer >= 0'
+				],
+				[
+					'front',
+					'not an integer',
+					([] as any).concat(NAN_VALUES, FLOAT_VALUES),
+					'state front must be an integer'
+				],
+				[
+					'rear',
+					'not an integer',
+					([] as any).concat(NAN_VALUES, FLOAT_VALUES),
+					'state rear must be an integer'
+				]
+			];
+
+			describe.each(stateTestSuite)('should return errors, state.%s is %s', (prop, result, myTests, expectedV) => {
+				it.each(myTests)(`state.${prop} is %p`, (myTest) => {
+					const state = { ...DEFAULT_STATE };
+					state[prop] = myTest as any;
+					const errors = instance.getStateErrors(state);
+
+					expect(Array.isArray(errors)).toBe(true);
+					expect(errors).toContain(expectedV);
 				});
+			})
+		});
+
+		describe('isInteger', () => {
+			let testSuite: Array<[resultText: string, testSuite: any[], expectedV: boolean]> = [
+				[
+					'true, n is an integer',
+					([] as any).concat(INT_VALUES),
+					true
+				],
+				[
+					'false, n is not an integer',
+					([] as any).concat(FLOAT_VALUES, NAN_VALUES),
+					false
+				],
+			];
+			describe.each(testSuite)('should return %s', (resultText, myTests, expectedV) => {
+				it.each(myTests)(`should return ${resultText}, it is %p`, (myTest) => {
+					expect(instance.isInteger(myTest)).toBe(expectedV);
+				})
+			})
+		});
+
+		describe('isValidState', () => {
+			it('should return true if state is a valid ADTCircularQueueState', () => {
+				expect(instance.isValidState(instance.state)).toBe(true);
+			});
+
+			it('should return false if state is null or undefined', () => {
+				const testSuite = [null, undefined];
+				testSuite.forEach((myTest) => {
+					expect(instance.isValidState(myTest!)).toBe(false);
+				});
+			});
+
+			it.each(STATE_PROPERTIES)('should return false if a state state.%s is not valid', (myTest) => {
+				const state = { ...DEFAULT_STATE };
+				state[myTest] = null!;
+				expect(instance.isValidState(state)).toBe(false);
+			})
+		});
+
+		describe('queryDelete', () => {
+			let queryResult: ADTQueryResult<number>;
+
+			beforeEach(() => {
+				ITEMS.forEach((item) => {
+					instance.push(item);
+				});
+			});
+
+			afterEach(() => {
+				instance.clearElements();
+				queryResult = null as any;
+			});
+
+			it('should return null if arg does not have an index method', () => {
+				expect(instance.queryDelete({} as any)).toBeNull();
+			});
+
+			it('should return null if index is null', () => {
+				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				expect(instance.state.size).toBe(expectedSize);
+
+				let queryResults = instance.query(queryFilter(instance.front()!));
+				expect(queryResults.length).toBe(1);
+				queryResult = queryResults[0];
+
+				let spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
+					return null;
+				});
+
+				expect(instance.queryDelete(queryResult)).toBeNull();
+				expect(instance.state.size).toBe(expectedSize);
+
+				spy.mockRestore();
+			});
+
+			it('should return element if it is in cq', () => {
+				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				expect(instance.state.size).toBe(expectedSize);
+
+				let queryResults = instance.query(queryFilter(instance.front()!));
+				expect(queryResults.length).toBe(1);
+				queryResult = queryResults[0];
+
+				expect(instance.queryDelete(queryResult)).toBe(queryResult.element);
+			});
+
+			it('should delete the element from cq', () => {
+				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				expect(instance.state.size).toBe(expectedSize);
+
+				let queryResults = instance.query(queryFilter(instance.front()!));
+				expect(queryResults.length).toBe(1);
+				queryResult = queryResults[0];
+
+				instance.queryDelete(queryResult);
+				expect(instance.state.size).toBe(expectedSize - 1);
+			});
+
+			it('should move the rear index back one', () => {
+				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				expect(instance.state.size).toBe(expectedSize);
+
+				let queryResults = instance.query(queryFilter(instance.front()!));
+				queryResult = queryResults[0];
+
+				let rear = instance.state.rear;
+				let expectedV = instance.wrapIndex(rear! - 1);
+
+				instance.queryDelete(queryResult);
+				expect(instance.state.rear).toBe(expectedV);
+			});
+		});
+
+		describe('queryIndex', () => {
+			let queryResult: ADTQueryResult<number>;
+
+			beforeEach(() => {
+				ITEMS.forEach((item) => {
+					instance.push(item);
+				});
+			});
+
+			afterEach(() => {
+				instance.clearElements();
+				queryResult = null as any;
+			});
+
+			it('should return null if element is not in cq', () => {
+				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				expect(instance.state.size).toBe(expectedSize);
+
+				let queryResults = instance.query(queryFilter(instance.front()!));
+				queryResult = queryResults[0];
+
+				queryResult.delete();
+				expect(queryResult.index()).toBeNull();
+			});
+		});
+
+		describe('queryOptions', () => {
+			const DEFAULT_OPTS = {
+				limit: Infinity
+			};
+			it('should return ADTQueryOptions with all properties', () => {
+				const props = ['limit'];
+				let opts1 = instance.queryOptions();
+				let opts2 = instance.queryOptions({});
+				let opts3 = instance.queryOptions({ limit: 99 });
+				let opts4 = instance.queryOptions({ limit: '99' as any });
+
+				props.forEach((prop) => {
+					expect(opts1[prop]).not.toBeUndefined();
+					expect(opts2[prop]).not.toBeUndefined();
+					expect(opts3[prop]).not.toBeUndefined();
+					expect(opts4[prop]).not.toBeUndefined();
+				});
+			});
+
+			it('should return default if opts is null or underfined', () => {
+				expect(instance.queryOptions()).toStrictEqual(DEFAULT_OPTS);
+				expect(instance.queryOptions(null!)).toStrictEqual(DEFAULT_OPTS);
+				expect(instance.queryOptions(undefined!)).toStrictEqual(DEFAULT_OPTS);
+			});
+
+			it('should return default with passed props overridden', () => {
+				let expectedV = { ...DEFAULT_OPTS };
+				let opts: ADTQueryOptions = {};
+				expect(instance.queryOptions({})).toStrictEqual(expectedV);
+
+				const limit = 5;
+				opts.limit = limit;
+				expectedV.limit = limit;
+				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
+
+				const limitFloat = 5.7;
+				opts.limit = limitFloat;
+				expectedV.limit = Math.round(limitFloat);
+				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
+			});
+
+			let testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
+			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
+				let opts = { limit: myTest as any };
+				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
+			});
+		});
+
+		describe('wrapIndex', () => {
+			let testSuite = ([MAX_SIZE - 1, MAX_SIZE, Math.round(MAX_SIZE * 3.5)] as any).concat(INT_VALUES);
+			it.each(testSuite)(`should return num 0 to ${MAX_SIZE - 1} (maxSize-1), %p is an integer`, (myTest) => {
+				const res = instance.wrapIndex(myTest);
+				expect(res).toBeGreaterThanOrEqual(0);
+				expect(res).toBeLessThan(instance.state.maxSize);
+			});
+
+			testSuite = ([] as any[]).concat(FLOAT_VALUES, NAN_VALUES);
+			it.each(testSuite)('should return -1, %p is not an integer', (myTest) => {
+				expect(instance.wrapIndex(myTest)).toBe(-1);
 			});
 		});
 	});
 
-	describe('isEmpty', () => {
-		isValidStateRuns((obj) => {
-			obj.isEmpty();
+	describe('Implementation', () => {
+		describe('clearElements', () => {
+			it('should not throw if circular queue is empty', () => {
+				expect(instance.state.size).toBe(0);
+				expect(() => {
+					instance.clearElements();
+				}).not.toThrow();
+			});
+
+			it('should remove all elements from cq and reset size, front, and rear to 0', () => {
+				instance.push(1);
+				instance.push(2);
+				instance.pop();
+
+				expect(instance.state.elements).not.toStrictEqual([]);
+				expect(instance.state.size).not.toBe(0);
+				expect(instance.state.front).not.toBe(0);
+				expect(instance.state.rear).not.toBe(0);
+
+				instance.clearElements();
+
+				expect(instance.state.elements).toStrictEqual([]);
+				expect(instance.state.size).toBe(0);
+				expect(instance.state.front).toBe(0);
+				expect(instance.state.rear).toBe(0);
+			});
+
+			it('should not change any other state variables', () => {
+				const custom = new ADTCircularQueue<number>();
+
+				custom.state.type = 'test' as any;
+				custom.state.overwrite = 'test' as any;
+				custom.state.maxSize = 'test' as any;
+
+				custom.clearElements();
+
+				expect(custom.state.type).toBe('test');
+				expect(custom.state.overwrite).toBe('test');
+				expect(custom.state.maxSize).toBe('test');
+			});
 		});
 
-		it('should return true if state.size === 0', () => {
-			instance.state.size = 0;
-			expect(instance.isEmpty()).toBe(true);
+		describe('forEach', () => {
+			let testSuite = [
+				[['push']],
+				[['push', 'push']],
+				[['push', 'push', 'pop']],
+				[['push', 'push', 'pop', 'push', 'push', 'push', 'push']],
+			]
+
+			it.each(testSuite)('should loop through all after %p', (myTest) => {
+				let pushCount = 0;
+				myTest.forEach((func) => {
+					if (func === 'push') {
+						pushCount++;
+						instance[func](pushCount)
+					} else {
+						instance[func]();
+					}
+				});
+
+				let expectedV = myTest.join('');
+				let expectedCount = instance.state.size;
+				let count = 0;
+				instance.forEach((elem, index) => {
+					count++;
+					instance.state.elements[index] = expectedV as any;
+				});
+				expect(count).toBe(expectedCount);
+				expect(instance.front()).toBe(expectedV)
+				expect(instance.rear()).toBe(expectedV)
+			})
+		})
+
+		describe('front', () => {
+			isValidStateRuns((obj) => {
+				obj.front();
+			});
+
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				expect(instance.front()).toBeNull();
+			});
+
+			it('should return null if state.size is 0', () => {
+				instance.state.size = 0;
+				expect(instance.front()).toBeNull();
+			});
+
+			it('should return the first element in the CQ', () => {
+				instance.push(1);
+				instance.push(2);
+				expect(instance.front()).toBe(1);
+				instance.pop();
+				expect(instance.front()).toBe(2);
+				instance.push(3);
+				instance.push(4);
+				instance.push(5);
+				expect(instance.front()).toBe(2);
+			});
+
+			it('should return a non null value when state.front is < 0 or >= maxSize', () => {
+				instance.push(1);
+				instance.state.front = -1;
+				expect(instance.front()).not.toBeNull();
+				instance.state.front = MAX_SIZE;
+				expect(instance.front()).not.toBeNull();
+				instance.state.front = Math.round(MAX_SIZE * 2.5);
+				expect(instance.front()).not.toBeNull();
+			});
 		});
 
-		it('should return false if state.size is > 0', () => {
-			const sizes = [1, maxSize - 1, maxSize, maxSize * 2];
-			sizes.forEach((size) => {
-				instance.state.size = size;
+		describe('getIndex', () => {
+			isValidStateRuns((obj) => {
+				obj.getIndex();
+			});
+
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				expect(instance.getIndex(0)).toBeNull();
+			});
+
+			const testSuite = ([] as any).concat(NAN_VALUES, FLOAT_VALUES);
+			it.each(testSuite)('should return null, index (%p) is not an integer', (myTest) => {
+				expect(instance.getIndex(myTest!)).toBeNull();
+			});
+
+			it('should return null if state.size is 0', () => {
+				instance.state.size = 0;
+				expect(instance.getIndex(0)).toBeNull();
+			});
+
+			it('should return the first element in the CQ if index is 0', () => {
+				instance.push(1);
+				instance.push(2);
+				expect(instance.getIndex(0)).toBe(1);
+				instance.pop();
+				expect(instance.getIndex(0)).toBe(2);
+				instance.push(3);
+				instance.push(4);
+				instance.push(5);
+				expect(instance.getIndex(0)).toBe(2);
+			});
+
+			it('should return the element n indices after front if n is a positive integer', () => {
+				instance.state.elements = [-1, -1, -1, -1];
+				instance.push(1);
+				instance.push(2);
+				expect(instance.getIndex(1)).toBe(2);
+				expect(instance.getIndex(2)).toBe(-1);
+				instance.pop();
+				expect(instance.getIndex(1)).toBe(-1);
+				expect(instance.getIndex(2)).toBe(-1);
+				instance.push(3);
+				instance.push(4);
+				instance.push(5);
+				expect(instance.getIndex(1)).toBe(3);
+				expect(instance.getIndex(2)).toBe(4);
+				expect(instance.getIndex(3)).toBe(5);
+				expect(instance.getIndex(4)).toBe(2);
+			});
+
+			it('should return the element n indices after front if n is a negative integer', () => {
+				instance.state.elements = [-1, -1, -1, -1];
+				instance.push(1);
+				instance.push(2);
+				// [1,2,-1,-1]
+				expect(instance.getIndex(-1)).toBe(1);
+				expect(instance.getIndex(-2)).toBe(-1);
+				instance.pop();
+				// [1,2,-1,-1]
+				expect(instance.getIndex(-1)).toBe(1);
+				expect(instance.getIndex(-2)).toBe(-1);
+				instance.push(3);
+				instance.push(4);
+				instance.push(5);
+				// [5,2,3,4]
+				expect(instance.getIndex(-1)).toBe(4);
+				expect(instance.getIndex(-2)).toBe(3);
+				expect(instance.getIndex(-3)).toBe(2);
+				expect(instance.getIndex(-4)).toBe(5);
+			});
+		});
+
+		describe('isEmpty', () => {
+			isValidStateRuns((obj) => {
+				obj.isEmpty();
+			});
+
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.isEmpty()).toBe(false);
 			});
-		});
 
-		describe('should return false if state.size is not an integer >= 0', () => {
-			const sizes = ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
-			sizes.forEach((size) => {
-				it(typeof size + ': ' + size, () => {
-					instance.state.size = size!;
+			it('should return true if state.size === 0', () => {
+				instance.state.size = 0;
+				expect(instance.isEmpty()).toBe(true);
+			});
+
+			it('should return false if state.size is > 0', () => {
+				const myTests = [1, instance.state.maxSize - 1, instance.state.maxSize, instance.state.maxSize * 2];
+				myTests.forEach((myTest) => {
+					instance.state.size = myTest;
 					expect(instance.isEmpty()).toBe(false);
 				});
 			});
 		});
-	});
 
-	describe('isFull', () => {
-		isValidStateRuns((obj) => {
-			obj.isFull();
-		});
-
-		it('should return true if state.size >= maxSize', () => {
-			const sizes = [maxSize, maxSize * 2];
-			sizes.forEach((size) => {
-				instance.state.size = size;
-				expect(instance.isFull()).toBe(true);
+		describe('isFull', () => {
+			isValidStateRuns((obj) => {
+				obj.isFull();
 			});
-		});
 
-		it('should return false if 0 <= state.size < maxSize ', () => {
-			const sizes = [0, 1, instance.state.maxSize - 1];
-			sizes.forEach((size) => {
-				instance.state.size = size;
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.isFull()).toBe(false);
 			});
-		});
 
-		describe('should return false if state.size is not an integer >= 0', () => {
-			const sizes = ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
-			sizes.forEach((size) => {
-				it(typeof size + ': ' + size, () => {
-					instance.state.size = size!;
+			it('should return true if state.size >= maxSize', () => {
+				const myTests = [MAX_SIZE, MAX_SIZE * 2];
+				myTests.forEach((myTest) => {
+					instance.state.size = myTest;
+					expect(instance.isFull()).toBe(true);
+				});
+			});
+
+			it('should return false if 0 <= state.size < maxSize ', () => {
+				const myTests = [0, 1, instance.state.maxSize - 1];
+				myTests.forEach((myTest) => {
+					instance.state.size = myTest;
 					expect(instance.isFull()).toBe(false);
 				});
 			});
 		});
-	});
 
-	describe('front', () => {
-		isValidStateRuns((obj) => {
-			obj.front();
-		});
+		describe('pop', () => {
+			isValidStateRuns((obj) => {
+				obj.pop();
+			});
 
-		describe('should return null if state.front is not an integer', () => {
-			const indices = ([] as any).concat(NAN_VALUES, FLOAT_VALUES);
-			indices.forEach((index) => {
-				it(typeof index + ': ' + index, () => {
-					instance.state.front = index!;
-					expect(instance.front()).toBeNull();
-				});
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				expect(instance.pop()).toBeNull();
+			});
+
+			it('should return null when cq is empty', () => {
+				expect(instance.state.size).toBe(0);
+				expect(instance.pop()).toBeNull();
+				expect(instance.pop()).toBeNull();
+				instance.push(1);
+				expect(instance.pop()).not.toBeNull();
+				expect(instance.pop()).toBeNull();
+				expect(instance.pop()).toBeNull();
+			});
+
+			it('should return front element and shrink cq by 1', () => {
+				instance.push(10);
+				instance.push(20);
+				instance.push(30);
+
+				expect(instance.state.size).toBe(3);
+				expect(instance.state.front).toBe(0);
+				expect(instance.pop()).toBe(instance.state.elements[0]);
+				expect(instance.state.size).toBe(2);
+				expect(instance.state.front).toBe(1);
+			});
+
+			it('should return elements until cq is empty and then return null', () => {
+				const custom = new ADTCircularQueue<number>({ maxSize: 10 });
+				for (let i = 0; i < custom.state.maxSize; i++) {
+					custom.push(i + 1);
+				}
+
+				for (let i = 0; i < custom.state.maxSize; i++) {
+					expect(custom.pop()).toBe(i + 1);
+					expect(custom.state.size).toBe(10 - i - 1);
+				}
+
+				expect(custom.state.size).toBe(0);
+				expect(custom.pop()).toBeNull();
 			});
 		});
 
-		it('should return null if state.size is 0', () => {
-			instance.state.size = 0;
-			expect(instance.front()).toBeNull();
-		});
-
-		it('should return the first element in the CQ', () => {
-			instance.push(1);
-			instance.push(2);
-			expect(instance.front()).toBe(1);
-			instance.pop();
-			expect(instance.front()).toBe(2);
-			instance.push(3);
-			instance.push(4);
-			instance.push(5);
-			expect(instance.front()).toBe(2);
-		});
-
-		it('should return a non null value when state.front is < 0 or >= maxSize', () => {
-			instance.push(1);
-			instance.state.front = -1;
-			expect(instance.front()).not.toBeNull();
-			instance.state.front = maxSize;
-			expect(instance.front()).not.toBeNull();
-			instance.state.front = Math.round(maxSize * 2.5);
-			expect(instance.front()).not.toBeNull();
-		});
-	});
-
-	describe('rear', () => {
-		isValidStateRuns((obj) => {
-			obj.rear();
-		});
-
-		describe('should return null if state.rear is not an integer', () => {
-			const indices = ([] as any).concat(NAN_VALUES, FLOAT_VALUES);
-			indices.forEach((index) => {
-				it(typeof index + ': ' + index, () => {
-					instance.state.rear = index!;
-					expect(instance.rear()).toBeNull();
-				});
+		describe('push', () => {
+			isValidStateRuns((obj) => {
+				obj.push();
 			});
-		});
 
-		it('should return null if state.size is 0', () => {
-			instance.state.size = 0;
-			expect(instance.rear()).toBeNull();
-		});
-
-		it('should return the last element in the CQ', () => {
-			instance.push(1);
-			instance.push(2);
-			expect(instance.rear()).toBe(2);
-			instance.pop();
-			expect(instance.rear()).toBe(2);
-			instance.push(3);
-			instance.push(4);
-			instance.push(5);
-			expect(instance.rear()).toBe(5);
-		});
-
-		it('should return a non null value when state.rear is < 0 or >= maxSize', () => {
-			instance.push(1);
-			instance.state.rear = -1;
-			expect(instance.rear()).not.toBeNull();
-			instance.state.rear = maxSize;
-			expect(instance.rear()).not.toBeNull();
-			instance.state.rear = Math.round(maxSize * 2.5);
-			expect(instance.rear()).not.toBeNull();
-		});
-	});
-
-	describe('getIndex', () => {
-		isValidStateRuns((obj) => {
-			obj.getIndex();
-		});
-
-		it('should return null if isValidState returns false', () => {
-			instance.state.size = -1;
-			expect(instance.getIndex(0)).toBeNull();
-		});
-
-		describe('should return null if index is not an integer', () => {
-			const indices = ([] as any).concat(NAN_VALUES, FLOAT_VALUES);
-			indices.forEach((index) => {
-				it(typeof index + ': ' + index, () => {
-					expect(instance.getIndex(index!)).toBeNull();
-				});
+			it('should return false if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				expect(instance.push(0)).toBe(false);
 			});
-		});
 
-		it('should return null if state.size is 0', () => {
-			instance.state.size = 0;
-			expect(instance.getIndex(0)).toBeNull();
-		});
+			it('should return false and leave cq alone if cq is full and overwrite is false', () => {
+				instance.state.elements = [10, 20, 30, 40];
+				instance.state.front = 0;
+				instance.state.rear = 0;
+				instance.state.size = 4;
 
-		it('should return the first element in the CQ if index is 0', () => {
-			instance.push(1);
-			instance.push(2);
-			expect(instance.getIndex(0)).toBe(1);
-			instance.pop();
-			expect(instance.getIndex(0)).toBe(2);
-			instance.push(3);
-			instance.push(4);
-			instance.push(5);
-			expect(instance.getIndex(0)).toBe(2);
-		});
+				const state = instance.stringify();
 
-		it('should return the element n indices after front if n is a positive integer', () => {
-			instance.state.elements = [-1, -1, -1, -1];
-			instance.push(1);
-			instance.push(2);
-			expect(instance.getIndex(1)).toBe(2);
-			expect(instance.getIndex(2)).toBe(-1);
-			instance.pop();
-			expect(instance.getIndex(1)).toBe(-1);
-			expect(instance.getIndex(2)).toBe(-1);
-			instance.push(3);
-			instance.push(4);
-			instance.push(5);
-			expect(instance.getIndex(1)).toBe(3);
-			expect(instance.getIndex(2)).toBe(4);
-			expect(instance.getIndex(3)).toBe(5);
-			expect(instance.getIndex(4)).toBe(2);
-		});
+				expect(instance.isFull()).toBe(true);
+				expect(instance.push(50)).toBe(false);
+				expect(instance.stringify()).toBe(state);
+			});
 
-		it('should return the element n indices after front if n is a negative integer', () => {
-			instance.state.elements = [-1, -1, -1, -1];
-			instance.push(1);
-			instance.push(2);
-			// [1,2,-1,-1]
-			expect(instance.getIndex(-1)).toBe(1);
-			expect(instance.getIndex(-2)).toBe(-1);
-			instance.pop();
-			// [1,2,-1,-1]
-			expect(instance.getIndex(-1)).toBe(1);
-			expect(instance.getIndex(-2)).toBe(-1);
-			instance.push(3);
-			instance.push(4);
-			instance.push(5);
-			// [5,2,3,4]
-			expect(instance.getIndex(-1)).toBe(4);
-			expect(instance.getIndex(-2)).toBe(3);
-			expect(instance.getIndex(-3)).toBe(2);
-			expect(instance.getIndex(-4)).toBe(5);
-		});
-	});
+			it('should return true, overwrite front, and increment if cq is full and overwrite is true', () => {
+				instance.state.overwrite = true;
+				instance.state.elements = [10, 20, 30, 40];
+				instance.state.front = 0;
+				instance.state.rear = 0;
+				instance.state.size = 4;
 
-	describe('push', () => {
-		it('should run isValidState check', () => {
-			const spy = jest.spyOn(instance, 'isValidState');
+				const state = instance.stringify();
 
-			spy.mockClear();
-			instance.push(1);
+				expect(instance.isFull()).toBe(true);
+				expect(instance.push(50)).toBe(true);
+				expect(instance.state.elements).toStrictEqual([50, 20, 30, 40]);
+				instance.state.overwrite = false;
+			});
 
-			expect(spy).toBeCalled();
-		});
+			it('should return true and increment rear and size when push is called once', () => {
+				expect(instance.state.size).toBe(0);
+				expect(instance.state.front).toBe(0);
+				expect(instance.state.rear).toBe(0);
 
-		it('should return false if isValidState returns false', () => {
-			instance.state.size = -1;
-			expect(instance.push(0)).toBe(false);
-		});
-
-		it('should return false and leave cq alone if cq is full and overwrite is false', () => {
-			instance.state.elements = [10, 20, 30, 40];
-			instance.state.front = 0;
-			instance.state.rear = 0;
-			instance.state.size = 4;
-			const state = instance.stringify();
-			expect(instance.isFull()).toBe(true);
-			expect(instance.push(50)).toBe(false);
-			expect(instance.stringify()).toBe(state);
-		});
-
-		it('should return true, overwrite front, and increment if cq is full and overwrite is true', () => {
-			instance.state.overwrite = true;
-			instance.state.elements = [10, 20, 30, 40];
-			instance.state.front = 0;
-			instance.state.rear = 0;
-			instance.state.size = 4;
-			const state = instance.stringify();
-			expect(instance.isFull()).toBe(true);
-			expect(instance.push(50)).toBe(true);
-			expect(instance.state.elements).toStrictEqual([50, 20, 30, 40]);
-			instance.state.overwrite = false;
-		});
-
-		it('should return true and increment rear and size when push is called once', () => {
-			expect(instance.state.size).toBe(0);
-			expect(instance.state.front).toBe(0);
-			expect(instance.state.rear).toBe(0);
-			expect(instance.push(10)).toBe(true);
-			expect(instance.state.front).toBe(0);
-			expect(instance.state.size).toBe(1);
-			expect(instance.state.rear).toBe(1);
-			expect(instance.state.elements).toStrictEqual([10]);
-			instance.push(20);
-			instance.push(30);
-			instance.push(40);
-			instance.pop();
-			expect(instance.state.front).toBe(1);
-			expect(instance.state.size).toBe(3);
-			expect(instance.state.rear).toBe(0);
-			expect(instance.state.elements).toStrictEqual([10, 20, 30, 40]);
-			expect(instance.push(50)).toBe(true);
-			expect(instance.state.front).toBe(1);
-			expect(instance.state.size).toBe(4);
-			expect(instance.state.rear).toBe(1);
-			expect(instance.state.elements).toStrictEqual([50, 20, 30, 40]);
-		});
-
-		it('should push 15 items into cq while maintaining a size of 1 if overwrite is false', () => {
-			expect(instance.state.size).toBe(0);
-			expect(instance.state.elements).toStrictEqual([]);
-
-			const limit = 15;
-			for (let i = 0; i < limit; i++) {
-				instance.pop();
-				expect(instance.state.front).toBe(i % instance.state.maxSize);
-				expect(instance.push(i * 10)).toBe(true);
+				expect(instance.push(10)).toBe(true);
+				expect(instance.state.front).toBe(0);
 				expect(instance.state.size).toBe(1);
-			}
+				expect(instance.state.rear).toBe(1);
+				expect(instance.state.elements).toStrictEqual([10]);
 
-			expect(instance.state.elements).toStrictEqual([120, 130, 140, 110]);
-		});
-
-		it('should push 15 items into cq while maintaining a size of 1 if overwrite is true', () => {
-			instance.state.overwrite = true;
-			expect(instance.state.size).toBe(0);
-			expect(instance.state.elements).toStrictEqual([]);
-
-			const limit = 15;
-			for (let i = 0; i < limit; i++) {
+				instance.push(20);
+				instance.push(30);
+				instance.push(40);
 				instance.pop();
-				expect(instance.state.front).toBe(i % instance.state.maxSize);
-				expect(instance.push(i * 10)).toBe(true);
-				expect(instance.state.size).toBe(1);
-			}
+				expect(instance.state.front).toBe(1);
+				expect(instance.state.size).toBe(3);
+				expect(instance.state.rear).toBe(0);
+				expect(instance.state.elements).toStrictEqual([10, 20, 30, 40]);
 
-			expect(instance.state.elements).toStrictEqual([120, 130, 140, 110]);
-			instance.state.overwrite = false;
+				expect(instance.push(50)).toBe(true);
+				expect(instance.state.front).toBe(1);
+				expect(instance.state.size).toBe(4);
+				expect(instance.state.rear).toBe(1);
+				expect(instance.state.elements).toStrictEqual([50, 20, 30, 40]);
+			});
+
+			it('should push 15 items into cq while maintaining a size of 1 if overwrite is false', () => {
+				expect(instance.state.size).toBe(0);
+				expect(instance.state.elements).toStrictEqual([]);
+
+				const limit = 15;
+				for (let i = 0; i < limit; i++) {
+					instance.pop();
+					expect(instance.state.front).toBe(i % instance.state.maxSize);
+					expect(instance.push(i * 10)).toBe(true);
+					expect(instance.state.size).toBe(1);
+				}
+
+				expect(instance.state.elements).toStrictEqual([120, 130, 140, 110]);
+			});
+
+			it('should push 15 items into cq while maintaining a size of 1 if overwrite is true', () => {
+				instance.state.overwrite = true;
+				expect(instance.state.size).toBe(0);
+				expect(instance.state.elements).toStrictEqual([]);
+
+				const limit = 15;
+				for (let i = 0; i < limit; i++) {
+					instance.pop();
+					expect(instance.state.front).toBe(i % instance.state.maxSize);
+					expect(instance.push(i * 10)).toBe(true);
+					expect(instance.state.size).toBe(1);
+				}
+
+				expect(instance.state.elements).toStrictEqual([120, 130, 140, 110]);
+				instance.state.overwrite = false;
+			});
+
+			it('should push items into cq and overwrite front when full', () => {
+				instance.state.overwrite = true;
+				expect(instance.state.size).toBe(0);
+				expect(instance.state.elements).toStrictEqual([]);
+
+				const limit = 15;
+				const expected = [0, 0, 0, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+				for (let i = 0; i < limit; i++) {
+					expect(instance.push(i * 10)).toBe(true);
+					expect(instance.state.front).toBe(expected[i]);
+				}
+
+				expect(instance.state.elements).toStrictEqual([120, 130, 140, 110]);
+				instance.state.overwrite = false;
+			});
 		});
 
-		it('should push items into cq and overwrite front when full', () => {
-			instance.state.overwrite = true;
-			expect(instance.state.size).toBe(0);
-			expect(instance.state.elements).toStrictEqual([]);
+		describe('query', () => {
+			let spyOpts: jest.SpyInstance;
+			let defOpts: Required<ADTQueryOptions>;
 
-			const limit = 15;
-			const expected = [0, 0, 0, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
-			for (let i = 0; i < limit; i++) {
-				expect(instance.push(i * 10)).toBe(true);
-				expect(instance.state.front).toBe(expected[i]);
-			}
+			beforeAll(() => {
+				spyOpts = jest.spyOn(instance, 'queryOptions');
+				defOpts = instance.queryOptions();
+			});
 
-			expect(instance.state.elements).toStrictEqual([120, 130, 140, 110]);
-			instance.state.overwrite = false;
-		});
-	});
-
-	describe('pop', () => {
-		it('should run isValidState check', () => {
-			const spy = jest.spyOn(instance, 'isValidState');
-
-			spy.mockClear();
-			instance.pop();
-			instance.state.size = 1;
-			instance.state.rear = 1;
-			instance.state.elements = [10];
-			instance.pop();
-
-			expect(spy).toBeCalled();
-		});
-
-		it('should return null if isValidState returns false', () => {
-			instance.state.size = -1;
-			expect(instance.pop()).toBeNull();
-		});
-
-		it('should return null when cq is empty', () => {
-			expect(instance.state.size).toBe(0);
-			expect(instance.pop()).toBeNull();
-			expect(instance.pop()).toBeNull();
-			instance.push(1);
-			expect(instance.pop()).not.toBeNull();
-			expect(instance.pop()).toBeNull();
-			expect(instance.pop()).toBeNull();
-		});
-
-		it('should return front element and shrink cq by 1', () => {
-			instance.push(10);
-			instance.push(20);
-			instance.push(30);
-
-			expect(instance.state.size).toBe(3);
-			expect(instance.state.front).toBe(0);
-			expect(instance.pop()).toBe(instance.state.elements[0]);
-			expect(instance.state.size).toBe(2);
-			expect(instance.state.front).toBe(1);
-		});
-
-		it('should return elements until cq is empty and then return null', () => {
-			const custom = new ADTCircularQueue<number>({maxSize: 10});
-			for (let i = 0; i < custom.state.maxSize; i++) {
-				custom.push(i + 1);
-			}
-
-			for (let i = 0; i < custom.state.maxSize; i++) {
-				expect(custom.pop()).toBe(i + 1);
-				expect(custom.state.size).toBe(10 - i - 1);
-			}
-			expect(custom.state.size).toBe(0);
-			expect(custom.pop()).toBeNull();
-		});
-	});
-
-	describe('isInteger', () => {
-		describe('should return true if n is an integer', () => {
-			const types: any[] = INT_VALUES;
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					expect(instance.isInteger(type)).toBe(true);
+			beforeEach(() => {
+				ITEMS.forEach((item) => {
+					instance.push(item);
 				});
-			});
-		});
-
-		describe('should return false if n is not an integer', () => {
-			const types: any[] = ([] as any[]).concat(FLOAT_VALUES, NAN_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					expect(instance.isInteger(type!)).toBe(false);
-				});
-			});
-		});
-	});
-
-	describe('isValidState', () => {
-		it('should return true if state is a valid ADTCircularQueueState', () => {
-			expect(instance.isValidState(instance.state)).toBe(true);
-		});
-
-		it('should return false if state is null or undefined', () => {
-			const types = [null, undefined];
-			types.forEach((type) => {
-				expect(instance.isValidState(type!)).toBe(false);
-			});
-		});
-
-		describe('should return false if a state property is not valid', () => {
-			STATE_PROPERTIES.forEach((v) => {
-				it(v + ' is null', () => {
-					const state = {...DEFAULT_STATE};
-					state[v] = null!;
-					expect(instance.isValidState(state)).toBe(false);
-				});
-			});
-		});
-	});
-
-	describe('getStateErrors', () => {
-		it('should return array of errors if state is falsy', () => {
-			const types = [null, undefined];
-			types.forEach((type) => {
-				expect(instance.getStateErrors(type!)).toContain('state is null or undefined');
-			});
-		});
-
-		it('should return array of errors if state.type is not "cqState"', () => {
-			const custom = new ADTCircularQueue<number>();
-			const types = [null, undefined, ''];
-			types.forEach((type) => {
-				custom.state.type = type as any;
-				expect(custom.getStateErrors(custom.state)).toContain('state type must be cqState');
-			});
-		});
-
-		it('should return array of errors if state.elements is not an array', () => {
-			const custom = new ADTCircularQueue<number>();
-			const types = [{}, null, undefined];
-			types.forEach((type) => {
-				custom.state.elements = type as any;
-				expect(custom.getStateErrors(custom.state)).toContain('state elements must be an array');
-			});
-		});
-
-		it('should return array of errors if state.overwrite is not a boolean', () => {
-			const custom = new ADTCircularQueue<number>();
-			const types = [{}, '', 0, null, undefined];
-			types.forEach((type) => {
-				custom.state.overwrite = type as any;
-				expect(custom.getStateErrors(custom.state)).toContain('state overwrite must be a boolean');
-			});
-		});
-
-		describe('should return array of errors if state.size is not an integer >= 0', () => {
-			const custom = new ADTCircularQueue<number>();
-			const types: any[] = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					custom.state.size = type!;
-					expect(custom.getStateErrors(custom.state)).toContain('state size must be an integer >= 0');
-				});
-			});
-		});
-
-		describe('should return array of errors if state.maxSize is not an integer >= 1', () => {
-			const custom = new ADTCircularQueue<number>();
-			const types: any[] = ([0] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					custom.state.maxSize = type!;
-					expect(custom.getStateErrors(custom.state)).toContain('state maxSize must be an integer >= 1');
-				});
-			});
-		});
-
-		describe('should return array of errors if state.front is not an integer', () => {
-			const custom = new ADTCircularQueue<number>();
-			const types = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					custom.state.front = type!;
-					expect(custom.getStateErrors(custom.state)).toContain('state front must be an integer');
-				});
-			});
-		});
-
-		describe('should return array of errors if state.rear is not an integer', () => {
-			const custom = new ADTCircularQueue<number>();
-			const types = ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES);
-			types.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					custom.state.rear = type!;
-					expect(custom.getStateErrors(custom.state)).toContain('state rear must be an integer');
-				});
-			});
-		});
-
-		it('should return an empty array if state is valid', () => {
-			expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
-		});
-	});
-
-	describe('parse', () => {
-		it('should return null if argument is not a string with length > 0', () => {
-			expect(instance.parse(4 as any)).toBeNull();
-			expect(instance.parse([] as any)).toBeNull();
-			expect(instance.parse({} as any)).toBeNull();
-			expect(instance.parse('' as any)).toBeNull();
-			expect(instance.parse(false as any)).toBeNull();
-		});
-
-		it('should return array of errors if string cant be parsed', () => {
-			expect(instance.parse('[4,3,')).toContain('Unexpected end of JSON input');
-			expect(instance.parse('{left:f,right:')).toContain('Unexpected token l in JSON at position 1');
-		});
-
-		it('should return array of errors when a parsable string does not parse into an ADTCircularQueueState', () => {
-			let errors: Array<string> = [];
-			let toParse: any;
-
-			errors = instance.getStateErrors({} as any);
-			errors.unshift('state is not a valid ADTCircularQueueState');
-			expect(instance.parse('"null"')).toStrictEqual(errors);
-
-			errors = instance.getStateErrors({} as any);
-			errors.unshift('state is not a valid ADTCircularQueueState');
-			expect(instance.parse('"undefined"')).toStrictEqual(errors);
-
-			toParse = '{}';
-			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ADTCircularQueueState');
-			expect(instance.parse(toParse)).toStrictEqual(errors);
-
-			toParse = '{"elements":[], "type": "cqState"}';
-			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ADTCircularQueueState');
-			expect(instance.parse(toParse)).toStrictEqual(errors);
-
-			toParse = VALID_SERIALIZED_STATE.replace('9', '-5');
-			errors = instance.getStateErrors(JSON.parse(toParse) as any);
-			errors.unshift('state is not a valid ADTCircularQueueState');
-			expect(instance.parse(toParse)).toStrictEqual(errors);
-		});
-
-		it('should return an ADTCircularQueueState when a parsable string is passed', () => {
-			const string = instance.stringify();
-			const expected = {...instance.state};
-			expect(string).not.toBeNull();
-			expect(instance.parse(string!)).toStrictEqual(expected);
-			expect(instance.parse(VALID_SERIALIZED_STATE)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
-		});
-	});
-
-	describe('stringify', () => {
-		isValidStateRuns((obj) => {
-			obj.stringify();
-		});
-
-		describe('should return null if state is invalid', () => {
-			const custom = new ADTCircularQueue<number>();
-			STATE_PROPERTIES.forEach((type) => {
-				it(typeof type + ': ' + type, () => {
-					custom.reset();
-					custom.state[type] = null as any;
-					expect(custom.stringify()).toBeNull();
-				});
-			});
-		});
-
-		it('should return the state as a string if it is validated', () => {
-			const custom = new ADTCircularQueue<number>({maxSize: 10});
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-				type: 'cqState',
-				elements: [],
-				overwrite: false,
-				size: 0,
-				maxSize: 10,
-				front: 0,
-				rear: 0
+				spyOpts.mockReset();
+				spyOpts.mockReturnValue(defOpts);
 			});
 
-			custom.push(1);
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-				type: 'cqState',
-				elements: [1],
-				overwrite: false,
-				size: 1,
-				maxSize: 10,
-				front: 0,
-				rear: 1
-			});
-
-			custom.push(2);
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-				type: 'cqState',
-				elements: [1, 2],
-				overwrite: false,
-				size: 2,
-				maxSize: 10,
-				front: 0,
-				rear: 2
-			});
-
-			custom.pop();
-			expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-				type: 'cqState',
-				elements: [1, 2],
-				overwrite: false,
-				size: 1,
-				maxSize: 10,
-				front: 1,
-				rear: 2
-			});
-		});
-	});
-
-	describe('clearElements', () => {
-		it('should not throw if circular queue is empty', () => {
-			expect(instance.state.size).toBe(0);
-			expect(() => {
+			afterEach(() => {
 				instance.clearElements();
-			}).not.toThrow();
+			});
+
+			afterAll(() => {
+				spyOpts.mockRestore();
+			});
+
+			it('should call queryOptions once', () => {
+				let expectedCalls = 0;
+				expect(spyOpts).toBeCalledTimes(expectedCalls);
+
+				instance.query([]);
+				expectedCalls++;
+				expect(spyOpts).toBeCalledTimes(expectedCalls);
+
+				instance.query(queryFilter(10));
+				expectedCalls++;
+				expect(spyOpts).toBeCalledTimes(expectedCalls);
+
+				instance.query([queryFilter(10)]);
+				expectedCalls++;
+				expect(spyOpts).toBeCalledTimes(expectedCalls);
+			});
+
+			it('should return empty array if no filters are given', () => {
+				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.query([])).toEqual([]);
+			});
+
+			it('should return all elements matching filter', () => {
+				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				expect(instance.state.size).toBe(expectedSize);
+				let query = 15;
+				instance.state.overwrite = true;
+				expect(instance.query(queryFilter(query)).length).toBe(0);
+
+				let expectedV = 3;
+				for (let i = 0; i < expectedV; i++) {
+					instance.push(query);
+				}
+
+				expect(instance.query(queryFilter(query)).length).toBe(expectedV);
+			});
+
+			it('should return all elements matching filter up to limit', () => {
+				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				expect(instance.state.size).toBe(expectedSize);
+				let query = 45;
+				instance.state.overwrite = true;
+				expect(instance.query(queryFilter(query)).length).toBe(0);
+
+				let expectedV = 2;
+				for (let i = 0; i < expectedV * 2; i++) {
+					instance.push(query);
+				}
+
+				spyOpts.mockReturnValue({ limit: expectedV });
+				expect(instance.query(queryFilter(query)).length).toBe(expectedV);
+			});
+
+			it('should return elements that match all filters', () => {
+				const customFilter = function (target: number, lessthan: boolean): ADTQueryFilter {
+					const filter: ADTQueryFilter = (element): boolean => {
+						if (lessthan) {
+							return element < target;
+						} else {
+							return element > target;
+						}
+					};
+
+					return filter;
+				};
+				instance.clearElements();
+				instance.state.maxSize = 10
+				ITEMS.forEach((item) => {
+					instance.push(item);
+				})
+
+				let result = instance.query([customFilter(60, true), customFilter(30, false)]);
+				expect(result.length).toBe(2);
+				let resultValues: number[] = [];
+				result.forEach((res) => {
+					resultValues.push(res.element);
+				});
+				resultValues.sort((a, b) => a - b);
+				expect(resultValues).toEqual([40, 50]);
+			});
 		});
 
-		it('should remove all elements from cq and reset size, front, and rear to 0', () => {
-			instance.push(1);
-			instance.push(2);
-			instance.pop();
+		describe('rear', () => {
+			isValidStateRuns((obj) => {
+				obj.rear();
+			});
 
-			expect(instance.state.elements).not.toStrictEqual([]);
-			expect(instance.state.size).not.toBe(0);
-			expect(instance.state.front).not.toBe(0);
-			expect(instance.state.rear).not.toBe(0);
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				expect(instance.rear()).toBeNull();
+			});
 
-			instance.clearElements();
+			it('should return null if state.size is 0', () => {
+				instance.state.size = 0;
+				expect(instance.rear()).toBeNull();
+			});
 
-			expect(instance.state.elements).toStrictEqual([]);
-			expect(instance.state.size).toBe(0);
-			expect(instance.state.front).toBe(0);
-			expect(instance.state.rear).toBe(0);
+			it('should return the last element in the CQ', () => {
+				instance.push(1);
+				instance.push(2);
+				expect(instance.rear()).toBe(2);
+				instance.pop();
+				expect(instance.rear()).toBe(2);
+				instance.push(3);
+				instance.push(4);
+				instance.push(5);
+				expect(instance.rear()).toBe(5);
+			});
+
+			it('should return a non null value when state.rear is < 0 or >= maxSize', () => {
+				instance.push(1);
+				instance.state.rear = -1;
+				expect(instance.rear()).not.toBeNull();
+				instance.state.rear = MAX_SIZE;
+				expect(instance.rear()).not.toBeNull();
+				instance.state.rear = Math.round(MAX_SIZE * 2.5);
+				expect(instance.rear()).not.toBeNull();
+			});
 		});
 
-		it('should not change any other state variables', () => {
-			const custom = new ADTCircularQueue<number>();
+		describe('reset', () => {
+			it('should not throw when state has errors', () => {
+				instance.state.type = '' as any;
+				expect(() => {
+					instance.reset();
+				}).not.toThrow();
+			});
 
-			custom.state.type = 'test' as any;
-			custom.state.overwrite = 'test' as any;
-			custom.state.maxSize = 'test' as any;
+			it('should return the cq', () => {
+				expect(instance.reset()).toBe(instance);
+			});
 
-			custom.clearElements();
+			it('should call clearElements', () => {
+				const spy = jest.spyOn(instance, 'clearElements');
+				expect(spy).not.toBeCalled();
 
-			expect(custom.state.type).toBe('test');
-			expect(custom.state.overwrite).toBe('test');
-			expect(custom.state.maxSize).toBe('test');
-		});
-	});
-
-	describe('reset', () => {
-		it('should not throw when state has errors', () => {
-			instance.state.size = 0.5;
-			instance.state.front = 99;
-			instance.state.rear = undefined!;
-			instance.state.elements = [];
-			expect(() => {
 				instance.reset();
-			}).not.toThrow();
+				expect(spy).toBeCalled();
+			});
+
+			it('should remove all data from cq', () => {
+				const custom = new ADTCircularQueue<number>();
+
+				custom.state.type = 'test' as any;
+				custom.state.overwrite = 'test' as any;
+				custom.state.maxSize = 'test' as any;
+
+				custom.reset();
+
+				expect(custom.state.type).toBe('cqState');
+				expect(custom.state.overwrite).toBe('test');
+				expect(custom.state.maxSize).toBe('test');
+			});
 		});
 
-		it('should remove all data from cq', () => {
-			const custom = new ADTCircularQueue<number>();
+		describe('stringify', () => {
+			isValidStateRuns((obj) => {
+				obj.stringify();
+			});
 
-			custom.state.type = 'test' as any;
-			custom.state.overwrite = 'test' as any;
-			custom.state.maxSize = 'test' as any;
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				expect(instance.stringify()).toBeNull();
+			});
 
-			custom.reset();
+			it('should return the state as a string if it is validated', () => {
+				const custom = new ADTCircularQueue<number>({ maxSize: 10 });
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
+					type: 'cqState',
+					elements: [],
+					overwrite: false,
+					size: 0,
+					maxSize: 10,
+					front: 0,
+					rear: 0
+				});
 
-			expect(custom.state.type).toBe('cqState');
-			expect(custom.state.overwrite).toBe('test');
-			expect(custom.state.maxSize).toBe('test');
+				custom.push(1);
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
+					type: 'cqState',
+					elements: [1],
+					overwrite: false,
+					size: 1,
+					maxSize: 10,
+					front: 0,
+					rear: 1
+				});
+
+				custom.push(2);
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
+					type: 'cqState',
+					elements: [1, 2],
+					overwrite: false,
+					size: 2,
+					maxSize: 10,
+					front: 0,
+					rear: 2
+				});
+
+				custom.pop();
+				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
+					type: 'cqState',
+					elements: [1, 2],
+					overwrite: false,
+					size: 1,
+					maxSize: 10,
+					front: 1,
+					rear: 2
+				});
+			});
 		});
+
 	});
+
+
+
 });
