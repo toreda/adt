@@ -176,6 +176,18 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		return index;
 	}
 
+	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
+		let options: Required<ADTQueryOptions> = {
+			limit: Infinity
+		};
+
+		if (opts?.limit && typeof opts.limit === 'number' && opts.limit >= 1) {
+			options.limit = Math.round(opts.limit);
+		}
+
+		return options;
+	}
+
 	public areNodesValidHeap(nodeIndex: number | null, nextIndex: number | null): boolean {
 		if (typeof nextIndex !== 'number') {
 			return true;
@@ -405,14 +417,19 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		return highestPriority;
 	}
 
-	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
+	public query(filters: ADTQueryFilter | ADTQueryFilter[], opts?: ADTQueryOptions): ADTQueryResult<T>[] {
 		let result: ADTQueryResult<T>[] = [];
+		let options = this.queryOptions(opts);
 
 		this.state.elements.forEach((element, index) => {
-			let take = true;
+			let take = false;
+
+			if (result.length >= options.limit) {
+				return false;
+			}
 
 			if (Array.isArray(filters)) {
-				take = filters.every((filter) => {
+				take = !!filters.length && filters.every((filter) => {
 					return filter(element);
 				});
 			} else {

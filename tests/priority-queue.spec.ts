@@ -2,6 +2,7 @@ import ADTPriorityQueue from '../src/priority-queue/priority-queue';
 import ADTPriorityQueueComparator from '../src/priority-queue/priority-queue-comparator';
 import ADTPriorityQueueState from '../src/priority-queue/priority-queue-state';
 import ADTQueryFilter from '../src/query/query-filter';
+import ADTQueryOptions from '../src/query/query-options';
 import ADTQueryResult from '../src/query/query-result';
 
 describe('ADTPriorityQueue', () => {
@@ -481,6 +482,61 @@ describe('ADTPriorityQueue', () => {
 
 				expect(instance.size()).toBe(0);
 				expect(queryResult.index()).toBeNull();
+			});
+		});
+
+		describe('queryOptions', () => {
+			const DEFAULT_OPTS = {
+				limit: Infinity
+			};
+			it('should return ADTQueryOptions with all properties', () => {
+				const props = ['limit'];
+				let opts1 = instance.queryOptions();
+				let opts2 = instance.queryOptions({});
+				let opts3 = instance.queryOptions({limit: 99});
+				let opts4 = instance.queryOptions({limit: '99' as any});
+
+				props.forEach((prop) => {
+					expect(opts1[prop]).not.toBeUndefined();
+					expect(opts2[prop]).not.toBeUndefined();
+					expect(opts3[prop]).not.toBeUndefined();
+					expect(opts4[prop]).not.toBeUndefined();
+				});
+			});
+
+			it('should return default if opts is null or underfined', () => {
+				expect(instance.queryOptions()).toStrictEqual(DEFAULT_OPTS);
+				expect(instance.queryOptions(null!)).toStrictEqual(DEFAULT_OPTS);
+				expect(instance.queryOptions(undefined!)).toStrictEqual(DEFAULT_OPTS);
+			});
+
+			it('should return default with passed props overridden', () => {
+				let expectedV = {...DEFAULT_OPTS};
+				let opts: ADTQueryOptions = {};
+				expect(instance.queryOptions({})).toStrictEqual(expectedV);
+
+				const limit = 5;
+				opts.limit = limit;
+				expectedV.limit = limit;
+				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
+
+				const limitFloat = 5.7;
+				opts.limit = limitFloat;
+				expectedV.limit = Math.round(limitFloat);
+				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
+			});
+
+			describe('should skip opts.limit if it is not an number >= 1', () => {
+				let tests = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
+
+				tests.forEach((test) => {
+					it(typeof test + ': ' + test, () => {
+						let opts = {
+							limit: test as any
+						};
+						expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
+					});
+				});
 			});
 		});
 	});
@@ -1193,7 +1249,103 @@ describe('ADTPriorityQueue', () => {
 			});
 		});
 
-		describe('query', () => {});
+		describe('query', () => {
+			let spyOpts: jest.SpyInstance;
+			let defOpts: Required<ADTQueryOptions>;
+
+			beforeAll(() => {
+				spyOpts = jest.spyOn(instance, 'queryOptions');
+				defOpts = instance.queryOptions();
+			});
+
+			beforeEach(() => {
+				ITEMS.forEach((item) => {
+					instance.push(item);
+				});
+				spyOpts.mockReset();
+				spyOpts.mockReturnValue(defOpts);
+			});
+
+			afterEach(() => {
+				instance.clearElements();
+			});
+
+			afterAll(() => {
+				spyOpts.mockRestore();
+			});
+
+			it('should call queryOptions once', () => {
+				let expectedCalls = 0;
+				expect(spyOpts).toBeCalledTimes(expectedCalls);
+
+				instance.query([]);
+				expectedCalls++;
+				expect(spyOpts).toBeCalledTimes(expectedCalls);
+
+				instance.query(queryFilter(10));
+				expectedCalls++;
+				expect(spyOpts).toBeCalledTimes(expectedCalls);
+
+				instance.query([queryFilter(10)]);
+				expectedCalls++;
+				expect(spyOpts).toBeCalledTimes(expectedCalls);
+			});
+
+			it('should return empty array if no filters are given', () => {
+				expect(instance.size()).toBe(ITEMS.length);
+				expect(instance.query([])).toEqual([]);
+			});
+
+			it('should return all elements matching filter', () => {
+				expect(instance.size()).toBe(ITEMS.length);
+				let query = 15;
+				expect(instance.query(queryFilter(query)).length).toBe(0);
+
+				let expectedV = 3;
+				for (let i = 0; i < expectedV; i++) {
+					instance.push(query);
+				}
+
+				expect(instance.query(queryFilter(query)).length).toBe(expectedV);
+			});
+
+			it('should return all elements matching filter up to limit', () => {
+				expect(instance.size()).toBe(ITEMS.length);
+				let query = 45;
+				expect(instance.query(queryFilter(query)).length).toBe(0);
+
+				let expectedV = 5;
+				for (let i = 0; i < expectedV * 2; i++) {
+					instance.push(query);
+				}
+
+				spyOpts.mockReturnValue({limit: expectedV});
+				expect(instance.query(queryFilter(query)).length).toBe(expectedV);
+			});
+
+			it('should return elements that match all filters', () => {
+				const customFilter = function (target: number, lessthan: boolean): ADTQueryFilter {
+					const filter: ADTQueryFilter = (element): boolean => {
+						if (lessthan) {
+							return element < target;
+						} else {
+							return element > target;
+						}
+					};
+
+					return filter;
+				};
+
+				let result = instance.query([customFilter(60, true), customFilter(30, false)]);
+				expect(result.length).toBe(2);
+				let resultValues: number[] = [];
+				result.forEach((res) => {
+					resultValues.push(res.element);
+				});
+				resultValues.sort((a, b) => a - b);
+				expect(resultValues).toEqual([40, 50]);
+			});
+		});
 
 		describe('reset', () => {
 			it('should not throw if state has errors', () => {
