@@ -22,15 +22,6 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		this.heapify();
 	}
 
-	public getDefaultState(): ADTPriorityQueueState<T> {
-		const state: ADTPriorityQueueState<T> = {
-			type: 'pqState',
-			elements: []
-		};
-
-		return state;
-	}
-
 	public parseOptions(options?: ADTPriorityQueueOptions<T>): ADTPriorityQueueState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
@@ -49,7 +40,7 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		let result: ADTPriorityQueueState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parse(options.serializedState)!;
+			parsed = this.parseOptionsStateString(options.serializedState)!;
 
 			if (Array.isArray(parsed)) {
 				throw new Error(parsed.join('\n'));
@@ -63,6 +54,35 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		}
 
 		return state;
+	}
+
+	public parse(): void {}
+	public parseOptionsStateString(data: string): ADTPriorityQueueState<T> | Array<string> | null {
+		if (typeof data !== 'string' || data === '') {
+			return null;
+		}
+
+		let result: ADTPriorityQueueState<T> | Array<string> | null = null;
+		let parsed: ADTPriorityQueueState<T> | null = null;
+		let errors: Array<string> = [];
+
+		try {
+			parsed = JSON.parse(data);
+
+			if (parsed) {
+				errors = this.getStateErrors(parsed);
+			}
+
+			if (errors.length) {
+				throw new Error('state is not a valid ADTPriorityQueueState');
+			}
+
+			result = parsed;
+		} catch (error) {
+			result = [error.message].concat(errors);
+		}
+
+		return result;
 	}
 
 	public parseOptionsOther(
@@ -86,75 +106,127 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public size(): number {
-		if (!this.isValidState(this.state)) {
-			return 0;
-		}
+	public getDefaultState(): ADTPriorityQueueState<T> {
+		const state: ADTPriorityQueueState<T> = {
+			type: 'pqState',
+			elements: []
+		};
 
-		return this.state.elements.length;
+		return state;
 	}
 
-	public front(): T | null {
-		if (this.size() === 0) {
+	public getStateErrors(state: ADTPriorityQueueState<T>): Array<string> {
+		const errors: Array<string> = [];
+
+		if (!state) {
+			errors.push('state is null or undefined');
+			return errors;
+		}
+
+		if (state.type !== 'pqState') {
+			errors.push('state type must be pqState');
+		}
+		if (!Array.isArray(state.elements)) {
+			errors.push('state elements must be an array');
+		}
+
+		return errors;
+	}
+
+	public isValidState(state: ADTPriorityQueueState<T>): boolean {
+		const errors = this.getStateErrors(state);
+
+		if (errors.length) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public queryDelete(query: ADTQueryResult<T>): T | null {
+		if (!query || !query.index) {
 			return null;
 		}
 
-		return this.state.elements[0];
+		const index = query.index();
+
+		if (index === null) {
+			return null;
+		}
+
+		this.swapNodes(index, this.size() - 1);
+		this.state.elements.pop();
+
+		if (this.size() > 1) {
+			this.fixHeap(index);
+		}
+
+		return query.element;
 	}
 
-	public swapNodes(nodeOneIndex: number | null, nodeTwoIndex: number | null): void {
-		if (typeof nodeOneIndex !== 'number') {
-			return;
-		}
-		if (typeof nodeTwoIndex !== 'number') {
-			return;
+	public queryIndex(query: T): number | null {
+		const index = this.state.elements.findIndex((element) => {
+			return element === query;
+		});
+
+		if (index < 0) {
+			return null;
 		}
 
-		if (nodeOneIndex < 0) {
-			return;
-		}
-		if (nodeTwoIndex < 0) {
-			return;
-		}
-
-		if (nodeOneIndex >= this.size()) {
-			return;
-		}
-		if (nodeTwoIndex >= this.size()) {
-			return;
-		}
-
-		if (nodeOneIndex % 1 !== 0) {
-			return;
-		}
-		if (nodeTwoIndex % 1 !== 0) {
-			return;
-		}
-
-		if (nodeOneIndex === nodeTwoIndex) {
-			return;
-		}
-
-		const nodeOneInfo = this.state.elements[nodeOneIndex];
-		this.state.elements[nodeOneIndex] = this.state.elements[nodeTwoIndex];
-		this.state.elements[nodeTwoIndex] = nodeOneInfo;
+		return index;
 	}
 
-	public getParentNodeIndex(nodeIndex: number | null): number | null {
+	public areNodesValidHeap(nodeIndex: number | null, nextIndex: number | null): boolean {
+		if (typeof nextIndex !== 'number') {
+			return true;
+		}
 		if (typeof nodeIndex !== 'number') {
-			return null;
+			return true;
 		}
-		if (nodeIndex <= 0) {
-			return null;
+
+		const nodeValue = this.state.elements[nodeIndex];
+		const nextValue = this.state.elements[nextIndex];
+		const startFromTop = nodeIndex < nextIndex;
+
+		if (nodeValue === null || nodeValue === undefined) {
+			return startFromTop;
+		}
+		if (nextValue === null || nextValue === undefined) {
+			return !startFromTop;
+		}
+
+		if (startFromTop) {
+			return this.comparator(this.state.elements[nodeIndex], this.state.elements[nextIndex]);
+		} else {
+			return this.comparator(this.state.elements[nextIndex], this.state.elements[nodeIndex]);
+		}
+	}
+
+	public fixHeap(nodeIndex: number | null): void {
+		if (this.size() <= 1) {
+			return;
+		}
+		if (typeof nodeIndex !== 'number') {
+			return;
+		}
+		if (nodeIndex < 0) {
+			return;
 		}
 		if (nodeIndex >= this.size()) {
-			return null;
+			return;
 		}
 		if (nodeIndex % 1 !== 0) {
-			return null;
+			return;
 		}
 
-		return Math.floor((nodeIndex - 1) / 2);
+		const startFromTop = nodeIndex < Math.floor(this.size() / 2);
+		let nextIndex = this.getNextIndex(startFromTop, nodeIndex);
+
+		while (this.areNodesValidHeap(nodeIndex, nextIndex) === false) {
+			this.swapNodes(nodeIndex, nextIndex);
+			nodeIndex = nextIndex;
+			nextIndex = this.getNextIndex(startFromTop, nodeIndex);
+		}
 	}
 
 	public getChildNodesIndexes(nodeIndex: number | null): ADTPriorityQueueChildren {
@@ -207,71 +279,105 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		}
 	}
 
-	public isHeapUnbalanced(nodeIndex: number | null, nextIndex: number | null): Boolean {
+	public getParentNodeIndex(nodeIndex: number | null): number | null {
 		if (typeof nodeIndex !== 'number') {
-			return false;
+			return null;
 		}
-		if (typeof nextIndex !== 'number') {
-			return false;
-		}
-
-		const nodeValue = this.state.elements[nodeIndex];
-		const nextValue = this.state.elements[nextIndex];
-		const startFromTop = nodeIndex < nextIndex;
-
-		if (nodeValue === null || nodeValue === undefined) {
-			return false;
-		}
-		if (nextValue === null || nextValue === undefined) {
-			return false;
-		}
-
-		if (startFromTop) {
-			return this.comparator(this.state.elements[nextIndex], this.state.elements[nodeIndex]);
-		} else {
-			return this.comparator(this.state.elements[nodeIndex], this.state.elements[nextIndex]);
-		}
-	}
-
-	public fixHeap(nodeIndex: number | null): void {
-		if (this.size() <= 1) {
-			return;
-		}
-		if (typeof nodeIndex !== 'number') {
-			return;
-		}
-		if (nodeIndex < 0) {
-			return;
+		if (nodeIndex <= 0) {
+			return null;
 		}
 		if (nodeIndex >= this.size()) {
-			return;
+			return null;
 		}
 		if (nodeIndex % 1 !== 0) {
-			return;
+			return null;
 		}
 
-		const startFromTop = nodeIndex < this.size() - 1;
-		let nextIndex = this.getNextIndex(startFromTop, nodeIndex);
+		return Math.floor((nodeIndex - 1) / 2);
+	}
 
-		while (this.isHeapUnbalanced(nodeIndex, nextIndex)) {
-			this.swapNodes(nodeIndex, nextIndex);
-			nodeIndex = nextIndex;
-			nextIndex = this.getNextIndex(startFromTop, nodeIndex);
+	public isHeapSorted(): boolean {
+		let result = true;
+		let size = this.getParentNodeIndex(this.size() - 1);
+
+		if (!size) {
+			return true;
 		}
+
+		for (let i = 0; i <= size; i++) {
+			let child = this.getNextIndex(true, i);
+			result = result && this.areNodesValidHeap(i, child);
+		}
+
+		return result;
 	}
 
 	public heapify(): void {
 		if (this.size() <= 1) {
 			return;
 		}
+		if (this.isHeapSorted()) {
+			return;
+		}
 
-		let nodeIndex = this.getParentNodeIndex(this.state.elements.length - 1);
+		let nodeIndex = this.getParentNodeIndex(this.size() - 1);
 
 		while (nodeIndex !== null && nodeIndex >= 0) {
-			let nextIndex = this.getNextIndex(true, nodeIndex);
 			this.fixHeap(nodeIndex);
 			nodeIndex--;
 		}
+	}
+
+	public swapNodes(nodeOneIndex: number | null, nodeTwoIndex: number | null): void {
+		if (typeof nodeOneIndex !== 'number') {
+			return;
+		}
+		if (typeof nodeTwoIndex !== 'number') {
+			return;
+		}
+
+		if (nodeOneIndex < 0) {
+			return;
+		}
+		if (nodeTwoIndex < 0) {
+			return;
+		}
+
+		if (nodeOneIndex >= this.size()) {
+			return;
+		}
+		if (nodeTwoIndex >= this.size()) {
+			return;
+		}
+
+		if (nodeOneIndex % 1 !== 0) {
+			return;
+		}
+		if (nodeTwoIndex % 1 !== 0) {
+			return;
+		}
+
+		if (nodeOneIndex === nodeTwoIndex) {
+			return;
+		}
+
+		const nodeOneInfo = this.state.elements[nodeOneIndex];
+		this.state.elements[nodeOneIndex] = this.state.elements[nodeTwoIndex];
+		this.state.elements[nodeTwoIndex] = nodeOneInfo;
+	}
+
+	public clearElements(): ADTPriorityQueue<T> {
+		this.state.elements = [];
+
+		return this;
+	}
+
+	public front(): T | null {
+		if (this.size() === 0) {
+			return null;
+		}
+
+		return this.state.elements[0];
 	}
 
 	public push(element: T): ADTPriorityQueue<T> {
@@ -299,99 +405,21 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		return highestPriority;
 	}
 
-	public isValidState(state: ADTPriorityQueueState<T>): boolean {
-		const errors = this.getStateErrors(state);
-
-		if (errors.length) {
-			return false;
-		}
-
-		return true;
-	}
-
-	public getStateErrors(state: ADTPriorityQueueState<T>): Array<string> {
-		const errors: Array<string> = [];
-
-		if (!state) {
-			errors.push('state is null or undefined');
-			return errors;
-		}
-
-		if (state.type !== 'pqState') {
-			errors.push('state type must be pqState');
-		}
-		if (!Array.isArray(state.elements)) {
-			errors.push('state elements must be an array');
-		}
-
-		return errors;
-	}
-
-	public parse(data: string): ADTPriorityQueueState<T> | Array<string> | null {
-		if (typeof data !== 'string' || data === '') {
-			return null;
-		}
-
-		let result: ADTPriorityQueueState<T> | Array<string> | null = null;
-		let parsed: ADTPriorityQueueState<T> | null = null;
-		let errors: Array<string> = [];
-
-		try {
-			parsed = JSON.parse(data);
-
-			if (parsed) {
-				errors = this.getStateErrors(parsed);
-			}
-
-			if (errors.length) {
-				throw new Error('state is not a valid ADTPriorityQueueState');
-			}
-
-			result = parsed;
-		} catch (error) {
-			result = [error.message].concat(errors);
-		}
-
-		return result;
-	}
-
-	public stringify(): string | null {
-		if (!this.isValidState(this.state)) {
-			return null;
-		}
-
-		return JSON.stringify(this.state);
-	}
-
-	public clearElements(): ADTPriorityQueue<T> {
-		this.state.elements = [];
-
-		return this;
-	}
-
-	public reset(): ADTPriorityQueue<T> {
-		this.clearElements();
-
-		this.state.type = 'pqState';
-
-		return this;
-	}
-
 	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
 		let result: ADTQueryResult<T>[] = [];
 
 		this.state.elements.forEach((element, index) => {
-			let skip = true;
+			let take = true;
 
 			if (Array.isArray(filters)) {
-				skip = filters.every((filter) => {
+				take = filters.every((filter) => {
 					return filter(element);
 				});
 			} else {
-				skip = filters(element);
+				take = filters(element);
 			}
 
-			if (skip) {
+			if (!take) {
 				return false;
 			}
 
@@ -406,29 +434,27 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public queryDelete(query: ADTQueryResult<T>): T | null {
-		const index = query.index();
+	public reset(): ADTPriorityQueue<T> {
+		this.clearElements();
 
-		if (index === null) {
-			return null;
-		}
+		this.state.type = 'pqState';
 
-		const result = this.state.elements.splice(index, 1);
-
-		if (this.size() > 1) {
-			this.heapify();
-		}
-
-		if (!result.length) {
-			return null;
-		}
-
-		return result[0];
+		return this;
 	}
 
-	public queryIndex(query: T): number | null {
-		return this.state.elements.findIndex((element) => {
-			return element === query;
-		});
+	public size(): number {
+		if (!this.isValidState(this.state)) {
+			return 0;
+		}
+
+		return this.state.elements.length;
+	}
+
+	public stringify(): string | null {
+		if (!this.isValidState(this.state)) {
+			return null;
+		}
+
+		return JSON.stringify(this.state);
 	}
 }
