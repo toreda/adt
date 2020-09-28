@@ -171,7 +171,7 @@ describe('ADTStack', () => {
 				);
 			});
 
-			const toParseList = ['{}', '{"type": "qState"}', '{"elements":4, "type": "sState"}'];
+			const toParseList = ['{}', '{"type": "sState"}', '{"elements":4, "type": "sState"}'];
 			it.each(toParseList)('should return errors, %p wont parse into an ADTStackState', (toParse) => {
 				let errors: Array<string> = [];
 				errors = instance.getStateErrors(JSON.parse(toParse) as any);

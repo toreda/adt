@@ -21,21 +21,6 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 		this.increaseCapacity(this.state.startSize);
 	}
 
-	public getDefaultState(): ADTObjectPoolState<T> {
-		const state: ADTObjectPoolState<T> = {
-			type: 'opState',
-			elements: [],
-			autoIncrease: false,
-			startSize: 10,
-			objectCount: 0,
-			maxSize: 1000,
-			increaseBreakPoint: 0.8,
-			increaseFactor: 2
-		};
-
-		return state;
-	}
-
 	public parseOptions(options?: ADTObjectPoolOptions<T>): ADTObjectPoolState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
@@ -54,7 +39,7 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 		let result: ADTObjectPoolState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parse(options.serializedState);
+			parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
 				throw new Error(parsed.join('\n'));
@@ -74,6 +59,35 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 		}
 
 		return state;
+	}
+
+	public parse(): void {}
+	public parseOptionsStateString(state: string): ADTObjectPoolState<T> | Array<string> | null {
+		if (typeof state !== 'string' || state === '') {
+			return null;
+		}
+
+		let result: ADTObjectPoolState<T> | Array<string> | null = null;
+		let parsed: ADTObjectPoolState<T> | null = null;
+		let errors: Array<string> = [];
+
+		try {
+			parsed = JSON.parse(state);
+
+			if (parsed) {
+				errors = this.getStateErrors(parsed);
+			}
+
+			if (errors.length) {
+				throw new Error('state is not a valid ADTObjectPoolState');
+			}
+
+			result = parsed;
+		} catch (error) {
+			result = [error.message].concat(errors);
+		}
+
+		return result;
 	}
 
 	public parseOptionsOther(s: ADTObjectPoolState<T>, options?: ADTObjectPoolOptions<T>): ADTObjectPoolState<T> {
@@ -107,132 +121,19 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public utilization(allocationsPending: number = 0): number {
-		if (!this.isValidState(this.state)) {
-			return NaN;
-		}
-		if (this.state.objectCount === 0) {
-			return Infinity;
-		}
+	public getDefaultState(): ADTObjectPoolState<T> {
+		const state: ADTObjectPoolState<T> = {
+			type: 'opState',
+			elements: [],
+			autoIncrease: false,
+			startSize: 10,
+			objectCount: 0,
+			maxSize: 1000,
+			increaseBreakPoint: 0.8,
+			increaseFactor: 2
+		};
 
-		let num: number = allocationsPending;
-		if (typeof num !== 'number' || isNaN(num)) {
-			num = 0;
-		}
-
-		const freeObj = this.state.elements.length - num;
-		return (this.state.objectCount - freeObj) / this.state.objectCount;
-	}
-
-	public isAboveThreshold(allocationsPending: number = 0): boolean {
-		return this.utilization(allocationsPending) >= this.state.increaseBreakPoint;
-	}
-
-	public allocate(): T | null {
-		if (!this.isValidState(this.state)) {
-			return null;
-		}
-
-		if (this.state.autoIncrease && this.isAboveThreshold(1)) {
-			this.increaseCapacity(Math.ceil(this.state.objectCount * this.state.increaseFactor));
-		}
-
-		let result = this.state.elements.pop();
-
-		if (result === undefined) {
-			return null;
-		}
-
-		return result;
-	}
-
-	public allocateMultiple(n: number = 1): Array<T> {
-		let num: number;
-		if (!this.isInteger(n) || n < 1) {
-			num = 1;
-		} else {
-			num = n;
-		}
-
-		let result: Array<T> = [];
-
-		for (let i = 0; i < num && this.state.elements.length; i++) {
-			const item = this.allocate();
-			if (item !== null) {
-				result.push(item);
-			}
-		}
-
-		return result;
-	}
-
-	public increaseCapacity(n: number): void {
-		if (!this.isValidState(this.state)) {
-			return;
-		}
-		if (!this.isInteger(n)) {
-			return;
-		}
-
-		for (let i = 0; i < n && this.state.objectCount < this.state.maxSize; i++) {
-			this.store(new this.objectClass());
-			this.state.objectCount++;
-		}
-	}
-
-	public release(object: T): void {
-		if (!this.objectClass || !this.objectClass.cleanObj) {
-			return;
-		}
-
-		this.objectClass.cleanObj(object);
-		this.store(object);
-	}
-
-	public releaseMultiple(objects: Array<T>): void {
-		for (let i = 0; i < objects.length; i++) {
-			this.release(objects[i]);
-		}
-	}
-
-	public store(object: T): void {
-		if (!this.isValidState(this.state)) {
-			return;
-		}
-
-		this.state.elements.push(object);
-	}
-
-	public isInteger(n: number): boolean {
-		if (typeof n !== 'number') {
-			return false;
-		}
-		if (n % 1 !== 0) {
-			return false;
-		}
-
-		return true;
-	}
-
-	public isFloat(n: number): boolean {
-		if (typeof n !== 'number') {
-			return false;
-		}
-		if (isNaN(n)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	public isValidState(state: ADTObjectPoolState<T>): boolean {
-		const errors = this.getStateErrors(state);
-
-		if (errors.length) {
-			return false;
-		}
-
-		return true;
+		return state;
 	}
 
 	public getStateErrors(state: ADTObjectPoolState<T>): Array<string> {
@@ -275,43 +176,86 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 		return errors;
 	}
 
-	public parse(data: string): ADTObjectPoolState<T> | Array<string> | null {
-		if (typeof data !== 'string' || data === '') {
+	public isAboveThreshold(allocationsPending: number = 0): boolean {
+		return this.utilization(allocationsPending) >= this.state.increaseBreakPoint;
+	}
+
+	public isInteger(n: number): boolean {
+		if (typeof n !== 'number') {
+			return false;
+		}
+		if (n % 1 !== 0) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public isFloat(n: number): boolean {
+		if (typeof n !== 'number') {
+			return false;
+		}
+		if (isNaN(n)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public isValidState(state: ADTObjectPoolState<T>): boolean {
+		const errors = this.getStateErrors(state);
+
+		if (errors.length) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public store(object: T): void {
+		if (!this.isValidState(this.state)) {
+			return;
+		}
+
+		this.state.elements.push(object);
+	}
+
+	public allocate(): T | null {
+		if (!this.isValidState(this.state)) {
 			return null;
 		}
 
-		let result: ADTObjectPoolState<T> | Array<string> | null = null;
-		let parsed: ADTObjectPoolState<T> | null = null;
-		let errors: Array<string> = [];
+		if (this.state.autoIncrease && this.isAboveThreshold(1)) {
+			this.increaseCapacity(Math.ceil(this.state.objectCount * this.state.increaseFactor));
+		}
 
-		try {
-			parsed = JSON.parse(data);
+		let result = this.state.elements.pop();
 
-			if (parsed) {
-				errors = this.getStateErrors(parsed);
-			}
-
-			if (errors.length) {
-				throw new Error('state is not a valid ADTObjectPoolState');
-			}
-
-			result = parsed;
-		} catch (error) {
-			result = [error.message].concat(errors);
+		if (result === undefined) {
+			return null;
 		}
 
 		return result;
 	}
 
-	public stringify(): string | null {
-		if (!this.isValidState(this.state)) {
-			return null;
+	public allocateMultiple(n: number = 1): Array<T> {
+		let num: number;
+		if (!this.isInteger(n) || n < 1) {
+			num = 1;
+		} else {
+			num = n;
 		}
 
-		let state = JSON.stringify(this.state);
-		state = state.replace(/"elements":\[.*?\]/, '"elements":[]');
+		let result: Array<T> = [];
 
-		return state;
+		for (let i = 0; i < num && this.state.elements.length; i++) {
+			const item = this.allocate();
+			if (item !== null) {
+				result.push(item);
+			}
+		}
+
+		return result;
 	}
 
 	public clearElements(): ADTObjectPool<T> {
@@ -321,8 +265,37 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 		return this;
 	}
 
+	public increaseCapacity(n: number): void {
+		if (!this.isValidState(this.state)) {
+			return;
+		}
+		if (!this.isInteger(n)) {
+			return;
+		}
+
+		for (let i = 0; i < n && this.state.objectCount < this.state.maxSize; i++) {
+			this.store(new this.objectClass());
+			this.state.objectCount++;
+		}
+	}
+
 	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
 		return [];
+	}
+
+	public release(object: T): void {
+		if (!this.objectClass || !this.objectClass.cleanObj) {
+			return;
+		}
+
+		this.objectClass.cleanObj(object);
+		this.store(object);
+	}
+
+	public releaseMultiple(objects: Array<T>): void {
+		for (let i = 0; i < objects.length; i++) {
+			this.release(objects[i]);
+		}
 	}
 
 	public reset(): ADTObjectPool<T> {
@@ -336,5 +309,33 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 		this.increaseCapacity(this.state.startSize);
 
 		return this;
+	}
+
+	public stringify(): string | null {
+		if (!this.isValidState(this.state)) {
+			return null;
+		}
+
+		let state = JSON.stringify(this.state);
+		state = state.replace(/"elements":\[.*?\]/, '"elements":[]');
+
+		return state;
+	}
+
+	public utilization(allocationsPending: number = 0): number {
+		if (!this.isValidState(this.state)) {
+			return NaN;
+		}
+		if (this.state.objectCount === 0) {
+			return Infinity;
+		}
+
+		let num: number = allocationsPending;
+		if (typeof num !== 'number' || isNaN(num)) {
+			num = 0;
+		}
+
+		const freeObj = this.state.elements.length - num;
+		return (this.state.objectCount - freeObj) / this.state.objectCount;
 	}
 }
