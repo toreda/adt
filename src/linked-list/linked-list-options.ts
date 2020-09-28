@@ -1,5 +1,5 @@
-export default interface ADTLinkedListOptions {
-	objectPool?: {
-		enabled?: boolean;
-	}
+export default interface ADTLinkedListOptions<T> {
+	serializedState?: string;
+	objectPool?: boolean;
+	elements?: T[];
 }

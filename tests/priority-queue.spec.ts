@@ -125,7 +125,7 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should initialize with serializedState', () => {
-				const custom = new ADTPriorityQueue<number>(comparator, { serializedState: VALID_SERIALIZED_STATE });
+				const custom = new ADTPriorityQueue<number>(comparator, {serializedState: VALID_SERIALIZED_STATE});
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 			});
 
@@ -177,7 +177,7 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it.each(STATE_PROPERTIES)('should throw when state.%s is null', (myTest) => {
-				const state = { ...DEFAULT_STATE };
+				const state = {...DEFAULT_STATE};
 				state[myTest] = null!;
 				const errors = instance.getStateErrors(state);
 
@@ -240,7 +240,7 @@ describe('ADTPriorityQueue', () => {
 				const testSuite = [null, undefined];
 				testSuite.forEach((myTest) => {
 					expect(instance.parseOptionsOther(instance.state, myTest!)).toStrictEqual(instance.state);
-					expect(instance.parseOptionsOther({ ...DEFAULT_STATE }, myTest!)).toStrictEqual(DEFAULT_STATE);
+					expect(instance.parseOptionsOther({...DEFAULT_STATE}, myTest!)).toStrictEqual(DEFAULT_STATE);
 
 					const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
 					expect(instance.parseOptionsOther(expectedV as any, myTest!)).toStrictEqual(expectedV);
@@ -248,11 +248,11 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return passed state with values changed to match other passed options', () => {
-				const expectedV: ADTPriorityQueueState<number> = { ...DEFAULT_STATE };
+				const expectedV: ADTPriorityQueueState<number> = {...DEFAULT_STATE};
 				expectedV.elements = [3, 4];
 
 				const result = instance.parseOptionsOther(
-					{ ...DEFAULT_STATE },
+					{...DEFAULT_STATE},
 					{
 						elements: expectedV.elements
 					}
@@ -262,10 +262,10 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return passed state with values changed to match other passed options if those are valid', () => {
-				const expectedV: ADTPriorityQueueState<number> = { ...DEFAULT_STATE };
+				const expectedV: ADTPriorityQueueState<number> = {...DEFAULT_STATE};
 
 				const result = instance.parseOptionsOther(
-					{ ...DEFAULT_STATE },
+					{...DEFAULT_STATE},
 					{
 						elements: {} as any
 					}
@@ -297,31 +297,36 @@ describe('ADTPriorityQueue', () => {
 				expect(errors).toContain(expectedV);
 			});
 
-			let stateTestSuite: Array<[prop: string, result: string, testSuite: any[], expectedV: string]> = [
-				[
-					'type',
-					'should return array of errors if state.type is not "pqState"',
-					([] as any).concat([null, undefined, '', 'state']),
-					'state type must be pqState'
-				],
-				[
-					'elements',
-					'should return array of errors if state.elements is not an array',
-					([] as any).concat([{}, null, undefined, '', 'teststring']),
-					'state elements must be an array'
-				]
+			let stateTestSuiteObj: Array<{prop: string; result: string; testSuite: any[]; expectedV: string}> = [
+				{
+					prop: 'type',
+					result: 'should return array of errors if state.type is not "pqState"',
+					testSuite: ([] as any).concat([null, undefined, '', 'state']),
+					expectedV: 'state type must be pqState'
+				},
+				{
+					prop: 'elements',
+					result: 'should return array of errors if state.elements is not an array',
+					testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
+					expectedV: 'state elements must be an array'
+				}
 			];
+			let stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
+				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
+			});
+			describe.each(stateTestSuite)(
+				'should return errors, state.%s is %s',
+				(prop, result, myTests, expectedV) => {
+					it.each(myTests)(`state.${prop} is %p`, (myTest) => {
+						const state = {...DEFAULT_STATE};
+						state[prop] = myTest as any;
+						const errors = instance.getStateErrors(state);
 
-			describe.each(stateTestSuite)('should return errors, state.%s is %s', (prop, result, myTests, expectedV) => {
-				it.each(myTests)(`state.${prop} is %p`, (myTest) => {
-					const state = { ...DEFAULT_STATE };
-					state[prop] = myTest as any;
-					const errors = instance.getStateErrors(state);
-
-					expect(Array.isArray(errors)).toBe(true);
-					expect(errors).toContain(expectedV);
-				});
-			})
+						expect(Array.isArray(errors)).toBe(true);
+						expect(errors).toContain(expectedV);
+					});
+				}
+			);
 		});
 
 		describe('isValidState', () => {
@@ -337,10 +342,10 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it.each(STATE_PROPERTIES)('should return false if a state state.%s is not valid', (myTest) => {
-				const state = { ...DEFAULT_STATE };
+				const state = {...DEFAULT_STATE};
 				state[myTest] = null!;
 				expect(instance.isValidState(state)).toBe(false);
-			})
+			});
 		});
 
 		describe('queryDelete', () => {
@@ -483,8 +488,8 @@ describe('ADTPriorityQueue', () => {
 				const props = ['limit'];
 				let opts1 = instance.queryOptions();
 				let opts2 = instance.queryOptions({});
-				let opts3 = instance.queryOptions({ limit: 99 });
-				let opts4 = instance.queryOptions({ limit: '99' as any });
+				let opts3 = instance.queryOptions({limit: 99});
+				let opts4 = instance.queryOptions({limit: '99' as any});
 
 				props.forEach((prop) => {
 					expect(opts1[prop]).not.toBeUndefined();
@@ -501,7 +506,7 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return default with passed props overridden', () => {
-				let expectedV = { ...DEFAULT_OPTS };
+				let expectedV = {...DEFAULT_OPTS};
 				let opts: ADTQueryOptions = {};
 				expect(instance.queryOptions({})).toStrictEqual(expectedV);
 
@@ -518,7 +523,7 @@ describe('ADTPriorityQueue', () => {
 
 			let testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
 			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
-				let opts = { limit: myTest as any };
+				let opts = {limit: myTest as any};
 				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
 			});
 		});
@@ -534,12 +539,12 @@ describe('ADTPriorityQueue', () => {
 
 			describe('when a node value is null', () => {
 				const tests = [
-					{ index1: 0, index2: 1, value1: ' 1', value2: null, expectedV: false },
-					{ index1: 1, index2: 2, value1: null, value2: ' 1', expectedV: true },
-					{ index1: 1, index2: 3, value1: null, value2: null, expectedV: true },
-					{ index1: 4, index2: 3, value1: ' 1', value2: null, expectedV: true },
-					{ index1: 3, index2: 2, value1: null, value2: ' 1', expectedV: false },
-					{ index1: 3, index2: 1, value1: null, value2: null, expectedV: false }
+					{index1: 0, index2: 1, value1: ' 1', value2: null, expectedV: false},
+					{index1: 1, index2: 2, value1: null, value2: ' 1', expectedV: true},
+					{index1: 1, index2: 3, value1: null, value2: null, expectedV: true},
+					{index1: 4, index2: 3, value1: ' 1', value2: null, expectedV: true},
+					{index1: 3, index2: 2, value1: null, value2: ' 1', expectedV: false},
+					{index1: 3, index2: 1, value1: null, value2: null, expectedV: false}
 				];
 
 				tests.forEach((test) => {
@@ -692,55 +697,55 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return {left: null, right: null} if null is passed', () => {
-				expect(instance.getChildNodesIndexes(null)).toStrictEqual({ left: null, right: null });
-				expect(instance.getChildNodesIndexes(undefined!)).toStrictEqual({ left: null, right: null });
+				expect(instance.getChildNodesIndexes(null)).toStrictEqual({left: null, right: null});
+				expect(instance.getChildNodesIndexes(undefined!)).toStrictEqual({left: null, right: null});
 			});
 
 			it('should return {left: null, right: null} if a negative number is passed', () => {
-				expect(instance.getChildNodesIndexes(-1)).toStrictEqual({ left: null, right: null });
-				expect(instance.getChildNodesIndexes(-99)).toStrictEqual({ left: null, right: null });
+				expect(instance.getChildNodesIndexes(-1)).toStrictEqual({left: null, right: null});
+				expect(instance.getChildNodesIndexes(-99)).toStrictEqual({left: null, right: null});
 			});
 
 			it('should return {left: null, right: null} if a float is paseed', () => {
-				expect(instance.getChildNodesIndexes(Math.PI)).toStrictEqual({ left: null, right: null });
+				expect(instance.getChildNodesIndexes(Math.PI)).toStrictEqual({left: null, right: null});
 			});
 
 			it('should return {left: null, right: null} if the index passed is outside the aray', () => {
-				expect(instance.getChildNodesIndexes(instance.size() * 2)).toStrictEqual({ left: null, right: null });
+				expect(instance.getChildNodesIndexes(instance.size() * 2)).toStrictEqual({left: null, right: null});
 			});
 
 			it('should return {left: null, right: null} if the result would be outside the array', () => {
-				expect(instance.getChildNodesIndexes(instance.size() - 1)).toStrictEqual({ left: null, right: null });
+				expect(instance.getChildNodesIndexes(instance.size() - 1)).toStrictEqual({left: null, right: null});
 			});
 
 			it('should return the children of a valid node in the form of {left: number | null, right: number | null}', () => {
-				expect(instance.getChildNodesIndexes(0)).toStrictEqual({ left: 1, right: 2 });
-				expect(instance.getChildNodesIndexes(1)).toStrictEqual({ left: 3, right: 4 });
-				expect(instance.getChildNodesIndexes(2)).toStrictEqual({ left: 5, right: 6 });
-				expect(instance.getChildNodesIndexes(3)).toStrictEqual({ left: 7, right: 8 });
-				expect(instance.getChildNodesIndexes(4)).toStrictEqual({ left: null, right: null });
-				expect(instance.getChildNodesIndexes(5)).toStrictEqual({ left: null, right: null });
-				expect(instance.getChildNodesIndexes(6)).toStrictEqual({ left: null, right: null });
-				expect(instance.getChildNodesIndexes(7)).toStrictEqual({ left: null, right: null });
-				expect(instance.getChildNodesIndexes(8)).toStrictEqual({ left: null, right: null });
+				expect(instance.getChildNodesIndexes(0)).toStrictEqual({left: 1, right: 2});
+				expect(instance.getChildNodesIndexes(1)).toStrictEqual({left: 3, right: 4});
+				expect(instance.getChildNodesIndexes(2)).toStrictEqual({left: 5, right: 6});
+				expect(instance.getChildNodesIndexes(3)).toStrictEqual({left: 7, right: 8});
+				expect(instance.getChildNodesIndexes(4)).toStrictEqual({left: null, right: null});
+				expect(instance.getChildNodesIndexes(5)).toStrictEqual({left: null, right: null});
+				expect(instance.getChildNodesIndexes(6)).toStrictEqual({left: null, right: null});
+				expect(instance.getChildNodesIndexes(7)).toStrictEqual({left: null, right: null});
+				expect(instance.getChildNodesIndexes(8)).toStrictEqual({left: null, right: null});
 			});
 
 			it('should return the children of a valid node before and after a push that moves node', () => {
 				expect(instance.state.elements[1]).toBe(20);
-				expect(instance.getChildNodesIndexes(1)).toStrictEqual({ left: 3, right: 4 });
+				expect(instance.getChildNodesIndexes(1)).toStrictEqual({left: 3, right: 4});
 				instance.push(15);
 				expect(instance.state.elements[1]).toBe(15);
 				expect(instance.state.elements[4]).toBe(20);
-				expect(instance.getChildNodesIndexes(4)).toStrictEqual({ left: 9, right: null });
+				expect(instance.getChildNodesIndexes(4)).toStrictEqual({left: 9, right: null});
 			});
 
 			it('should return the children of a valid node before and after a pop that moves node', () => {
 				expect(instance.state.elements[1]).toBe(20);
-				expect(instance.getChildNodesIndexes(1)).toStrictEqual({ left: 3, right: 4 });
+				expect(instance.getChildNodesIndexes(1)).toStrictEqual({left: 3, right: 4});
 				instance.pop();
 				expect(instance.state.elements[1]).toBe(30);
 				expect(instance.state.elements[0]).toBe(20);
-				expect(instance.getChildNodesIndexes(0)).toStrictEqual({ left: 1, right: 2 });
+				expect(instance.getChildNodesIndexes(0)).toStrictEqual({left: 1, right: 2});
 			});
 		});
 
@@ -795,7 +800,7 @@ describe('ADTPriorityQueue', () => {
 				expect(spyChildren).not.toBeCalled();
 
 				const expectedV = null;
-				spyChildren.mockReturnValueOnce({ left: null, right: null });
+				spyChildren.mockReturnValueOnce({left: null, right: null});
 
 				expect(instance.getNextIndex(true, 8)).toBe(expectedV);
 				expect(spyChildren).toBeCalledTimes(1);
@@ -806,7 +811,7 @@ describe('ADTPriorityQueue', () => {
 				expect(spyChildren).not.toBeCalled();
 
 				const expectedV = 12345;
-				spyChildren.mockReturnValueOnce({ left: expectedV, right: null });
+				spyChildren.mockReturnValueOnce({left: expectedV, right: null});
 				expect(instance.getNextIndex(true, 4)).toBe(expectedV);
 
 				expect(spyParent).not.toBeCalled();
@@ -819,7 +824,7 @@ describe('ADTPriorityQueue', () => {
 
 				const expectedV = 23456;
 				instance.state.elements = [1, null!];
-				spyChildren.mockReturnValueOnce({ left: expectedV, right: 1 });
+				spyChildren.mockReturnValueOnce({left: expectedV, right: 1});
 				expect(instance.getNextIndex(true, 0)).toBe(expectedV);
 
 				expect(spyParent).not.toBeCalled();
@@ -832,7 +837,7 @@ describe('ADTPriorityQueue', () => {
 
 				const expectedV = 34567;
 				instance.state.elements = [null!, 1];
-				spyChildren.mockReturnValueOnce({ left: 0, right: expectedV });
+				spyChildren.mockReturnValueOnce({left: 0, right: expectedV});
 				expect(instance.getNextIndex(true, 0)).toBe(expectedV);
 
 				expect(spyParent).not.toBeCalled();
@@ -846,7 +851,7 @@ describe('ADTPriorityQueue', () => {
 				const expectedV = 45678;
 				instance.state.elements[expectedV] = 1;
 				instance.state.elements[1] = 2;
-				spyChildren.mockReturnValueOnce({ left: expectedV, right: 1 });
+				spyChildren.mockReturnValueOnce({left: expectedV, right: 1});
 				expect(instance.getNextIndex(true, 0)).toBe(expectedV);
 
 				expect(spyParent).not.toBeCalled();
@@ -860,7 +865,7 @@ describe('ADTPriorityQueue', () => {
 				const expectedV = 56789;
 				instance.state.elements[0] = 2;
 				instance.state.elements[expectedV] = 1;
-				spyChildren.mockReturnValueOnce({ left: 0, right: expectedV });
+				spyChildren.mockReturnValueOnce({left: 0, right: expectedV});
 				expect(instance.getNextIndex(true, 0)).toBe(expectedV);
 
 				expect(spyParent).not.toBeCalled();
@@ -1043,8 +1048,8 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should move all properties of indexOne to indexTwo and vice-versa', () => {
-				const complexitems1 = [{ depth1: { depth2: 10 } }, { depth1: { depth2: 20 } }, { depth1: { depth2: 30 } }];
-				const complexitems2 = [{ depth1: { depth2: 10 } }, { depth1: { depth2: 20 } }, { depth1: { depth2: 30 } }];
+				const complexitems1 = [{depth1: {depth2: 10}}, {depth1: {depth2: 20}}, {depth1: {depth2: 30}}];
+				const complexitems2 = [{depth1: {depth2: 10}}, {depth1: {depth2: 20}}, {depth1: {depth2: 30}}];
 
 				const deepSwapped = new ADTPriorityQueue<any>((a, b) => false, {
 					elements: complexitems1
@@ -1302,7 +1307,7 @@ describe('ADTPriorityQueue', () => {
 					instance.push(query);
 				}
 
-				spyOpts.mockReturnValue({ limit: expectedV });
+				spyOpts.mockReturnValue({limit: expectedV});
 				expect(instance.query(queryFilter(query)).length).toBe(expectedV);
 			});
 

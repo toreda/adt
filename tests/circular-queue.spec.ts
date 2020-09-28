@@ -67,7 +67,7 @@ describe('ADTCircularQueue', () => {
 	let instance: ADTCircularQueue<number>;
 
 	beforeAll(() => {
-		instance = new ADTCircularQueue<number>({ maxSize: MAX_SIZE });
+		instance = new ADTCircularQueue<number>({maxSize: MAX_SIZE});
 	});
 
 	beforeEach(() => {
@@ -82,7 +82,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should initialize with serializedState', () => {
-				const custom = new ADTCircularQueue<number>({ serializedState: VALID_SERIALIZED_STATE });
+				const custom = new ADTCircularQueue<number>({serializedState: VALID_SERIALIZED_STATE});
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 			});
 
@@ -135,7 +135,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it.each(STATE_PROPERTIES)('should throw when state.%s is null', (myTest) => {
-				const state = { ...DEFAULT_STATE };
+				const state = {...DEFAULT_STATE};
 				state[myTest] = null!;
 				const errors = instance.getStateErrors(state);
 
@@ -206,11 +206,11 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return passed state with values changed to match other passed options if those are valid', () => {
-				const expectedV: ADTCircularQueueState<number> = { ...DEFAULT_STATE };
+				const expectedV: ADTCircularQueueState<number> = {...DEFAULT_STATE};
 				expectedV.maxSize = 99;
 
 				const result = instance.parseOptionsOther(
-					{ ...DEFAULT_STATE },
+					{...DEFAULT_STATE},
 					{
 						maxSize: expectedV.maxSize,
 						size: -1
@@ -243,81 +243,91 @@ describe('ADTCircularQueue', () => {
 				expect(errors).toContain(expectedV);
 			});
 
-			let stateTestSuite: Array<[prop: string, result: string, testSuite: any[], expectedV: string]> = [
-				[
-					'type',
-					'not "cqState"',
-					([] as any).concat([null, undefined, '', 'state']),
-					'state type must be cqState'
-				],
-				[
-					'elements',
-					'not an array',
-					([] as any).concat([{}, null, undefined, '', 'teststring']),
-					'state elements must be an array'
-				],
-				[
-					'overwrite',
-					'not a boolean',
-					([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
-					'state overwrite must be a boolean'
-				],
-				[
-					'maxSize',
-					'not an integer >= 0',
-					([0] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
-					'state maxSize must be an integer >= 1'
-				],
-				[
-					'size',
-					'not an integer >= 1',
-					([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
-					'state size must be an integer >= 0'
-				],
-				[
-					'front',
-					'not an integer',
-					([] as any).concat(NAN_VALUES, FLOAT_VALUES),
-					'state front must be an integer'
-				],
-				[
-					'rear',
-					'not an integer',
-					([] as any).concat(NAN_VALUES, FLOAT_VALUES),
-					'state rear must be an integer'
-				]
+			let stateTestSuiteObj: Array<{prop: string; result: string; testSuite: any[]; expectedV: string}> = [
+				{
+					prop: 'type',
+					result: 'not "cqState"',
+					testSuite: ([] as any).concat([null, undefined, '', 'state']),
+					expectedV: 'state type must be cqState'
+				},
+				{
+					prop: 'elements',
+					result: 'not an array',
+					testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
+					expectedV: 'state elements must be an array'
+				},
+				{
+					prop: 'overwrite',
+					result: 'not a boolean',
+					testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
+					expectedV: 'state overwrite must be a boolean'
+				},
+				{
+					prop: 'maxSize',
+					result: 'not an integer >= 0',
+					testSuite: ([0] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
+					expectedV: 'state maxSize must be an integer >= 1'
+				},
+				{
+					prop: 'size',
+					result: 'not an integer >= 1',
+					testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
+					expectedV: 'state size must be an integer >= 0'
+				},
+				{
+					prop: 'front',
+					result: 'not an integer',
+					testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES),
+					expectedV: 'state front must be an integer'
+				},
+				{
+					prop: 'rear',
+					result: 'not an integer',
+					testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES),
+					expectedV: 'state rear must be an integer'
+				}
 			];
+			let stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
+				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
+			});
 
-			describe.each(stateTestSuite)('should return errors, state.%s is %s', (prop, result, myTests, expectedV) => {
-				it.each(myTests)(`state.${prop} is %p`, (myTest) => {
-					const state = { ...DEFAULT_STATE };
-					state[prop] = myTest as any;
-					const errors = instance.getStateErrors(state);
+			describe.each(stateTestSuite)(
+				'should return errors, state.%s is %s',
+				(prop, result, myTests, expectedV) => {
+					it.each(myTests)(`state.${prop} is %p`, (myTest) => {
+						const state = {...DEFAULT_STATE};
+						state[prop] = myTest as any;
+						const errors = instance.getStateErrors(state);
 
-					expect(Array.isArray(errors)).toBe(true);
-					expect(errors).toContain(expectedV);
-				});
-			})
+						expect(Array.isArray(errors)).toBe(true);
+						expect(errors).toContain(expectedV);
+					});
+				}
+			);
 		});
 
 		describe('isInteger', () => {
-			let testSuite: Array<[resultText: string, testSuite: any[], expectedV: boolean]> = [
-				[
-					'true, n is an integer',
-					([] as any).concat(INT_VALUES),
-					true
-				],
-				[
-					'false, n is not an integer',
-					([] as any).concat(FLOAT_VALUES, NAN_VALUES),
-					false
-				],
+			let testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
+				{
+					resultText: 'true, n is an integer',
+					testSuite: ([] as any).concat(INT_VALUES),
+					expectedV: true
+				},
+				{
+					resultText: 'false, n is not an integer',
+					testSuite: ([] as any).concat(FLOAT_VALUES, NAN_VALUES),
+					expectedV: false
+				}
 			];
+			let testSuite: Array<any[]> = testSuiteObj.map((elem) => {
+				return [elem.resultText, elem.testSuite, elem.expectedV];
+			});
+
 			describe.each(testSuite)('should return %s', (resultText, myTests, expectedV) => {
 				it.each(myTests)(`should return ${resultText}, it is %p`, (myTest) => {
 					expect(instance.isInteger(myTest)).toBe(expectedV);
-				})
-			})
+				});
+			});
 		});
 
 		describe('isValidState', () => {
@@ -333,10 +343,10 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it.each(STATE_PROPERTIES)('should return false if a state state.%s is not valid', (myTest) => {
-				const state = { ...DEFAULT_STATE };
+				const state = {...DEFAULT_STATE};
 				state[myTest] = null!;
 				expect(instance.isValidState(state)).toBe(false);
-			})
+			});
 		});
 
 		describe('queryDelete', () => {
@@ -447,8 +457,8 @@ describe('ADTCircularQueue', () => {
 				const props = ['limit'];
 				let opts1 = instance.queryOptions();
 				let opts2 = instance.queryOptions({});
-				let opts3 = instance.queryOptions({ limit: 99 });
-				let opts4 = instance.queryOptions({ limit: '99' as any });
+				let opts3 = instance.queryOptions({limit: 99});
+				let opts4 = instance.queryOptions({limit: '99' as any});
 
 				props.forEach((prop) => {
 					expect(opts1[prop]).not.toBeUndefined();
@@ -465,7 +475,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return default with passed props overridden', () => {
-				let expectedV = { ...DEFAULT_OPTS };
+				let expectedV = {...DEFAULT_OPTS};
 				let opts: ADTQueryOptions = {};
 				expect(instance.queryOptions({})).toStrictEqual(expectedV);
 
@@ -482,7 +492,7 @@ describe('ADTCircularQueue', () => {
 
 			let testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
 			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
-				let opts = { limit: myTest as any };
+				let opts = {limit: myTest as any};
 				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
 			});
 		});
@@ -549,15 +559,14 @@ describe('ADTCircularQueue', () => {
 				[['push']],
 				[['push', 'push']],
 				[['push', 'push', 'pop']],
-				[['push', 'push', 'pop', 'push', 'push', 'push', 'push']],
-			]
-
+				[['push', 'push', 'pop', 'push', 'push', 'push', 'push']]
+			];
 			it.each(testSuite)('should loop through all after %p', (myTest) => {
 				let pushCount = 0;
 				myTest.forEach((func) => {
 					if (func === 'push') {
 						pushCount++;
-						instance[func](pushCount)
+						instance[func](pushCount);
 					} else {
 						instance[func]();
 					}
@@ -571,10 +580,10 @@ describe('ADTCircularQueue', () => {
 					instance.state.elements[index] = expectedV as any;
 				});
 				expect(count).toBe(expectedCount);
-				expect(instance.front()).toBe(expectedV)
-				expect(instance.rear()).toBe(expectedV)
-			})
-		})
+				expect(instance.front()).toBe(expectedV);
+				expect(instance.rear()).toBe(expectedV);
+			});
+		});
 
 		describe('front', () => {
 			isValidStateRuns((obj) => {
@@ -770,7 +779,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return elements until cq is empty and then return null', () => {
-				const custom = new ADTCircularQueue<number>({ maxSize: 10 });
+				const custom = new ADTCircularQueue<number>({maxSize: 10});
 				for (let i = 0; i < custom.state.maxSize; i++) {
 					custom.push(i + 1);
 				}
@@ -974,7 +983,7 @@ describe('ADTCircularQueue', () => {
 					instance.push(query);
 				}
 
-				spyOpts.mockReturnValue({ limit: expectedV });
+				spyOpts.mockReturnValue({limit: expectedV});
 				expect(instance.query(queryFilter(query)).length).toBe(expectedV);
 			});
 
@@ -991,10 +1000,10 @@ describe('ADTCircularQueue', () => {
 					return filter;
 				};
 				instance.clearElements();
-				instance.state.maxSize = 10
+				instance.state.maxSize = 10;
 				ITEMS.forEach((item) => {
 					instance.push(item);
-				})
+				});
 
 				let result = instance.query([customFilter(60, true), customFilter(30, false)]);
 				expect(result.length).toBe(2);
@@ -1091,7 +1100,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return the state as a string if it is validated', () => {
-				const custom = new ADTCircularQueue<number>({ maxSize: 10 });
+				const custom = new ADTCircularQueue<number>({maxSize: 10});
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 					type: 'cqState',
 					elements: [],
@@ -1136,9 +1145,5 @@ describe('ADTCircularQueue', () => {
 				});
 			});
 		});
-
 	});
-
-
-
 });

@@ -51,7 +51,7 @@ export default class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parse(): void { }
+	public parse(): void {}
 	public parseOptionsStateString(data: string): ADTCircularQueueState<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
