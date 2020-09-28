@@ -231,7 +231,7 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 
 		let result = this.state.elements.pop();
 
-		if (result === undefined) {
+		if (result == null) {
 			return null;
 		}
 

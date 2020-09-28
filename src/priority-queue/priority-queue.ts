@@ -200,10 +200,10 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		const nextValue = this.state.elements[nextIndex];
 		const startFromTop = nodeIndex < nextIndex;
 
-		if (nodeValue === null || nodeValue === undefined) {
+		if (nodeValue == null) {
 			return startFromTop;
 		}
-		if (nextValue === null || nextValue === undefined) {
+		if (nextValue == null) {
 			return !startFromTop;
 		}
 

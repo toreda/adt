@@ -371,7 +371,7 @@ export default class ADTLinkedList<T> implements ADTBase<T> {
 
 		this.forEach((element) => {
 			let value = element.value();
-			if (value !== undefined && value !== null) {
+			if (value != null) {
 				list.push(value);
 			}
 		});
