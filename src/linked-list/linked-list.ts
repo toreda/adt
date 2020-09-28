@@ -54,7 +54,6 @@ export default class ADTLinkedList<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parse(): void {}
 	public parseOptionsStateString(data: string): ADTLinkedListState<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
@@ -286,16 +285,16 @@ export default class ADTLinkedList<T> implements ADTBase<T> {
 	}
 
 	public query(
-		filters: ADTQueryFilter | ADTQueryFilter[],
+		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
 		opts?: ADTQueryOptions
 	): ADTQueryResult<ADTLinkedListElement<T>>[] {
-		let result: ADTQueryResult<ADTLinkedListElement<T>>[] = [];
+		let resultsArray: ADTQueryResult<ADTLinkedListElement<T>>[] = [];
 		let options = this.queryOptions(opts);
 
 		this.forEach((element) => {
 			let take = false;
 
-			if (result.length >= options.limit) {
+			if (resultsArray.length >= options.limit) {
 				return false;
 			}
 
@@ -303,25 +302,32 @@ export default class ADTLinkedList<T> implements ADTBase<T> {
 				take =
 					!!filters.length &&
 					filters.every((filter) => {
-						return filter(element.value());
+						const value = element.value();
+						if (value == null) {
+							return false;
+						}
+						return filter(value);
 					});
 			} else {
-				take = filters(element.value());
+				const value = element.value();
+				if (value != null) {
+					take = filters(value);
+				}
 			}
 
 			if (!take) {
 				return false;
 			}
 
-			const res: ADTQueryResult<ADTLinkedListElement<T>> = {} as ADTQueryResult<ADTLinkedListElement<T>>;
-			res.element = element;
-			res.key = () => null;
-			res.index = () => null;
-			res.delete = this.queryDelete.bind(this, res);
-			result.push(res);
+			const result: ADTQueryResult<ADTLinkedListElement<T>> = {} as ADTQueryResult<ADTLinkedListElement<T>>;
+			result.element = element;
+			result.key = () => null;
+			result.index = () => null;
+			result.delete = this.queryDelete.bind(this, result);
+			resultsArray.push(result);
 		});
 
-		return result;
+		return resultsArray;
 	}
 
 	public reset(): ADTLinkedList<T> {

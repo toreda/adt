@@ -56,7 +56,6 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parse(): void {}
 	public parseOptionsStateString(data: string): ADTPriorityQueueState<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
@@ -417,14 +416,14 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public query(filters: ADTQueryFilter | ADTQueryFilter[], opts?: ADTQueryOptions): ADTQueryResult<T>[] {
-		let result: ADTQueryResult<T>[] = [];
+	public query(filters: ADTQueryFilter<T> | ADTQueryFilter<T>[], opts?: ADTQueryOptions): ADTQueryResult<T>[] {
+		let resultsArray: ADTQueryResult<T>[] = [];
 		let options = this.queryOptions(opts);
 
 		this.state.elements.forEach((element, index) => {
 			let take = false;
 
-			if (result.length >= options.limit) {
+			if (resultsArray.length >= options.limit) {
 				return false;
 			}
 
@@ -442,15 +441,15 @@ export default class ADTPriorityQueue<T> implements ADTBase<T> {
 				return false;
 			}
 
-			const res: ADTQueryResult<T> = {} as ADTQueryResult<T>;
-			res.element = element;
-			res.key = () => null;
-			res.index = this.queryIndex.bind(this, element);
-			res.delete = this.queryDelete.bind(this, res);
-			result.push(res);
+			const result: ADTQueryResult<T> = {} as ADTQueryResult<T>;
+			result.element = element;
+			result.key = () => null;
+			result.index = this.queryIndex.bind(this, element);
+			result.delete = this.queryDelete.bind(this, result);
+			resultsArray.push(result);
 		});
 
-		return result;
+		return resultsArray;
 	}
 
 	public reset(): ADTPriorityQueue<T> {

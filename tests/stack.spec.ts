@@ -51,8 +51,8 @@ describe('ADTStack', () => {
 			expect(spy).toBeCalled();
 		});
 	};
-	const queryFilter = function (target: number): ADTQueryFilter {
-		const filter: ADTQueryFilter = (element): boolean => {
+	const queryFilter = function (target: number): ADTQueryFilter<number> {
+		const filter: ADTQueryFilter<number> = (element): boolean => {
 			return element === target;
 		};
 
@@ -684,8 +684,8 @@ describe('ADTStack', () => {
 			});
 
 			it('should return elements that match all filters', () => {
-				const customFilter = function (target: number, lessthan: boolean): ADTQueryFilter {
-					const filter: ADTQueryFilter = (element): boolean => {
+				const customFilter = function (target: number, lessthan: boolean): ADTQueryFilter<number> {
+					const filter: ADTQueryFilter<number> = (element): boolean => {
 						if (lessthan) {
 							return element < target;
 						} else {

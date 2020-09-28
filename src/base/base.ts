@@ -6,10 +6,9 @@ import ADTQueryResult from '../query/query-result';
 export default interface ADTBase<T> {
 	clearElements(): void;
 	reset(): void;
-	parse(s: string): any | Array<string> | null;
 	stringify(): string | null;
 	query(
-		query: ADTQueryFilter | ADTQueryFilter[],
+		query: ADTQueryFilter<T> | ADTQueryFilter<T>[],
 		options?: ADTQueryOptions
 	): ADTQueryResult<T>[] | ADTQueryResult<ADTBaseElement<T>>[];
 }

@@ -61,7 +61,6 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parse(): void {}
 	public parseOptionsStateString(state: string): ADTObjectPoolState<T> | Array<string> | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
@@ -279,7 +278,7 @@ export default class ADTObjectPool<T> implements ADTBase<T> {
 		}
 	}
 
-	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
+	public query(filters: ADTQueryFilter<T> | ADTQueryFilter<T>[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
 		return [];
 	}
 

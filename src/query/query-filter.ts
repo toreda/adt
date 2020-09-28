@@ -1,3 +1,3 @@
-export default interface ADTQueryFilter {
-	(value: any): boolean;
+export default interface ADTQueryFilter<T> {
+	(value: T): boolean;
 }
