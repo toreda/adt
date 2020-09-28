@@ -15,18 +15,6 @@ export default class ADTStack<T> implements ADTBase<T> {
 		this.state.top = this.state.size - 1;
 	}
 
-	public getDefaultState(): ADTStackState<T> {
-		const state: ADTStackState<T> = {
-			type: 'sState',
-			elements: [],
-			size: 0,
-			top: -1,
-			bottom: 0
-		};
-
-		return state;
-	}
-
 	public parseOptions(options?: ADTStackOptions<T>): ADTStackState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
@@ -45,7 +33,7 @@ export default class ADTStack<T> implements ADTBase<T> {
 		let result: ADTStackState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parse(options.serializedState)!;
+			parsed = this.parseOptionsStateString(options.serializedState)!;
 
 			if (Array.isArray(parsed)) {
 				throw new Error(parsed.join('\n'));
@@ -64,6 +52,35 @@ export default class ADTStack<T> implements ADTBase<T> {
 		return state;
 	}
 
+	public parse(): void {}
+	public parseOptionsStateString(state: string): ADTStackState<T> | Array<string> | null {
+		if (typeof state !== 'string' || state === '') {
+			return null;
+		}
+
+		let result: ADTStackState<T> | Array<string> | null = null;
+		let parsed: ADTStackState<T> | null = null;
+		let errors: Array<string> = [];
+
+		try {
+			parsed = JSON.parse(state);
+
+			if (parsed) {
+				errors = this.getStateErrors(parsed);
+			}
+
+			if (errors.length) {
+				throw new Error('state is not a valid ADTStackState');
+			}
+
+			result = parsed;
+		} catch (error) {
+			result = [error.message].concat(errors);
+		}
+
+		return result;
+	}
+
 	public parseOptionsOther(s: ADTStackState<T>, options?: ADTStackOptions<T>): ADTStackState<T> {
 		let state: ADTStackState<T> | null = s;
 
@@ -79,79 +96,19 @@ export default class ADTStack<T> implements ADTBase<T> {
 			state.elements = options.elements.slice();
 		}
 
-		if (options.size && this.isInteger(options.size) && options.size >= 0) {
-			state.size = options.size;
-		}
-		if (options.top && this.isInteger(options.top)) {
-			state.top = options.top;
-		}
-
 		return state;
 	}
 
-	public push(element: T): ADTStack<T> {
-		this.state.elements.push(element);
-		this.state.top++;
-		this.state.size++;
-		return this;
-	}
+	public getDefaultState(): ADTStackState<T> {
+		const state: ADTStackState<T> = {
+			type: 'sState',
+			elements: [],
+			size: 0,
+			top: -1,
+			bottom: 0
+		};
 
-	public pop(): T | null {
-		if (!this.state.size) {
-			return null;
-		}
-
-		const result = this.state.elements[this.state.top];
-		this.state.top--;
-		this.state.size--;
-
-		return result;
-	}
-
-	public top(): T | null {
-		if (!this.state.size) {
-			return null;
-		}
-
-		return this.state.elements[this.state.top];
-	}
-
-	public bottom(): T | null {
-		if (!this.state.size) {
-			return null;
-		}
-
-		return this.state.elements[this.state.bottom];
-	}
-
-	public reverse(): ADTStack<T> {
-		if (this.state.size <= 1) {
-			return this;
-		}
-
-		this.state.elements = this.state.elements.reverse();
-		return this;
-	}
-
-	public isInteger(n: number): boolean {
-		if (typeof n !== 'number') {
-			return false;
-		}
-		if (n % 1 !== 0) {
-			return false;
-		}
-
-		return true;
-	}
-
-	public isValidState(state: ADTStackState<T>): boolean {
-		const errors = this.getStateErrors(state);
-
-		if (errors.length) {
-			return false;
-		}
-
-		return true;
+		return state;
 	}
 
 	public getStateErrors(state: ADTStackState<T>): Array<string> {
@@ -182,40 +139,79 @@ export default class ADTStack<T> implements ADTBase<T> {
 		return errors;
 	}
 
-	public parse(data: string): ADTStackState<T> | Array<string> | null {
-		if (typeof data !== 'string' || data === '') {
-			return null;
+	public isInteger(n: number): boolean {
+		if (typeof n !== 'number') {
+			return false;
+		}
+		if (n % 1 !== 0) {
+			return false;
 		}
 
-		let result: ADTStackState<T> | Array<string> | null = null;
-		let parsed: ADTStackState<T> | null = null;
-		let errors: Array<string> = [];
-
-		try {
-			parsed = JSON.parse(data);
-
-			if (parsed) {
-				errors = this.getStateErrors(parsed);
-			}
-
-			if (errors.length) {
-				throw new Error('state is not a valid ADTStackState');
-			}
-
-			result = parsed;
-		} catch (error) {
-			result = [error.message].concat(errors);
-		}
-
-		return result;
+		return true;
 	}
 
-	public stringify(): string | null {
-		if (!this.isValidState(this.state)) {
+	public isValidState(state: ADTStackState<T>): boolean {
+		const errors = this.getStateErrors(state);
+
+		if (errors.length) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public queryDelete(query: ADTQueryResult<T>): T | null {
+		if (!query || !query.index) {
 			return null;
 		}
 
-		return JSON.stringify(this.state);
+		const index = query.index();
+
+		if (index === null) {
+			return null;
+		}
+
+		const result = this.state.elements.splice(index, 1);
+		this.state.top--;
+		this.state.size--;
+
+		if (!result.length) {
+			return null;
+		}
+
+		return result[0];
+	}
+
+	public queryIndex(query: T): number | null {
+		const index = this.state.elements.findIndex((element) => {
+			return element === query;
+		});
+
+		if (index < 0) {
+			return null;
+		}
+
+		return index;
+	}
+
+	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
+		let options: Required<ADTQueryOptions> = {
+			limit: Infinity
+		};
+
+		if (opts?.limit && typeof opts.limit === 'number' && opts.limit >= 1) {
+			options.limit = Math.round(opts.limit);
+		}
+
+		return options;
+	}
+
+	public bottom(): T | null {
+		if (!this.state.size) {
+			return null;
+		}
+
+		return this.state.elements[this.state.bottom];
 	}
 
 	public clearElements(): ADTStack<T> {
@@ -226,28 +222,55 @@ export default class ADTStack<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public reset(): ADTStack<T> {
-		this.clearElements();
-		this.state.bottom = 0;
+	public forEach(func: (element: T, index: number) => void): ADTStack<T> {
+		for (let i = this.state.top; i >= 0; i--) {
+			func(this.state.elements[i], i);
+		}
 
 		return this;
 	}
 
-	public query(filters: ADTQueryFilter | ADTQueryFilter[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
+	public pop(): T | null {
+		if (!this.state.size) {
+			return null;
+		}
+
+		const result = this.state.elements[this.state.top];
+		this.state.top--;
+		this.state.size--;
+
+		return result;
+	}
+
+	public push(element: T): ADTStack<T> {
+		this.state.elements.push(element);
+		this.state.top++;
+		this.state.size++;
+		return this;
+	}
+
+	public query(filters: ADTQueryFilter | ADTQueryFilter[], opts?: ADTQueryOptions): ADTQueryResult<T>[] {
 		let result: ADTQueryResult<T>[] = [];
+		let options = this.queryOptions(opts);
 
-		this.state.elements.forEach((element, index) => {
-			let skip = true;
+		this.forEach((element, index) => {
+			let take = false;
 
-			if (Array.isArray(filters)) {
-				skip = filters.every((filter) => {
-					return filter(element);
-				});
-			} else {
-				skip = filters(element);
+			if (result.length >= options.limit) {
+				return false;
 			}
 
-			if (skip) {
+			if (Array.isArray(filters)) {
+				take =
+					!!filters.length &&
+					filters.every((filter) => {
+						return filter(element);
+					});
+			} else {
+				take = filters(element);
+			}
+
+			if (!take) {
 				return false;
 			}
 
@@ -262,25 +285,37 @@ export default class ADTStack<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public queryDelete(query: ADTQueryResult<T>): T | null {
-		const index = query.index();
+	public reset(): ADTStack<T> {
+		this.clearElements();
+		this.state.bottom = 0;
 
-		if (index === null) {
-			return null;
-		}
+		this.state.type = 'sState';
 
-		const result = this.state.elements.splice(index, 1);
-
-		if (!result.length) {
-			return null;
-		}
-
-		return result[0];
+		return this;
 	}
 
-	public queryIndex(query: T): number | null {
-		return this.state.elements.findIndex((element) => {
-			return element === query;
-		});
+	public reverse(): ADTStack<T> {
+		if (this.state.size <= 1) {
+			return this;
+		}
+
+		this.state.elements = this.state.elements.reverse();
+		return this;
+	}
+
+	public stringify(): string | null {
+		if (!this.isValidState(this.state)) {
+			return null;
+		}
+
+		return JSON.stringify(this.state);
+	}
+
+	public top(): T | null {
+		if (!this.state.size) {
+			return null;
+		}
+
+		return this.state.elements[this.state.top];
 	}
 }

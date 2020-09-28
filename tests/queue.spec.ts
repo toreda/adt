@@ -475,6 +475,36 @@ describe('ADTQueue', () => {
 			});
 		});
 
+		describe('forEach', () => {
+			let testSuite = [
+				[['push']],
+				[['push', 'push']],
+				[['push', 'push', 'pop']],
+				[['push', 'push', 'pop', 'push', 'push', 'push', 'push']]
+			];
+			it.each(testSuite)('should loop through all after %p', (myTest) => {
+				let pushCount = 0;
+				myTest.forEach((func) => {
+					if (func === 'push') {
+						pushCount++;
+						instance[func](pushCount);
+					} else {
+						instance[func]();
+					}
+				});
+
+				let expectedV = myTest.join('');
+				let expectedCount = instance.size();
+				let count = 0;
+				instance.forEach((elem, index) => {
+					count++;
+					instance.state.elements[index] = expectedV as any;
+				});
+				expect(count).toBe(expectedCount);
+				expect(instance.front()).toBe(expectedV);
+			});
+		});
+
 		describe('front', () => {
 			it('should return null when queue is empty', () => {
 				expect(instance.size()).toBe(0);

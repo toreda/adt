@@ -54,8 +54,8 @@ export default class ADTQueue<T> implements ADTBase<T> {
 	}
 
 	public parse(): void {}
-	public parseOptionsStateString(data: string): ADTQueueState<T> | Array<string> | null {
-		if (typeof data !== 'string' || data === '') {
+	public parseOptionsStateString(state: string): ADTQueueState<T> | Array<string> | null {
+		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
@@ -64,7 +64,7 @@ export default class ADTQueue<T> implements ADTBase<T> {
 		let errors: Array<string> = [];
 
 		try {
-			parsed = JSON.parse(data);
+			parsed = JSON.parse(state);
 
 			if (parsed) {
 				errors = this.getStateErrors(parsed);
@@ -212,6 +212,7 @@ export default class ADTQueue<T> implements ADTBase<T> {
 
 		return this;
 	}
+
 	/**
 	 * Returns first element in queue, or null if queue is empty.
 	 *
