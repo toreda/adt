@@ -98,7 +98,7 @@ export default class ADTLinkedList<T> implements ADTBase<T> {
 			state.elements = options.elements.slice();
 		}
 
-		if (options.objectPool && typeof options.objectPool === 'boolean') {
+		if (typeof options.objectPool === 'boolean') {
 			state.objectPool = options.objectPool;
 		}
 
