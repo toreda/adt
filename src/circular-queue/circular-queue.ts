@@ -271,7 +271,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public forEach(func: (element: T, index: number, arr: T[]) => void): ADTCircularQueue<T> {
+	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTCircularQueue<T> {
 		let front = this.wrapIndex(this.state.front);
 		let rear = this.wrapIndex(this.state.rear);
 
@@ -279,9 +279,14 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			rear = rear + this.state.maxSize;
 		}
 
+		let boundThis = this;
+		if (thisArg) {
+			boundThis = thisArg;
+		}
+
 		for (let i = front; i < rear; i++) {
 			let iWrap = this.wrapIndex(i);
-			func(this.state.elements[iWrap], iWrap, this.state.elements);
+			func.call(boundThis, this.state.elements[iWrap], iWrap, this.state.elements);
 		}
 
 		return this;
