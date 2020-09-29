@@ -207,17 +207,29 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public forEach(func: (element: ADTLinkedListElement<T>, index: number) => void): ADTLinkedList<T> {
+	public forEach(
+		func: (element: ADTLinkedListElement<T>, index: number, arr: ADTLinkedListElement<T>[]) => void
+	): ADTLinkedList<T> {
+		let arr = this.getAsArray();
+
+		arr.forEach((elem, idx, thisArr) => {
+			func(elem, idx, thisArr);
+		});
+
+		return this;
+	}
+
+	public getAsArray(): ADTLinkedListElement<T>[] {
+		let result: ADTLinkedListElement<T>[] = [];
+
 		let node = this.head();
-		let index = 0;
 
 		while (node) {
-			func(node, index);
-			index++;
+			result.push(node);
 			node = node.next();
 		}
 
-		return this;
+		return result;
 	}
 
 	public head(): ADTLinkedListElement<T> | null {

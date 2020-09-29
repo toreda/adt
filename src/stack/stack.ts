@@ -221,9 +221,9 @@ export class ADTStack<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public forEach(func: (element: T, index: number) => void): ADTStack<T> {
+	public forEach(func: (element: T, index: number, arr: T[]) => void): ADTStack<T> {
 		for (let i = this.state.top; i >= 0; i--) {
-			func(this.state.elements[i], i);
+			func(this.state.elements[i], i, this.state.elements.slice().reverse());
 		}
 
 		return this;

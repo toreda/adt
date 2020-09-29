@@ -383,6 +383,14 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
+	public forEach(func: (element: T, index: number, arr: T[]) => void): ADTPriorityQueue<T> {
+		this.state.elements.forEach((elem, idx) => {
+			func(elem, idx, this.state.elements);
+		});
+
+		return this;
+	}
+
 	public front(): T | null {
 		if (this.size() === 0) {
 			return null;
@@ -420,7 +428,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		let resultsArray: ADTQueryResult<T>[] = [];
 		let options = this.queryOptions(opts);
 
-		this.state.elements.forEach((element, index) => {
+		this.forEach((element, index) => {
 			let take = false;
 
 			if (resultsArray.length >= options.limit) {

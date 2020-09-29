@@ -1,9 +1,9 @@
+import {ADTBase} from '../base/base';
 import {ADTCircularQueueOptions} from './circular-queue-options';
 import {ADTCircularQueueState} from './circular-queue-state';
+import {ADTQueryFilter} from '../query/query-filter';
 import {ADTQueryOptions} from '../query/query-options';
 import {ADTQueryResult} from '../query/query-result';
-import {ADTQueryFilter} from '../query/query-filter';
-import {ADTBase} from '../base/base';
 
 export class ADTCircularQueue<T> implements ADTBase<T> {
 	public state: ADTCircularQueueState<T>;
@@ -271,7 +271,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public forEach(func: (element: T, index: number) => void): ADTCircularQueue<T> {
+	public forEach(func: (element: T, index: number, arr: T[]) => void): ADTCircularQueue<T> {
 		let front = this.wrapIndex(this.state.front);
 		let rear = this.wrapIndex(this.state.rear);
 
@@ -281,7 +281,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 
 		for (let i = front; i < rear; i++) {
 			let iWrap = this.wrapIndex(i);
-			func(this.state.elements[iWrap], iWrap);
+			func(this.state.elements[iWrap], iWrap, this.state.elements);
 		}
 
 		return this;

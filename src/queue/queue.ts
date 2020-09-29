@@ -204,9 +204,9 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public forEach(func: (element: T, index: number) => void): ADTQueue<T> {
+	public forEach(func: (element: T, index: number, arr: T[]) => void): ADTQueue<T> {
 		this.state.elements.forEach((elem, idx) => {
-			func(elem, idx);
+			func(elem, idx, this.state.elements);
 		});
 
 		return this;
