@@ -228,7 +228,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		}
 
 		for (let i = this.state.top; i >= 0; i--) {
-			func.call(boundThis, this.state.elements[i], i, this.state.elements.slice().reverse());
+			func.call(boundThis, this.state.elements[i], this.state.top - i, this.state.elements.slice().reverse());
 		}
 
 		return this;

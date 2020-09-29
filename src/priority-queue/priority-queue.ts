@@ -390,7 +390,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		}
 
 		this.state.elements.forEach((elem, idx) => {
-			func.call(this, elem, idx, this.state.elements);
+			func.call(boundThis, elem, idx, this.state.elements);
 		}, boundThis);
 
 		return this;

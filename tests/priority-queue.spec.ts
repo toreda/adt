@@ -1105,6 +1105,56 @@ describe('ADTPriorityQueue', () => {
 			});
 		});
 
+		describe('forEach', () => {
+			let testSuite = [
+				[['push']],
+				[['push', 'push']],
+				[['push', 'push', 'pop']],
+				[['push', 'push', 'pop', 'push', 'push', 'push', 'push']]
+			];
+			it.each(testSuite)('should loop through all after %p', (myTest) => {
+				let pushCount = 0;
+				myTest.forEach((func) => {
+					if (func === 'push') {
+						pushCount++;
+						instance[func](pushCount);
+					} else {
+						instance[func]();
+					}
+				});
+
+				let expectedV = myTest.join('');
+				let expectedCount = instance.size();
+				let count = 0;
+				instance.forEach((elem, index) => {
+					count++;
+					instance.state.elements[index] = expectedV as any;
+				});
+				expect(count).toBe(expectedCount);
+				expect(instance.front()).toBe(expectedV);
+			});
+
+			it.each(['boundThis', 'unboundThis'])(
+				'should pass element, index, array to callback function (%p)',
+				(useThis) => {
+					instance.push(1).push(2).push(3);
+					let boundThis;
+					if (useThis === 'boundThis') {
+						boundThis = instance;
+					} else {
+						boundThis = {};
+					}
+
+					instance.forEach(function (element, index, arr) {
+						expect(this).toBe(boundThis);
+						expect(arr).toBeInstanceOf(Array);
+						expect(index).toBeGreaterThanOrEqual(0);
+						expect(element).toBe(arr[index]);
+					}, boundThis);
+				}
+			);
+		});
+
 		describe('front', () => {
 			it('should return null when priority queue size is 0', () => {
 				expect(instance.size()).toBe(0);

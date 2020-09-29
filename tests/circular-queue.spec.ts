@@ -583,6 +583,30 @@ describe('ADTCircularQueue', () => {
 				expect(instance.front()).toBe(expectedV);
 				expect(instance.rear()).toBe(expectedV);
 			});
+
+			it.each(['boundThis', 'unboundThis'])(
+				'should pass element, index, array to callback function (%p)',
+				(useThis) => {
+					instance.push(1);
+					instance.push(2);
+					instance.push(3);
+					instance.pop();
+
+					let boundThis;
+					if (useThis === 'boundThis') {
+						boundThis = instance;
+					} else {
+						boundThis = {};
+					}
+
+					instance.forEach(function (element, index, arr) {
+						expect(this).toBe(boundThis);
+						expect(arr).toBeInstanceOf(Array);
+						expect(index).toBeGreaterThanOrEqual(0);
+						expect(element).toBe(arr[index]);
+					}, boundThis);
+				}
+			);
 		});
 
 		describe('front', () => {

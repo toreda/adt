@@ -503,6 +503,26 @@ describe('ADTQueue', () => {
 				expect(count).toBe(expectedCount);
 				expect(instance.front()).toBe(expectedV);
 			});
+
+			it.each(['boundThis', 'unboundThis'])(
+				'should pass element, index, array to callback function (%p)',
+				(useThis) => {
+					instance.push(1).push(2).push(3);
+					let boundThis;
+					if (useThis === 'boundThis') {
+						boundThis = instance;
+					} else {
+						boundThis = {};
+					}
+
+					instance.forEach(function (element, index, arr) {
+						expect(this).toBe(boundThis);
+						expect(arr).toBeInstanceOf(Array);
+						expect(index).toBeGreaterThanOrEqual(0);
+						expect(element).toBe(arr[index]);
+					}, boundThis);
+				}
+			);
 		});
 
 		describe('front', () => {

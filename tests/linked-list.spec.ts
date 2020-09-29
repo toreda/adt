@@ -480,6 +480,81 @@ describe('ADTLinkedList', () => {
 				expect(instance.head()!.value()).toBe(expectedV);
 				expect(instance.tail()!.value()).toBe(expectedV);
 			});
+
+			it.each(['boundThis', 'unboundThis'])(
+				'should pass element, index, array to callback function (%p)',
+				(useThis) => {
+					instance.insert(1);
+					instance.insert(2);
+					instance.insert(3);
+					let boundThis;
+					if (useThis === 'boundThis') {
+						boundThis = instance;
+					} else {
+						boundThis = {};
+					}
+
+					instance.forEach(function (element, index, arr) {
+						expect(this).toBe(boundThis);
+						expect(arr).toBeInstanceOf(Array);
+						expect(index).toBeGreaterThanOrEqual(0);
+						expect(element).toBe(arr[index]);
+					}, boundThis);
+				}
+			);
+		});
+
+		describe('getAsArray', () => {
+			beforeEach(() => {
+				instance.clearElements();
+				ITEMS.forEach((item) => {
+					instance.insert(item);
+				});
+			});
+
+			it('should return an array of all elements', () => {
+				let arr = instance.getAsArray();
+				let index = 0;
+				let node = instance.head();
+
+				while (node) {
+					expect(arr[index]).toBe(node);
+					index++;
+					node = node.next();
+				}
+			});
+
+			it('changing value in array should change value linked list', () => {
+				let arr = instance.getAsArray();
+				let index = 3;
+				let expectedV = 13579;
+				arr[index].value(expectedV);
+				let node = instance.head();
+				let i = 0;
+				while (i < index && node) {
+					node = node.next();
+					i++;
+				}
+				expect(node).not.toBeNull();
+				let result = node!.value();
+				expect(result).toBe(expectedV);
+			});
+
+			it('changing value in array should change value linked list', () => {
+				let arr = instance.getAsArray();
+				let index = 3;
+				let expectedV = 24680;
+				let node = instance.head();
+				let i = 0;
+				while (i < index && node) {
+					node = node.next();
+					i++;
+				}
+				expect(node).not.toBeNull();
+				node!.value(expectedV);
+				let result = arr[index].value();
+				expect(result).toBe(expectedV);
+			});
 		});
 
 		describe('head', () => {
