@@ -1,12 +1,12 @@
-import ADTBase from '../base/base';
-import ADTObjectPoolInstance from './object-pool-instance';
-import ADTObjectPoolOptions from './object-pool-options';
-import ADTObjectPoolState from './object-pool-state';
-import ADTQueryFilter from '../query/query-filter';
-import ADTQueryOptions from '../query/query-options';
-import ADTQueryResult from '../query/query-result';
+import {ADTBase} from '../base/base';
+import {ADTObjectPoolInstance} from './object-pool-instance';
+import {ADTObjectPoolOptions} from './object-pool-options';
+import {ADTObjectPoolState} from './object-pool-state';
+import {ADTQueryFilter} from '../query/query-filter';
+import {ADTQueryOptions} from '../query/query-options';
+import {ADTQueryResult} from '../query/query-result';
 
-export default class ADTObjectPool<T> implements ADTBase<T> {
+export class ADTObjectPool<T> implements ADTBase<T> {
 	public readonly state: ADTObjectPoolState<T>;
 	public readonly objectClass: ADTObjectPoolInstance<T>;
 

@@ -1,6 +1,6 @@
-import ADTLinkedListElement from './linked-list-element';
+import {ADTLinkedListElement} from './linked-list-element';
 
-export default interface ADTLinkedListState<T> {
+export interface ADTLinkedListState<T> {
 	type: 'llState';
 	elements: T[];
 	objectPool: boolean;

@@ -1,5 +1,5 @@
-import ADTObjectPool from '../src/object-pool/object-pool';
-import ADTObjectPoolState from '../src/object-pool/object-pool-state';
+import {ADTObjectPool} from '../src/object-pool/object-pool';
+import {ADTObjectPoolState} from '../src/object-pool/object-pool-state';
 
 describe('ADTObjectPool', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];

@@ -1,12 +1,12 @@
-import ADTBase from '../base/base';
-import ADTLinkedListElement from './linked-list-element';
-import ADTLinkedListOptions from './linked-list-options';
-import ADTLinkedListState from './linked-list-state';
-import ADTQueryFilter from '../query/query-filter';
-import ADTQueryOptions from '../query/query-options';
-import ADTQueryResult from '../query/query-result';
+import {ADTBase} from '../base/base';
+import {ADTLinkedListElement} from './linked-list-element';
+import {ADTLinkedListOptions} from './linked-list-options';
+import {ADTLinkedListState} from './linked-list-state';
+import {ADTQueryFilter} from '../query/query-filter';
+import {ADTQueryOptions} from '../query/query-options';
+import {ADTQueryResult} from '../query/query-result';
 
-export default class ADTLinkedList<T> implements ADTBase<T> {
+export class ADTLinkedList<T> implements ADTBase<T> {
 	public readonly state: ADTLinkedListState<T>;
 
 	constructor(options?: ADTLinkedListOptions<T>, elements?: T | T[]) {

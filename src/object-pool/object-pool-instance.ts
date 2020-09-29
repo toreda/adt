@@ -1,4 +1,4 @@
-export default interface ADTObjectPoolInstance<T> {
+export interface ADTObjectPoolInstance<T> {
 	new (): T;
 	cleanObj(obj: T): void;
 }

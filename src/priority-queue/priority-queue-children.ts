@@ -1,4 +1,4 @@
-export default interface ADTPriorityQueueChildren {
-  left: number | null;
-  right: number | null;
+export interface ADTPriorityQueueChildren {
+	left: number | null;
+	right: number | null;
 }

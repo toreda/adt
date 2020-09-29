@@ -1,11 +1,11 @@
-import ADTBase from '../base/base';
-import ADTQueryFilter from '../query/query-filter';
-import ADTQueryOptions from '../query/query-options';
-import ADTQueryResult from '../query/query-result';
-import ADTStackOptions from './stack-options';
-import ADTStackState from './stack-state';
+import {ADTBase} from '../base/base';
+import {ADTQueryFilter} from '../query/query-filter';
+import {ADTQueryOptions} from '../query/query-options';
+import {ADTQueryResult} from '../query/query-result';
+import {ADTStackOptions} from './stack-options';
+import {ADTStackState} from './stack-state';
 
-export default class ADTStack<T> implements ADTBase<T> {
+export class ADTStack<T> implements ADTBase<T> {
 	public state: ADTStackState<T>;
 
 	constructor(options?: ADTStackOptions<T>) {

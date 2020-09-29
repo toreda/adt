@@ -1,9 +1,9 @@
-import ADTLinkedList from '../src/linked-list/linked-list';
-import ADTLinkedListElement from '../src/linked-list/linked-list-element';
-import ADTLinkedListState from '../src/linked-list/linked-list-state';
-import ADTQueryFilter from '../src/query/query-filter';
-import ADTQueryOptions from '../src/query/query-options';
-import ADTQueryResult from '../src/query/query-result';
+import {ADTLinkedList} from '../src/linked-list/linked-list';
+import {ADTLinkedListElement} from '../src/linked-list/linked-list-element';
+import {ADTLinkedListState} from '../src/linked-list/linked-list-state';
+import {ADTQueryFilter} from '../src/query/query-filter';
+import {ADTQueryOptions} from '../src/query/query-options';
+import {ADTQueryResult} from '../src/query/query-result';
 
 describe('ADTLinkedList', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];

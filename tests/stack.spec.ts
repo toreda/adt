@@ -1,8 +1,8 @@
-import ADTQueryFilter from '../src/query/query-filter';
-import ADTQueryOptions from '../src/query/query-options';
-import ADTQueryResult from '../src/query/query-result';
-import ADTStack from '../src/stack/stack';
-import ADTStackState from '../src/stack/stack-state';
+import {ADTQueryFilter} from '../src/query/query-filter';
+import {ADTQueryOptions} from '../src/query/query-options';
+import {ADTQueryResult} from '../src/query/query-result';
+import {ADTStack} from '../src/stack/stack';
+import {ADTStackState} from '../src/stack/stack-state';
 
 describe('ADTStack', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];

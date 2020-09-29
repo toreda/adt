@@ -1,10 +1,10 @@
-export default interface ADTCircularQueueOptions<T> {
+export interface ADTCircularQueueOptions<T> {
 	serializedState?: string;
 
 	elements?: [];
 	overwrite?: boolean;
-  size?: number;
+	size?: number;
 	maxSize?: number;
-  front?: number;
-  rear?: number;
+	front?: number;
+	rear?: number;
 }

@@ -1,11 +1,11 @@
-import ADTBase from '../base/base';
-import ADTCircularQueueOptions from './circular-queue-options';
-import ADTCircularQueueState from './circular-queue-state';
-import ADTQueryFilter from '../query/query-filter';
-import ADTQueryOptions from '../query/query-options';
-import ADTQueryResult from '../query/query-result';
+import {ADTCircularQueueOptions} from './circular-queue-options';
+import {ADTCircularQueueState} from './circular-queue-state';
+import {ADTQueryOptions} from '../query/query-options';
+import {ADTQueryResult} from '../query/query-result';
+import {ADTQueryFilter} from '../query/query-filter';
+import {ADTBase} from '../base/base';
 
-export default class ADTCircularQueue<T> implements ADTBase<T> {
+export class ADTCircularQueue<T> implements ADTBase<T> {
 	public state: ADTCircularQueueState<T>;
 
 	constructor(options?: ADTCircularQueueOptions<T>) {

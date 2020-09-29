@@ -1,4 +1,4 @@
-export default interface ADTPriorityQueueState<T> {
-	type: "pqState";
+export interface ADTPriorityQueueState<T> {
+	type: 'pqState';
 	elements: T[];
 }

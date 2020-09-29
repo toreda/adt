@@ -1,6 +1,6 @@
-import ADTBaseElement from '../base/base-element';
+import {ADTBaseElement} from '../base/base-element';
 
-export default class ADTLinkedListElement<T> implements ADTBaseElement<T> {
+export class ADTLinkedListElement<T> implements ADTBaseElement<T> {
 	private _value: T | null;
 	public _next: ADTLinkedListElement<T> | null;
 	public _prev: ADTLinkedListElement<T> | null;

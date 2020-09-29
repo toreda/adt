@@ -1,8 +1,8 @@
-import ADTCircularQueue from '../src/circular-queue/circular-queue';
-import ADTCircularQueueState from '../src/circular-queue/circular-queue-state';
-import ADTQueryFilter from '../src/query/query-filter';
-import ADTQueryOptions from '../src/query/query-options';
-import ADTQueryResult from '../src/query/query-result';
+import {ADTCircularQueue} from '../src/circular-queue/circular-queue';
+import {ADTCircularQueueState} from '../src/circular-queue/circular-queue-state';
+import {ADTQueryFilter} from '../src/query/query-filter';
+import {ADTQueryOptions} from '../src/query/query-options';
+import {ADTQueryResult} from '../src/query/query-result';
 
 describe('ADTCircularQueue', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];

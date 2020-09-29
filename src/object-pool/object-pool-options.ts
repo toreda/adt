@@ -1,4 +1,4 @@
-export default interface ADTObjectPoolOptions<T> {
+export interface ADTObjectPoolOptions<T> {
 	serializedState?: string;
 
 	autoIncrease?: boolean;

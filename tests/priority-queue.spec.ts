@@ -1,9 +1,9 @@
-import ADTPriorityQueue from '../src/priority-queue/priority-queue';
-import ADTPriorityQueueComparator from '../src/priority-queue/priority-queue-comparator';
-import ADTPriorityQueueState from '../src/priority-queue/priority-queue-state';
-import ADTQueryFilter from '../src/query/query-filter';
-import ADTQueryOptions from '../src/query/query-options';
-import ADTQueryResult from '../src/query/query-result';
+import {ADTPriorityQueue} from '../src/priority-queue/priority-queue';
+import {ADTPriorityQueueComparator} from '../src/priority-queue/priority-queue-comparator';
+import {ADTPriorityQueueState} from '../src/priority-queue/priority-queue-state';
+import {ADTQueryFilter} from '../src/query/query-filter';
+import {ADTQueryOptions} from '../src/query/query-options';
+import {ADTQueryResult} from '../src/query/query-result';
 
 describe('ADTPriorityQueue', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
