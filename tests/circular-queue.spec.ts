@@ -369,7 +369,7 @@ describe('ADTCircularQueue', () => {
 
 			it('should return null if index is null', () => {
 				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let queryResults = instance.query(queryFilter(instance.front()!));
 				expect(queryResults.length).toBe(1);
@@ -380,14 +380,14 @@ describe('ADTCircularQueue', () => {
 				});
 
 				expect(instance.queryDelete(queryResult)).toBeNull();
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				spy.mockRestore();
 			});
 
 			it('should return element if it is in cq', () => {
 				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let queryResults = instance.query(queryFilter(instance.front()!));
 				expect(queryResults.length).toBe(1);
@@ -398,19 +398,19 @@ describe('ADTCircularQueue', () => {
 
 			it('should delete the element from cq', () => {
 				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let queryResults = instance.query(queryFilter(instance.front()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
 				instance.queryDelete(queryResult);
-				expect(instance.state.size).toBe(expectedSize - 1);
+				expect(instance.size()).toBe(expectedSize - 1);
 			});
 
 			it('should move the rear index back one', () => {
 				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let queryResults = instance.query(queryFilter(instance.front()!));
 				queryResult = queryResults[0];
@@ -439,7 +439,7 @@ describe('ADTCircularQueue', () => {
 
 			it('should return null if element is not in cq', () => {
 				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let queryResults = instance.query(queryFilter(instance.front()!));
 				queryResult = queryResults[0];
@@ -515,7 +515,7 @@ describe('ADTCircularQueue', () => {
 	describe('Implementation', () => {
 		describe('clearElements', () => {
 			it('should not throw if circular queue is empty', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(() => {
 					instance.clearElements();
 				}).not.toThrow();
@@ -527,14 +527,14 @@ describe('ADTCircularQueue', () => {
 				instance.pop();
 
 				expect(instance.state.elements).not.toStrictEqual([]);
-				expect(instance.state.size).not.toBe(0);
+				expect(instance.size()).not.toBe(0);
 				expect(instance.state.front).not.toBe(0);
 				expect(instance.state.rear).not.toBe(0);
 
 				instance.clearElements();
 
 				expect(instance.state.elements).toStrictEqual([]);
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.state.front).toBe(0);
 				expect(instance.state.rear).toBe(0);
 			});
@@ -573,7 +573,7 @@ describe('ADTCircularQueue', () => {
 				});
 
 				let expectedV = myTest.join('');
-				let expectedCount = instance.state.size;
+				let expectedCount = instance.size();
 				let count = 0;
 				instance.forEach((elem, index) => {
 					count++;
@@ -619,7 +619,7 @@ describe('ADTCircularQueue', () => {
 				expect(instance.front()).toBeNull();
 			});
 
-			it('should return null if state.size is 0', () => {
+			it('should return null if size is 0', () => {
 				instance.state.size = 0;
 				expect(instance.front()).toBeNull();
 			});
@@ -662,7 +662,7 @@ describe('ADTCircularQueue', () => {
 				expect(instance.getIndex(myTest!)).toBeNull();
 			});
 
-			it('should return null if state.size is 0', () => {
+			it('should return null if size is 0', () => {
 				instance.state.size = 0;
 				expect(instance.getIndex(0)).toBeNull();
 			});
@@ -729,12 +729,12 @@ describe('ADTCircularQueue', () => {
 				expect(instance.isEmpty()).toBe(false);
 			});
 
-			it('should return true if state.size === 0', () => {
+			it('should return true if size === 0', () => {
 				instance.state.size = 0;
 				expect(instance.isEmpty()).toBe(true);
 			});
 
-			it('should return false if state.size is > 0', () => {
+			it('should return false if size is > 0', () => {
 				const myTests = [1, instance.state.maxSize - 1, instance.state.maxSize, instance.state.maxSize * 2];
 				myTests.forEach((myTest) => {
 					instance.state.size = myTest;
@@ -753,7 +753,7 @@ describe('ADTCircularQueue', () => {
 				expect(instance.isFull()).toBe(false);
 			});
 
-			it('should return true if state.size >= maxSize', () => {
+			it('should return true if size >= maxSize', () => {
 				const myTests = [MAX_SIZE, MAX_SIZE * 2];
 				myTests.forEach((myTest) => {
 					instance.state.size = myTest;
@@ -761,7 +761,7 @@ describe('ADTCircularQueue', () => {
 				});
 			});
 
-			it('should return false if 0 <= state.size < maxSize ', () => {
+			it('should return false if 0 <= size < maxSize ', () => {
 				const myTests = [0, 1, instance.state.maxSize - 1];
 				myTests.forEach((myTest) => {
 					instance.state.size = myTest;
@@ -781,7 +781,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null when cq is empty', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.pop()).toBeNull();
 				expect(instance.pop()).toBeNull();
 				instance.push(1);
@@ -795,10 +795,10 @@ describe('ADTCircularQueue', () => {
 				instance.push(20);
 				instance.push(30);
 
-				expect(instance.state.size).toBe(3);
+				expect(instance.size()).toBe(3);
 				expect(instance.state.front).toBe(0);
 				expect(instance.pop()).toBe(instance.state.elements[0]);
-				expect(instance.state.size).toBe(2);
+				expect(instance.size()).toBe(2);
 				expect(instance.state.front).toBe(1);
 			});
 
@@ -810,10 +810,10 @@ describe('ADTCircularQueue', () => {
 
 				for (let i = 0; i < custom.state.maxSize; i++) {
 					expect(custom.pop()).toBe(i + 1);
-					expect(custom.state.size).toBe(10 - i - 1);
+					expect(custom.size()).toBe(10 - i - 1);
 				}
 
-				expect(custom.state.size).toBe(0);
+				expect(custom.size()).toBe(0);
 				expect(custom.pop()).toBeNull();
 			});
 		});
@@ -857,13 +857,13 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return true and increment rear and size when push is called once', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.state.front).toBe(0);
 				expect(instance.state.rear).toBe(0);
 
 				expect(instance.push(10)).toBe(true);
 				expect(instance.state.front).toBe(0);
-				expect(instance.state.size).toBe(1);
+				expect(instance.size()).toBe(1);
 				expect(instance.state.rear).toBe(1);
 				expect(instance.state.elements).toStrictEqual([10]);
 
@@ -872,19 +872,19 @@ describe('ADTCircularQueue', () => {
 				instance.push(40);
 				instance.pop();
 				expect(instance.state.front).toBe(1);
-				expect(instance.state.size).toBe(3);
+				expect(instance.size()).toBe(3);
 				expect(instance.state.rear).toBe(0);
 				expect(instance.state.elements).toStrictEqual([10, 20, 30, 40]);
 
 				expect(instance.push(50)).toBe(true);
 				expect(instance.state.front).toBe(1);
-				expect(instance.state.size).toBe(4);
+				expect(instance.size()).toBe(4);
 				expect(instance.state.rear).toBe(1);
 				expect(instance.state.elements).toStrictEqual([50, 20, 30, 40]);
 			});
 
 			it('should push 15 items into cq while maintaining a size of 1 if overwrite is false', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.state.elements).toStrictEqual([]);
 
 				const limit = 15;
@@ -892,7 +892,7 @@ describe('ADTCircularQueue', () => {
 					instance.pop();
 					expect(instance.state.front).toBe(i % instance.state.maxSize);
 					expect(instance.push(i * 10)).toBe(true);
-					expect(instance.state.size).toBe(1);
+					expect(instance.size()).toBe(1);
 				}
 
 				expect(instance.state.elements).toStrictEqual([120, 130, 140, 110]);
@@ -900,7 +900,7 @@ describe('ADTCircularQueue', () => {
 
 			it('should push 15 items into cq while maintaining a size of 1 if overwrite is true', () => {
 				instance.state.overwrite = true;
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.state.elements).toStrictEqual([]);
 
 				const limit = 15;
@@ -908,7 +908,7 @@ describe('ADTCircularQueue', () => {
 					instance.pop();
 					expect(instance.state.front).toBe(i % instance.state.maxSize);
 					expect(instance.push(i * 10)).toBe(true);
-					expect(instance.state.size).toBe(1);
+					expect(instance.size()).toBe(1);
 				}
 
 				expect(instance.state.elements).toStrictEqual([120, 130, 140, 110]);
@@ -917,7 +917,7 @@ describe('ADTCircularQueue', () => {
 
 			it('should push items into cq and overwrite front when full', () => {
 				instance.state.overwrite = true;
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.state.elements).toStrictEqual([]);
 
 				const limit = 15;
@@ -976,13 +976,13 @@ describe('ADTCircularQueue', () => {
 
 			it('should return empty array if no filters are given', () => {
 				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 				expect(instance.query([])).toEqual([]);
 			});
 
 			it('should return all elements matching filter', () => {
 				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 				let query = 15;
 				instance.state.overwrite = true;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
@@ -997,7 +997,7 @@ describe('ADTCircularQueue', () => {
 
 			it('should return all elements matching filter up to limit', () => {
 				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 				let query = 45;
 				instance.state.overwrite = true;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
@@ -1050,7 +1050,7 @@ describe('ADTCircularQueue', () => {
 				expect(instance.rear()).toBeNull();
 			});
 
-			it('should return null if state.size is 0', () => {
+			it('should return null if size is 0', () => {
 				instance.state.size = 0;
 				expect(instance.rear()).toBeNull();
 			});
@@ -1110,6 +1110,37 @@ describe('ADTCircularQueue', () => {
 				expect(custom.state.type).toBe('cqState');
 				expect(custom.state.overwrite).toBe('test');
 				expect(custom.state.maxSize).toBe('test');
+			});
+		});
+
+		describe('size', () => {
+			isValidStateRuns((obj) => {
+				obj.size();
+			});
+
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				expect(instance.size()).toBe(0);
+			});
+
+			it('should return 0 when priority queue is empty', () => {
+				expect(instance.size()).toBe(0);
+			});
+
+			it('should return 1 when pq has 1 item', () => {
+				instance.push(Math.floor(Math.random() * 99999));
+				expect(instance.size()).toBe(1);
+			});
+
+			it('should return the number of items in priority queue', () => {
+				const limit = 5;
+
+				for (let i = 0; i < limit; i++) {
+					instance.push(Math.floor(Math.random() * 99999));
+					expect(instance.size()).toBe(i + 1);
+				}
+
+				expect(instance.size()).toBe(limit);
 			});
 		});
 

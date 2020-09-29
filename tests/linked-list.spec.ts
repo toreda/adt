@@ -95,7 +95,7 @@ describe('ADTLinkedList', () => {
 			it('should initialize list length to 1 when elements argument is a single element', () => {
 				const expectedValue = 32145;
 				const custom = new ADTLinkedList<number>({elements: [expectedValue]});
-				expect(custom.state.size).toBe(1);
+				expect(custom.size()).toBe(1);
 			});
 
 			it('should initialize list with elements array argument', () => {
@@ -317,6 +317,24 @@ describe('ADTLinkedList', () => {
 			);
 		});
 
+		describe('isPartOfList', () => {
+			it('should return false if node is null', () => {
+				expect(instance.isPartOfList(null as any)).toBe(false);
+			});
+
+			it('should return true if node is part of linked list', () => {
+				let node = instance.insert(1);
+				expect(instance.isPartOfList(node)).toBe(true);
+			});
+
+			it('should return false if node is not part of linked list', () => {
+				let node = instance.insert(1);
+				instance.insert(2);
+				instance.deleteNode(node);
+				expect(instance.isPartOfList(node)).toBe(false);
+			});
+		});
+
 		describe('queryDelete', () => {
 			let queryResult: ADTQueryResult<ADTLinkedListElement<number>>;
 
@@ -333,7 +351,7 @@ describe('ADTLinkedList', () => {
 
 			it('should return the value of the element if it is in ll', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let query = instance.head()!.value();
 				let queryResults = instance.query(queryFilter(query!));
@@ -345,7 +363,7 @@ describe('ADTLinkedList', () => {
 
 			it('should delete the element from ll', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let query = instance.head()!.value();
 				let queryResults = instance.query(queryFilter(query!));
@@ -353,12 +371,12 @@ describe('ADTLinkedList', () => {
 				queryResult = queryResults[0];
 
 				instance.queryDelete(queryResult);
-				expect(instance.state.size).toBe(expectedSize - 1);
+				expect(instance.size()).toBe(expectedSize - 1);
 			});
 
 			it('should stitch the linked list back together', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let query = instance.head()!.next()!.value();
 				let queryResults = instance.query(queryFilter(query!));
@@ -437,15 +455,79 @@ describe('ADTLinkedList', () => {
 			it('should set length to 0', () => {
 				instance.insert(66019);
 				instance.insert(11102);
-				expect(instance.state.size).toBe(2);
+				expect(instance.size()).toBe(2);
 				instance.clearElements();
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 			});
 
 			it('should return the linked list instance', () => {
 				const result = instance.clearElements();
 				expect(result instanceof ADTLinkedList).toBe(true);
 				expect(result).toBe(instance);
+			});
+		});
+
+		describe('deleteNode', () => {
+			it('should return null if node is null', () => {
+				instance.insert(1);
+				const expectedSize = 1;
+				expect(instance.size()).toBe(expectedSize);
+				expect(instance.deleteNode(null as any)).toBeNull();
+				expect(instance.size()).toBe(expectedSize);
+			});
+
+			it('should call isPartOfList', () => {
+				let node = instance.insert(1);
+				const spy = jest.spyOn(instance, 'isPartOfList');
+				spy.mockReturnValueOnce(false);
+				instance.deleteNode(node);
+				expect(spy).toBeCalled();
+			});
+
+			it('should return value of node', () => {
+				let node = instance.insert(1);
+				expect(instance.deleteNode(node)).toBe(node!.value());
+				expect(instance.deleteNode(node)).toBe(node!.value());
+			});
+
+			it('should reduce list size by 1', () => {
+				instance.insert(1);
+				instance.insert(2);
+				instance.insert(3);
+				let expectedSize = 3;
+
+				for (; expectedSize >= 0; expectedSize--) {
+					instance.deleteNode(instance.head());
+				}
+				expect(instance.size()).toBe(Math.max(0, expectedSize));
+			});
+
+			it('should move head after deleting head', () => {
+				let head = instance.insert(1);
+				let next = instance.insert(2);
+
+				instance.deleteNode(head);
+				expect(instance.head()).not.toBe(head);
+				expect(instance.head()).toBe(next);
+			});
+			it('should move tail after deleting tail', () => {
+				let tail = instance.insert(1);
+				let prev = instance.insert(2);
+
+				instance.deleteNode(tail);
+				expect(instance.tail()).not.toBe(tail);
+				expect(instance.tail()).toBe(prev);
+			});
+
+			it('should stitch list back together after a middle delete', () => {
+				let head = instance.insert(1);
+				let node = instance.insert(2);
+				let tail = instance.insert(3);
+
+				instance.deleteNode(node);
+
+				expect(head!.next()).toBe(tail);
+				expect(tail!.prev()).toBe(head);
 			});
 		});
 
@@ -469,7 +551,7 @@ describe('ADTLinkedList', () => {
 				});
 
 				let expectedV = myTest.join('');
-				let expectedCount = instance.state.size;
+				let expectedCount = instance.size();
 				let count = 0;
 
 				instance.forEach((elem, index) => {
@@ -559,7 +641,7 @@ describe('ADTLinkedList', () => {
 
 		describe('head', () => {
 			it('should return null on empty list', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.head()).toBeNull();
 			});
 		});
@@ -596,29 +678,29 @@ describe('ADTLinkedList', () => {
 
 		describe('insertAtHead', () => {
 			it('should increase length by 1', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				instance.insertAtHead(777182);
-				expect(instance.state.size).toBe(1);
+				expect(instance.size()).toBe(1);
 			});
 
 			it('should increase length by 1 for each element inserted', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 
 				instance.insertAtHead(321555);
 				instance.insertAtHead(33221345);
 				instance.insertAtHead(4421333);
-				expect(instance.state.size).toBe(3);
+				expect(instance.size()).toBe(3);
 			});
 
 			it('should set tail on the first element inserted', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const expectedValue = 232171;
 				instance.insertAtHead(expectedValue);
 				expect(instance!.tail()!.value()).toBe(expectedValue);
 			});
 
 			it('should set head to the last element inserted', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const expectedValue = 3321495;
 				const elements = [expectedValue, 44109, 44092, 99201, 55510];
 				elements.forEach((element: number) => {
@@ -628,7 +710,7 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should not change tail on a non-empty list', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const expectedValue = 220190;
 				instance.insert(expectedValue);
 				const elements = [2093, 40912, 4001];
@@ -641,22 +723,22 @@ describe('ADTLinkedList', () => {
 
 		describe('insertAtTail', () => {
 			it('should increase length by 1', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				instance.insertAtTail(144091);
-				expect(instance.state.size).toBe(1);
+				expect(instance.size()).toBe(1);
 			});
 
 			it('should increase length by 1 for each element added', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 
 				instance.insertAtTail(5511091);
 				instance.insertAtTail(1109415);
 				instance.insertAtTail(3211095);
-				expect(instance.state.size).toBe(3);
+				expect(instance.size()).toBe(3);
 			});
 
 			it('should set head to first element added', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const expectedValue = 9481102;
 				instance.insertAtTail(expectedValue);
 				instance.insertAtTail(441092);
@@ -665,7 +747,7 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should set tail to last element added', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const expectedValue = 5512231;
 				instance.insertAtTail(4921322);
 				instance.insertAtTail(3341438);
@@ -674,7 +756,7 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should not change head when elements are appended', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 
 				const expectedValue = 18272;
 				const elements = [expectedValue, 1221, 1331, 14441];
@@ -685,7 +767,7 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should change tail each time a new element appended', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 
 				const elements = [1141, 1221, 1331, 14441];
 				elements.forEach((element: number) => {
@@ -739,13 +821,13 @@ describe('ADTLinkedList', () => {
 
 			it('should return empty array if no filters are given', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 				expect(instance.query([])).toEqual([]);
 			});
 
 			it('should return all elements matching filter', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 				let query = 15;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
@@ -759,7 +841,7 @@ describe('ADTLinkedList', () => {
 
 			it('should return all elements matching filter up to limit', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 				let query = 45;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
@@ -844,6 +926,22 @@ describe('ADTLinkedList', () => {
 			});
 		});
 
+		describe('size', () => {
+			it('should return 0 when queue is empty', () => {
+				expect(instance.size()).toBe(0);
+				expect(instance.size()).toBe(0);
+			});
+
+			it('should return the number of items in queue', () => {
+				const items = [1, 2, 3, 4, 5, 6, 7];
+
+				items.forEach((expectedV: number) => {
+					instance.insert(expectedV);
+					expect(instance.size()).toBe(expectedV);
+				});
+			});
+		});
+
 		describe('stringify', () => {
 			it('should return a stringified list of all elements', () => {
 				const custom = new ADTLinkedList<number>({elements: [1, 2, 3]});
@@ -872,7 +970,7 @@ describe('ADTLinkedList', () => {
 
 		describe('tail', () => {
 			it('should return null on empty list', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.tail()).toBeNull();
 			});
 		});

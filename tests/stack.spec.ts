@@ -73,7 +73,7 @@ describe('ADTStack', () => {
 		describe('constructor', () => {
 			it('should initialize empty queue', () => {
 				const custom = new ADTStack<number>();
-				expect(custom.state.size).toBe(0);
+				expect(custom.size()).toBe(0);
 			});
 
 			it('should initialize with serializedState', () => {
@@ -360,7 +360,7 @@ describe('ADTStack', () => {
 
 			it('should return null if index is null', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let queryResults = instance.query(queryFilter(instance.top()!));
 				expect(queryResults.length).toBe(1);
@@ -371,14 +371,14 @@ describe('ADTStack', () => {
 				});
 
 				expect(instance.queryDelete(queryResult)).toBeNull();
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				spy.mockRestore();
 			});
 
 			it('should return element if it is in queue', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let queryResults = instance.query(queryFilter(instance.top()!));
 				expect(queryResults.length).toBe(1);
@@ -389,14 +389,14 @@ describe('ADTStack', () => {
 
 			it('should delete the element from queue', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let queryResults = instance.query(queryFilter(instance.top()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
 				instance.queryDelete(queryResult);
-				expect(instance.state.size).toBe(expectedSize - 1);
+				expect(instance.size()).toBe(expectedSize - 1);
 			});
 		});
 
@@ -416,7 +416,7 @@ describe('ADTStack', () => {
 
 			it('should return null if element is not in queue', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 
 				let queryResults = instance.query(queryFilter(instance.top()!));
 				queryResult = queryResults[0];
@@ -478,12 +478,12 @@ describe('ADTStack', () => {
 	describe('Implementation', () => {
 		describe('bottom', () => {
 			it('should return null when stack is empty', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.bottom()).toBeNull();
 			});
 
 			it('should return the element on bottom of stack', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const expectedValue = 90110;
 				instance.push(expectedValue);
 				instance.push(111091);
@@ -494,14 +494,14 @@ describe('ADTStack', () => {
 
 		describe('clearElements', () => {
 			it('should not throw when stack is empty', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(() => {
 					instance.clearElements();
 				}).not.toThrow();
 			});
 
 			it('should remove all items from stack', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const items = [1, 2, 3, 4, 5, 6, 7];
 
 				items.forEach((item: number) => {
@@ -510,7 +510,7 @@ describe('ADTStack', () => {
 
 				expect(instance.state.top).toBe(items.length - 1);
 				instance.clearElements();
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 			});
 
 			it('should reset top to -1', () => {
@@ -526,7 +526,7 @@ describe('ADTStack', () => {
 				instance.push(333);
 				instance.push(444);
 				instance.clearElements();
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 			});
 
 			it('should not change any other state variables', () => {
@@ -559,7 +559,7 @@ describe('ADTStack', () => {
 				});
 
 				let expectedV = myTest.join('');
-				let expectedCount = instance.state.size;
+				let expectedCount = instance.size();
 				let count = 0;
 				instance.forEach((elem, index) => {
 					count++;
@@ -594,7 +594,7 @@ describe('ADTStack', () => {
 
 		describe('pop', () => {
 			it('should return null when stack is empty', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.pop()).toBeNull();
 			});
 
@@ -608,7 +608,7 @@ describe('ADTStack', () => {
 				for (let i = 0; i < elements.length; i++) {
 					size--;
 					instance.pop();
-					expect(instance.state.size).toBe(size);
+					expect(instance.size()).toBe(size);
 				}
 			});
 		});
@@ -622,7 +622,7 @@ describe('ADTStack', () => {
 				const elements = [111092, 44108914, 11092, 441091, 511091];
 				for (let i = 0; i < elements.length; i++) {
 					instance.push(elements[i]);
-					expect(instance.state.size).toBe(i + 1);
+					expect(instance.size()).toBe(i + 1);
 				}
 			});
 		});
@@ -671,13 +671,13 @@ describe('ADTStack', () => {
 
 			it('should return empty array if no filters are given', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 				expect(instance.query([])).toEqual([]);
 			});
 
 			it('should return all elements matching filter', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 				let query = 15;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
@@ -691,7 +691,7 @@ describe('ADTStack', () => {
 
 			it('should return all elements matching filter up to limit', () => {
 				let expectedSize = ITEMS.length;
-				expect(instance.state.size).toBe(expectedSize);
+				expect(instance.size()).toBe(expectedSize);
 				let query = 45;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
@@ -781,7 +781,7 @@ describe('ADTStack', () => {
 			});
 
 			it('should return stack instance when stack is empty', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.reverse() instanceof ADTStack).toBe(true);
 			});
 
@@ -790,6 +790,37 @@ describe('ADTStack', () => {
 				instance.push(44712);
 				instance.push(55710);
 				expect(instance.reverse() instanceof ADTStack).toBe(true);
+			});
+		});
+
+		describe('size', () => {
+			isValidStateRuns((obj) => {
+				obj.size();
+			});
+
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				expect(instance.size()).toBe(0);
+			});
+
+			it('should return 0 when priority queue is empty', () => {
+				expect(instance.size()).toBe(0);
+			});
+
+			it('should return 1 when pq has 1 item', () => {
+				instance.push(Math.floor(Math.random() * 99999));
+				expect(instance.size()).toBe(1);
+			});
+
+			it('should return the number of items in priority queue', () => {
+				const limit = 5;
+
+				for (let i = 0; i < limit; i++) {
+					instance.push(Math.floor(Math.random() * 99999));
+					expect(instance.size()).toBe(i + 1);
+				}
+
+				expect(instance.size()).toBe(limit);
 			});
 		});
 
@@ -837,12 +868,12 @@ describe('ADTStack', () => {
 
 		describe('top', () => {
 			it('should return null when stack is empty', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				expect(instance.top()).toBeNull();
 			});
 
 			it('should return the element on top of stack', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const expectedValue = 661784;
 				instance.push(133801);
 				instance.push(201901);
@@ -851,7 +882,7 @@ describe('ADTStack', () => {
 			});
 
 			it('should return element on top of stack after an element is removed', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const expectedValue = 955510;
 				instance.push(441091);
 				instance.push(expectedValue);
@@ -861,7 +892,7 @@ describe('ADTStack', () => {
 			});
 
 			it('should return element on top of stack after multiple elements are removed', () => {
-				expect(instance.state.size).toBe(0);
+				expect(instance.size()).toBe(0);
 				const expectedValue = 1200001;
 				instance.push(33311);
 				instance.push(442133);

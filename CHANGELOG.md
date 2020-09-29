@@ -9,12 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added Priority Queue ADT
-- Added Circular Queue ADT
-- Added Object Pool ADT
+-   Added Queue ADT
+-   Added Stack ADT
+-   Added Linked List ADT
+-   Added Priority Queue ADT
+-   Added Circular Queue ADT
+-   Added Object Pool ADT
 
-- Added Serialization
+-   Added Serialization
 
-- Initial early release. Project API is not stable until v1.0.0. Types
+-   Added Query Selector
+
+-   Initial early release. Project API is not stable until v1.0.0. Types
 
 [unreleased]: https://github.com/armorjs/collections/compare/v0.0.0...HEAD

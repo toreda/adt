@@ -236,7 +236,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 	 * when >= 1 elements queued.
 	 */
 	public isEmpty(): boolean {
-		return this.state.elements.length === 0;
+		return this.size() === 0;
 	}
 
 	/**
@@ -319,6 +319,10 @@ export class ADTQueue<T> implements ADTBase<T> {
 	 * Returns number of elements in queue.
 	 */
 	public size(): number {
+		if (!this.isValidState(this.state)) {
+			return 0;
+		}
+
 		return this.state.elements.length;
 	}
 
@@ -342,7 +346,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 
 	public executeSync(callable: ADTQueueCallableSync, element: T | null): ArmorActionResult {
 		const result = new ArmorActionResult();
-		for (let i = 0; i < this.state.elements.length; i++) {
+		for (let i = 0; i < this.size(); i++) {
 			try {
 				callable(this.state.elements[i], i);
 			} catch (e) {}
@@ -361,7 +365,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 
 	public async execute(callable: ADTQueueCallable, element: T | null): Promise<ArmorActionResult> {
 		const result = new ArmorActionResult();
-		for (let i = 0; i < this.state.elements.length; i++) {
+		for (let i = 0; i < this.size(); i++) {
 			try {
 				await callable(this.state.elements[i], i);
 			} catch (e) {

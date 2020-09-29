@@ -198,11 +198,11 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		let front = this.wrapIndex(this.state.front);
 		let rear = this.wrapIndex(this.state.rear);
 
-		if (this.state.size && rear <= front) {
+		if (this.size() && rear <= front) {
 			rear = rear + this.state.maxSize;
 		}
 
-		if (this.state.size && index < front) {
+		if (this.size() && index < front) {
 			index = index + this.state.maxSize;
 		}
 
@@ -275,7 +275,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		let front = this.wrapIndex(this.state.front);
 		let rear = this.wrapIndex(this.state.rear);
 
-		if (this.state.size && rear <= front) {
+		if (this.size() && rear <= front) {
 			rear = rear + this.state.maxSize;
 		}
 
@@ -297,7 +297,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return null;
 		}
 
-		if (!this.state.size) {
+		if (!this.size()) {
 			return null;
 		}
 
@@ -311,7 +311,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		if (!this.isInteger(n)) {
 			return null;
 		}
-		if (!this.state.size) {
+		if (!this.size()) {
 			return null;
 		}
 
@@ -330,7 +330,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return false;
 		}
 
-		return this.state.size === 0;
+		return this.size() === 0;
 	}
 
 	public isFull(): boolean {
@@ -338,7 +338,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return false;
 		}
 
-		return this.state.size >= this.state.maxSize;
+		return this.size() >= this.state.maxSize;
 	}
 
 	public pop(): T | null {
@@ -420,7 +420,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return null;
 		}
 
-		if (!this.state.size) {
+		if (!this.size()) {
 			return null;
 		}
 
@@ -433,6 +433,14 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		this.state.type = 'cqState';
 
 		return this;
+	}
+
+	public size(): number {
+		if (!this.isValidState(this.state)) {
+			return 0;
+		}
+
+		return this.state.size;
 	}
 
 	public stringify(): string | null {

@@ -12,7 +12,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		this.state = this.parseOptions(options);
 
 		this.state.size = this.state.elements.length;
-		this.state.top = this.state.size - 1;
+		this.state.top = this.size() - 1;
 	}
 
 	public parseOptions(options?: ADTStackOptions<T>): ADTStackState<T> {
@@ -206,7 +206,7 @@ export class ADTStack<T> implements ADTBase<T> {
 	}
 
 	public bottom(): T | null {
-		if (!this.state.size) {
+		if (!this.size()) {
 			return null;
 		}
 
@@ -235,7 +235,7 @@ export class ADTStack<T> implements ADTBase<T> {
 	}
 
 	public pop(): T | null {
-		if (!this.state.size) {
+		if (!this.size()) {
 			return null;
 		}
 
@@ -299,12 +299,20 @@ export class ADTStack<T> implements ADTBase<T> {
 	}
 
 	public reverse(): ADTStack<T> {
-		if (this.state.size <= 1) {
+		if (this.size() <= 1) {
 			return this;
 		}
 
 		this.state.elements = this.state.elements.reverse();
 		return this;
+	}
+
+	public size(): number {
+		if (!this.isValidState(this.state)) {
+			return 0;
+		}
+
+		return this.state.size;
 	}
 
 	public stringify(): string | null {
@@ -316,7 +324,7 @@ export class ADTStack<T> implements ADTBase<T> {
 	}
 
 	public top(): T | null {
-		if (!this.state.size) {
+		if (!this.size()) {
 			return null;
 		}
 

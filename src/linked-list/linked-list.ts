@@ -154,27 +154,24 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return errors;
 	}
 
+	public isPartOfList(node: ADTLinkedListElement<T> | null): boolean {
+		if (node == null) {
+			return false;
+		}
+
+		let result = false;
+
+		this.forEach((elem) => {
+			if (elem === node) {
+				result = true;
+			}
+		});
+
+		return result;
+	}
+
 	public queryDelete(query: ADTQueryResult<ADTLinkedListElement<T>>): T | null {
-		const next = query.element.next();
-		const prev = query.element.prev();
-
-		if (next) {
-			next.prev(prev);
-		}
-		if (prev) {
-			prev.next(next);
-		}
-
-		if (query.element === this.head()) {
-			this.state.head = next;
-		}
-		if (query.element === this.tail()) {
-			this.state.tail = prev;
-		}
-
-		this.state.size--;
-		query.element.next(null);
-		query.element.prev(null);
+		this.deleteNode(query.element);
 
 		return query.element.value();
 	}
@@ -205,6 +202,39 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		this.state.size = 0;
 
 		return this;
+	}
+
+	public deleteNode(node: ADTLinkedListElement<T> | null): T | null {
+		if (node == null) {
+			return null;
+		}
+
+		if (!this.isPartOfList(node)) {
+			return node.value();
+		}
+
+		const next = node.next();
+		const prev = node.prev();
+
+		if (next) {
+			next.prev(prev);
+		}
+		if (prev) {
+			prev.next(next);
+		}
+
+		if (node === this.head()) {
+			this.state.head = next;
+		}
+		if (node === this.tail()) {
+			this.state.tail = prev;
+		}
+
+		this.state.size--;
+		node.next(null);
+		node.prev(null);
+
+		return node.value();
 	}
 
 	public forEach(
@@ -363,7 +393,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	public reverse(): ADTLinkedList<T> {
 		let curr = this.state.head;
 
-		if (!curr || this.state.size <= 1) {
+		if (!curr || this.size() <= 1) {
 			return this;
 		}
 
@@ -386,10 +416,17 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return this;
 	}
 
+	/**
+	 * Returns number of elements in queue.
+	 */
+	public size(): number {
+		return this.state.size;
+	}
+
 	public stringify(): string {
 		const list: Array<T> = [];
 
-		if (!this.head() || !this.tail() || this.state.size === 0) {
+		if (!this.head() || !this.tail() || this.size() === 0) {
 			return JSON.stringify(this.state);
 		}
 

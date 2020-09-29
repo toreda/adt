@@ -837,18 +837,33 @@ describe('ADTQueue', () => {
 		});
 
 		describe('size', () => {
-			it('should return 0 when queue is empty', () => {
-				expect(instance.size()).toBe(0);
+			isValidStateRuns((obj) => {
+				obj.size();
+			});
+
+			it('should return null if isValidState returns false', () => {
+				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.size()).toBe(0);
 			});
 
-			it('should return the number of items in queue', () => {
-				const items = [1, 2, 3, 4, 5, 6, 7];
+			it('should return 0 when priority queue is empty', () => {
+				expect(instance.size()).toBe(0);
+			});
 
-				items.forEach((expectedV: number) => {
-					instance.push(expectedV);
-					expect(instance.size()).toBe(expectedV);
-				});
+			it('should return 1 when pq has 1 item', () => {
+				instance.push(Math.floor(Math.random() * 99999));
+				expect(instance.size()).toBe(1);
+			});
+
+			it('should return the number of items in priority queue', () => {
+				const limit = 5;
+
+				for (let i = 0; i < limit; i++) {
+					instance.push(Math.floor(Math.random() * 99999));
+					expect(instance.size()).toBe(i + 1);
+				}
+
+				expect(instance.size()).toBe(limit);
 			});
 		});
 
