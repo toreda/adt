@@ -1,7 +1,8 @@
 {
-  "name": "@armorjs/collections",
+  "name": "@toreda/adt",
   "version": "0.0.0",
   "description": "",
+  "public": true,
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
@@ -10,19 +11,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/armorjs/collections.git"
+    "url": "git+https://github.com/toreda/adt.git"
   },
   "keywords": [
     "Typescript",
     "data",
     "structures"
   ],
-  "author": "Michael Brich",
-  "license": "UNLICENSED",
+  "author": "Toreda, Inc.",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/armorjs/collections/issues"
+    "url": "https://github.com/toreda/adt/issues"
   },
-  "homepage": "https://github.com/armorjs/collections#readme",
+  "homepage": "https://github.com/toreda/adt#readme",
   "devDependencies": {
     "@armorjs/build": "^0.0.2",
     "@types/jest": "^25.2.1",
