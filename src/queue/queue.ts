@@ -184,7 +184,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 	}
 
 	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
-		let options: Required<ADTQueryOptions> = {
+		const options: Required<ADTQueryOptions> = {
 			limit: Infinity
 		};
 
@@ -262,9 +262,12 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public query(filters: ADTQueryFilter<T> | ADTQueryFilter<T>[], opts?: ADTQueryOptions): ADTQueryResult<T>[] {
-		let resultsArray: ADTQueryResult<T>[] = [];
-		let options = this.queryOptions(opts);
+	public query(
+		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
+		opts?: ADTQueryOptions
+	): ADTQueryResult<T>[] {
+		const resultsArray: ADTQueryResult<T>[] = [];
+		const options = this.queryOptions(opts);
 
 		this.forEach((element, index) => {
 			let take = false;
@@ -331,7 +334,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 			return null;
 		}
 
-		let state = JSON.stringify(this.state);
+		const state = JSON.stringify(this.state);
 
 		return state;
 	}

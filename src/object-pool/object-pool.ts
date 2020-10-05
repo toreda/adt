@@ -89,7 +89,10 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: ADTObjectPoolState<T>, options?: ADTObjectPoolOptions<T>): ADTObjectPoolState<T> {
+	public parseOptionsOther(
+		s: ADTObjectPoolState<T>,
+		options?: ADTObjectPoolOptions<T>
+	): ADTObjectPoolState<T> {
 		let state: ADTObjectPoolState<T> | null = s;
 
 		if (!s) {
@@ -228,7 +231,7 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 			this.increaseCapacity(Math.ceil(this.state.objectCount * this.state.increaseFactor));
 		}
 
-		let result = this.state.elements.pop();
+		const result = this.state.elements.pop();
 
 		if (result == null) {
 			return null;
@@ -245,7 +248,7 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 			num = n;
 		}
 
-		let result: Array<T> = [];
+		const result: Array<T> = [];
 
 		for (let i = 0; i < num && this.state.elements.length; i++) {
 			const item = this.allocate();
@@ -278,7 +281,10 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		}
 	}
 
-	public query(filters: ADTQueryFilter<T> | ADTQueryFilter<T>[], options?: ADTQueryOptions): ADTQueryResult<T>[] {
+	public query(
+		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
+		options?: ADTQueryOptions
+	): ADTQueryResult<T>[] {
 		return [];
 	}
 

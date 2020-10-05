@@ -82,7 +82,10 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: ADTLinkedListState<T>, options?: ADTLinkedListOptions<T>): ADTLinkedListState<T> {
+	public parseOptionsOther(
+		s: ADTLinkedListState<T>,
+		options?: ADTLinkedListOptions<T>
+	): ADTLinkedListState<T> {
 		let state: ADTLinkedListState<T> | null = s;
 
 		if (!s) {
@@ -177,7 +180,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	}
 
 	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
-		let options: Required<ADTQueryOptions> = {
+		const options: Required<ADTQueryOptions> = {
 			limit: Infinity
 		};
 
@@ -241,7 +244,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		func: (element: ADTLinkedListElement<T>, index: number, arr: ADTLinkedListElement<T>[]) => void,
 		thisArg?: any
 	): ADTLinkedList<T> {
-		let arr = this.getAsArray();
+		const arr = this.getAsArray();
 
 		let boundThis = this;
 		if (thisArg) {
@@ -256,7 +259,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	}
 
 	public getAsArray(): ADTLinkedListElement<T>[] {
-		let result: ADTLinkedListElement<T>[] = [];
+		const result: ADTLinkedListElement<T>[] = [];
 
 		let node = this.head();
 
@@ -336,8 +339,8 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
 		opts?: ADTQueryOptions
 	): ADTQueryResult<ADTLinkedListElement<T>>[] {
-		let resultsArray: ADTQueryResult<ADTLinkedListElement<T>>[] = [];
-		let options = this.queryOptions(opts);
+		const resultsArray: ADTQueryResult<ADTLinkedListElement<T>>[] = [];
+		const options = this.queryOptions(opts);
 
 		this.forEach((element) => {
 			let take = false;
@@ -367,7 +370,9 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 				return false;
 			}
 
-			const result: ADTQueryResult<ADTLinkedListElement<T>> = {} as ADTQueryResult<ADTLinkedListElement<T>>;
+			const result: ADTQueryResult<ADTLinkedListElement<T>> = {} as ADTQueryResult<
+				ADTLinkedListElement<T>
+			>;
 			result.element = element;
 			result.key = () => null;
 			result.index = () => null;
@@ -431,7 +436,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		}
 
 		this.forEach((element) => {
-			let value = element.value();
+			const value = element.value();
 			if (value != null) {
 				list.push(value);
 			}
