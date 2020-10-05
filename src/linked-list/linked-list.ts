@@ -374,8 +374,8 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 				ADTLinkedListElement<T>
 			>;
 			result.element = element;
-			result.key = () => null;
-			result.index = () => null;
+			result.key = (): string | null => null;
+			result.index = (): number | null => null;
 			result.delete = this.queryDelete.bind(this, result);
 			resultsArray.push(result);
 		});

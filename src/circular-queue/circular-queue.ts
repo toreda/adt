@@ -409,7 +409,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 
 			const result: ADTQueryResult<T> = {} as ADTQueryResult<T>;
 			result.element = element;
-			result.key = () => null;
+			result.key = (): any => null;
 			result.index = this.queryIndex.bind(this, element);
 			result.delete = this.queryDelete.bind(this, result);
 			resultsArray.push(result);
