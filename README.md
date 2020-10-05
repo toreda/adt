@@ -31,6 +31,7 @@ Each ADT uses TypeScript generics of type<T> and implements `ADTBase` and `ADTBa
 	): ADTQueryResult<T>[] | ADTQueryResult<ADTBaseElement<T>>[];`
 
 # Data Structures
+
 * [`ADTCircularQueue`](#ADTCircularQueue)
 * [`ADTLinkedList`](#ADTLinkedList)
 * [`ADTQueue`](#ADTQueue)
