@@ -2,6 +2,7 @@ import { dest, parallel, series, src } from 'gulp';
 
 import { ArmorBuild } from '@armorjs/build';
 import { EventEmitter } from 'events';
+const eslint = require('gulp-eslint');
 
 const build: ArmorBuild = new ArmorBuild(new EventEmitter());
 
