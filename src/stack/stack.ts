@@ -195,7 +195,6 @@ export class ADTStack<T> implements ADTBase<T> {
 
 	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
 		const options: Required<ADTQueryOptions> = {
-
 			limit: Infinity
 		};
 
