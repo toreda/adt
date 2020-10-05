@@ -1,214 +1,46 @@
-# ArmorJS - Collections
+# `@toreda/adt` Abstract Data Types
 
-![CI](https://github.com/Toreda/ADT/workflows/CI/badge.svg?branch=master) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=coverage)](https://sonarcloud.io/dashboard?id=toreda_adt) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=alert_status)](https://sonarcloud.io/dashboard?id=toreda_adt)
+![CI](https://github.com/toreda/adt/workflows/CI/badge.svg?branch=master) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=coverage)](https://sonarcloud.io/dashboard?id=toreda_adt) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=alert_status)](https://sonarcloud.io/dashboard?id=toreda_adt)
 
-Collection of simple data structures with typescript interfaces.
+Collection of TypeScript generic data structures with consistent APIs for search, insertion, and deletion.
 
-## Contents
+# Contents
+* [**Basic Usage**](#basic-usage)
+*	[**Data Structures**](#built-in-types)
+		* [`ADTCircularQueue`](#ADTCircularQueue)
+		* [`ADTLinkedList`](#ADTLinkedList)
+		* [`ADTPriorityQueue`](#ADTPriorityQueue)
+		* [`ADTObjectPool`](#ADTObjectPool)
+		* [`ADTQueue`](#ADTQueue)
+		* [`ADTStack`](#ADTStack)
+* 	[**Package**](#Package)
+	-	[Build](#Build)
+	-	[Testing](#testing)
+	-   [License](#license)
 
--   [About ArmorJS](#about-armorjs)
--   [Installation](#Installation)
--   [Usage](#usage)
--   [Build](#build)
--   [Testing](#testing)
--   [License](#license)
+# **`ADTBase` Interface**
+Each ADT uses TypeScript generics of type<T> and implements `ADTBase` and `ADTBaseElement` interfaces.
 
-## About ArmorJS
+`ADTBase` requires these functions:
+* `clearElements(): void`
+* `reset(): void`
+* `stringify(): string | null`
+* `	query(
+		query: ADTQueryFilter<T> | ADTQueryFilter<T>[],
+		options?: ADTQueryOptions
+	): ADTQueryResult<T>[] | ADTQueryResult<ADTBaseElement<T>>[];`
 
-[Learn more about ArmorJS](https://github.com/armorjs/_project-home)
+# Data Structures
+* [`ADTCircularQueue`](#ADTCircularQueue)
+* [`ADTLinkedList`](#ADTLinkedList)
+* [`ADTQueue`](#ADTQueue)
+* [`ADTStack`](#ADTStack)
 
-## Install
-
-**_With yarn (preferred):_**
-`yarn add @toreda/adt`
-
-With NPM:
-`npm install @toreda/adt`
-
-## Usage
-
-### Queue
-
-Typescript
-
-```
-// Import
-import {ADTQueue} from '@toreda/adt';
-// Instantiate
-const myQueue = new ADTQueue<string>();
-const myQueueWithOption = new ADTQueue<string>({
-	elements: ['a', 'b', 'c']
-});
-
-// Add elements to queue
-myQueue.push("my string 1"); // return myQueue
-myQueue.push("my string 2"); // return myQueue
-
-// Get queue size
-const size = myQueue.size(); // returns 2
-
-// Iterate through elements
-myQueue.forEach((elem, index, arr) => {
-	console.log(elem + ' is at index ' + index + ' in array ' + arr)
-}); // returns myQueue
-// outputs 'my string 1 is at index 0 in array ["my string 1", "my string 2"]'
-// outputs 'my string 2 is at index 1 in array ["my string 1", "my string 2"]'
-
-// Remove first element from queue
-const result1 = myQueue.pop(); // returns "my string 1"
-const result2 = myQueue.pop(); // returns "my string 2"
-const result3 = myQueue.pop(); // returns null because myQueue is already empty.
-
-// Reset queue and remove all elements.
-myQueue.reset(); // returns myQueue
-
-// Queue 3 items via chained push calls.
-myQueue.push("one").push("two").push("three");
-
-// Reverse the order of queued elements.
-// "one", "two", "three" becomes "three", "two", "one"
-myQueue.reverse();
-
-// Returns the current state of queue as string
-const serialized = myQueue.stringify();
-
-// Instantiate a queue using serialized state
-const serialQueue = new ADTQueue({serializedState: serialized});
-```
-
-### Stack
+## **`ADTCircularQueue<T>`**
 
 Typescript
 
-```
-// Import
-import {ADTStack} from '@toreda/adt';
-// Instantiate
-const myStack = new ADTStack<string>();
-const myStackWithOption = new ADTStack<string>({
-	elements: ['a', 'b', 'c']
-});
-
-// Add elements to stack
-myStack.push("my string 1"); // return myStack
-myStack.push("my string 2"); // return myStack
-
-// Get stack size
-const size = myStack.size(); // returns 2
-
-// Iterate through elements
-myStack.forEach((elem, index, arr) => {
-	console.log(elem + ' is at index ' + index + ' in array ' + arr)
-}); // returns myStack
-// outputs 'my string 2 is at index 0 in array ["my string 2", "my string 1"]'
-// outputs 'my string 1 is at index 1 in array ["my string 2", "my string 1"]'
-
-// Remove first element from stack
-const result1 = myStack.pop(); // returns "my string 2"
-const result2 = myStack.pop(); // returns "my string 1"
-const result3 = myStack.pop(); // returns null because myStack is already empty.
-
-// Reset stack and remove all elements.
-myStack.reset(); // returns myStack
-
-// Queue 3 items via chained push calls.
-myStack.push("one").push("two").push("three");
-
-// Reverse the order of stack elements.
-// "one", "two", "three" becomes "three", "two", "one"
-myStack.reverse();
-
-// Returns the current state of stack as string
-const serialized = myStack.stringify();
-
-// Instantiate a queue using serialized state
-const serialStack = new ADTStack({serializedState: serialized});
-```
-
-### LinkedList
-
-Typescript
-
-```
-// Import
-import {ADTLinkedList} from '@toreda/adt';
-// Instantiate
-const myLinkedList = new ADTLinkedList<string>();
-const myStackWithOption = new ADTStack<string>({
-	elements: ['a', 'b', 'c']
-});
-
-// Add elements to the tail of linked list
-myLinkedList.insert("my string 1"); // returns arg converted to ADTLinkedListElement
-myLinkedList.insert("my string 2"); // returns arg converted to ADTLinkedListElement
-myLinkedList.insertAtTail("my string 3"); // returns arg converted to ADTLinkedListElement
-
-// Add elements to the head of linked list
-myLinkedList.insertAtHead("my string 0"); // returns arg converted to ADTLinkedListElement
-
-// Get linked list size
-const size = myLinkedList.size(); // returns 4
-
-// Get head of linked list
-let head = myLinkedList.head();// returns object holding "my string 0" as value
-
-// Get tail of linked list
-let tail = myLinkedList.tail();// returns object holding "my string 3" as value
-
-// Get value of linked list element
-let headValue = head.value(); // returns "my string 0"
-let tailValue = tail.value(); // returns "my string 3"
-
-// Set value of linked list element
-head.value("MY STRING 0"); // returns null
-tail.value("MY STRING 3"); // returns null
-
-// Move to next linked node
-let next = head.next() // returns object holding "my string 1" as value
-next = next.next() // returns object holding "my string 2" as value
-next = next.next() // returns object holding "MY STRING 3" as value
-next = next.next() // returns null
-
-// Move to previous linked node
-let prev = head.prev() // returns object holding "my string 2" as value
-prev = prev.prev() // returns object holding "my string 1" as value
-prev = prev.prev() // returns object holding "MY STRING 0" as value
-prev = prev.prev() // returns null
-
-// Iterate through elements
-myLinkedList.forEach((elem, index, arr) => {
-	console.log(elem + ' is at index ' + index + ' in array ' + arr)
-}); // returns myLinkedList
-// outputs 'MY STRING 0 is at index 0 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
-// outputs 'my string 1 is at index 1 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
-// outputs 'my string 2 is at index 2 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
-// outputs 'MY STRING 3 is at index 3 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
-
-// Remove node from linked list
-myLinkedList.deleteNode(head); // returns "MY STRING 0"
-myLinkedList.deleteNode(tail); // returns "MY STRING 3"
-myLinkedList.head(); // returns "my string 1"
-myLinkedList.tail(); // returns "my string 2"
-
-// Reset linked list and remove all elements.
-myLinkedList.reset(); // returns myLinkedList
-
-// Reverse the order of queued elements.
-// "one", "two", "three" becomes "three", "two", "one"
-myLinkedList.reverse();
-
-// Returns the current state of queue as string
-const serialized = myLinkedList.stringify();
-
-// Instantiate a queue using serialized state
-const serialLinkedList = new ADTLinkedList({serializedState: serialized});
-```
-
-### Circular Queue
-
-Typescript
-
-```
+```typescript
 // Import
 import {ADTCircularQueue} from '@toreda/adt';
 
@@ -342,11 +174,190 @@ const serialized = circularQueue.stringify();
 const circularQueueFromSerialized = new ADTCircularQueue({serializedState: serialized});
 ```
 
-### Priority Queue
+
+## `ADTQueue<T>`
 
 Typescript
 
+```typescript
+// Import
+import {ADTQueue} from '@toreda/adt';
+// Instantiate
+const myQueue = new ADTQueue<string>();
+const myQueueWithOption = new ADTQueue<string>({
+	elements: ['a', 'b', 'c']
+});
+
+// Add elements to queue
+myQueue.push("my string 1"); // return myQueue
+myQueue.push("my string 2"); // return myQueue
+
+// Get queue size
+const size = myQueue.size(); // returns 2
+
+// Iterate through elements
+myQueue.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns myQueue
+// outputs 'my string 1 is at index 0 in array ["my string 1", "my string 2"]'
+// outputs 'my string 2 is at index 1 in array ["my string 1", "my string 2"]'
+
+// Remove first element from queue
+const result1 = myQueue.pop(); // returns "my string 1"
+const result2 = myQueue.pop(); // returns "my string 2"
+const result3 = myQueue.pop(); // returns null because myQueue is already empty.
+
+// Reset queue and remove all elements.
+myQueue.reset(); // returns myQueue
+
+// Queue 3 items via chained push calls.
+myQueue.push("one").push("two").push("three");
+
+// Reverse the order of queued elements.
+// "one", "two", "three" becomes "three", "two", "one"
+myQueue.reverse();
+
+// Returns the current state of queue as string
+const serialized = myQueue.stringify();
+
+// Instantiate a queue using serialized state
+const serialQueue = new ADTQueue({serializedState: serialized});
 ```
+
+## `ADTStack<T>`
+
+Typescript
+
+```typescript
+// Import
+import {ADTStack} from '@toreda/adt';
+// Instantiate
+const myStack = new ADTStack<string>();
+const myStackWithOption = new ADTStack<string>({
+	elements: ['a', 'b', 'c']
+});
+
+// Add elements to stack
+myStack.push("my string 1"); // return myStack
+myStack.push("my string 2"); // return myStack
+
+// Get stack size
+const size = myStack.size(); // returns 2
+
+// Iterate through elements
+myStack.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns myStack
+// outputs 'my string 2 is at index 0 in array ["my string 2", "my string 1"]'
+// outputs 'my string 1 is at index 1 in array ["my string 2", "my string 1"]'
+
+// Remove first element from stack
+const result1 = myStack.pop(); // returns "my string 2"
+const result2 = myStack.pop(); // returns "my string 1"
+const result3 = myStack.pop(); // returns null because myStack is already empty.
+
+// Reset stack and remove all elements.
+myStack.reset(); // returns myStack
+
+// Queue 3 items via chained push calls.
+myStack.push("one").push("two").push("three");
+
+// Reverse the order of stack elements.
+// "one", "two", "three" becomes "three", "two", "one"
+myStack.reverse();
+
+// Returns the current state of stack as string
+const serialized = myStack.stringify();
+
+// Instantiate a queue using serialized state
+const serialStack = new ADTStack({serializedState: serialized});
+```
+
+## `ADTLinkedList<T>`
+
+Typescript
+
+```typescript
+// Import
+import {ADTLinkedList} from '@toreda/adt';
+// Instantiate
+const myLinkedList = new ADTLinkedList<string>();
+const myStackWithOption = new ADTStack<string>({
+	elements: ['a', 'b', 'c']
+});
+
+// Add elements to the tail of linked list
+myLinkedList.insert("my string 1"); // returns arg converted to ADTLinkedListElement
+myLinkedList.insert("my string 2"); // returns arg converted to ADTLinkedListElement
+myLinkedList.insertAtTail("my string 3"); // returns arg converted to ADTLinkedListElement
+
+// Add elements to the head of linked list
+myLinkedList.insertAtHead("my string 0"); // returns arg converted to ADTLinkedListElement
+
+// Get linked list size
+const size = myLinkedList.size(); // returns 4
+
+// Get head of linked list
+let head = myLinkedList.head();// returns object holding "my string 0" as value
+
+// Get tail of linked list
+let tail = myLinkedList.tail();// returns object holding "my string 3" as value
+
+// Get value of linked list element
+let headValue = head.value(); // returns "my string 0"
+let tailValue = tail.value(); // returns "my string 3"
+
+// Set value of linked list element
+head.value("MY STRING 0"); // returns null
+tail.value("MY STRING 3"); // returns null
+
+// Move to next linked node
+let next = head.next() // returns object holding "my string 1" as value
+next = next.next() // returns object holding "my string 2" as value
+next = next.next() // returns object holding "MY STRING 3" as value
+next = next.next() // returns null
+
+// Move to previous linked node
+let prev = head.prev() // returns object holding "my string 2" as value
+prev = prev.prev() // returns object holding "my string 1" as value
+prev = prev.prev() // returns object holding "MY STRING 0" as value
+prev = prev.prev() // returns null
+
+// Iterate through elements
+myLinkedList.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns myLinkedList
+// outputs 'MY STRING 0 is at index 0 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
+// outputs 'my string 1 is at index 1 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
+// outputs 'my string 2 is at index 2 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
+// outputs 'MY STRING 3 is at index 3 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
+
+// Remove node from linked list
+myLinkedList.deleteNode(head); // returns "MY STRING 0"
+myLinkedList.deleteNode(tail); // returns "MY STRING 3"
+myLinkedList.head(); // returns "my string 1"
+myLinkedList.tail(); // returns "my string 2"
+
+// Reset linked list and remove all elements.
+myLinkedList.reset(); // returns myLinkedList
+
+// Reverse the order of queued elements.
+// "one", "two", "three" becomes "three", "two", "one"
+myLinkedList.reverse();
+
+// Returns the current state of queue as string
+const serialized = myLinkedList.stringify();
+
+// Instantiate a queue using serialized state
+const serialLinkedList = new ADTLinkedList({serializedState: serialized});
+```
+
+
+## **`ADTPriorityQueue<T>`**
+
+Typescript
+
+```typescript
 // Import
 import {ADTPriorityQueue, ADTPriorityQueueComparator} from '@toreda/adt';
 
@@ -392,11 +403,11 @@ const serialized = priorityQueue.stringify();
 const priorityQueueFromSerialized = new ADTPriorityQueue(priorityQueueComparator, {serializedState: serialized});
 ```
 
-### Object Pool
+## **`ADTObjectPool<T>`**
 
 Typescript
 
-```
+```typescript
 // Import
 import {ADTObjectPool} from '@toreda/adt';
 
@@ -452,11 +463,11 @@ const serialized = objectPool.stringify();
 const objectPoolFromSerialized = new ADTPriorityQueue<objectClass>(objectClass, {serializedState: serialized});
 ```
 
-### Query Selectors
+# Query Selectors
 
 Typescript
 
-```
+```typescript
 import {ADTQueryFilter, ADTQueryResult, ADTQueryOptions} from '@toreda/adt';
 import {ADTQueue, ADTStack, ADTLinkedList, ADTCircularQueue, ADTPriorityQueue} from '@toreda/adt';
 
@@ -544,42 +555,52 @@ queryResults[0].element; // returns 20
 queryResults[1].element; // returns 30
 ```
 
-## Build
+# Install
+Install `@toreda/adt` directly from NPM or [clone the Github repo](https://github.com/toreda/adt).
 
-Build (or rebuild) the package:
-
-**_With Yarn (preferred):_**
-
+### Install using Yarn (preferred)
+ 1. Open a shell (or console).
+ 2. Navigate to the the adt project root folder.
+ 3. Enter the following commands in order. Wait for each to complete before typing the next.
+```bash
+yarn
 ```
-yarn install
-yarn build
-```
 
-With NPM:
-
-```
+### Install using NPM
+ 1. Open a shell (or console).
+ 2. Navigate to the the `@toreda/adt` project root folder.
+ 3. Enter the following commands in order. Wait for each to complete before typing the next.
+```bash
 npm install
-npm run-script build
 ```
 
-## Testing
 
-`@toreda/adt` implements unit tests using jest. Run the following commands from the directory where `@toreda/adt` has been installed.
+# Run Unit Tests
+Install or clone `@toreda/adt` [(see above)](#install).
 
-**_With yarn (preferred):_**
+ADT unit tests use [Jest](https://jestjs.io/).
 
-```
-yarn install
+Installing jest is not required after project dependencies are installed ([see above](#install)).
+```bash
 yarn test
 ```
 
-With NPM:
+# Build from source
 
+The next steps are the same whether you installed the package using NPM or cloned the repo from Github.
+
+### Build with Yarn
+ Enter the following commands in order from the adt project root.
+```bash
+yarn build
 ```
-npm install
-npm run-script test
+
+### Build with NPM
+ Enter the following commands in order from the adt project root.
+```bash
+npm run-script build
 ```
 
-## License
+# License
 
-[MIT](LICENSE) &copy; Michael Brich
+[MIT](LICENSE) &copy; Toreda, Inc.
