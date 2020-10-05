@@ -1,82 +1,53 @@
-# ArmorJS - Collections
+# `@toreda/adt` Abstract Data Types
 
-![CI](https://github.com/Toreda/ADT/workflows/CI/badge.svg?branch=master) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=coverage)](https://sonarcloud.io/dashboard?id=toreda_adt) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=alert_status)](https://sonarcloud.io/dashboard?id=toreda_adt)
+![CI](https://github.com/toreda/adt/workflows/CI/badge.svg?branch=master) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=coverage)](https://sonarcloud.io/dashboard?id=toreda_adt) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=alert_status)](https://sonarcloud.io/dashboard?id=toreda_adt)
 
-Collection of simple data structures with typescript interfaces.
+Collection of TypeScript generic data structures with consistent APIs for search, insertion, and deletion.
 
-## Contents
+# Contents
+* [**Basic Usage**](#basic-usage)
+*	[**Data Structures**](#built-in-types)
+		* [`ADTCircularQueue`](#ADTCircularQueue)
+		* [`ADTLinkedList`](#ADTLinkedList)
+		* [`ADTPriorityQueue`](#ADTPriorityQueue)
+		* [`ADTObjectPool`](#ADTObjectPool)
+		* [`ADTQueue`](#ADTQueue)
+		* [`ADTStack`](#ADTStack)
+* 	[**Package**](#Package)
+	-	[Build](#Build)
+	-	[Testing](#testing)
+	-   [License](#license)
 
--   [About ArmorJS](#about-armorjs)
--   [Installation](#Installation)
--   [Usage](#usage)
--   [Build](#build)
--   [Testing](#testing)
--   [License](#license)
+# **`ADTBase` Interface**
+Each ADT uses TypeScript generics of type<T> and implements `ADTBase` and `ADTBaseElement` interfaces.
 
-## About ArmorJS
+`ADTBase` requires these functions:
+* `clearElements(): void`
+* `reset(): void`
+* `stringify(): string | null`
+* `	query(
+		query: ADTQueryFilter<T> | ADTQueryFilter<T>[],
+		options?: ADTQueryOptions
+	): ADTQueryResult<T>[] | ADTQueryResult<ADTBaseElement<T>>[];`
 
-[Learn more about ArmorJS](https://github.com/armorjs/_project-home)
+# Data Structures
 
-## Install
+* [`ADTCircularQueue`](#ADTCircularQueue)
+* [`ADTLinkedList`](#ADTLinkedList)
+* [`ADTQueue`](#ADTQueue)
+* [`ADTStack`](#ADTStack)
 
-**_With yarn (preferred):_**
-`yarn add @toreda/adt`
-
-With NPM:
-`npm install @toreda/adt`
-
-## Usage
-
-### Queue
-
-
-Typescript
-
-```
-// Import
-import {ArmorQueue} from '@toreda/adt';
-// Instantiate
-const queue = new ArmorQueue<string>();
-
-// Add elements to queue
-queue.push("my string");
-queue.push("my string 2");
-
-// Returns 2
-const size = queue.size;
-
-// Returns "my string"
-const result = queue.pop();
-
-// Returns "my string 2"
-const result2 = queue.pop();
-
-// Returns null because queue is already empty.
-const result3 = queue.pop();
-
-// Reset queue and remove all elements.
-queue.reset();
-
-
-// Queue 3 items via chained push calls.
-queue.push("one").push("two").push("three");
-
-// Reverse the order of queued elements.
-// "one", "two", "three" becomes "three", "two", "one"
-queue.reverse();
-```
-
-### Circular Queue
+## **`ADTCircularQueue<T>`**
 
 Typescript
 
-```
+```typescript
 // Import
-import {ArmorCircularQueue} from '@toreda/adt';
+import {ADTCircularQueue} from '@toreda/adt';
 
 // Instantiate
-const circularQueueDefault = new ArmorCircularQueue<number>();
-const circularQueueWithOptions = new ArmorCircularQueue<number>({
+const circularQueueDefault = new ADTCircularQueue<number>();
+const circularQueueWithOptions = new ADTCircularQueue<number>({
 	maxSize: 999,
 	size: 3,
 	elements[,,,1,2,3,],
@@ -85,13 +56,9 @@ const circularQueueWithOptions = new ArmorCircularQueue<number>({
 	overwrite: true
 });
 
-const circularQueue = new ArmorCircularQueue<number>({
+// Use as Queue
+const circularQueue = new ADTCircularQueue<number>({
 	maxSize: 4,
-});
-
-const circularBuffer = new ArmorCircularQueue<number>({
-	maxSize: 4,
-	overwrite: true
 });
 
 // Add element to the queue
@@ -101,108 +68,349 @@ circularQueue.push(30) // returns true;
 circularQueue.push(40) // returns true;
 circularQueue.push(50) // returns false;
 
+// Get queue size
+circularQueue.size(); // returns 4
+
+// Get first element added to queue
+circularQueue.front(); // returns 10
+
+// Get last element added to queue
+circularQueue.rear(); // returns 40
+
+// Get nth-after-first element added to queue
+circularQueue.getIndex(1); // returns 20
+circularQueue.getIndex(2); // returns 30
+
+// Get nth-to-last element added to queue
+circularQueue.getIndex(-1); // returns 30
+circularQueue.getIndex(-2); // returns 20
+
+// Remove element from the queue
+circularQueue.pop(); // returns 10
+circularQueue.pop(); // returns 20
+circularQueue.size(); // returns 2
+circularQueue.pop(); // returns 30
+circularQueue.pop(); // returns 40
+circularQueue.size(); // returns 0
+circularQueue.pop(); // returns null
+
+// Use as Buffer
+const circularBuffer = new ADTCircularQueue<number>({
+	maxSize: 4,
+	overwrite: true
+});
+
+// Add element to the buffer
 circularBuffer.push(10) // returns true;
 circularBuffer.push(20) // returns true;
 circularBuffer.push(30) // returns true;
 circularBuffer.push(40) // returns true;
 circularBuffer.push(50) // returns true;
 
-// Get first element added to queue
-circularQueue.front(); // returns 10
+// Get queue size
+circularBuffer.size(); // returns 4
+
+// Get first element added to buffer
 circularBuffer.front(); // returns 20
 
-// Get last element added to queue
-circularQueue.rear(); // returns 40
+// Get last element added to buffer
 circularBuffer.rear(); // returns 50
 
-// Get nth-after-first element added to queue
-circularQueue.getIndex(1); // returns 20
-circularQueue.getIndex(2); // returns 30
+// Get nth-after-first element added to buffer
 circularBuffer.getIndex(1); // returns 30
 circularBuffer.getIndex(2); // returns 40
 
-// Get nth-to-last element added to queue
-circularQueue.getIndex(-1); // returns 30
-circularQueue.getIndex(-2); // returns 20
+// Get nth-to-last element added to buffer
 circularBuffer.getIndex(-1); // returns 40
 circularBuffer.getIndex(-2); // returns 30
 
-// Remove element from the queue
-circularQueue.pop(); // returns 10
-circularQueue.pop(); // returns 20
-circularQueue.pop(); // returns 30
-circularQueue.pop(); // returns 40
-circularQueue.pop(); // returns null
-
+// Remove element from the buffer
 circularBuffer.pop(); // returns 20
 circularBuffer.pop(); // returns 30
+circularBuffer.size(); // returns 2
 circularBuffer.pop(); // returns 40
 circularBuffer.pop(); // returns 50
+circularBuffer.size(); // returns 0
 circularBuffer.pop(); // returns null
 
-// Remove all elements from queue
+// Remove all elements from buffer
 circularQueue.clearElements();
+
+// Iterate through queue
+circularQueue.push(10); // returns true
+circularQueue.push(20); // returns true
+circularQueue.push(30); // returns true
+circularQueue.pop(); // returns 10
+circularQueue.size() // returns 2
+circularQueue.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns circularQueue
+// outputs '20 is at index 1 in array [10, 20, 30]'
+// outputs '30 is at index 2 in array [10, 20, 30]'
+
+circularQueue.push(40); // returns true
+circularQueue.push(50); // returns true
+circularQueue.size() // returns 4
+circularQueue.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns circularQueue
+// outputs '20 is at index 1 in array [50, 20, 30, 40]'
+// outputs '30 is at index 2 in array [50, 20, 30, 40]'
+// outputs '40 is at index 3 in array [50, 20, 30, 40]'
+// outputs '50 is at index 0 in array [50, 20, 30, 40]'
+
+circularQueue.pop(); // returns 20
+circularQueue.pop(); // returns 30
+circularQueue.size() // returns 2
+circularQueue.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns circularQueue
+// outputs '40 is at index 3 in array [50, 20, 30, 40]'
+// outputs '50 is at index 0 in array [50, 20, 30, 40]'
 
 // Returns the current state of priorityQueue as string
 const serialized = circularQueue.stringify();
 
 // Instantiate a Priority Queue using serialized state
-const circularQueueFromSerialized = new ArmorCircularQueue({serializedState: serialized});
+const circularQueueFromSerialized = new ADTCircularQueue({serializedState: serialized});
 ```
 
-### Priority Queue
+
+## `ADTQueue<T>`
 
 Typescript
 
-```
+```typescript
 // Import
-import {ArmorPriorityQueue} from '@toreda/adt';
+import {ADTQueue} from '@toreda/adt';
+// Instantiate
+const myQueue = new ADTQueue<string>();
+const myQueueWithOption = new ADTQueue<string>({
+	elements: ['a', 'b', 'c']
+});
+
+// Add elements to queue
+myQueue.push("my string 1"); // return myQueue
+myQueue.push("my string 2"); // return myQueue
+
+// Get queue size
+const size = myQueue.size(); // returns 2
+
+// Iterate through elements
+myQueue.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns myQueue
+// outputs 'my string 1 is at index 0 in array ["my string 1", "my string 2"]'
+// outputs 'my string 2 is at index 1 in array ["my string 1", "my string 2"]'
+
+// Remove first element from queue
+const result1 = myQueue.pop(); // returns "my string 1"
+const result2 = myQueue.pop(); // returns "my string 2"
+const result3 = myQueue.pop(); // returns null because myQueue is already empty.
+
+// Reset queue and remove all elements.
+myQueue.reset(); // returns myQueue
+
+// Queue 3 items via chained push calls.
+myQueue.push("one").push("two").push("three");
+
+// Reverse the order of queued elements.
+// "one", "two", "three" becomes "three", "two", "one"
+myQueue.reverse();
+
+// Returns the current state of queue as string
+const serialized = myQueue.stringify();
+
+// Instantiate a queue using serialized state
+const serialQueue = new ADTQueue({serializedState: serialized});
+```
+
+## `ADTStack<T>`
+
+Typescript
+
+```typescript
+// Import
+import {ADTStack} from '@toreda/adt';
+// Instantiate
+const myStack = new ADTStack<string>();
+const myStackWithOption = new ADTStack<string>({
+	elements: ['a', 'b', 'c']
+});
+
+// Add elements to stack
+myStack.push("my string 1"); // return myStack
+myStack.push("my string 2"); // return myStack
+
+// Get stack size
+const size = myStack.size(); // returns 2
+
+// Iterate through elements
+myStack.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns myStack
+// outputs 'my string 2 is at index 0 in array ["my string 2", "my string 1"]'
+// outputs 'my string 1 is at index 1 in array ["my string 2", "my string 1"]'
+
+// Remove first element from stack
+const result1 = myStack.pop(); // returns "my string 2"
+const result2 = myStack.pop(); // returns "my string 1"
+const result3 = myStack.pop(); // returns null because myStack is already empty.
+
+// Reset stack and remove all elements.
+myStack.reset(); // returns myStack
+
+// Queue 3 items via chained push calls.
+myStack.push("one").push("two").push("three");
+
+// Reverse the order of stack elements.
+// "one", "two", "three" becomes "three", "two", "one"
+myStack.reverse();
+
+// Returns the current state of stack as string
+const serialized = myStack.stringify();
+
+// Instantiate a queue using serialized state
+const serialStack = new ADTStack({serializedState: serialized});
+```
+
+## `ADTLinkedList<T>`
+
+Typescript
+
+```typescript
+// Import
+import {ADTLinkedList} from '@toreda/adt';
+// Instantiate
+const myLinkedList = new ADTLinkedList<string>();
+const myStackWithOption = new ADTStack<string>({
+	elements: ['a', 'b', 'c']
+});
+
+// Add elements to the tail of linked list
+myLinkedList.insert("my string 1"); // returns arg converted to ADTLinkedListElement
+myLinkedList.insert("my string 2"); // returns arg converted to ADTLinkedListElement
+myLinkedList.insertAtTail("my string 3"); // returns arg converted to ADTLinkedListElement
+
+// Add elements to the head of linked list
+myLinkedList.insertAtHead("my string 0"); // returns arg converted to ADTLinkedListElement
+
+// Get linked list size
+const size = myLinkedList.size(); // returns 4
+
+// Get head of linked list
+let head = myLinkedList.head();// returns object holding "my string 0" as value
+
+// Get tail of linked list
+let tail = myLinkedList.tail();// returns object holding "my string 3" as value
+
+// Get value of linked list element
+let headValue = head.value(); // returns "my string 0"
+let tailValue = tail.value(); // returns "my string 3"
+
+// Set value of linked list element
+head.value("MY STRING 0"); // returns null
+tail.value("MY STRING 3"); // returns null
+
+// Move to next linked node
+let next = head.next() // returns object holding "my string 1" as value
+next = next.next() // returns object holding "my string 2" as value
+next = next.next() // returns object holding "MY STRING 3" as value
+next = next.next() // returns null
+
+// Move to previous linked node
+let prev = head.prev() // returns object holding "my string 2" as value
+prev = prev.prev() // returns object holding "my string 1" as value
+prev = prev.prev() // returns object holding "MY STRING 0" as value
+prev = prev.prev() // returns null
+
+// Iterate through elements
+myLinkedList.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns myLinkedList
+// outputs 'MY STRING 0 is at index 0 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
+// outputs 'my string 1 is at index 1 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
+// outputs 'my string 2 is at index 2 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
+// outputs 'MY STRING 3 is at index 3 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
+
+// Remove node from linked list
+myLinkedList.deleteNode(head); // returns "MY STRING 0"
+myLinkedList.deleteNode(tail); // returns "MY STRING 3"
+myLinkedList.head(); // returns "my string 1"
+myLinkedList.tail(); // returns "my string 2"
+
+// Reset linked list and remove all elements.
+myLinkedList.reset(); // returns myLinkedList
+
+// Reverse the order of queued elements.
+// "one", "two", "three" becomes "three", "two", "one"
+myLinkedList.reverse();
+
+// Returns the current state of queue as string
+const serialized = myLinkedList.stringify();
+
+// Instantiate a queue using serialized state
+const serialLinkedList = new ADTLinkedList({serializedState: serialized});
+```
+
+
+## **`ADTPriorityQueue<T>`**
+
+Typescript
+
+```typescript
+// Import
+import {ADTPriorityQueue, ADTPriorityQueueComparator} from '@toreda/adt';
 
 // Instantiate
-const priorityQueueComparator: ArmorPriorityQueueComparator<number> = function(a, b) => a < b;
-const priorityQueue = new ArmorPriorityQueue<number>(priorityQueueComparator);
-const priorityQueueWithOptions = new ArmorPriorityQueue<number>(priorityQueueComparator, {
+const priorityQueueComparator: ADTPriorityQueueComparator<number> = function(a, b) => a < b;
+const priorityQueue = new ADTPriorityQueue<number>(priorityQueueComparator);
+const priorityQueueWithOptions = new ADTPriorityQueue<number>(priorityQueueComparator, {
 	elements: [1,2,3,4,5,6,7]
 });
 
 // Add elements to the queue
-priorityQueue.push(20); // returns queue
-priorityQueue.push(10); // returns queue
+priorityQueue.push(20); // returns priorityQueue
+priorityQueue.push(10); // returns priorityQueue
 
 // Get number of elements in queue
 const size = priorityQueue.size(); // returns 2
 
 // Get the root element of the queue
-const result = priorityQueue.front(); // Returns 10
+const result = priorityQueue.front(); // returns 10
+
+// Iterate through queue
+priorityQueue.forEach((elem, index, arr) => {
+	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+}); // returns priorityQueue
+// outputs '10 is at index 0 in array [10, 20]'
+// outputs '20 is at index 1 in array [10, 20]'
 
 // Get the root element of the queue and remove it
-const result1 = priorityQueue.pop(); // Returns 10
-const result2 = priorityQueue.pop(); // Returns 20
-const result3 = priorityQueue.pop(); // Returns null
+const result1 = priorityQueue.pop(); // returns 10
+const result2 = priorityQueue.pop(); // returns 20
+const result3 = priorityQueue.pop(); // returns null
 
 // Reset priority queue and remove all elements
-priorityQueue.reset();
+priorityQueue.reset(); // returns priorityQueue
 
 // Add 3 elements via chained push calls
 priorityQueue.push(30).push(10).push(20);
-
-// Remove all elements from queue
-priorityQueue.clearElements();
 
 // Returns the current state of priorityQueue as string
 const serialized = priorityQueue.stringify();
 
 // Instantiate a Priority Queue using serialized state
-const priorityQueueFromSerialized = new ArmorPriorityQueue(priorityQueueComparator, {serializedState: serialized});
+const priorityQueueFromSerialized = new ADTPriorityQueue(priorityQueueComparator, {serializedState: serialized});
 ```
 
-### Object Pool
+## **`ADTObjectPool<T>`**
 
 Typescript
 
-```
+```typescript
 // Import
-import {ArmorObjectPool} from '@toreda/adt';
+import {ADTObjectPool} from '@toreda/adt';
 
 // Instantiate
 class objectClass {
@@ -219,8 +427,8 @@ class objectClass {
 	}
 }
 
-const objectPool = new ArmorPriorityQueue<objectClass>(objectClass);
-const objectPoolWithOptions = new ArmorPriorityQueue<objectClass>(objectClass, {
+const objectPool = new ADTPriorityQueue<objectClass>(objectClass);
+const objectPoolWithOptions = new ADTPriorityQueue<objectClass>(objectClass, {
 	maxSize: 10000,
 	startSize: 100,
 	autoIncrease: true,
@@ -253,49 +461,147 @@ objectPool.clearElements();
 const serialized = objectPool.stringify();
 
 // Instantiate an Object Pool using serialized state
-const objectPoolFromSerialized = new ArmorPriorityQueue<objectClass>(objectClass, {serializedState: serialized});
+const objectPoolFromSerialized = new ADTPriorityQueue<objectClass>(objectClass, {serializedState: serialized});
 ```
 
-### LinkedList
+# Query Selectors
 
-### Stack
+Typescript
 
-## Build
+```typescript
+import {ADTQueryFilter, ADTQueryResult, ADTQueryOptions} from '@toreda/adt';
+import {ADTQueue, ADTStack, ADTLinkedList, ADTCircularQueue, ADTPriorityQueue} from '@toreda/adt';
 
-Build (or rebuild) the package:
+const myQueue = new ADTQueue<number>();
+const myStack = new ADTStack<number>();
+const myLinkedList = new ADTLinkedList<number>();
+const myCircularQueue = new ADTCircularQueue<number>();
+const myPriorityQueue = new ADTPriorityQueue<number>((a, b) => a < b);
 
-**_With Yarn (preferred):_**
+// Create a query filter function
+const basicQueryFilter: ADTQueryFilter<number> = (value) => {
+	return value === 30
+}
 
+// Create a query filter function generator
+const genQueryFilter = function (target: number, lessthan: boolean) = ADTQueryFilter<number> {
+	const filter: ADTQueryFilter<number> = (value) => {
+		if (lessthan) {
+			return value < target;
+		} else {
+			return value > target;
+		}
+	}
+}
+
+// Add elements to all ADTs
+[10, 20, 30, 40, 50].forEach((value) => {
+	myQueue.push(value);
+	myStack.push(value);
+	myLinkedList.insert(value);
+	myCircularQueue.push(value);
+	myPriorityQueue.push(value);
+});
+
+// Use a query filter to get a query result
+let resultsQueue = myQueue.query(basicQueryFilter); // return array of query result objects
+let resultsStack = myStack.query(basicQueryFilter); // return array of query result objects
+let resultsLinkedList = myLinkedList.query(basicQueryFilter); // return array of query result objects
+let resultsCircularQueue = myCircularQueue.query(basicQueryFilter); // return array of query result objects
+let resultsPriorityQueue = myPriorityQueue.query(basicQueryFilter); // return array of query result objects
+
+// Get the element in query result
+resultQueue[0].element; // returns 30
+resultStack[0].element; // returns 30
+resultLinkedList[0].element; // returns linked list element with value 30
+resultCircularQueue[0].element; // returns 30
+resultPriorityQueue[0].element; // returns 30
+
+// Get the current index of the query result
+resultQueue[0].index(); // returns 2
+resultStack[0].index(); // returns 2
+resultLinkedList[0].index(); // returns null
+resultCircularQueue[0].index(); // returns 2
+resultPriorityQueue[0].index(); // returns 2
+
+myQueue.pop(); // returns 10
+myStack.pop(); // returns 50
+myLinkedList.deleteNode(myLinkedList.head()); // returns 10
+myCircularQueue.pop(); // returns 10
+myPriorityQueue.pop(); // returns 10
+
+resultQueue[0].index(); // returns 1
+resultStack[0].index(); // returns 2
+resultLinkedList[0].index(); // returns null
+resultCircularQueue[0].index(); // returns 2
+resultPriorityQueue[0].index(); // returns 2
+
+// Delete query result from original ADT
+resultQueue[0].delete(); // returns 30
+resultStack[0].delete(); // returns 30
+resultLinkedList[0].delete(); // returns 30
+resultCircularQueue[0].delete(); // returns 30
+resultPriorityQueue[0].delete(); // returns 30
+
+// Use multiple query filters and query options
+myQueue.reset();
+myQueue.push(10).push(20).push(30).push(40).push(50)
+
+const filters: ADTQueryFilter[] = [];
+filters.push(genQueryFilter(10, false));
+filters.push(genQueryFilter(50, true));
+
+queryResults = myQueue.query(filters, {limit: 2}) // returns array of query result objects;
+queryResults[0].element; // returns 20
+queryResults[1].element; // returns 30
 ```
-yarn install
-yarn build
+
+# Install
+Install `@toreda/adt` directly from NPM or [clone the Github repo](https://github.com/toreda/adt).
+
+### Install using Yarn (preferred)
+ 1. Open a shell (or console).
+ 2. Navigate to the the adt project root folder.
+ 3. Enter the following commands in order. Wait for each to complete before typing the next.
+```bash
+yarn
 ```
 
-With NPM:
-
-```
+### Install using NPM
+ 1. Open a shell (or console).
+ 2. Navigate to the the `@toreda/adt` project root folder.
+ 3. Enter the following commands in order. Wait for each to complete before typing the next.
+```bash
 npm install
-npm run-script build
 ```
 
-## Testing
 
-`@toreda/adt` implements unit tests using jest. Run the following commands from the directory where `@toreda/adt` has been installed.
+# Run Unit Tests
+Install or clone `@toreda/adt` [(see above)](#install).
 
-**_With yarn (preferred):_**
+ADT unit tests use [Jest](https://jestjs.io/).
 
-```
-yarn install
+Installing jest is not required after project dependencies are installed ([see above](#install)).
+```bash
 yarn test
 ```
 
-With NPM:
+# Build from source
 
+The next steps are the same whether you installed the package using NPM or cloned the repo from Github.
+
+### Build with Yarn
+ Enter the following commands in order from the adt project root.
+```bash
+yarn build
 ```
-npm install
-npm run-script test
+
+### Build with NPM
+ Enter the following commands in order from the adt project root.
+```bash
+npm run-script build
 ```
 
-## License
+# License
 
-[MIT](LICENSE) &copy; Michael Brich
+[MIT](LICENSE) &copy; Toreda, Inc.

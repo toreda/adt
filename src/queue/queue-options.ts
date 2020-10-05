@@ -1,4 +1,4 @@
-export default interface ADTQueueOptions<T> {
+export interface ADTQueueOptions<T> {
 	serializedState?: string;
 	elements?: Array<T>;
 	objectPool?: boolean;

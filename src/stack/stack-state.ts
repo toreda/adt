@@ -1,4 +1,4 @@
-export default interface ADTStackState<T> {
+export interface ADTStackState<T> {
 	type: 'sState';
 	elements: Array<T>;
 	size: number;
