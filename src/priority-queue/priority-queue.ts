@@ -176,7 +176,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 	}
 
 	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
-		let options: Required<ADTQueryOptions> = {
+		const options: Required<ADTQueryOptions> = {
 			limit: Infinity
 		};
 
@@ -283,7 +283,9 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 			return childIndexes.left;
 		}
 
-		if (this.comparator(this.state.elements[childIndexes.left], this.state.elements[childIndexes.right])) {
+		if (
+			this.comparator(this.state.elements[childIndexes.left], this.state.elements[childIndexes.right])
+		) {
 			return childIndexes.left;
 		} else {
 			return childIndexes.right;
@@ -309,14 +311,14 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 
 	public isHeapSorted(): boolean {
 		let result = true;
-		let size = this.getParentNodeIndex(this.size() - 1);
+		const size = this.getParentNodeIndex(this.size() - 1);
 
 		if (!size) {
 			return true;
 		}
 
 		for (let i = 0; i <= size; i++) {
-			let child = this.getNextIndex(true, i);
+			const child = this.getNextIndex(true, i);
 			result = result && this.areNodesValidHeap(i, child);
 		}
 
@@ -413,7 +415,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 			return this.state.elements.pop()!;
 		}
 
-		let highestPriority = this.front();
+		const highestPriority = this.front();
 
 		this.swapNodes(0, this.size() - 1);
 		this.state.elements.pop();
@@ -429,9 +431,12 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public query(filters: ADTQueryFilter<T> | ADTQueryFilter<T>[], opts?: ADTQueryOptions): ADTQueryResult<T>[] {
-		let resultsArray: ADTQueryResult<T>[] = [];
-		let options = this.queryOptions(opts);
+	public query(
+		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
+		opts?: ADTQueryOptions
+	): ADTQueryResult<T>[] {
+		const resultsArray: ADTQueryResult<T>[] = [];
+		const options = this.queryOptions(opts);
 
 		this.forEach((element, index) => {
 			let take = false;
@@ -456,7 +461,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 
 			const result: ADTQueryResult<T> = {} as ADTQueryResult<T>;
 			result.element = element;
-			result.key = () => null;
+			result.key = (): string | null => null;
 			result.index = this.queryIndex.bind(this, element);
 			result.delete = this.queryDelete.bind(this, result);
 			resultsArray.push(result);

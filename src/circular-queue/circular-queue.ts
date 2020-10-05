@@ -195,7 +195,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return null;
 		}
 
-		let front = this.wrapIndex(this.state.front);
+		const front = this.wrapIndex(this.state.front);
 		let rear = this.wrapIndex(this.state.rear);
 
 		if (this.size() && rear <= front) {
@@ -238,7 +238,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 	}
 
 	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
-		let options: Required<ADTQueryOptions> = {
+		const options: Required<ADTQueryOptions> = {
 			limit: Infinity
 		};
 
@@ -272,7 +272,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 	}
 
 	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTCircularQueue<T> {
-		let front = this.wrapIndex(this.state.front);
+		const front = this.wrapIndex(this.state.front);
 		let rear = this.wrapIndex(this.state.rear);
 
 		if (this.size() && rear <= front) {
@@ -285,7 +285,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		}
 
 		for (let i = front; i < rear; i++) {
-			let iWrap = this.wrapIndex(i);
+			const iWrap = this.wrapIndex(i);
 			func.call(boundThis, this.state.elements[iWrap], iWrap, this.state.elements);
 		}
 
@@ -379,9 +379,12 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public query(filters: ADTQueryFilter<T> | ADTQueryFilter<T>[], opts?: ADTQueryOptions): ADTQueryResult<T>[] {
-		let resultsArray: ADTQueryResult<T>[] = [];
-		let options = this.queryOptions(opts);
+	public query(
+		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
+		opts?: ADTQueryOptions
+	): ADTQueryResult<T>[] {
+		const resultsArray: ADTQueryResult<T>[] = [];
+		const options = this.queryOptions(opts);
 
 		this.forEach((element, index) => {
 			let take = false;
@@ -406,7 +409,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 
 			const result: ADTQueryResult<T> = {} as ADTQueryResult<T>;
 			result.element = element;
-			result.key = () => null;
+			result.key = (): any => null;
 			result.index = this.queryIndex.bind(this, element);
 			result.delete = this.queryDelete.bind(this, result);
 			resultsArray.push(result);
