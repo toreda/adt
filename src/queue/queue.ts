@@ -334,9 +334,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 			return null;
 		}
 
-		const state = JSON.stringify(this.state);
-
-		return state;
+		return JSON.stringify(this.state);
 	}
 
 	public executeOnAllSync(callable: ADTQueueCallableSync): ArmorActionResult {
