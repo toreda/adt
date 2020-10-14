@@ -1,9 +1,9 @@
-import {ADTBase} from '../base/base';
-import {ADTCircularQueueOptions} from './circular-queue-options';
-import {ADTCircularQueueState} from './circular-queue-state';
-import {ADTQueryFilter} from '../query/query-filter';
-import {ADTQueryOptions} from '../query/query-options';
-import {ADTQueryResult} from '../query/query-result';
+import {ADTBase} from './base';
+import {ADTCircularQueueOptions} from './circular-queue/options';
+import {ADTCircularQueueState} from './circular-queue/state';
+import {ADTQueryFilter} from './query/filter';
+import {ADTQueryOptions} from './query/options';
+import {ADTQueryResult} from './query/result';
 
 export class ADTCircularQueue<T> implements ADTBase<T> {
 	public state: ADTCircularQueueState<T>;
@@ -386,7 +386,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		const resultsArray: ADTQueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
 
-		this.forEach((element, index) => {
+		this.forEach((element) => {
 			let take = false;
 
 			if (resultsArray.length >= options.limit) {

@@ -1,9 +1,9 @@
-import {ADTPriorityQueue} from '../src/priority-queue/priority-queue';
-import {ADTPriorityQueueComparator} from '../src/priority-queue/priority-queue-comparator';
-import {ADTPriorityQueueState} from '../src/priority-queue/priority-queue-state';
-import {ADTQueryFilter} from '../src/query/query-filter';
-import {ADTQueryOptions} from '../src/query/query-options';
-import {ADTQueryResult} from '../src/query/query-result';
+import {ADTPriorityQueue} from '../src/priority-queue';
+import {ADTPriorityQueueComparator} from '../src/priority-queue/comparator';
+import {ADTPriorityQueueState} from '../src/priority-queue/state';
+import {ADTQueryFilter} from '../src/query/filter';
+import {ADTQueryOptions} from '../src/query/options';
+import {ADTQueryResult} from '../src/query/result';
 
 describe('ADTPriorityQueue', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -50,7 +50,7 @@ describe('ADTPriorityQueue', () => {
 
 		return a <= b;
 	};
-	const isValidStateRuns = function (action: Function) {
+	const isValidStateRuns = function (action: (obj: any) => void): void {
 		it('should run isValidState check', () => {
 			const custom: ADTPriorityQueue<number> = new ADTPriorityQueue<number>(comparator);
 			const spy = jest.spyOn(custom, 'isValidState');
@@ -67,11 +67,11 @@ describe('ADTPriorityQueue', () => {
 
 		return filter;
 	};
-	const printHeap = function (obj: ADTPriorityQueue<number>) {
+	const printHeap = function (obj: ADTPriorityQueue<number>): any {
 		let longest = 0;
 		let count = 1;
 		obj.state.elements.forEach((v) => {
-			let size = v.toString().length;
+			const size = v.toString().length;
 			if (longest < size) longest = size;
 		});
 
@@ -79,7 +79,7 @@ describe('ADTPriorityQueue', () => {
 			count *= 2;
 		}
 
-		let output: Array<number[]> = [];
+		const output: Array<number[]> = [];
 		let temp: number[] = [];
 
 		obj.state.elements.forEach((v, i) => {
@@ -93,9 +93,9 @@ describe('ADTPriorityQueue', () => {
 
 		return output
 			.map((v, i) => {
-				let total = Math.pow(2, i) * 2 - 1;
-				let leftpad = ' '.repeat(longest * Math.pow(2, output.length - i - 1) - longest);
-				let midpad = ' '.repeat(longest * Math.pow(2, output.length - i) - longest);
+				const total = Math.pow(2, i) * 2 - 1;
+				const leftpad = ' '.repeat(longest * Math.pow(2, output.length - i - 1) - longest);
+				const midpad = ' '.repeat(longest * Math.pow(2, output.length - i) - longest);
 				return leftpad + v.map((vv) => ('0'.repeat(longest) + vv).slice(-1 * longest)).join(midpad);
 			})
 			.join('\n');
@@ -125,7 +125,9 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should initialize with serializedState', () => {
-				const custom = new ADTPriorityQueue<number>(comparator, {serializedState: VALID_SERIALIZED_STATE});
+				const custom = new ADTPriorityQueue<number>(comparator, {
+					serializedState: VALID_SERIALIZED_STATE
+				});
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 			});
 
@@ -151,7 +153,7 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return properties from parsed options', () => {
-				let expectedV = JSON.parse(VALID_SERIALIZED_STATE);
+				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
 
 				expect(
 					instance.parseOptions({
@@ -216,12 +218,15 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			const toParseList = ['{}', '{"type": "pqState"}', '{"elements":4, "type": "pqState"}'];
-			it.each(toParseList)('should return errors, %p wont parse into an ADTPriorityQueueState', (toParse) => {
-				let errors: Array<string> = [];
-				errors = instance.getStateErrors(JSON.parse(toParse) as any);
-				errors.unshift('state is not a valid ADTPriorityQueueState');
-				expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
-			});
+			it.each(toParseList)(
+				'should return errors, %p wont parse into an ADTPriorityQueueState',
+				(toParse) => {
+					let errors: Array<string> = [];
+					errors = instance.getStateErrors(JSON.parse(toParse) as any);
+					errors.unshift('state is not a valid ADTPriorityQueueState');
+					expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
+				}
+			);
 
 			it('should return an ADTPriorityQueueState when a parsable string is passed', () => {
 				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
@@ -240,7 +245,9 @@ describe('ADTPriorityQueue', () => {
 				const testSuite = [null, undefined];
 				testSuite.forEach((myTest) => {
 					expect(instance.parseOptionsOther(instance.state, myTest!)).toStrictEqual(instance.state);
-					expect(instance.parseOptionsOther({...DEFAULT_STATE}, myTest!)).toStrictEqual(DEFAULT_STATE);
+					expect(instance.parseOptionsOther({...DEFAULT_STATE}, myTest!)).toStrictEqual(
+						DEFAULT_STATE
+					);
 
 					const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
 					expect(instance.parseOptionsOther(expectedV as any, myTest!)).toStrictEqual(expectedV);
@@ -288,7 +295,7 @@ describe('ADTPriorityQueue', () => {
 				expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
 			});
 
-			let testSuite = [null, undefined, '', 0];
+			const testSuite = [null, undefined, '', 0];
 			it.each(testSuite)('should return errors if state is %p', (myTest) => {
 				const expectedV = 'state is null or undefined';
 				const errors = instance.getStateErrors(myTest as any);
@@ -297,7 +304,12 @@ describe('ADTPriorityQueue', () => {
 				expect(errors).toContain(expectedV);
 			});
 
-			let stateTestSuiteObj: Array<{prop: string; result: string; testSuite: any[]; expectedV: string}> = [
+			const stateTestSuiteObj: Array<{
+				prop: string;
+				result: string;
+				testSuite: any[];
+				expectedV: string;
+			}> = [
 				{
 					prop: 'type',
 					result: 'should return array of errors if state.type is not "pqState"',
@@ -311,7 +323,7 @@ describe('ADTPriorityQueue', () => {
 					expectedV: 'state elements must be an array'
 				}
 			];
-			let stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
+			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
 				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
 			});
 			describe.each(stateTestSuite)(
@@ -367,14 +379,14 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return null if index is null', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(10));
+				const queryResults = instance.query(queryFilter(10));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
-				let spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
+				const spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
 					return null;
 				});
 
@@ -385,10 +397,10 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return element if it is in pq', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(50));
+				const queryResults = instance.query(queryFilter(50));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -396,10 +408,10 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should delete the element from pq', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(40));
+				const queryResults = instance.query(queryFilter(40));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -408,7 +420,7 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should restore the heap properties', () => {
-				let list: number[] = [];
+				const list: number[] = [];
 				for (let i = 1; i < 27; i++) {
 					list.push(Math.floor(Math.random() * 999));
 				}
@@ -419,14 +431,14 @@ describe('ADTPriorityQueue', () => {
 						instance.push(v);
 					});
 
-					let expectedSize = list.length;
+					const expectedSize = list.length;
 					expect(instance.size()).toBe(expectedSize);
 
-					let queryResults = instance.query(queryFilter(myTest));
+					const queryResults = instance.query(queryFilter(myTest));
 					queryResult = queryResults[0];
 
 					instance.queryDelete(queryResult);
-					let result = instance.isHeapSorted();
+					const result = instance.isHeapSorted();
 					expect(result).toBe(true);
 				});
 			});
@@ -447,10 +459,10 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return null if element is not in pq', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(10));
+				const queryResults = instance.query(queryFilter(10));
 				queryResult = queryResults[0];
 
 				queryResult.delete();
@@ -458,15 +470,15 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return the index of the queryResult even if it moves', () => {
-				let expectedV = 90;
-				let expectedSize = ITEMS.length;
+				const expectedV = 90;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(expectedV));
+				const queryResults = instance.query(queryFilter(expectedV));
 				queryResult = queryResults[0];
 
 				for (let i = 0; i < ITEMS.length; i++) {
-					let index = queryResult.index();
+					const index = queryResult.index();
 					if (index !== null) {
 						expect(instance.state.elements[index!]).toBe(expectedV);
 					} else {
@@ -486,10 +498,10 @@ describe('ADTPriorityQueue', () => {
 			};
 			it('should return ADTQueryOptions with all properties', () => {
 				const props = ['limit'];
-				let opts1 = instance.queryOptions();
-				let opts2 = instance.queryOptions({});
-				let opts3 = instance.queryOptions({limit: 99});
-				let opts4 = instance.queryOptions({limit: '99' as any});
+				const opts1 = instance.queryOptions();
+				const opts2 = instance.queryOptions({});
+				const opts3 = instance.queryOptions({limit: 99});
+				const opts4 = instance.queryOptions({limit: '99' as any});
 
 				props.forEach((prop) => {
 					expect(opts1[prop]).not.toBeUndefined();
@@ -506,8 +518,8 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return default with passed props overridden', () => {
-				let expectedV = {...DEFAULT_OPTS};
-				let opts: ADTQueryOptions = {};
+				const expectedV = {...DEFAULT_OPTS};
+				const opts: ADTQueryOptions = {};
 				expect(instance.queryOptions({})).toStrictEqual(expectedV);
 
 				const limit = 5;
@@ -521,9 +533,9 @@ describe('ADTPriorityQueue', () => {
 				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
 			});
 
-			let testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
+			const testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
 			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
-				let opts = {limit: myTest as any};
+				const opts = {limit: myTest as any};
 				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
 			});
 		});
@@ -711,11 +723,17 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return {left: null, right: null} if the index passed is outside the aray', () => {
-				expect(instance.getChildNodesIndexes(instance.size() * 2)).toStrictEqual({left: null, right: null});
+				expect(instance.getChildNodesIndexes(instance.size() * 2)).toStrictEqual({
+					left: null,
+					right: null
+				});
 			});
 
 			it('should return {left: null, right: null} if the result would be outside the array', () => {
-				expect(instance.getChildNodesIndexes(instance.size() - 1)).toStrictEqual({left: null, right: null});
+				expect(instance.getChildNodesIndexes(instance.size() - 1)).toStrictEqual({
+					left: null,
+					right: null
+				});
 			});
 
 			it('should return the children of a valid node in the form of {left: number | null, right: number | null}', () => {
@@ -941,7 +959,7 @@ describe('ADTPriorityQueue', () => {
 
 				let expectedV = 0;
 				instance.state.elements.forEach((e, index) => {
-					let children = instance.getChildNodesIndexes(index);
+					const children = instance.getChildNodesIndexes(index);
 					if (children.left !== null || children.right !== null) {
 						expectedV++;
 					}
@@ -961,7 +979,7 @@ describe('ADTPriorityQueue', () => {
 			beforeEach(() => {
 				const list: number[] = [];
 				for (let i = 0; i < 50; i++) {
-					let random = Math.floor(Math.random() * 999);
+					const random = Math.floor(Math.random() * 999);
 					list.push(random);
 				}
 				instance.state.elements = list;
@@ -970,7 +988,7 @@ describe('ADTPriorityQueue', () => {
 			it('should run fixHeap once per node that has a child', () => {
 				let expectedV = 0;
 				instance.state.elements.forEach((e, index) => {
-					let children = instance.getChildNodesIndexes(index);
+					const children = instance.getChildNodesIndexes(index);
 					if (children.left !== null || children.right !== null) {
 						expectedV++;
 					}
@@ -1048,8 +1066,16 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should move all properties of indexOne to indexTwo and vice-versa', () => {
-				const complexitems1 = [{depth1: {depth2: 10}}, {depth1: {depth2: 20}}, {depth1: {depth2: 30}}];
-				const complexitems2 = [{depth1: {depth2: 10}}, {depth1: {depth2: 20}}, {depth1: {depth2: 30}}];
+				const complexitems1 = [
+					{depth1: {depth2: 10}},
+					{depth1: {depth2: 20}},
+					{depth1: {depth2: 30}}
+				];
+				const complexitems2 = [
+					{depth1: {depth2: 10}},
+					{depth1: {depth2: 20}},
+					{depth1: {depth2: 30}}
+				];
 
 				const deepSwapped = new ADTPriorityQueue<any>((a, b) => false, {
 					elements: complexitems1
@@ -1093,7 +1119,7 @@ describe('ADTPriorityQueue', () => {
 
 			it('should remove all items from priority queue', () => {
 				expect(instance.size()).toBe(0);
-				let limit = 5;
+				const limit = 5;
 
 				for (let i = 0; i < limit; i++) {
 					instance.push(Math.floor(Math.random() * 999));
@@ -1106,7 +1132,7 @@ describe('ADTPriorityQueue', () => {
 		});
 
 		describe('forEach', () => {
-			let testSuite = [
+			const testSuite = [
 				[['push']],
 				[['push', 'push']],
 				[['push', 'push', 'pop']],
@@ -1123,8 +1149,8 @@ describe('ADTPriorityQueue', () => {
 					}
 				});
 
-				let expectedV = myTest.join('');
-				let expectedCount = instance.size();
+				const expectedV = myTest.join('');
+				const expectedCount = instance.size();
 				let count = 0;
 				instance.forEach((elem, index) => {
 					count++;
@@ -1214,22 +1240,22 @@ describe('ADTPriorityQueue', () => {
 				let expectedV = 99999;
 
 				for (let i = 0; i < limit; i++) {
-					let random = Math.floor(Math.random() * 999);
+					const random = Math.floor(Math.random() * 999);
 					if (random < expectedV) expectedV = random;
 					instance.push(random);
 				}
 
-				let result = instance.pop();
+				const result = instance.pop();
 				expect(result).not.toBeNull();
 				if (result) expect(result).toBe(expectedV);
 			});
 
 			it('should pop items in rank order from priority queue', () => {
 				const limit = 15;
-				let expectedV: Array<number> = [];
+				const expectedV: Array<number> = [];
 
 				for (let i = 0; i < limit; i++) {
-					let random = Math.floor(Math.random() * 999);
+					const random = Math.floor(Math.random() * 999);
 					expectedV.push(random);
 					instance.push(random);
 				}
@@ -1237,7 +1263,7 @@ describe('ADTPriorityQueue', () => {
 				expectedV.sort((a, b) => a - b);
 
 				for (let i = 0; i < limit; i++) {
-					let result = instance.pop();
+					const result = instance.pop();
 					expect(result).not.toBeNull();
 					if (result) expect(result).toBe(expectedV[i]);
 				}
@@ -1336,10 +1362,10 @@ describe('ADTPriorityQueue', () => {
 
 			it('should return all elements matching filter', () => {
 				expect(instance.size()).toBe(ITEMS.length);
-				let query = 15;
+				const query = 15;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 3;
+				const expectedV = 3;
 				for (let i = 0; i < expectedV; i++) {
 					instance.push(query);
 				}
@@ -1349,10 +1375,10 @@ describe('ADTPriorityQueue', () => {
 
 			it('should return all elements matching filter up to limit', () => {
 				expect(instance.size()).toBe(ITEMS.length);
-				let query = 45;
+				const query = 45;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 5;
+				const expectedV = 5;
 				for (let i = 0; i < expectedV * 2; i++) {
 					instance.push(query);
 				}
@@ -1374,9 +1400,9 @@ describe('ADTPriorityQueue', () => {
 					return filter;
 				};
 
-				let result = instance.query([customFilter(60, true), customFilter(30, false)]);
+				const result = instance.query([customFilter(60, true), customFilter(30, false)]);
 				expect(result.length).toBe(2);
-				let resultValues: number[] = [];
+				const resultValues: number[] = [];
 				result.forEach((res) => {
 					resultValues.push(res.element);
 				});

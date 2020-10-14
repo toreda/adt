@@ -1,4 +1,4 @@
-import {ADTLinkedListElement} from './linked-list-element';
+import {ADTLinkedListElement} from './element';
 
 export interface ADTLinkedListState<T> {
 	type: 'llState';

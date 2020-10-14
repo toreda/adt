@@ -1,9 +1,9 @@
-import {ADTBase} from '../base/base';
-import {ADTQueryFilter} from '../query/query-filter';
-import {ADTQueryOptions} from '../query/query-options';
-import {ADTQueryResult} from '../query/query-result';
-import {ADTStackOptions} from './stack-options';
-import {ADTStackState} from './stack-state';
+import {ADTBase} from './base';
+import {ADTQueryFilter} from './query/filter';
+import {ADTQueryOptions} from './query/options';
+import {ADTQueryResult} from './query/result';
+import {ADTStackOptions} from './stack/options';
+import {ADTStackState} from './stack/state';
 
 export class ADTStack<T> implements ADTBase<T> {
 	public state: ADTStackState<T>;
@@ -33,7 +33,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		let result: ADTStackState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parseOptionsStateString(options.serializedState)!;
+			parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
 				throw new Error(parsed.join('\n'));
@@ -265,7 +265,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		const resultsArray: ADTQueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
 
-		this.forEach((element, index) => {
+		this.forEach((element) => {
 			let take = false;
 
 			if (resultsArray.length >= options.limit) {

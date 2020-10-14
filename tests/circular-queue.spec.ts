@@ -1,8 +1,8 @@
-import {ADTCircularQueue} from '../src/circular-queue/circular-queue';
-import {ADTCircularQueueState} from '../src/circular-queue/circular-queue-state';
-import {ADTQueryFilter} from '../src/query/query-filter';
-import {ADTQueryOptions} from '../src/query/query-options';
-import {ADTQueryResult} from '../src/query/query-result';
+import {ADTCircularQueue} from '../src/circular-queue';
+import {ADTCircularQueueState} from '../src/circular-queue/state';
+import {ADTQueryFilter} from '../src/query/filter';
+import {ADTQueryOptions} from '../src/query/options';
+import {ADTQueryResult} from '../src/query/result';
 
 describe('ADTCircularQueue', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -46,9 +46,9 @@ describe('ADTCircularQueue', () => {
 	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 	const MAX_SIZE = 4;
 
-	const isValidStateRuns = function (action: Function) {
+	const isValidStateRuns = function (action: (obj: any) => void): void {
 		it('should run isValidState check', () => {
-			const custom: ADTCircularQueue<number> = new ADTCircularQueue<number>();
+			const custom = new ADTCircularQueue<number>();
 			const spy = jest.spyOn(custom, 'isValidState');
 			spy.mockClear();
 			custom.state.type = '' as any;
@@ -174,12 +174,15 @@ describe('ADTCircularQueue', () => {
 			});
 
 			const toParseList = ['{}', '{"type": "cqState"}', '{"elements":4, "type": "cqState"}'];
-			it.each(toParseList)('should return errors, %p wont parse into an ADTCircularQueueState', (toParse) => {
-				let errors: Array<string> = [];
-				errors = instance.getStateErrors(JSON.parse(toParse) as any);
-				errors.unshift('state is not a valid ADTCircularQueueState');
-				expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
-			});
+			it.each(toParseList)(
+				'should return errors, %p wont parse into an ADTCircularQueueState',
+				(toParse) => {
+					let errors: Array<string> = [];
+					errors = instance.getStateErrors(JSON.parse(toParse) as any);
+					errors.unshift('state is not a valid ADTCircularQueueState');
+					expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
+				}
+			);
 
 			it('should return an ADTCircularQueueState when a parsable string is passed', () => {
 				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
@@ -234,7 +237,7 @@ describe('ADTCircularQueue', () => {
 				expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
 			});
 
-			let testSuite = [null, undefined, '', 0];
+			const testSuite = [null, undefined, '', 0];
 			it.each(testSuite)('should return errors if state is %p', (myTest) => {
 				const expectedV = 'state is null or undefined';
 				const errors = instance.getStateErrors(myTest as any);
@@ -243,7 +246,12 @@ describe('ADTCircularQueue', () => {
 				expect(errors).toContain(expectedV);
 			});
 
-			let stateTestSuiteObj: Array<{prop: string; result: string; testSuite: any[]; expectedV: string}> = [
+			const stateTestSuiteObj: Array<{
+				prop: string;
+				result: string;
+				testSuite: any[];
+				expectedV: string;
+			}> = [
 				{
 					prop: 'type',
 					result: 'not "cqState"',
@@ -287,7 +295,7 @@ describe('ADTCircularQueue', () => {
 					expectedV: 'state rear must be an integer'
 				}
 			];
-			let stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
+			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
 				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
 			});
 
@@ -307,7 +315,7 @@ describe('ADTCircularQueue', () => {
 		});
 
 		describe('isInteger', () => {
-			let testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
+			const testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
 				{
 					resultText: 'true, n is an integer',
 					testSuite: ([] as any).concat(INT_VALUES),
@@ -319,7 +327,7 @@ describe('ADTCircularQueue', () => {
 					expectedV: false
 				}
 			];
-			let testSuite: Array<any[]> = testSuiteObj.map((elem) => {
+			const testSuite: Array<any[]> = testSuiteObj.map((elem) => {
 				return [elem.resultText, elem.testSuite, elem.expectedV];
 			});
 
@@ -368,14 +376,14 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null if index is null', () => {
-				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				const expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.front()!));
+				const queryResults = instance.query(queryFilter(instance.front()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
-				let spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
+				const spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
 					return null;
 				});
 
@@ -386,10 +394,10 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return element if it is in cq', () => {
-				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				const expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.front()!));
+				const queryResults = instance.query(queryFilter(instance.front()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -397,10 +405,10 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should delete the element from cq', () => {
-				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				const expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.front()!));
+				const queryResults = instance.query(queryFilter(instance.front()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -409,14 +417,14 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should move the rear index back one', () => {
-				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				const expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.front()!));
+				const queryResults = instance.query(queryFilter(instance.front()!));
 				queryResult = queryResults[0];
 
-				let rear = instance.state.rear;
-				let expectedV = instance.wrapIndex(rear! - 1);
+				const rear = instance.state.rear;
+				const expectedV = instance.wrapIndex(rear! - 1);
 
 				instance.queryDelete(queryResult);
 				expect(instance.state.rear).toBe(expectedV);
@@ -438,10 +446,10 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null if element is not in cq', () => {
-				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				const expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.front()!));
+				const queryResults = instance.query(queryFilter(instance.front()!));
 				queryResult = queryResults[0];
 
 				queryResult.delete();
@@ -455,10 +463,10 @@ describe('ADTCircularQueue', () => {
 			};
 			it('should return ADTQueryOptions with all properties', () => {
 				const props = ['limit'];
-				let opts1 = instance.queryOptions();
-				let opts2 = instance.queryOptions({});
-				let opts3 = instance.queryOptions({limit: 99});
-				let opts4 = instance.queryOptions({limit: '99' as any});
+				const opts1 = instance.queryOptions();
+				const opts2 = instance.queryOptions({});
+				const opts3 = instance.queryOptions({limit: 99});
+				const opts4 = instance.queryOptions({limit: '99' as any});
 
 				props.forEach((prop) => {
 					expect(opts1[prop]).not.toBeUndefined();
@@ -475,8 +483,8 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return default with passed props overridden', () => {
-				let expectedV = {...DEFAULT_OPTS};
-				let opts: ADTQueryOptions = {};
+				const expectedV = {...DEFAULT_OPTS};
+				const opts: ADTQueryOptions = {};
 				expect(instance.queryOptions({})).toStrictEqual(expectedV);
 
 				const limit = 5;
@@ -490,20 +498,23 @@ describe('ADTCircularQueue', () => {
 				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
 			});
 
-			let testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
+			const testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
 			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
-				let opts = {limit: myTest as any};
+				const opts = {limit: myTest as any};
 				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
 			});
 		});
 
 		describe('wrapIndex', () => {
 			let testSuite = ([MAX_SIZE - 1, MAX_SIZE, Math.round(MAX_SIZE * 3.5)] as any).concat(INT_VALUES);
-			it.each(testSuite)(`should return num 0 to ${MAX_SIZE - 1} (maxSize-1), %p is an integer`, (myTest) => {
-				const res = instance.wrapIndex(myTest);
-				expect(res).toBeGreaterThanOrEqual(0);
-				expect(res).toBeLessThan(instance.state.maxSize);
-			});
+			it.each(testSuite)(
+				`should return num 0 to ${MAX_SIZE - 1} (maxSize-1), %p is an integer`,
+				(myTest) => {
+					const res = instance.wrapIndex(myTest);
+					expect(res).toBeGreaterThanOrEqual(0);
+					expect(res).toBeLessThan(instance.state.maxSize);
+				}
+			);
 
 			testSuite = ([] as any[]).concat(FLOAT_VALUES, NAN_VALUES);
 			it.each(testSuite)('should return -1, %p is not an integer', (myTest) => {
@@ -555,7 +566,7 @@ describe('ADTCircularQueue', () => {
 		});
 
 		describe('forEach', () => {
-			let testSuite = [
+			const testSuite = [
 				[['push']],
 				[['push', 'push']],
 				[['push', 'push', 'pop']],
@@ -572,8 +583,8 @@ describe('ADTCircularQueue', () => {
 					}
 				});
 
-				let expectedV = myTest.join('');
-				let expectedCount = instance.size();
+				const expectedV = myTest.join('');
+				const expectedCount = instance.size();
 				let count = 0;
 				instance.forEach((elem, index) => {
 					count++;
@@ -615,7 +626,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.front()).toBeNull();
 			});
 
@@ -725,7 +736,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.isEmpty()).toBe(false);
 			});
 
@@ -735,7 +746,12 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return false if size is > 0', () => {
-				const myTests = [1, instance.state.maxSize - 1, instance.state.maxSize, instance.state.maxSize * 2];
+				const myTests = [
+					1,
+					instance.state.maxSize - 1,
+					instance.state.maxSize,
+					instance.state.maxSize * 2
+				];
 				myTests.forEach((myTest) => {
 					instance.state.size = myTest;
 					expect(instance.isEmpty()).toBe(false);
@@ -749,7 +765,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.isFull()).toBe(false);
 			});
 
@@ -776,7 +792,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.pop()).toBeNull();
 			});
 
@@ -824,7 +840,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return false if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.push(0)).toBe(false);
 			});
 
@@ -975,19 +991,19 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return empty array if no filters are given', () => {
-				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				const expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
 				expect(instance.size()).toBe(expectedSize);
 				expect(instance.query([])).toEqual([]);
 			});
 
 			it('should return all elements matching filter', () => {
-				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				const expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
 				expect(instance.size()).toBe(expectedSize);
-				let query = 15;
+				const query = 15;
 				instance.state.overwrite = true;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 3;
+				const expectedV = 3;
 				for (let i = 0; i < expectedV; i++) {
 					instance.push(query);
 				}
@@ -996,13 +1012,13 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return all elements matching filter up to limit', () => {
-				let expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
+				const expectedSize = Math.min(instance.state.maxSize, ITEMS.length);
 				expect(instance.size()).toBe(expectedSize);
-				let query = 45;
+				const query = 45;
 				instance.state.overwrite = true;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 2;
+				const expectedV = 2;
 				for (let i = 0; i < expectedV * 2; i++) {
 					instance.push(query);
 				}
@@ -1029,9 +1045,9 @@ describe('ADTCircularQueue', () => {
 					instance.push(item);
 				});
 
-				let result = instance.query([customFilter(60, true), customFilter(30, false)]);
+				const result = instance.query([customFilter(60, true), customFilter(30, false)]);
 				expect(result.length).toBe(2);
-				let resultValues: number[] = [];
+				const resultValues: number[] = [];
 				result.forEach((res) => {
 					resultValues.push(res.element);
 				});
@@ -1046,7 +1062,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.rear()).toBeNull();
 			});
 
@@ -1119,7 +1135,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.size()).toBe(0);
 			});
 
@@ -1150,7 +1166,7 @@ describe('ADTCircularQueue', () => {
 			});
 
 			it('should return null if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
+				jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
 				expect(instance.stringify()).toBeNull();
 			});
 

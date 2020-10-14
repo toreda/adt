@@ -1,4 +1,4 @@
-import {ADTBaseElement} from '../base/base-element';
+import {ADTBaseElement} from '../base/element';
 
 export class ADTLinkedListElement<T> implements ADTBaseElement<T> {
 	private _value: T | null;

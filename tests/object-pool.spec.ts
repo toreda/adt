@@ -1,5 +1,5 @@
-import {ADTObjectPool} from '../src/object-pool/object-pool';
-import {ADTObjectPoolState} from '../src/object-pool/object-pool-state';
+import {ADTObjectPool} from '../src/object-pool';
+import {ADTObjectPoolState} from '../src/object-pool/state';
 
 describe('ADTObjectPool', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -64,7 +64,7 @@ describe('ADTObjectPool', () => {
 			obj.amount = 0;
 		}
 	}
-	const isValidStateRuns = function (action: Function) {
+	const isValidStateRuns = function (action: (obj: any) => void): void {
 		it('should run isValidState check', () => {
 			const custom: ADTObjectPool<objectClass> = new ADTObjectPool<objectClass>(objectClass);
 			const spy = jest.spyOn(custom, 'isValidState');
@@ -101,7 +101,9 @@ describe('ADTObjectPool', () => {
 			});
 
 			it('should initialize with serializedState', () => {
-				const custom = new ADTObjectPool<objectClass>(objectClass, {serializedState: VALID_SERIALIZED_STATE});
+				const custom = new ADTObjectPool<objectClass>(objectClass, {
+					serializedState: VALID_SERIALIZED_STATE
+				});
 				expect(custom.state.objectCount).toBe(1);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 			});
@@ -231,7 +233,9 @@ describe('ADTObjectPool', () => {
 				const testSuite = [null, undefined];
 				testSuite.forEach((myTest) => {
 					expect(instance.parseOptionsOther(instance.state, myTest!)).toStrictEqual(instance.state);
-					expect(instance.parseOptionsOther(DEFAULT_STATE as any, myTest!)).toStrictEqual(DEFAULT_STATE);
+					expect(instance.parseOptionsOther(DEFAULT_STATE as any, myTest!)).toStrictEqual(
+						DEFAULT_STATE
+					);
 
 					const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
 					expect(instance.parseOptionsOther(expectedV as any, myTest!)).toStrictEqual(expectedV);
@@ -270,7 +274,7 @@ describe('ADTObjectPool', () => {
 				expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
 			});
 
-			let testSuite = [null, undefined, '', 0];
+			const testSuite = [null, undefined, '', 0];
 			it.each(testSuite)('should return errors if state is %p', (myTest) => {
 				const expectedV = 'state is null or undefined';
 				const errors = instance.getStateErrors(myTest as any);
@@ -279,7 +283,12 @@ describe('ADTObjectPool', () => {
 				expect(errors).toContain(expectedV);
 			});
 
-			let stateTestSuiteObj: Array<{prop: string; result: string; testSuite: any[]; expectedV: string}> = [
+			const stateTestSuiteObj: Array<{
+				prop: string;
+				result: string;
+				testSuite: any[];
+				expectedV: string;
+			}> = [
 				{
 					prop: 'type',
 					result: 'not "opState"',
@@ -329,7 +338,7 @@ describe('ADTObjectPool', () => {
 					expectedV: 'state increaseFactor must be a positive number'
 				}
 			];
-			let stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
+			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
 				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
 			});
 			describe.each(stateTestSuite)(
@@ -352,8 +361,7 @@ describe('ADTObjectPool', () => {
 				obj.isAboveThreshold();
 			});
 
-			describe('should always return a boolean', () => {});
-			let testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
+			const testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
 				{
 					resultText: 'true, n is a number >= 0',
 					testSuite: ([] as any).concat(([0] as any[]).concat(POS_NUM_VALUES, NAN_VALUES)),
@@ -365,7 +373,7 @@ describe('ADTObjectPool', () => {
 					expectedV: false
 				}
 			];
-			let testSuite: Array<any[]> = testSuiteObj.map((elem) => {
+			const testSuite: Array<any[]> = testSuiteObj.map((elem) => {
 				return [elem.resultText, elem.testSuite, elem.expectedV];
 			});
 			describe.each(testSuite)('should return %s', (resultText, myTests, expectedV) => {
@@ -377,7 +385,7 @@ describe('ADTObjectPool', () => {
 		});
 
 		describe('isInteger', () => {
-			let testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
+			const testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
 				{
 					resultText: 'true, n is an integer',
 					testSuite: ([] as any).concat(INT_VALUES),
@@ -389,7 +397,7 @@ describe('ADTObjectPool', () => {
 					expectedV: false
 				}
 			];
-			let testSuite: Array<any[]> = testSuiteObj.map((elem) => {
+			const testSuite: Array<any[]> = testSuiteObj.map((elem) => {
 				return [elem.resultText, elem.testSuite, elem.expectedV];
 			});
 
@@ -401,7 +409,7 @@ describe('ADTObjectPool', () => {
 		});
 
 		describe('isFloat', () => {
-			let testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
+			const testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
 				{
 					resultText: 'true, n is a float',
 					testSuite: ([] as any).concat(NUM_VALUES),
@@ -413,7 +421,7 @@ describe('ADTObjectPool', () => {
 					expectedV: false
 				}
 			];
-			let testSuite: Array<any[]> = testSuiteObj.map((elem) => {
+			const testSuite: Array<any[]> = testSuiteObj.map((elem) => {
 				return [elem.resultText, elem.testSuite, elem.expectedV];
 			});
 

@@ -1,7 +1,7 @@
-import {ADTBaseElement} from './base-element';
-import {ADTQueryFilter} from '../query/query-filter';
-import {ADTQueryOptions} from '../query/query-options';
-import {ADTQueryResult} from '../query/query-result';
+import {ADTBaseElement} from './base/element';
+import {ADTQueryFilter} from './query/filter';
+import {ADTQueryOptions} from './query/options';
+import {ADTQueryResult} from './query/result';
 
 export interface ADTBase<T> {
 	clearElements(): void;

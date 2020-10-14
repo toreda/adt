@@ -1,10 +1,8 @@
-import {ADTBase} from '../base/base';
-import {ADTObjectPoolInstance} from './object-pool-instance';
-import {ADTObjectPoolOptions} from './object-pool-options';
-import {ADTObjectPoolState} from './object-pool-state';
-import {ADTQueryFilter} from '../query/query-filter';
-import {ADTQueryOptions} from '../query/query-options';
-import {ADTQueryResult} from '../query/query-result';
+import {ADTBase} from './base';
+import {ADTObjectPoolInstance} from './object-pool/instance';
+import {ADTObjectPoolOptions} from './object-pool/options';
+import {ADTObjectPoolState} from './object-pool/state';
+import {ADTQueryResult} from './query/result';
 
 export class ADTObjectPool<T> implements ADTBase<T> {
 	public readonly state: ADTObjectPoolState<T>;
@@ -281,10 +279,7 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		}
 	}
 
-	public query(
-		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
-		options?: ADTQueryOptions
-	): ADTQueryResult<T>[] {
+	public query(): ADTQueryResult<T>[] {
 		return [];
 	}
 

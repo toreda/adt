@@ -1,11 +1,11 @@
-import {ADTBase} from '../base/base';
-import {ADTQueryFilter} from '../query/query-filter';
-import {ADTQueryOptions} from '../query/query-options';
-import {ADTQueryResult} from '../query/query-result';
-import {ADTQueueCallable} from '../callable';
-import {ADTQueueCallableSync} from '../callable-sync';
-import {ADTQueueOptions} from './queue-options';
-import {ADTQueueState} from './queue-state';
+import {ADTBase} from './base';
+import {ADTQueryFilter} from './query/filter';
+import {ADTQueryOptions} from './query/options';
+import {ADTQueryResult} from './query/result';
+import {ADTQueueCallable} from './callable';
+import {ADTQueueCallableSync} from './callable/sync';
+import {ADTQueueOptions} from './queue/options';
+import {ADTQueueState} from './queue/state';
 import {ArmorActionResult} from '@armorjs/action-result';
 
 export class ADTQueue<T> implements ADTBase<T> {
@@ -269,7 +269,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 		const resultsArray: ADTQueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
 
-		this.forEach((element, index) => {
+		this.forEach((element) => {
 			let take = false;
 
 			if (resultsArray.length >= options.limit) {
