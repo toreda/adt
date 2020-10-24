@@ -416,10 +416,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 
 		this.swapNodes(0, this.size() - 1);
 		this.state.elements.pop();
-
-		if (this.size() > 0) {
-			this.fixHeap(0);
-		}
+		this.fixHeap(0);
 
 		return highestPriority;
 	}
