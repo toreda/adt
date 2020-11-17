@@ -6,7 +6,6 @@ import {ADTQueueCallable} from './callable';
 import {ADTQueueCallableSync} from './callable/sync';
 import {ADTQueueOptions} from './queue/options';
 import {ADTQueueState} from './queue/state';
-import {ActionResult} from '@toreda/action-result';
 
 export class ADTQueue<T> implements ADTBase<T> {
 	public state: ADTQueueState<T>;
@@ -335,45 +334,5 @@ export class ADTQueue<T> implements ADTBase<T> {
 		}
 
 		return JSON.stringify(this.state);
-	}
-
-	public executeOnAllSync(callable: ADTQueueCallableSync): ActionResult<T> {
-		return this.executeSync(callable, null);
-	}
-
-	public executeOnMatchSync(callable: ADTQueueCallableSync, element: T): ActionResult<T> {
-		return this.executeSync(callable, element);
-	}
-
-	public executeSync(callable: ADTQueueCallableSync, element: T | null): ActionResult<T> {
-		const result = new ActionResult<T>();
-		for (let i = 0; i < this.size(); i++) {
-			try {
-				callable(this.state.elements[i], i);
-			} catch (e) {}
-		}
-
-		return result;
-	}
-
-	public async executeOnAll(callable: ADTQueueCallable): Promise<ActionResult<T>> {
-		return await this.execute(callable, null);
-	}
-
-	public async executeOnMatch(callable: ADTQueueCallable, element: T): Promise<ActionResult<T>> {
-		return await this.execute(callable, element);
-	}
-
-	public async execute(callable: ADTQueueCallable, element: T | null): Promise<ActionResult<T>> {
-		const result = new ActionResult<T>();
-		for (let i = 0; i < this.size(); i++) {
-			try {
-				await callable(this.state.elements[i], i);
-			} catch (e) {
-				result.error(e);
-			}
-		}
-
-		return result;
 	}
 }

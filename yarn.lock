@@ -696,11 +696,6 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@toreda/action-result@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@toreda/action-result/-/action-result-0.2.0.tgz#7fd0ac4ae211ab0819ebb49aa5a61424770db0e6"
-  integrity sha512-KCYfryXwVavrakCEGIdYIMqI0tLX9ZzbdL1I8V8stisYsIiI/hlUWeducNjPX+5efLkqsbwa1fCNFCDZ4FoWPg==
-
 "@toreda/build-tools@^0.1.3":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@toreda/build-tools/-/build-tools-0.1.3.tgz#527df5c4af9c2ae37880061f3fc51d660e3bd493"
