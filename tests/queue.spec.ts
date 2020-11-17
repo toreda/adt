@@ -1,8 +1,8 @@
-import {ADTQueryFilter} from '../src/query/query-filter';
-import {ADTQueryOptions} from '../src/query/query-options';
-import {ADTQueryResult} from '../src/query/query-result';
-import {ADTQueue} from '../src/queue/queue';
-import {ADTQueueState} from '../src/queue/queue-state';
+import {ADTQueryFilter} from '../src/query/filter';
+import {ADTQueryOptions} from '../src/query/options';
+import {ADTQueryResult} from '../src/query/result';
+import {ADTQueue} from '../src/queue';
+import {ADTQueueState} from '../src/queue/state';
 
 describe('ADTQueue', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -39,7 +39,7 @@ describe('ADTQueue', () => {
 
 	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 
-	const isValidStateRuns = function (action: Function) {
+	const isValidStateRuns = function (action: (obj: any) => void): void {
 		it('should run isValidState check', () => {
 			const custom: ADTQueue<number> = new ADTQueue<number>();
 			const spy = jest.spyOn(custom, 'isValidState');
@@ -231,7 +231,7 @@ describe('ADTQueue', () => {
 				expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
 			});
 
-			let testSuite = [null, undefined, '', 0];
+			const testSuite = [null, undefined, '', 0];
 			it.each(testSuite)('should return errors if state is %p', (myTest) => {
 				const expectedV = 'state is null or undefined';
 				const errors = instance.getStateErrors(myTest as any);
@@ -240,7 +240,12 @@ describe('ADTQueue', () => {
 				expect(errors).toContain(expectedV);
 			});
 
-			let stateTestSuiteObj: Array<{prop: string; result: string; testSuite: any[]; expectedV: string}> = [
+			const stateTestSuiteObj: Array<{
+				prop: string;
+				result: string;
+				testSuite: any[];
+				expectedV: string;
+			}> = [
 				{
 					prop: 'type',
 					result: 'not "qState"',
@@ -266,7 +271,7 @@ describe('ADTQueue', () => {
 					expectedV: 'state objectPool must be a boolean'
 				}
 			];
-			let stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
+			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
 				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
 			});
 
@@ -323,14 +328,14 @@ describe('ADTQueue', () => {
 			});
 
 			it('should return null if index is null', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.front()!));
+				const queryResults = instance.query(queryFilter(instance.front()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
-				let spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
+				const spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
 					return null;
 				});
 
@@ -341,10 +346,10 @@ describe('ADTQueue', () => {
 			});
 
 			it('should return element if it is in queue', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.front()!));
+				const queryResults = instance.query(queryFilter(instance.front()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -352,10 +357,10 @@ describe('ADTQueue', () => {
 			});
 
 			it('should delete the element from queue', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.front()!));
+				const queryResults = instance.query(queryFilter(instance.front()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -379,10 +384,10 @@ describe('ADTQueue', () => {
 			});
 
 			it('should return null if element is not in queue', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.front()!));
+				const queryResults = instance.query(queryFilter(instance.front()!));
 				queryResult = queryResults[0];
 
 				queryResult.delete();
@@ -396,10 +401,10 @@ describe('ADTQueue', () => {
 			};
 			it('should return ADTQueryOptions with all properties', () => {
 				const props = ['limit'];
-				let opts1 = instance.queryOptions();
-				let opts2 = instance.queryOptions({});
-				let opts3 = instance.queryOptions({limit: 99});
-				let opts4 = instance.queryOptions({limit: '99' as any});
+				const opts1 = instance.queryOptions();
+				const opts2 = instance.queryOptions({});
+				const opts3 = instance.queryOptions({limit: 99});
+				const opts4 = instance.queryOptions({limit: '99' as any});
 
 				props.forEach((prop) => {
 					expect(opts1[prop]).not.toBeUndefined();
@@ -416,8 +421,8 @@ describe('ADTQueue', () => {
 			});
 
 			it('should return default with passed props overridden', () => {
-				let expectedV = {...DEFAULT_OPTS};
-				let opts: ADTQueryOptions = {};
+				const expectedV = {...DEFAULT_OPTS};
+				const opts: ADTQueryOptions = {};
 				expect(instance.queryOptions({})).toStrictEqual(expectedV);
 
 				const limit = 5;
@@ -431,9 +436,9 @@ describe('ADTQueue', () => {
 				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
 			});
 
-			let testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
+			const testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
 			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
-				let opts = {limit: myTest as any};
+				const opts = {limit: myTest as any};
 				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
 			});
 		});
@@ -476,7 +481,7 @@ describe('ADTQueue', () => {
 		});
 
 		describe('forEach', () => {
-			let testSuite = [
+			const testSuite = [
 				[['push']],
 				[['push', 'push']],
 				[['push', 'push', 'pop']],
@@ -493,8 +498,8 @@ describe('ADTQueue', () => {
 					}
 				});
 
-				let expectedV = myTest.join('');
-				let expectedCount = instance.size();
+				const expectedV = myTest.join('');
+				const expectedCount = instance.size();
 				let count = 0;
 				instance.forEach((elem, index) => {
 					count++;
@@ -696,18 +701,18 @@ describe('ADTQueue', () => {
 			});
 
 			it('should return empty array if no filters are given', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 				expect(instance.query([])).toEqual([]);
 			});
 
 			it('should return all elements matching filter', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
-				let query = 15;
+				const query = 15;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 3;
+				const expectedV = 3;
 				for (let i = 0; i < expectedV; i++) {
 					instance.push(query);
 				}
@@ -716,12 +721,12 @@ describe('ADTQueue', () => {
 			});
 
 			it('should return all elements matching filter up to limit', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
-				let query = 45;
+				const query = 45;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 2;
+				const expectedV = 2;
 				for (let i = 0; i < expectedV * 2; i++) {
 					instance.push(query);
 				}
@@ -747,9 +752,9 @@ describe('ADTQueue', () => {
 					instance.push(item);
 				});
 
-				let result = instance.query([customFilter(60, true), customFilter(30, false)]);
+				const result = instance.query([customFilter(60, true), customFilter(30, false)]);
 				expect(result.length).toBe(2);
-				let resultValues: number[] = [];
+				const resultValues: number[] = [];
 				result.forEach((res) => {
 					resultValues.push(res.element);
 				});
@@ -899,157 +904,6 @@ describe('ADTQueue', () => {
 				custom.pop();
 				expected.elements = [2];
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expected);
-			});
-		});
-	});
-
-	describe('Execute Functions', () => {
-		describe('execute', () => {
-			let callable: any;
-
-			beforeAll(() => {
-				callable = jest.fn().mockImplementation(
-					(element: any, ndx: number) =>
-						new Promise((resolve, reject) => {
-							resolve();
-						})
-				);
-			});
-
-			beforeEach(() => {
-				callable.mockReset();
-			});
-		});
-
-		describe('executeOnAll', () => {
-			let callable: any;
-
-			beforeAll(() => {
-				callable = jest.fn().mockImplementation(
-					(element: any, ndx: number) =>
-						new Promise((resolve, reject) => {
-							resolve();
-						})
-				);
-			});
-
-			beforeEach(() => {
-				callable.mockReset();
-			});
-
-			it('should pass null element argument to execute method', () => {
-				const elements = [41091];
-				elements.forEach((elem) => {
-					instance.push(elem);
-				});
-
-				const spy = jest.spyOn(instance, 'execute');
-				instance.executeOnAll(callable);
-				expect(spy).toHaveBeenCalledWith(expect.anything(), null);
-			});
-
-			it('should pass callable argument to execute method', () => {
-				const elements = [661987];
-				elements.forEach((elem) => {
-					instance.push(elem);
-				});
-
-				const spy = jest.spyOn(instance, 'execute');
-				instance.executeOnAll(callable);
-				expect(spy).toHaveBeenCalledWith(callable, null);
-			});
-
-			it('should execute callable once per element', async () => {
-				expect(callable).not.toHaveBeenCalled();
-				const elements = [440194, 11129, 321330];
-				const custom = new ADTQueue({elements: elements});
-
-				expect.assertions(2);
-
-				const spy = jest.spyOn(custom, 'execute');
-				await custom.executeOnAll(callable);
-				expect(callable).toHaveBeenCalledTimes(3);
-			});
-		});
-
-		describe('executeOnAllSync', () => {
-			let callable: any;
-
-			beforeAll(() => {
-				callable = jest.fn().mockImplementation((element: any, ndx: number) => {});
-			});
-
-			beforeEach(() => {
-				callable.mockReset();
-			});
-
-			it('should pass null element argument to execute method', () => {
-				const elements = [41091];
-				elements.forEach((elem) => {
-					instance.push(elem);
-				});
-
-				const spy = jest.spyOn(instance, 'executeSync');
-				instance.executeOnAllSync(callable);
-				expect(spy).toHaveBeenCalledWith(expect.anything(), null);
-			});
-
-			it('should pass callable argument to execute method', () => {
-				const elements = [661987];
-				elements.forEach((elem) => {
-					instance.push(elem);
-				});
-
-				const spy = jest.spyOn(instance, 'executeSync');
-				instance.executeOnAllSync(callable);
-				expect(spy).toHaveBeenCalledWith(callable, null);
-			});
-
-			it('should execute callable once per element in queue', () => {
-				expect(callable).not.toHaveBeenCalled();
-
-				const elements = [41091, 99109, 877110];
-				elements.forEach((elem) => {
-					instance.push(elem);
-				});
-
-				const spy = jest.spyOn(instance, 'executeSync');
-				instance.executeOnAllSync(callable);
-				expect(callable).toHaveBeenCalledTimes(elements.length);
-			});
-		});
-
-		describe('executeSync', () => {
-			let callable: any;
-
-			beforeAll(() => {
-				callable = jest.fn().mockImplementation((element: any, ndx: number) => {});
-			});
-
-			beforeEach(() => {
-				callable.mockReset();
-			});
-
-			it('should not execute the callable when queue is empty', () => {
-				const custom = new ADTQueue<number>();
-				custom.executeSync(callable, null);
-				expect(callable).not.toHaveBeenCalled();
-			});
-
-			it('should execute callable once when queue has one item', () => {
-				const custom = new ADTQueue<number>();
-				custom.push(31091);
-				custom.executeSync(callable, null);
-				expect(callable).toHaveBeenCalledTimes(1);
-			});
-
-			it('should execute callable once for every item in queue', () => {
-				const custom = new ADTQueue<number>();
-				custom.push(11201);
-				custom.push(22081);
-				custom.push(333100);
-				custom.executeSync(callable, null);
-				expect(callable).toHaveBeenCalledTimes(3);
 			});
 		});
 	});

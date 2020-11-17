@@ -1,17 +1,7 @@
 {
-	"exclude": [
-		"node_modules",
-		"**/*.spec.ts",
-		"tests",
-		"dist/**"
-	],
-	"include": [
-		"**/src/index.ts"
-	],
-	"filesGlob": [
-		"./src/**/*.ts",
-		"!./node_modules/**"
-	],
+	"exclude": ["node_modules", "**/*.spec.ts", "tests", "dist/**"],
+	"include": ["**/src/index.ts"],
+	"filesGlob": ["./src/**/*.ts", "!./node_modules/**"],
 	"rootDir": ".",
 	"compilerOptions": {
 		"preserveConstEnums": true,

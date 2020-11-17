@@ -1,11 +1,11 @@
-import {ADTBase} from '../base/base';
-import {ADTPriorityQueueChildren} from './priority-queue-children';
-import {ADTPriorityQueueComparator} from './priority-queue-comparator';
-import {ADTPriorityQueueOptions} from './priority-queue-options';
-import {ADTPriorityQueueState} from './priority-queue-state';
-import {ADTQueryFilter} from '../query/query-filter';
-import {ADTQueryOptions} from '../query/query-options';
-import {ADTQueryResult} from '../query/query-result';
+import {ADTBase} from './base';
+import {ADTPriorityQueueChildren} from './priority-queue/children';
+import {ADTPriorityQueueComparator} from './priority-queue/comparator';
+import {ADTPriorityQueueOptions} from './priority-queue/options';
+import {ADTPriorityQueueState} from './priority-queue/state';
+import {ADTQueryFilter} from './query/filter';
+import {ADTQueryOptions} from './query/options';
+import {ADTQueryResult} from './query/result';
 
 export class ADTPriorityQueue<T> implements ADTBase<T> {
 	public state: ADTPriorityQueueState<T>;
@@ -40,7 +40,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		let result: ADTPriorityQueueState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parseOptionsStateString(options.serializedState)!;
+			parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
 				throw new Error(parsed.join('\n'));
@@ -387,6 +387,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 
 	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTPriorityQueue<T> {
 		let boundThis = this;
+
 		if (thisArg) {
 			boundThis = thisArg;
 		}
@@ -409,10 +410,6 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 	public pop(): T | null {
 		if (this.size() === 0) {
 			return null;
-		}
-
-		if (this.size() === 1) {
-			return this.state.elements.pop()!;
 		}
 
 		const highestPriority = this.front();
@@ -438,7 +435,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		const resultsArray: ADTQueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
 
-		this.forEach((element, index) => {
+		this.forEach((element) => {
 			let take = false;
 
 			if (resultsArray.length >= options.limit) {

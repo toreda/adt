@@ -1,9 +1,9 @@
-import {ADTLinkedList} from '../src/linked-list/linked-list';
-import {ADTLinkedListElement} from '../src/linked-list/linked-list-element';
-import {ADTLinkedListState} from '../src/linked-list/linked-list-state';
-import {ADTQueryFilter} from '../src/query/query-filter';
-import {ADTQueryOptions} from '../src/query/query-options';
-import {ADTQueryResult} from '../src/query/query-result';
+import {ADTLinkedList} from '../src/linked-list';
+import {ADTLinkedListElement} from '../src/linked-list/element';
+import {ADTLinkedListState} from '../src/linked-list/state';
+import {ADTQueryFilter} from '../src/query/filter';
+import {ADTQueryOptions} from '../src/query/options';
+import {ADTQueryResult} from '../src/query/result';
 
 describe('ADTLinkedList', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -51,11 +51,11 @@ describe('ADTLinkedList', () => {
 
 		return filter;
 	};
-	const getList = function (obj: ADTLinkedList<number>) {
+	const getList = function (obj: ADTLinkedList<number>): number[] {
 		const list: Array<number> = [];
 
 		obj.forEach((elem) => {
-			let value = elem.value();
+			const value = elem.value();
 			if (value) {
 				list.push(value);
 			}
@@ -210,12 +210,15 @@ describe('ADTLinkedList', () => {
 			});
 
 			const toParseList = ['{}', '{"type": "llState"}', '{"elements":4, "type": "llState"}'];
-			it.each(toParseList)('should return errors, %p wont parse into an ADTLinkedListState', (toParse) => {
-				let errors: Array<string> = [];
-				errors = instance.getStateErrors(JSON.parse(toParse) as any);
-				errors.unshift('state is not a valid ADTLinkedListState');
-				expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
-			});
+			it.each(toParseList)(
+				'should return errors, %p wont parse into an ADTLinkedListState',
+				(toParse) => {
+					let errors: Array<string> = [];
+					errors = instance.getStateErrors(JSON.parse(toParse) as any);
+					errors.unshift('state is not a valid ADTLinkedListState');
+					expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
+				}
+			);
 
 			it('should return an ADTLinkedListState when a parsable string is passed', () => {
 				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
@@ -270,7 +273,7 @@ describe('ADTLinkedList', () => {
 				expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
 			});
 
-			let testSuite = [null, undefined, '', 0];
+			const testSuite = [null, undefined, '', 0];
 			it.each(testSuite)('should return errors if state is %p', (myTest) => {
 				const expectedV = 'state is null or undefined';
 				const errors = instance.getStateErrors(myTest as any);
@@ -279,7 +282,12 @@ describe('ADTLinkedList', () => {
 				expect(errors).toContain(expectedV);
 			});
 
-			let stateTestSuiteObj: Array<{prop: string; result: string; testSuite: any[]; expectedV: string}> = [
+			const stateTestSuiteObj: Array<{
+				prop: string;
+				result: string;
+				testSuite: any[];
+				expectedV: string;
+			}> = [
 				{
 					prop: 'type',
 					result: 'not "llState"',
@@ -299,7 +307,7 @@ describe('ADTLinkedList', () => {
 					expectedV: 'state objectPool must be a boolean'
 				}
 			];
-			let stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
+			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
 				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
 			});
 			describe.each(stateTestSuite)(
@@ -323,12 +331,12 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should return true if node is part of linked list', () => {
-				let node = instance.insert(1);
+				const node = instance.insert(1);
 				expect(instance.isPartOfList(node)).toBe(true);
 			});
 
 			it('should return false if node is not part of linked list', () => {
-				let node = instance.insert(1);
+				const node = instance.insert(1);
 				instance.insert(2);
 				instance.deleteNode(node);
 				expect(instance.isPartOfList(node)).toBe(false);
@@ -350,11 +358,11 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should return the value of the element if it is in ll', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let query = instance.head()!.value();
-				let queryResults = instance.query(queryFilter(query!));
+				const query = instance.head()!.value();
+				const queryResults = instance.query(queryFilter(query!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -362,11 +370,11 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should delete the element from ll', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let query = instance.head()!.value();
-				let queryResults = instance.query(queryFilter(query!));
+				const query = instance.head()!.value();
+				const queryResults = instance.query(queryFilter(query!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -375,11 +383,11 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should stitch the linked list back together', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let query = instance.head()!.next()!.value();
-				let queryResults = instance.query(queryFilter(query!));
+				const query = instance.head()!.next()!.value();
+				const queryResults = instance.query(queryFilter(query!));
 				queryResult = queryResults[0];
 
 				instance.queryDelete(queryResult);
@@ -393,10 +401,10 @@ describe('ADTLinkedList', () => {
 			};
 			it('should return ADTQueryOptions with all properties', () => {
 				const props = ['limit'];
-				let opts1 = instance.queryOptions();
-				let opts2 = instance.queryOptions({});
-				let opts3 = instance.queryOptions({limit: 99});
-				let opts4 = instance.queryOptions({limit: '99' as any});
+				const opts1 = instance.queryOptions();
+				const opts2 = instance.queryOptions({});
+				const opts3 = instance.queryOptions({limit: 99});
+				const opts4 = instance.queryOptions({limit: '99' as any});
 
 				props.forEach((prop) => {
 					expect(opts1[prop]).not.toBeUndefined();
@@ -413,8 +421,8 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should return default with passed props overridden', () => {
-				let expectedV = {...DEFAULT_OPTS};
-				let opts: ADTQueryOptions = {};
+				const expectedV = {...DEFAULT_OPTS};
+				const opts: ADTQueryOptions = {};
 				expect(instance.queryOptions({})).toStrictEqual(expectedV);
 
 				const limit = 5;
@@ -428,9 +436,9 @@ describe('ADTLinkedList', () => {
 				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
 			});
 
-			let testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
+			const testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
 			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
-				let opts = {limit: myTest as any};
+				const opts = {limit: myTest as any};
 				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
 			});
 		});
@@ -477,7 +485,7 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should call isPartOfList', () => {
-				let node = instance.insert(1);
+				const node = instance.insert(1);
 				const spy = jest.spyOn(instance, 'isPartOfList');
 				spy.mockReturnValueOnce(false);
 				instance.deleteNode(node);
@@ -485,7 +493,7 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should return value of node', () => {
-				let node = instance.insert(1);
+				const node = instance.insert(1);
 				expect(instance.deleteNode(node)).toBe(node!.value());
 				expect(instance.deleteNode(node)).toBe(node!.value());
 			});
@@ -503,16 +511,16 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should move head after deleting head', () => {
-				let head = instance.insert(1);
-				let next = instance.insert(2);
+				const head = instance.insert(1);
+				const next = instance.insert(2);
 
 				instance.deleteNode(head);
 				expect(instance.head()).not.toBe(head);
 				expect(instance.head()).toBe(next);
 			});
 			it('should move tail after deleting tail', () => {
-				let tail = instance.insert(1);
-				let prev = instance.insert(2);
+				const tail = instance.insert(1);
+				const prev = instance.insert(2);
 
 				instance.deleteNode(tail);
 				expect(instance.tail()).not.toBe(tail);
@@ -520,9 +528,9 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should stitch list back together after a middle delete', () => {
-				let head = instance.insert(1);
-				let node = instance.insert(2);
-				let tail = instance.insert(3);
+				const head = instance.insert(1);
+				const node = instance.insert(2);
+				const tail = instance.insert(3);
 
 				instance.deleteNode(node);
 
@@ -532,7 +540,7 @@ describe('ADTLinkedList', () => {
 		});
 
 		describe('forEach', () => {
-			let testSuite = [
+			const testSuite = [
 				[['insert']],
 				[['insert', 'insert']],
 				[['insert', 'insert', 'pop']],
@@ -550,8 +558,8 @@ describe('ADTLinkedList', () => {
 					}
 				});
 
-				let expectedV = myTest.join('');
-				let expectedCount = instance.size();
+				const expectedV = myTest.join('');
+				const expectedCount = instance.size();
 				let count = 0;
 
 				instance.forEach((elem, index) => {
@@ -595,7 +603,7 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should return an array of all elements', () => {
-				let arr = instance.getAsArray();
+				const arr = instance.getAsArray();
 				let index = 0;
 				let node = instance.head();
 
@@ -607,9 +615,9 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('changing value in array should change value linked list', () => {
-				let arr = instance.getAsArray();
-				let index = 3;
-				let expectedV = 13579;
+				const arr = instance.getAsArray();
+				const index = 3;
+				const expectedV = 13579;
 				arr[index].value(expectedV);
 				let node = instance.head();
 				let i = 0;
@@ -618,14 +626,14 @@ describe('ADTLinkedList', () => {
 					i++;
 				}
 				expect(node).not.toBeNull();
-				let result = node!.value();
+				const result = node!.value();
 				expect(result).toBe(expectedV);
 			});
 
 			it('changing value in array should change value linked list', () => {
-				let arr = instance.getAsArray();
-				let index = 3;
-				let expectedV = 24680;
+				const arr = instance.getAsArray();
+				const index = 3;
+				const expectedV = 24680;
 				let node = instance.head();
 				let i = 0;
 				while (i < index && node) {
@@ -634,7 +642,7 @@ describe('ADTLinkedList', () => {
 				}
 				expect(node).not.toBeNull();
 				node!.value(expectedV);
-				let result = arr[index].value();
+				const result = arr[index].value();
 				expect(result).toBe(expectedV);
 			});
 		});
@@ -820,18 +828,18 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should return empty array if no filters are given', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 				expect(instance.query([])).toEqual([]);
 			});
 
 			it('should return all elements matching filter', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
-				let query = 15;
+				const query = 15;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 3;
+				const expectedV = 3;
 				for (let i = 0; i < expectedV; i++) {
 					instance.insert(query);
 				}
@@ -840,12 +848,12 @@ describe('ADTLinkedList', () => {
 			});
 
 			it('should return all elements matching filter up to limit', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
-				let query = 45;
+				const query = 45;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 2;
+				const expectedV = 2;
 				for (let i = 0; i < expectedV * 2; i++) {
 					instance.insert(query);
 				}
@@ -867,9 +875,9 @@ describe('ADTLinkedList', () => {
 					return filter;
 				};
 
-				let result = instance.query([customFilter(60, true), customFilter(30, false)]);
+				const result = instance.query([customFilter(60, true), customFilter(30, false)]);
 				expect(result.length).toBe(2);
-				let resultValues: number[] = [];
+				const resultValues: number[] = [];
 				result.forEach((res) => {
 					resultValues.push(res.element.value()!);
 				});

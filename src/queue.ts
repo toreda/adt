@@ -1,39 +1,40 @@
-import {ADTBase} from '../base/base';
-import {ADTQueryFilter} from '../query/query-filter';
-import {ADTQueryOptions} from '../query/query-options';
-import {ADTQueryResult} from '../query/query-result';
-import {ADTStackOptions} from './stack-options';
-import {ADTStackState} from './stack-state';
+import {ADTBase} from './base';
+import {ADTQueryFilter} from './query/filter';
+import {ADTQueryOptions} from './query/options';
+import {ADTQueryResult} from './query/result';
+import {ADTQueueCallable} from './callable';
+import {ADTQueueCallableSync} from './callable/sync';
+import {ADTQueueOptions} from './queue/options';
+import {ADTQueueState} from './queue/state';
 
-export class ADTStack<T> implements ADTBase<T> {
-	public state: ADTStackState<T>;
+export class ADTQueue<T> implements ADTBase<T> {
+	public state: ADTQueueState<T>;
 
-	constructor(options?: ADTStackOptions<T>) {
+	constructor(options?: ADTQueueOptions<T>) {
+		// Shallow clone by default.
+		// TODO: Add deep copy option.
 		this.state = this.parseOptions(options);
-
-		this.state.size = this.state.elements.length;
-		this.state.top = this.size() - 1;
 	}
 
-	public parseOptions(options?: ADTStackOptions<T>): ADTStackState<T> {
+	public parseOptions(options?: ADTQueueOptions<T>): ADTQueueState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: ADTStackOptions<T>): ADTStackState<T> {
-		const state: ADTStackState<T> = this.getDefaultState();
+	public parseOptionsState(options?: ADTQueueOptions<T>): ADTQueueState<T> {
+		const state: ADTQueueState<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: ADTStackState<T> | Array<string> | null = null;
-		let result: ADTStackState<T> | null = null;
+		let parsed: ADTQueueState<T> | Array<string> | null = null;
+		let result: ADTQueueState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parseOptionsStateString(options.serializedState)!;
+			parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
 				throw new Error(parsed.join('\n'));
@@ -44,21 +45,20 @@ export class ADTStack<T> implements ADTBase<T> {
 
 		if (result) {
 			state.elements = result.elements;
-			state.size = result.size;
-			state.top = result.top;
-			state.bottom = result.bottom;
+			state.deepClone = result.deepClone;
+			state.objectPool = result.objectPool;
 		}
 
 		return state;
 	}
 
-	public parseOptionsStateString(state: string): ADTStackState<T> | Array<string> | null {
+	public parseOptionsStateString(state: string): ADTQueueState<T> | Array<string> | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: ADTStackState<T> | Array<string> | null = null;
-		let parsed: ADTStackState<T> | null = null;
+		let result: ADTQueueState<T> | Array<string> | null = null;
+		let parsed: ADTQueueState<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -69,7 +69,7 @@ export class ADTStack<T> implements ADTBase<T> {
 			}
 
 			if (errors.length) {
-				throw new Error('state is not a valid ADTStackState');
+				throw new Error('state is not a valid ADTQueueState');
 			}
 
 			result = parsed;
@@ -80,8 +80,8 @@ export class ADTStack<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: ADTStackState<T>, options?: ADTStackOptions<T>): ADTStackState<T> {
-		let state: ADTStackState<T> | null = s;
+	public parseOptionsOther(s: ADTQueueState<T>, options?: ADTQueueOptions<T>): ADTQueueState<T> {
+		let state: ADTQueueState<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -94,23 +94,28 @@ export class ADTStack<T> implements ADTBase<T> {
 		if (options.elements && Array.isArray(options.elements)) {
 			state.elements = options.elements.slice();
 		}
+		if (typeof options.deepClone === 'boolean') {
+			state.deepClone = options.deepClone;
+		}
+		if (typeof options.objectPool === 'boolean') {
+			state.objectPool = options.objectPool;
+		}
 
 		return state;
 	}
 
-	public getDefaultState(): ADTStackState<T> {
-		const state: ADTStackState<T> = {
-			type: 'sState',
+	public getDefaultState(): ADTQueueState<T> {
+		const state: ADTQueueState<T> = {
+			type: 'qState',
 			elements: [],
-			size: 0,
-			top: -1,
-			bottom: 0
+			deepClone: false,
+			objectPool: false
 		};
 
 		return state;
 	}
 
-	public getStateErrors(state: ADTStackState<T>): Array<string> {
+	public getStateErrors(state: ADTQueueState<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -118,38 +123,24 @@ export class ADTStack<T> implements ADTBase<T> {
 			return errors;
 		}
 
-		if (state.type !== 'sState') {
-			errors.push('state type must be sState');
+		if (state.type !== 'qState') {
+			errors.push('state type must be qState');
 		}
 		if (!Array.isArray(state.elements)) {
 			errors.push('state elements must be an array');
 		}
 
-		if (!this.isInteger(state.size) || state.size < 0) {
-			errors.push('state size must be an integer >= 0');
+		if (typeof state.deepClone !== 'boolean') {
+			errors.push('state deepClone must be a boolean');
 		}
-		if (!this.isInteger(state.top)) {
-			errors.push('state top must be an integer');
-		}
-		if (state.bottom !== 0) {
-			errors.push('state bottom must be 0');
+		if (typeof state.objectPool !== 'boolean') {
+			errors.push('state objectPool must be a boolean');
 		}
 
 		return errors;
 	}
 
-	public isInteger(n: number): boolean {
-		if (typeof n !== 'number') {
-			return false;
-		}
-		if (n % 1 !== 0) {
-			return false;
-		}
-
-		return true;
-	}
-
-	public isValidState(state: ADTStackState<T>): boolean {
+	public isValidState(state: ADTQueueState<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -171,8 +162,6 @@ export class ADTStack<T> implements ADTBase<T> {
 		}
 
 		const result = this.state.elements.splice(index, 1);
-		this.state.top--;
-		this.state.size--;
 
 		if (!result.length) {
 			return null;
@@ -205,56 +194,70 @@ export class ADTStack<T> implements ADTBase<T> {
 		return options;
 	}
 
-	public bottom(): T | null {
-		if (!this.size()) {
-			return null;
-		}
-
-		return this.state.elements[this.state.bottom];
-	}
-
-	public clearElements(): ADTStack<T> {
+	/**
+	 * Clear all elements from queue.
+	 */
+	public clearElements(): ADTQueue<T> {
 		this.state.elements = [];
-		this.state.top = -1;
-		this.state.size = 0;
 
 		return this;
 	}
 
-	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTStack<T> {
+	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTQueue<T> {
 		let boundThis = this;
 		if (thisArg) {
 			boundThis = thisArg;
 		}
 
-		for (let i = this.state.top; i >= 0; i--) {
-			func.call(
-				boundThis,
-				this.state.elements[i],
-				this.state.top - i,
-				this.state.elements.slice().reverse()
-			);
-		}
+		this.state.elements.forEach((elem, idx) => {
+			func.call(boundThis, elem, idx, this.state.elements);
+		}, boundThis);
 
 		return this;
 	}
 
-	public pop(): T | null {
-		if (!this.size()) {
+	/**
+	 * Returns first element in queue, or null if queue is empty.
+	 *
+	 * @returns First element in queue of type <T> or null.
+	 *
+	 */
+	public front(): T | null {
+		if (this.isEmpty()) {
 			return null;
 		}
 
-		const result = this.state.elements[this.state.top];
-		this.state.top--;
-		this.state.size--;
-
-		return result;
+		return this.state.elements[0];
 	}
 
-	public push(element: T): ADTStack<T> {
+	/**
+	 * Returns true if queue is empty or false
+	 * when >= 1 elements queued.
+	 */
+	public isEmpty(): boolean {
+		return this.size() === 0;
+	}
+
+	/**
+	 * Remove and return first element from queue. Returns
+	 * null if queue is empty when called.
+	 */
+	public pop(): T | null {
+		if (this.isEmpty()) {
+			return null;
+		}
+
+		const element = this.state.elements[0];
+		this.state.elements.splice(0, 1);
+		return element;
+	}
+
+	/**
+	 * Add element to the end of the queue.
+	 */
+	public push(element: any): ADTQueue<T> {
 		this.state.elements.push(element);
-		this.state.top++;
-		this.state.size++;
+
 		return this;
 	}
 
@@ -265,7 +268,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		const resultsArray: ADTQueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
 
-		this.forEach((element, index) => {
+		this.forEach((element) => {
 			let take = false;
 
 			if (resultsArray.length >= options.limit) {
@@ -297,30 +300,32 @@ export class ADTStack<T> implements ADTBase<T> {
 		return resultsArray;
 	}
 
-	public reset(): ADTStack<T> {
+	public reset(): ADTQueue<T> {
 		this.clearElements();
-		this.state.bottom = 0;
 
-		this.state.type = 'sState';
+		this.state.type = 'qState';
 
 		return this;
 	}
 
-	public reverse(): ADTStack<T> {
-		if (this.size() <= 1) {
-			return this;
-		}
+	/**
+	 * Reverse stored element order.
+	 */
+	public reverse(): ADTQueue<T> {
+		this.state.elements.reverse();
 
-		this.state.elements = this.state.elements.reverse();
 		return this;
 	}
 
+	/**
+	 * Returns number of elements in queue.
+	 */
 	public size(): number {
 		if (!this.isValidState(this.state)) {
 			return 0;
 		}
 
-		return this.state.size;
+		return this.state.elements.length;
 	}
 
 	public stringify(): string | null {
@@ -329,13 +334,5 @@ export class ADTStack<T> implements ADTBase<T> {
 		}
 
 		return JSON.stringify(this.state);
-	}
-
-	public top(): T | null {
-		if (!this.size()) {
-			return null;
-		}
-
-		return this.state.elements[this.state.top];
 	}
 }

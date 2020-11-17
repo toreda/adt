@@ -1,8 +1,8 @@
-import {ADTQueryFilter} from '../src/query/query-filter';
-import {ADTQueryOptions} from '../src/query/query-options';
-import {ADTQueryResult} from '../src/query/query-result';
-import {ADTStack} from '../src/stack/stack';
-import {ADTStackState} from '../src/stack/stack-state';
+import {ADTQueryFilter} from '../src/query/filter';
+import {ADTQueryOptions} from '../src/query/options';
+import {ADTQueryResult} from '../src/query/result';
+import {ADTStack} from '../src/stack';
+import {ADTStackState} from '../src/stack/state';
 
 describe('ADTStack', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -31,7 +31,7 @@ describe('ADTStack', () => {
 		'"bottom": 0',
 		'}'
 	].join('');
-	let DEFAULT_STATE: ADTStackState<number> = {
+	const DEFAULT_STATE: ADTStackState<number> = {
 		type: 'sState',
 		elements: [],
 		size: 0,
@@ -41,7 +41,7 @@ describe('ADTStack', () => {
 
 	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 
-	const isValidStateRuns = function (action: Function) {
+	const isValidStateRuns = function (action: (obj: any) => void): void {
 		it('should run isValidState check', () => {
 			const custom: ADTStack<number> = new ADTStack<number>();
 			const spy = jest.spyOn(custom, 'isValidState');
@@ -237,7 +237,7 @@ describe('ADTStack', () => {
 				expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
 			});
 
-			let testSuite = [null, undefined, '', 0];
+			const testSuite = [null, undefined, '', 0];
 			it.each(testSuite)('should return errors if state is %p', (myTest) => {
 				const expectedV = 'state is null or undefined';
 				const errors = instance.getStateErrors(myTest as any);
@@ -246,7 +246,12 @@ describe('ADTStack', () => {
 				expect(errors).toContain(expectedV);
 			});
 
-			let stateTestSuiteObj: Array<{prop: string; result: string; testSuite: any[]; expectedV: string}> = [
+			const stateTestSuiteObj: Array<{
+				prop: string;
+				result: string;
+				testSuite: any[];
+				expectedV: string;
+			}> = [
 				{
 					prop: 'type',
 					result: 'not "sState"',
@@ -278,7 +283,7 @@ describe('ADTStack', () => {
 					expectedV: 'state bottom must be 0'
 				}
 			];
-			let stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
+			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
 				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
 			});
 
@@ -298,7 +303,7 @@ describe('ADTStack', () => {
 		});
 
 		describe('isInteger', () => {
-			let testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
+			const testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
 				{
 					resultText: 'true, n is an integer',
 					testSuite: ([] as any).concat(INT_VALUES),
@@ -310,7 +315,7 @@ describe('ADTStack', () => {
 					expectedV: false
 				}
 			];
-			let testSuite: Array<any[]> = testSuiteObj.map((elem) => {
+			const testSuite: Array<any[]> = testSuiteObj.map((elem) => {
 				return [elem.resultText, elem.testSuite, elem.expectedV];
 			});
 
@@ -359,14 +364,14 @@ describe('ADTStack', () => {
 			});
 
 			it('should return null if index is null', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.top()!));
+				const queryResults = instance.query(queryFilter(instance.top()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
-				let spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
+				const spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
 					return null;
 				});
 
@@ -377,10 +382,10 @@ describe('ADTStack', () => {
 			});
 
 			it('should return element if it is in queue', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.top()!));
+				const queryResults = instance.query(queryFilter(instance.top()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -388,10 +393,10 @@ describe('ADTStack', () => {
 			});
 
 			it('should delete the element from queue', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.top()!));
+				const queryResults = instance.query(queryFilter(instance.top()!));
 				expect(queryResults.length).toBe(1);
 				queryResult = queryResults[0];
 
@@ -415,10 +420,10 @@ describe('ADTStack', () => {
 			});
 
 			it('should return null if element is not in queue', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 
-				let queryResults = instance.query(queryFilter(instance.top()!));
+				const queryResults = instance.query(queryFilter(instance.top()!));
 				queryResult = queryResults[0];
 
 				queryResult.delete();
@@ -432,10 +437,10 @@ describe('ADTStack', () => {
 			};
 			it('should return ADTQueryOptions with all properties', () => {
 				const props = ['limit'];
-				let opts1 = instance.queryOptions();
-				let opts2 = instance.queryOptions({});
-				let opts3 = instance.queryOptions({limit: 99});
-				let opts4 = instance.queryOptions({limit: '99' as any});
+				const opts1 = instance.queryOptions();
+				const opts2 = instance.queryOptions({});
+				const opts3 = instance.queryOptions({limit: 99});
+				const opts4 = instance.queryOptions({limit: '99' as any});
 
 				props.forEach((prop) => {
 					expect(opts1[prop]).not.toBeUndefined();
@@ -452,8 +457,8 @@ describe('ADTStack', () => {
 			});
 
 			it('should return default with passed props overridden', () => {
-				let expectedV = {...DEFAULT_OPTS};
-				let opts: ADTQueryOptions = {};
+				const expectedV = {...DEFAULT_OPTS};
+				const opts: ADTQueryOptions = {};
 				expect(instance.queryOptions({})).toStrictEqual(expectedV);
 
 				const limit = 5;
@@ -467,9 +472,9 @@ describe('ADTStack', () => {
 				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
 			});
 
-			let testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
+			const testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
 			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
-				let opts = {limit: myTest as any};
+				const opts = {limit: myTest as any};
 				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
 			});
 		});
@@ -541,7 +546,7 @@ describe('ADTStack', () => {
 		});
 
 		describe('forEach', () => {
-			let testSuite: any = [
+			const testSuite: any = [
 				[['push']],
 				[['push', 'push']],
 				[['push', 'push', 'pop']],
@@ -558,8 +563,8 @@ describe('ADTStack', () => {
 					}
 				});
 
-				let expectedV = myTest.join('');
-				let expectedCount = instance.size();
+				const expectedV = myTest.join('');
+				const expectedCount = instance.size();
 				let count = 0;
 				instance.forEach((elem, index) => {
 					count++;
@@ -670,18 +675,18 @@ describe('ADTStack', () => {
 			});
 
 			it('should return empty array if no filters are given', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
 				expect(instance.query([])).toEqual([]);
 			});
 
 			it('should return all elements matching filter', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
-				let query = 15;
+				const query = 15;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 3;
+				const expectedV = 3;
 				for (let i = 0; i < expectedV; i++) {
 					instance.push(query);
 				}
@@ -690,12 +695,12 @@ describe('ADTStack', () => {
 			});
 
 			it('should return all elements matching filter up to limit', () => {
-				let expectedSize = ITEMS.length;
+				const expectedSize = ITEMS.length;
 				expect(instance.size()).toBe(expectedSize);
-				let query = 45;
+				const query = 45;
 				expect(instance.query(queryFilter(query)).length).toBe(0);
 
-				let expectedV = 2;
+				const expectedV = 2;
 				for (let i = 0; i < expectedV * 2; i++) {
 					instance.push(query);
 				}
@@ -721,9 +726,9 @@ describe('ADTStack', () => {
 					instance.push(item);
 				});
 
-				let result = instance.query([customFilter(60, true), customFilter(30, false)]);
+				const result = instance.query([customFilter(60, true), customFilter(30, false)]);
 				expect(result.length).toBe(2);
-				let resultValues: number[] = [];
+				const resultValues: number[] = [];
 				result.forEach((res) => {
 					resultValues.push(res.element);
 				});
