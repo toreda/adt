@@ -10,7 +10,7 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 
 	constructor(objectClass: ADTObjectPoolInstance<T>, options?: ADTObjectPoolOptions<T>) {
 		if (typeof objectClass !== 'function') {
-			throw new Error('Must have a class contructor for object pool to operate properly');
+			throw Error('Must have a class contructor for object pool to operate properly');
 		}
 		this.objectClass = objectClass;
 
@@ -40,7 +40,7 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 			parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
-				throw new Error(parsed.join('\n'));
+				throw Error(parsed.join('\n'));
 			}
 
 			result = parsed;
@@ -54,6 +54,8 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 
 			state.increaseBreakPoint = result.increaseBreakPoint;
 			state.increaseFactor = result.increaseFactor;
+
+			state.instanceArgs = result.instanceArgs;
 		}
 
 		return state;
@@ -76,7 +78,7 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 			}
 
 			if (errors.length) {
-				throw new Error('state is not a valid ADTObjectPoolState');
+				throw Error('state is not a valid ADTObjectPoolState');
 			}
 
 			result = parsed;
@@ -118,6 +120,10 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 			state.increaseFactor = options.increaseFactor;
 		}
 
+		if (options.instanceArgs && Array.isArray(options.instanceArgs)) {
+			state.instanceArgs = options.instanceArgs;
+		}
+
 		return state;
 	}
 
@@ -130,7 +136,8 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 			objectCount: 0,
 			maxSize: 1000,
 			increaseBreakPoint: 0.8,
-			increaseFactor: 2
+			increaseFactor: 2,
+			instanceArgs: []
 		};
 
 		return state;
@@ -171,6 +178,10 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		}
 		if (!this.isFloat(state.increaseFactor) || state.increaseFactor < 0) {
 			errors.push('state increaseFactor must be a positive number');
+		}
+
+		if (!Array.isArray(state.instanceArgs)) {
+			errors.push('state instanceArgs must be an array');
 		}
 
 		return errors;
@@ -274,7 +285,7 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		}
 
 		for (let i = 0; i < n && this.state.objectCount < this.state.maxSize; i++) {
-			this.store(new this.objectClass());
+			this.store(new this.objectClass(...this.state.instanceArgs));
 			this.state.objectCount++;
 		}
 	}

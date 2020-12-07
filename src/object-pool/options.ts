@@ -6,4 +6,6 @@ export interface ADTObjectPoolOptions<T> {
 	maxSize?: number;
 	increaseBreakPoint?: number;
 	increaseFactor?: number;
+
+	instanceArgs?: any[];
 }

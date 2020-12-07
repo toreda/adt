@@ -10,4 +10,6 @@ export interface ADTObjectPoolState<T> {
 
 	increaseBreakPoint: number;
 	increaseFactor: number;
+
+	instanceArgs: any[];
 }

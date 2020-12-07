@@ -1,4 +1,4 @@
 export interface ADTObjectPoolInstance<T> {
-	new (): T;
+	new (...args: unknown[]): T;
 	cleanObj(obj: T): void;
 }

@@ -37,7 +37,8 @@ describe('ADTObjectPool', () => {
 		'"objectCount": 1,',
 		'"maxSize": 4,',
 		'"increaseBreakPoint": 0,',
-		'"increaseFactor": 1',
+		'"increaseFactor": 1,',
+		'"instanceArgs": []',
 		'}'
 	].join('');
 	const DEFAULT_STATE: ADTObjectPoolState<objectClass> = {
@@ -48,15 +49,17 @@ describe('ADTObjectPool', () => {
 		objectCount: 0,
 		maxSize: 1000,
 		increaseBreakPoint: 0.8,
-		increaseFactor: 2
+		increaseFactor: 2,
+		instanceArgs: []
 	};
 
 	class objectClass {
 		public name!: string;
 		public amount!: number;
 
-		constructor() {
+		constructor(thing: any) {
 			objectClass.cleanObj(this);
+			this.name = thing;
 		}
 
 		static cleanObj(obj: objectClass): void {
@@ -114,13 +117,15 @@ describe('ADTObjectPool', () => {
 				expectedV.objectCount = expectedV.startSize;
 				expectedV.maxSize = 100;
 				expectedV.increaseFactor = 10;
+				expectedV.instanceArgs = ['name is dog'];
 
 				const custom = new ADTObjectPool<objectClass>(objectClass, {
 					serializedState: VALID_SERIALIZED_STATE,
 					startSize: expectedV.startSize,
 					maxSize: expectedV.maxSize,
 					increaseBreakPoint: 2,
-					increaseFactor: expectedV.increaseFactor
+					increaseFactor: expectedV.increaseFactor,
+					instanceArgs: expectedV.instanceArgs
 				});
 
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expectedV);
@@ -336,6 +341,12 @@ describe('ADTObjectPool', () => {
 					result: 'not a number >= 0',
 					testSuite: ([] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES),
 					expectedV: 'state increaseFactor must be a positive number'
+				},
+				{
+					prop: 'instanceArgs',
+					result: 'not an array',
+					testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
+					expectedV: 'state instanceArgs must be an array'
 				}
 			];
 			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
@@ -716,7 +727,8 @@ describe('ADTObjectPool', () => {
 					maxSize: 1000,
 					autoIncrease: false,
 					increaseFactor: 2,
-					increaseBreakPoint: 0.8
+					increaseBreakPoint: 0.8,
+					instanceArgs: []
 				});
 
 				custom.increaseCapacity(1);
@@ -728,7 +740,8 @@ describe('ADTObjectPool', () => {
 					maxSize: 1000,
 					autoIncrease: false,
 					increaseFactor: 2,
-					increaseBreakPoint: 0.8
+					increaseBreakPoint: 0.8,
+					instanceArgs: []
 				});
 
 				custom.increaseCapacity(2);
@@ -740,7 +753,8 @@ describe('ADTObjectPool', () => {
 					maxSize: 1000,
 					autoIncrease: false,
 					increaseFactor: 2,
-					increaseBreakPoint: 0.8
+					increaseBreakPoint: 0.8,
+					instanceArgs: []
 				});
 
 				custom.increaseCapacity(10);
@@ -752,7 +766,8 @@ describe('ADTObjectPool', () => {
 					maxSize: 1000,
 					autoIncrease: false,
 					increaseFactor: 2,
-					increaseBreakPoint: 0.8
+					increaseBreakPoint: 0.8,
+					instanceArgs: []
 				});
 			});
 		});
