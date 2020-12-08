@@ -24,10 +24,10 @@ Each ADT uses TypeScript generics of type<T> and implements `ADTBase` and `ADTBa
 * `clearElements(): void`
 * `reset(): void`
 * `stringify(): string | null`
-* ```query(
-		query: ADTQueryFilter<T> | ADTQueryFilter<T>[],
-		options?: ADTQueryOptions
-	): ADTQueryResult<T>[] | ADTQueryResult<ADTBaseElement<T>>[];```
+* `query(`<br>
+	 `query: ADTQueryFilter<T> | ADTQueryFilter<T>[],`<br>
+	 `options?: ADTQueryOptions`<br>
+	 `): ADTQueryResult<T>[] | ADTQueryResult<ADTBaseElement<T>>[];`
 
 # Data Structures
 
