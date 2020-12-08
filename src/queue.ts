@@ -1,35 +1,35 @@
 import {ADTBase} from './base';
+import {ADTQueueOptions as Options} from './queue/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
-import {ADTQueueOptions as QueueOptions} from './queue/options';
-import {ADTQueueState as QueueState} from './queue/state';
+import {ADTQueueState as State} from './queue/state';
 
-export class Queue<T> implements ADTBase<T> {
-	public state: QueueState<T>;
+export class ADTQueue<T> implements ADTBase<T> {
+	public state: State<T>;
 
-	constructor(options?: QueueOptions<T>) {
+	constructor(options?: Options<T>) {
 		// Shallow clone by default.
 		// TODO: Add deep copy option.
 		this.state = this.parseOptions(options);
 	}
 
-	public parseOptions(options?: QueueOptions<T>): QueueState<T> {
+	public parseOptions(options?: Options<T>): State<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: QueueOptions<T>): QueueState<T> {
-		const state: QueueState<T> = this.getDefaultState();
+	public parseOptionsState(options?: Options<T>): State<T> {
+		const state: State<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: QueueState<T> | Array<string> | null = null;
-		let result: QueueState<T> | null = null;
+		let parsed: State<T> | Array<string> | null = null;
+		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parseOptionsStateString(options.serializedState);
@@ -50,13 +50,13 @@ export class Queue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(state: string): QueueState<T> | Array<string> | null {
+	public parseOptionsStateString(state: string): State<T> | Array<string> | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: QueueState<T> | Array<string> | null = null;
-		let parsed: QueueState<T> | null = null;
+		let result: State<T> | Array<string> | null = null;
+		let parsed: State<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -78,8 +78,8 @@ export class Queue<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: QueueState<T>, options?: QueueOptions<T>): QueueState<T> {
-		let state: QueueState<T> | null = s;
+	public parseOptionsOther(s: State<T>, options?: Options<T>): State<T> {
+		let state: State<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -102,8 +102,8 @@ export class Queue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getDefaultState(): QueueState<T> {
-		const state: QueueState<T> = {
+	public getDefaultState(): State<T> {
+		const state: State<T> = {
 			type: 'qState',
 			elements: [],
 			deepClone: false,
@@ -113,7 +113,7 @@ export class Queue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: QueueState<T>): Array<string> {
+	public getStateErrors(state: State<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -138,7 +138,7 @@ export class Queue<T> implements ADTBase<T> {
 		return errors;
 	}
 
-	public isValidState(state: QueueState<T>): boolean {
+	public isValidState(state: State<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -195,13 +195,13 @@ export class Queue<T> implements ADTBase<T> {
 	/**
 	 * Clear all elements from queue.
 	 */
-	public clearElements(): Queue<T> {
+	public clearElements(): ADTQueue<T> {
 		this.state.elements = [];
 
 		return this;
 	}
 
-	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): Queue<T> {
+	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTQueue<T> {
 		let boundThis = this;
 		if (thisArg) {
 			boundThis = thisArg;
@@ -253,7 +253,7 @@ export class Queue<T> implements ADTBase<T> {
 	/**
 	 * Add element to the end of the queue.
 	 */
-	public push(element: any): Queue<T> {
+	public push(element: any): ADTQueue<T> {
 		this.state.elements.push(element);
 
 		return this;
@@ -295,7 +295,7 @@ export class Queue<T> implements ADTBase<T> {
 		return resultsArray;
 	}
 
-	public reset(): Queue<T> {
+	public reset(): ADTQueue<T> {
 		this.clearElements();
 
 		this.state.type = 'qState';
@@ -306,7 +306,7 @@ export class Queue<T> implements ADTBase<T> {
 	/**
 	 * Reverse stored element order.
 	 */
-	public reverse(): Queue<T> {
+	public reverse(): ADTQueue<T> {
 		this.state.elements.reverse();
 
 		return this;

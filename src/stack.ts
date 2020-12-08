@@ -1,36 +1,36 @@
 import {ADTBase} from './base';
+import {ADTStackOptions as Options} from './stack/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
-import {ADTStackOptions as StackOptions} from './stack/options';
-import {ADTStackState as StackState} from './stack/state';
+import {ADTStackState as State} from './stack/state';
 
 export class ADTStack<T> implements ADTBase<T> {
-	public state: StackState<T>;
+	public state: State<T>;
 
-	constructor(options?: StackOptions<T>) {
+	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
 
 		this.state.size = this.state.elements.length;
 		this.state.top = this.size() - 1;
 	}
 
-	public parseOptions(options?: StackOptions<T>): StackState<T> {
+	public parseOptions(options?: Options<T>): State<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: StackOptions<T>): StackState<T> {
-		const state: StackState<T> = this.getDefaultState();
+	public parseOptionsState(options?: Options<T>): State<T> {
+		const state: State<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: StackState<T> | Array<string> | null = null;
-		let result: StackState<T> | null = null;
+		let parsed: State<T> | Array<string> | null = null;
+		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parseOptionsStateString(options.serializedState);
@@ -52,13 +52,13 @@ export class ADTStack<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(state: string): StackState<T> | Array<string> | null {
+	public parseOptionsStateString(state: string): State<T> | Array<string> | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: StackState<T> | Array<string> | null = null;
-		let parsed: StackState<T> | null = null;
+		let result: State<T> | Array<string> | null = null;
+		let parsed: State<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -80,8 +80,8 @@ export class ADTStack<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: StackState<T>, options?: StackOptions<T>): StackState<T> {
-		let state: StackState<T> | null = s;
+	public parseOptionsOther(s: State<T>, options?: Options<T>): State<T> {
+		let state: State<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -98,8 +98,8 @@ export class ADTStack<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getDefaultState(): StackState<T> {
-		const state: StackState<T> = {
+	public getDefaultState(): State<T> {
+		const state: State<T> = {
 			type: 'sState',
 			elements: [],
 			size: 0,
@@ -110,7 +110,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: StackState<T>): Array<string> {
+	public getStateErrors(state: State<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -149,7 +149,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public isValidState(state: StackState<T>): boolean {
+	public isValidState(state: State<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {

@@ -1,33 +1,33 @@
 import {ADTBase} from './base';
-import {ADTCircularQueueOptions as CircOptions} from './circular-queue/options';
-import {ADTCircularQueueState as CircState} from './circular-queue/state';
+import {ADTCircularQueueOptions as Options} from './circular-queue/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
+import {ADTCircularQueueState as State} from './circular-queue/state';
 
 export class ADTCircularQueue<T> implements ADTBase<T> {
-	public state: CircState<T>;
+	public state: State<T>;
 
-	constructor(options?: CircOptions<T>) {
+	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
 	}
 
-	public parseOptions(options?: CircOptions<T>): CircState<T> {
+	public parseOptions(options?: Options<T>): State<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: CircOptions<T>): CircState<T> {
-		const state: CircState<T> = this.getDefaultState();
+	public parseOptionsState(options?: Options<T>): State<T> {
+		const state: State<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: CircState<T> | Array<string> | null = null;
-		let result: CircState<T> | null = null;
+		let parsed: State<T> | Array<string> | null = null;
+		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parseOptionsStateString(options.serializedState);
@@ -51,13 +51,13 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(data: string): CircState<T> | Array<string> | null {
+	public parseOptionsStateString(data: string): State<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: CircState<T> | Array<string> | null = null;
-		let parsed: CircState<T> | null = null;
+		let result: State<T> | Array<string> | null = null;
+		let parsed: State<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -79,8 +79,8 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: CircState<T>, options?: CircOptions<T>): CircState<T> {
-		let state: CircState<T> | null = s;
+	public parseOptionsOther(s: State<T>, options?: Options<T>): State<T> {
+		let state: State<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -111,8 +111,8 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getDefaultState(): CircState<T> {
-		const state: CircState<T> = {
+	public getDefaultState(): State<T> {
+		const state: State<T> = {
 			type: 'cqState',
 			elements: [],
 			overwrite: false,
@@ -125,7 +125,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: CircState<T>): Array<string> {
+	public getStateErrors(state: State<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -171,7 +171,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public isValidState(state: CircState<T>): boolean {
+	public isValidState(state: State<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {

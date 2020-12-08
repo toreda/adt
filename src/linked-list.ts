@@ -1,15 +1,15 @@
 import {ADTBase} from './base';
-import {ADTLinkedListElement as LinkElement} from './linked-list/element';
-import {ADTLinkedListOptions as LinkOptions} from './linked-list/options';
-import {ADTLinkedListState as LinkState} from './linked-list/state';
+import {ADTLinkedListElement as Element} from './linked-list/element';
+import {ADTLinkedListOptions as Options} from './linked-list/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
+import {ADTLinkedListState as State} from './linked-list/state';
 
 export class ADTLinkedList<T> implements ADTBase<T> {
-	public readonly state: LinkState<T>;
+	public readonly state: State<T>;
 
-	constructor(options?: LinkOptions<T>, elements?: T | T[]) {
+	constructor(options?: Options<T>, elements?: T | T[]) {
 		this.state = this.parseOptions(options);
 
 		this.state.elements.forEach((element: T) => {
@@ -19,22 +19,22 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		this.state.elements = [];
 	}
 
-	public parseOptions(options?: LinkOptions<T>): LinkState<T> {
+	public parseOptions(options?: Options<T>): State<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: LinkOptions<T>): LinkState<T> {
-		const state: LinkState<T> = this.getDefaultState();
+	public parseOptionsState(options?: Options<T>): State<T> {
+		const state: State<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: LinkState<T> | Array<string> | null = null;
-		let result: LinkState<T> | null = null;
+		let parsed: State<T> | Array<string> | null = null;
+		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parseOptionsStateString(options.serializedState);
@@ -54,13 +54,13 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(data: string): LinkState<T> | Array<string> | null {
+	public parseOptionsStateString(data: string): State<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: LinkState<T> | Array<string> | null = null;
-		let parsed: LinkState<T> | null = null;
+		let result: State<T> | Array<string> | null = null;
+		let parsed: State<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -82,8 +82,8 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: LinkState<T>, options?: LinkOptions<T>): LinkState<T> {
-		let state: LinkState<T> | null = s;
+	public parseOptionsOther(s: State<T>, options?: Options<T>): State<T> {
+		let state: State<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -104,8 +104,8 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getDefaultState(): LinkState<T> {
-		const state: LinkState<T> = {
+	public getDefaultState(): State<T> {
+		const state: State<T> = {
 			type: 'llState',
 			elements: [],
 			objectPool: false,
@@ -117,7 +117,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: LinkState<T>): Array<string> {
+	public getStateErrors(state: State<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -154,7 +154,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return errors;
 	}
 
-	public isPartOfList(node: LinkElement<T> | null): boolean {
+	public isPartOfList(node: Element<T> | null): boolean {
 		if (node == null) {
 			return false;
 		}
@@ -170,7 +170,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public queryDelete(query: QueryResult<LinkElement<T>>): T | null {
+	public queryDelete(query: QueryResult<Element<T>>): T | null {
 		this.deleteNode(query.element);
 
 		return query.element.value();
@@ -204,7 +204,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public deleteNode(node: LinkElement<T> | null): T | null {
+	public deleteNode(node: Element<T> | null): T | null {
 		if (node == null) {
 			return null;
 		}
@@ -238,7 +238,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	}
 
 	public forEach(
-		func: (element: LinkElement<T>, index: number, arr: LinkElement<T>[]) => void,
+		func: (element: Element<T>, index: number, arr: Element<T>[]) => void,
 		thisArg?: any
 	): ADTLinkedList<T> {
 		const arr = this.getAsArray();
@@ -255,8 +255,8 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public getAsArray(): LinkElement<T>[] {
-		const result: LinkElement<T>[] = [];
+	public getAsArray(): Element<T>[] {
+		const result: Element<T>[] = [];
 
 		let node = this.head();
 
@@ -268,14 +268,14 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public head(): LinkElement<T> | null {
+	public head(): Element<T> | null {
 		return this.state.head;
 	}
 
 	/**
 	 * Alias of insertAtTail for consistency.
 	 */
-	public insert(element: T): LinkElement<T> | null {
+	public insert(element: T): Element<T> | null {
 		return this.insertAtTail(element);
 	}
 
@@ -283,8 +283,8 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	 * Insert element at the front of the list, replacing the current
 	 * head if one exists.
 	 */
-	public insertAtHead(element: T): LinkElement<T> | null {
-		const node = new LinkElement<T>(element);
+	public insertAtHead(element: T): Element<T> | null {
+		const node = new Element<T>(element);
 		const head = this.head();
 
 		if (!head) {
@@ -309,8 +309,8 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	/**
 	 * Insert element at the end of the list.
 	 */
-	public insertAtTail(element: T): LinkElement<T> {
-		const node = new LinkElement<T>(element);
+	public insertAtTail(element: T): Element<T> {
+		const node = new Element<T>(element);
 		const tail = this.tail();
 
 		if (!tail) {
@@ -335,8 +335,8 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	public query(
 		filters: QueryFilter<T> | QueryFilter<T>[],
 		opts?: QueryOptions
-	): QueryResult<LinkElement<T>>[] {
-		const resultsArray: QueryResult<LinkElement<T>>[] = [];
+	): QueryResult<Element<T>>[] {
+		const resultsArray: QueryResult<Element<T>>[] = [];
 		const options = this.queryOptions(opts);
 
 		this.forEach((element) => {
@@ -367,7 +367,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 				return false;
 			}
 
-			const result: QueryResult<LinkElement<T>> = {} as QueryResult<LinkElement<T>>;
+			const result: QueryResult<Element<T>> = {} as QueryResult<Element<T>>;
 			result.element = element;
 			result.key = (): string | null => null;
 			result.index = (): number | null => null;
@@ -437,7 +437,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 			}
 		});
 
-		const state: LinkState<T> = {...this.state};
+		const state: State<T> = {...this.state};
 		state.elements = list;
 		state.head = null;
 		state.tail = null;
@@ -449,7 +449,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	 * Return the tail element if present. Returns null
 	 * on empty list.
 	 */
-	public tail(): LinkElement<T> | null {
+	public tail(): Element<T> | null {
 		return this.state.tail;
 	}
 }
