@@ -8,6 +8,7 @@ import {ADTObjectPoolState as State} from './object-pool/state';
 export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	public readonly state: State<T>;
 	public readonly objectClass: Constructor<T>;
+	public wastedSpace: number = 0;
 
 	constructor(objectClass: Constructor<T>, options?: Options) {
 		if (typeof objectClass !== 'function') {
@@ -109,6 +110,9 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			state.maxSize = options.maxSize;
 		}
 
+		if (typeof options.autoIncrease === 'boolean') {
+			state.autoIncrease = options.autoIncrease;
+		}
 		if (options.increaseBreakPoint) {
 			const between0and1 = options.increaseBreakPoint >= 0 && options.increaseBreakPoint <= 1;
 			if (this.isFloat(options.increaseBreakPoint) && between0and1) {
@@ -126,10 +130,19 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return state;
 	}
 
+	public cleanUsed(): void {
+		this.state.used = this.state.used.filter((obj) => {
+			return obj != null;
+		});
+
+		this.wastedSpace = 0;
+	}
+
 	public getDefaultState(): State<T> {
 		const state: State<T> = {
 			type: 'opState',
-			elements: [],
+			pool: [],
+			used: [],
 			autoIncrease: false,
 			startSize: 10,
 			objectCount: 0,
@@ -153,8 +166,11 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		if (state.type !== 'opState') {
 			errors.push('state type must be opState');
 		}
-		if (!Array.isArray(state.elements)) {
-			errors.push('state elements must be an array');
+		if (!Array.isArray(state.pool)) {
+			errors.push('state pool must be an array');
+		}
+		if (!Array.isArray(state.used)) {
+			errors.push('state used must be an array');
 		}
 
 		if (typeof state.autoIncrease !== 'boolean') {
@@ -227,7 +243,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			return;
 		}
 
-		this.state.elements.push(object);
+		this.state.pool.push(object);
 	}
 
 	public allocate(): T | null {
@@ -236,14 +252,18 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		}
 
 		if (this.state.autoIncrease && this.isAboveThreshold(1)) {
-			this.increaseCapacity(Math.ceil(this.state.objectCount * this.state.increaseFactor));
+			console.log('increase');
+			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor);
+			this.increaseCapacity(maxSize - this.state.objectCount);
 		}
 
-		const result = this.state.elements.pop();
+		const result = this.state.pool.pop();
 
 		if (result == null) {
 			return null;
 		}
+
+		this.state.used.push(result);
 
 		return result;
 	}
@@ -256,9 +276,14 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			num = n;
 		}
 
+		while (this.state.autoIncrease && this.isAboveThreshold(num)) {
+			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor);
+			this.increaseCapacity(maxSize - this.state.objectCount);
+		}
+
 		const result: Array<T> = [];
 
-		for (let i = 0; i < num && this.state.elements.length; i++) {
+		for (let i = 0; i < num && this.state.pool.length; i++) {
 			const item = this.allocate();
 			if (item !== null) {
 				result.push(item);
@@ -269,8 +294,25 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	}
 
 	public clearElements(): ADTObjectPool<T> {
-		this.state.elements = [];
+		this.state.pool = [];
 		this.state.objectCount = 0;
+
+		return this;
+	}
+
+	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTObjectPool<T> {
+		let boundThis = this;
+		if (thisArg) {
+			boundThis = thisArg;
+		}
+
+		this.state.used.forEach((elem, idx) => {
+			if (elem == null) {
+				return;
+			}
+
+			func.call(boundThis, elem, idx, this.state.pool);
+		}, boundThis);
 
 		return this;
 	}
@@ -298,6 +340,16 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			return;
 		}
 
+		const index = this.state.used.findIndex((obj) => obj === object);
+		if (index >= 0) {
+			this.state.used[index] = null;
+			this.wastedSpace++;
+		}
+
+		if (this.wastedSpace * 10 > this.state.used.length) {
+			this.cleanUsed();
+		}
+
 		object.cleanObj();
 		this.store(object);
 	}
@@ -306,6 +358,8 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		for (let i = 0; i < objects.length; i++) {
 			this.release(objects[i]);
 		}
+
+		this.cleanUsed();
 	}
 
 	public reset(): ADTObjectPool<T> {
@@ -327,7 +381,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		}
 
 		let state = JSON.stringify(this.state);
-		state = state.replace(/"elements":\[.*?\]/, '"elements":[]');
+		state = state.replace(/"(pool|used)":\[.*?\]/g, '"$1":[]');
 
 		return state;
 	}
@@ -345,7 +399,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			num = 0;
 		}
 
-		const freeObj = this.state.elements.length - num;
+		const freeObj = this.state.pool.length - num;
 		return (this.state.objectCount - freeObj) / this.state.objectCount;
 	}
 }

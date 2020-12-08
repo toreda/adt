@@ -1,5 +1,6 @@
 import {ADTObjectPool} from '../src/object-pool';
 import {ADTObjectPoolInstance} from '../src/object-pool/instance';
+import {ADTObjectPoolOptions} from '../src/object-pool/options';
 import {ADTObjectPoolState} from '../src/object-pool/state';
 
 describe('ADTObjectPool', () => {
@@ -21,7 +22,8 @@ describe('ADTObjectPool', () => {
 
 	const STATE_PROPERTIES = [
 		'type',
-		'elements',
+		'pool',
+		'used',
 		'startSize',
 		'objectCount',
 		'maxSize',
@@ -32,7 +34,8 @@ describe('ADTObjectPool', () => {
 	const VALID_SERIALIZED_STATE = [
 		'{',
 		'"type": "opState",',
-		'"elements": [],',
+		'"pool": [],',
+		'"used": [],',
 		'"autoIncrease": true,',
 		'"startSize": 1,',
 		'"objectCount": 1,',
@@ -44,7 +47,8 @@ describe('ADTObjectPool', () => {
 	].join('');
 	const DEFAULT_STATE: ADTObjectPoolState<objectClass> = {
 		type: 'opState',
-		elements: [],
+		pool: [],
+		used: [],
 		autoIncrease: false,
 		startSize: 10,
 		objectCount: 0,
@@ -170,6 +174,18 @@ describe('ADTObjectPool', () => {
 				expect(instance.parseOptionsState(undefined!)).toStrictEqual(DEFAULT_STATE);
 			});
 
+			it.each(STATE_PROPERTIES)('should throw when state.%s is null', (myTest) => {
+				const state = {...DEFAULT_STATE};
+				state[myTest] = null!;
+				const errors = instance.getStateErrors(state);
+
+				expect(() => {
+					instance.parseOptionsState({
+						serializedState: JSON.stringify(state)
+					});
+				}).toThrow(errors.join('\n'));
+			});
+
 			describe('should throw if serializedState is not valid', () => {
 				STATE_PROPERTIES.forEach((v) => {
 					it(v + ' is null', () => {
@@ -214,7 +230,7 @@ describe('ADTObjectPool', () => {
 				);
 			});
 
-			const toParseList = ['{}', '{"type": "opState"}', '{"elements":4, "type": "opState"}'];
+			const toParseList = ['{}', '{"type": "opState"}', '{"pool":4, "type": "opState"}'];
 			it.each(toParseList)('should return errors, %p wont parse into an ADTStackState', (toParse) => {
 				let errors: Array<string> = [];
 				errors = instance.getStateErrors(JSON.parse(toParse) as any);
@@ -249,19 +265,18 @@ describe('ADTObjectPool', () => {
 			});
 
 			it('should return passed state with values changed to match other passed options if those are valid', () => {
-				const expectedV: ADTObjectPoolState<objectClass> = {...DEFAULT_STATE};
-				expectedV.startSize = 20;
-				expectedV.increaseFactor = 10;
+				type Option = Required<Omit<ADTObjectPoolOptions, 'serializedState'>>;
+				const opts: Option = {
+					startSize: 20,
+					maxSize: 666,
+					autoIncrease: true,
+					increaseBreakPoint: 0.54321,
+					increaseFactor: 10,
+					instanceArgs: ['test']
+				};
 
-				const result = instance.parseOptionsOther(
-					{...DEFAULT_STATE},
-					{
-						startSize: expectedV.startSize,
-						maxSize: 155.55,
-						increaseBreakPoint: -1,
-						increaseFactor: expectedV.increaseFactor
-					}
-				);
+				const expectedV = {...DEFAULT_STATE, ...opts};
+				const result = instance.parseOptionsOther({...DEFAULT_STATE}, opts);
 
 				expect(result).toStrictEqual(expectedV);
 			});
@@ -302,10 +317,16 @@ describe('ADTObjectPool', () => {
 					expectedV: 'state type must be opState'
 				},
 				{
-					prop: 'elements',
+					prop: 'pool',
 					result: 'not an array',
 					testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
-					expectedV: 'state elements must be an array'
+					expectedV: 'state pool must be an array'
+				},
+				{
+					prop: 'used',
+					result: 'not an array',
+					testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
+					expectedV: 'state used must be an array'
 				},
 				{
 					prop: 'autoIncrease',
@@ -468,10 +489,10 @@ describe('ADTObjectPool', () => {
 				obj.store();
 			});
 
-			it('should add obj to elements', () => {
-				expect(instance.state.elements.length).toBe(10);
+			it('should add obj to pool', () => {
+				expect(instance.state.pool.length).toBe(10);
 				instance.store({} as any);
-				expect(instance.state.elements.length).toBe(11);
+				expect(instance.state.pool.length).toBe(11);
 			});
 		});
 	});
@@ -487,7 +508,7 @@ describe('ADTObjectPool', () => {
 				expect(instance.state.autoIncrease).toBe(false);
 				instance.state.objectCount = 10;
 				expect(instance.state.objectCount).toBe(10);
-				expect(instance.state.elements.length).toBe(0);
+				expect(instance.state.pool.length).toBe(0);
 				expect(instance.allocate()).toBeNull();
 			});
 
@@ -496,17 +517,17 @@ describe('ADTObjectPool', () => {
 				expect(instance.state.autoIncrease).toBe(false);
 				instance.increaseCapacity(1);
 				expect(instance.state.objectCount).toBe(1);
-				expect(instance.state.elements.length).toBe(1);
+				expect(instance.state.pool.length).toBe(1);
 				expect(instance.allocate()).not.toBeNull();
-				expect(instance.state.elements.length).toBe(0);
+				expect(instance.state.pool.length).toBe(0);
 			});
 
 			it('should return 1 element from pool if multiple are available', () => {
 				expect(instance.state.autoIncrease).toBe(false);
 				expect(instance.state.objectCount).toBe(10);
-				expect(instance.state.elements.length).toBe(10);
+				expect(instance.state.pool.length).toBe(10);
 				expect(instance.allocate()).not.toBeNull();
-				expect(instance.state.elements.length).toBe(9);
+				expect(instance.state.pool.length).toBe(9);
 			});
 		});
 
@@ -550,19 +571,19 @@ describe('ADTObjectPool', () => {
 
 		describe('clearElements', () => {
 			it('should not throw if object pool is empty', () => {
-				instance.state.elements = [];
+				instance.state.pool = [];
 				expect(() => {
 					instance.clearElements();
 				}).not.toThrow();
 			});
 
 			it('should remove all elements from op and reset objectCount to 0', () => {
-				expect(instance.state.elements).not.toStrictEqual([]);
+				expect(instance.state.pool).not.toStrictEqual([]);
 				expect(instance.state.objectCount).not.toBe(0);
 
 				instance.clearElements();
 
-				expect(instance.state.elements).toStrictEqual([]);
+				expect(instance.state.pool).toStrictEqual([]);
 				expect(instance.state.objectCount).toBe(0);
 			});
 
@@ -599,15 +620,15 @@ describe('ADTObjectPool', () => {
 
 			it('should increase the objectCount by n up to maxSize and create that many new elements', () => {
 				expect(instance.state.objectCount).toBe(10);
-				expect(instance.state.elements.length).toBe(10);
+				expect(instance.state.pool.length).toBe(10);
 
 				instance.increaseCapacity(1);
 				expect(instance.state.objectCount).toBe(11);
-				expect(instance.state.elements.length).toBe(11);
+				expect(instance.state.pool.length).toBe(11);
 
 				instance.increaseCapacity(10);
 				expect(instance.state.objectCount).toBe(21);
-				expect(instance.state.elements.length).toBe(21);
+				expect(instance.state.pool.length).toBe(21);
 			});
 		});
 
@@ -642,50 +663,50 @@ describe('ADTObjectPool', () => {
 
 		describe('releaseMultiple', () => {
 			it('should not throw if array is empty', () => {
-				expect(instance.state.elements.length).toBe(10);
+				expect(instance.state.pool.length).toBe(10);
 
 				expect(() => {
 					instance.releaseMultiple([]);
 				}).not.toThrow();
 
-				expect(instance.state.elements.length).toBe(10);
+				expect(instance.state.pool.length).toBe(10);
 			});
 
 			it('should release element from array if there is only 1', () => {
-				expect(instance.state.elements.length).toBe(instance.state.objectCount);
+				expect(instance.state.pool.length).toBe(instance.state.objectCount);
 
 				const objs = instance.allocateMultiple(1);
-				expect(instance.state.elements.length).toBe(instance.state.objectCount - 1);
+				expect(instance.state.pool.length).toBe(instance.state.objectCount - 1);
 
 				instance.releaseMultiple(objs);
-				expect(instance.state.elements.length).toBe(instance.state.objectCount);
+				expect(instance.state.pool.length).toBe(instance.state.objectCount);
 			});
 
 			it('should release all elements from the array', () => {
-				expect(instance.state.elements.length).toBe(instance.state.objectCount);
+				expect(instance.state.pool.length).toBe(instance.state.objectCount);
 
 				const amount = 5;
 				const objs = instance.allocateMultiple(amount);
-				expect(instance.state.elements.length).toBe(instance.state.objectCount - amount);
+				expect(instance.state.pool.length).toBe(instance.state.objectCount - amount);
 
 				instance.releaseMultiple(objs);
-				expect(instance.state.elements.length).toBe(instance.state.objectCount);
+				expect(instance.state.pool.length).toBe(instance.state.objectCount);
 			});
 		});
 
 		describe('reset', () => {
 			it('should not throw if state has errors', () => {
-				instance.state.elements = '' as any;
+				instance.state.pool = '' as any;
 				expect(() => {
 					instance.reset();
 				}).not.toThrow();
 			});
 
 			it('should set objectCount to startSize and initialize that many elements', () => {
-				expect(instance.state.elements).not.toStrictEqual([]);
+				expect(instance.state.pool).not.toStrictEqual([]);
 				expect(instance.state.objectCount).not.toBe(0);
 				instance.reset();
-				expect(instance.state.elements.length).toBe(instance.state.startSize);
+				expect(instance.state.pool.length).toBe(instance.state.startSize);
 				expect(instance.state.objectCount).toBe(instance.state.startSize);
 			});
 
@@ -722,7 +743,8 @@ describe('ADTObjectPool', () => {
 				const custom = new ADTObjectPool<objectClass>(objectClass);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 					type: 'opState',
-					elements: [],
+					pool: [],
+					used: [],
 					startSize: 10,
 					objectCount: 10,
 					maxSize: 1000,
@@ -735,7 +757,8 @@ describe('ADTObjectPool', () => {
 				custom.increaseCapacity(1);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 					type: 'opState',
-					elements: [],
+					pool: [],
+					used: [],
 					startSize: 10,
 					objectCount: 11,
 					maxSize: 1000,
@@ -748,7 +771,8 @@ describe('ADTObjectPool', () => {
 				custom.increaseCapacity(2);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 					type: 'opState',
-					elements: [],
+					pool: [],
+					used: [],
 					startSize: 10,
 					objectCount: 13,
 					maxSize: 1000,
@@ -761,7 +785,8 @@ describe('ADTObjectPool', () => {
 				custom.increaseCapacity(10);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
 					type: 'opState',
-					elements: [],
+					pool: [],
+					used: [],
 					startSize: 10,
 					objectCount: 23,
 					maxSize: 1000,

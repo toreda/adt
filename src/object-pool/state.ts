@@ -1,13 +1,14 @@
 export interface ADTObjectPoolState<T> {
 	type: 'opState';
-	elements: Array<T>;
 
-	autoIncrease: boolean;
+	pool: T[];
+	used: (T | null)[];
 
 	startSize: number;
 	objectCount: number;
 	maxSize: number;
 
+	autoIncrease: boolean;
 	increaseBreakPoint: number;
 	increaseFactor: number;
 
