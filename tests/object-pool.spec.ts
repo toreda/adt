@@ -2,6 +2,9 @@ import {ADTObjectPool} from '../src/object-pool';
 import {ADTObjectPoolInstance} from '../src/object-pool/instance';
 import {ADTObjectPoolOptions} from '../src/object-pool/options';
 import {ADTObjectPoolState} from '../src/object-pool/state';
+import {ADTQueryFilter} from '../src/query/filter';
+import {ADTQueryOptions} from '../src/query/options';
+import {ADTQueryResult} from '../src/query/result';
 
 describe('ADTObjectPool', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -65,6 +68,7 @@ describe('ADTObjectPool', () => {
 		constructor(name: string = '') {
 			this.cleanObj();
 			this.name = name;
+			this.amount = Math.random();
 		}
 
 		cleanObj(): void {
@@ -81,6 +85,13 @@ describe('ADTObjectPool', () => {
 			action(custom);
 			expect(spy).toBeCalled();
 		});
+	};
+	const queryFilter = function (target: number): ADTQueryFilter<objectClass> {
+		const filter: ADTQueryFilter<objectClass> = (element): boolean => {
+			return element.amount < target;
+		};
+
+		return filter;
 	};
 
 	let instance: ADTObjectPool<objectClass>;
@@ -481,6 +492,84 @@ describe('ADTObjectPool', () => {
 				const state = {...DEFAULT_STATE};
 				state[myTest] = null!;
 				expect(instance.isValidState(state)).toBe(false);
+			});
+		});
+
+		describe('queryDelete', () => {
+			it('should return null if arg does not have an index method', () => {
+				expect(instance.queryDelete({} as any)).toBeNull();
+			});
+
+			it('should return element if it is in queue', () => {
+				instance.allocate();
+				const queryResult = instance.query(queryFilter(1))[0];
+				expect(instance.queryDelete(queryResult)).toBe(queryResult.element);
+			});
+
+			it('should delete the element from queue', () => {
+				instance.allocate();
+				const queryResult = instance.query(queryFilter(1))[0];
+				instance.queryDelete(queryResult);
+				instance.cleanUsed();
+				expect(instance.state.used.length).toBe(0);
+			});
+		});
+
+		describe('queryIndex', () => {
+			it('should return null if element is not in queue', () => {
+				instance.allocate();
+				const queryResult = instance.query(queryFilter(1))[0];
+
+				queryResult.delete();
+				expect(queryResult.index()).toBeNull();
+			});
+		});
+
+		describe('queryOptions', () => {
+			const DEFAULT_OPTS = {
+				limit: Infinity
+			};
+			it('should return ADTQueryOptions with all properties', () => {
+				const props = ['limit'];
+				const opts1 = instance.queryOptions();
+				const opts2 = instance.queryOptions({});
+				const opts3 = instance.queryOptions({limit: 99});
+				const opts4 = instance.queryOptions({limit: '99' as any});
+
+				props.forEach((prop) => {
+					expect(opts1[prop]).not.toBeUndefined();
+					expect(opts2[prop]).not.toBeUndefined();
+					expect(opts3[prop]).not.toBeUndefined();
+					expect(opts4[prop]).not.toBeUndefined();
+				});
+			});
+
+			it('should return default if opts is null or underfined', () => {
+				expect(instance.queryOptions()).toStrictEqual(DEFAULT_OPTS);
+				expect(instance.queryOptions(null!)).toStrictEqual(DEFAULT_OPTS);
+				expect(instance.queryOptions(undefined!)).toStrictEqual(DEFAULT_OPTS);
+			});
+
+			it('should return default with passed props overridden', () => {
+				const expectedV = {...DEFAULT_OPTS};
+				const opts: ADTQueryOptions = {};
+				expect(instance.queryOptions({})).toStrictEqual(expectedV);
+
+				const limit = 5;
+				opts.limit = limit;
+				expectedV.limit = limit;
+				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
+
+				const limitFloat = 5.7;
+				opts.limit = limitFloat;
+				expectedV.limit = Math.round(limitFloat);
+				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
+			});
+
+			const testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
+			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
+				const opts = {limit: myTest as any};
+				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
 			});
 		});
 

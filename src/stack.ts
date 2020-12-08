@@ -1,36 +1,36 @@
 import {ADTBase} from './base';
-import {ADTQueryFilter} from './query/filter';
-import {ADTQueryOptions} from './query/options';
-import {ADTQueryResult} from './query/result';
-import {ADTStackOptions} from './stack/options';
-import {ADTStackState} from './stack/state';
+import {ADTQueryFilter as QueryFilter} from './query/filter';
+import {ADTQueryOptions as QueryOptions} from './query/options';
+import {ADTQueryResult as QueryResult} from './query/result';
+import {ADTStackOptions as StackOptions} from './stack/options';
+import {ADTStackState as StackState} from './stack/state';
 
 export class ADTStack<T> implements ADTBase<T> {
-	public state: ADTStackState<T>;
+	public state: StackState<T>;
 
-	constructor(options?: ADTStackOptions<T>) {
+	constructor(options?: StackOptions<T>) {
 		this.state = this.parseOptions(options);
 
 		this.state.size = this.state.elements.length;
 		this.state.top = this.size() - 1;
 	}
 
-	public parseOptions(options?: ADTStackOptions<T>): ADTStackState<T> {
+	public parseOptions(options?: StackOptions<T>): StackState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: ADTStackOptions<T>): ADTStackState<T> {
-		const state: ADTStackState<T> = this.getDefaultState();
+	public parseOptionsState(options?: StackOptions<T>): StackState<T> {
+		const state: StackState<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: ADTStackState<T> | Array<string> | null = null;
-		let result: ADTStackState<T> | null = null;
+		let parsed: StackState<T> | Array<string> | null = null;
+		let result: StackState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parseOptionsStateString(options.serializedState);
@@ -52,13 +52,13 @@ export class ADTStack<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(state: string): ADTStackState<T> | Array<string> | null {
+	public parseOptionsStateString(state: string): StackState<T> | Array<string> | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: ADTStackState<T> | Array<string> | null = null;
-		let parsed: ADTStackState<T> | null = null;
+		let result: StackState<T> | Array<string> | null = null;
+		let parsed: StackState<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -80,8 +80,8 @@ export class ADTStack<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: ADTStackState<T>, options?: ADTStackOptions<T>): ADTStackState<T> {
-		let state: ADTStackState<T> | null = s;
+	public parseOptionsOther(s: StackState<T>, options?: StackOptions<T>): StackState<T> {
+		let state: StackState<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -98,8 +98,8 @@ export class ADTStack<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getDefaultState(): ADTStackState<T> {
-		const state: ADTStackState<T> = {
+	public getDefaultState(): StackState<T> {
+		const state: StackState<T> = {
 			type: 'sState',
 			elements: [],
 			size: 0,
@@ -110,7 +110,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: ADTStackState<T>): Array<string> {
+	public getStateErrors(state: StackState<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -149,7 +149,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public isValidState(state: ADTStackState<T>): boolean {
+	public isValidState(state: StackState<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -159,7 +159,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public queryDelete(query: ADTQueryResult<T>): T | null {
+	public queryDelete(query: QueryResult<T>): T | null {
 		if (!query || !query.index) {
 			return null;
 		}
@@ -193,8 +193,8 @@ export class ADTStack<T> implements ADTBase<T> {
 		return index;
 	}
 
-	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
-		const options: Required<ADTQueryOptions> = {
+	public queryOptions(opts?: QueryOptions): Required<QueryOptions> {
+		const options: Required<QueryOptions> = {
 			limit: Infinity
 		};
 
@@ -258,11 +258,8 @@ export class ADTStack<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public query(
-		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
-		opts?: ADTQueryOptions
-	): ADTQueryResult<T>[] {
-		const resultsArray: ADTQueryResult<T>[] = [];
+	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
+		const resultsArray: QueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
 
 		this.forEach((element) => {
@@ -286,7 +283,7 @@ export class ADTStack<T> implements ADTBase<T> {
 				return false;
 			}
 
-			const result: ADTQueryResult<T> = {} as ADTQueryResult<T>;
+			const result: QueryResult<T> = {} as QueryResult<T>;
 			result.element = element;
 			result.key = (): string | null => null;
 			result.index = this.queryIndex.bind(this, element);

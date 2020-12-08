@@ -1,17 +1,17 @@
 import {ADTBase} from './base';
-import {ADTPriorityQueueChildren} from './priority-queue/children';
-import {ADTPriorityQueueComparator} from './priority-queue/comparator';
-import {ADTPriorityQueueOptions} from './priority-queue/options';
-import {ADTPriorityQueueState} from './priority-queue/state';
-import {ADTQueryFilter} from './query/filter';
-import {ADTQueryOptions} from './query/options';
-import {ADTQueryResult} from './query/result';
+import {ADTPriorityQueueChildren as PQueueChildren} from './priority-queue/children';
+import {ADTPriorityQueueComparator as PQueueComparator} from './priority-queue/comparator';
+import {ADTPriorityQueueOptions as PQueueOptions} from './priority-queue/options';
+import {ADTPriorityQueueState as PQueueState} from './priority-queue/state';
+import {ADTQueryFilter as QueryFilter} from './query/filter';
+import {ADTQueryOptions as QueryOptions} from './query/options';
+import {ADTQueryResult as QueryResult} from './query/result';
 
 export class ADTPriorityQueue<T> implements ADTBase<T> {
-	public state: ADTPriorityQueueState<T>;
-	public readonly comparator: ADTPriorityQueueComparator<T>;
+	public state: PQueueState<T>;
+	public readonly comparator: PQueueComparator<T>;
 
-	constructor(comparator: ADTPriorityQueueComparator<T>, options?: ADTPriorityQueueOptions<T>) {
+	constructor(comparator: PQueueComparator<T>, options?: PQueueOptions<T>) {
 		if (typeof comparator !== 'function') {
 			throw new Error('Must have a comparator function for priority queue to operate properly');
 		}
@@ -22,22 +22,22 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		this.heapify();
 	}
 
-	public parseOptions(options?: ADTPriorityQueueOptions<T>): ADTPriorityQueueState<T> {
+	public parseOptions(options?: PQueueOptions<T>): PQueueState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: ADTPriorityQueueOptions<T>): ADTPriorityQueueState<T> {
-		const state: ADTPriorityQueueState<T> = this.getDefaultState();
+	public parseOptionsState(options?: PQueueOptions<T>): PQueueState<T> {
+		const state: PQueueState<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: ADTPriorityQueueState<T> | Array<string> | null = null;
-		let result: ADTPriorityQueueState<T> | null = null;
+		let parsed: PQueueState<T> | Array<string> | null = null;
+		let result: PQueueState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parseOptionsStateString(options.serializedState);
@@ -56,13 +56,13 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(data: string): ADTPriorityQueueState<T> | Array<string> | null {
+	public parseOptionsStateString(data: string): PQueueState<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: ADTPriorityQueueState<T> | Array<string> | null = null;
-		let parsed: ADTPriorityQueueState<T> | null = null;
+		let result: PQueueState<T> | Array<string> | null = null;
+		let parsed: PQueueState<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -84,11 +84,8 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(
-		s: ADTPriorityQueueState<T>,
-		options?: ADTPriorityQueueOptions<T>
-	): ADTPriorityQueueState<T> {
-		let state: ADTPriorityQueueState<T> | null = s;
+	public parseOptionsOther(s: PQueueState<T>, options?: PQueueOptions<T>): PQueueState<T> {
+		let state: PQueueState<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -105,8 +102,8 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getDefaultState(): ADTPriorityQueueState<T> {
-		const state: ADTPriorityQueueState<T> = {
+	public getDefaultState(): PQueueState<T> {
+		const state: PQueueState<T> = {
 			type: 'pqState',
 			elements: []
 		};
@@ -114,7 +111,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: ADTPriorityQueueState<T>): Array<string> {
+	public getStateErrors(state: PQueueState<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -132,7 +129,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return errors;
 	}
 
-	public isValidState(state: ADTPriorityQueueState<T>): boolean {
+	public isValidState(state: PQueueState<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -142,7 +139,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public queryDelete(query: ADTQueryResult<T>): T | null {
+	public queryDelete(query: QueryResult<T>): T | null {
 		if (!query || !query.index) {
 			return null;
 		}
@@ -175,8 +172,8 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return index;
 	}
 
-	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
-		const options: Required<ADTQueryOptions> = {
+	public queryOptions(opts?: QueryOptions): Required<QueryOptions> {
+		const options: Required<QueryOptions> = {
 			limit: Infinity
 		};
 
@@ -240,7 +237,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		}
 	}
 
-	public getChildNodesIndexes(nodeIndex: number | null): ADTPriorityQueueChildren {
+	public getChildNodesIndexes(nodeIndex: number | null): PQueueChildren {
 		if (typeof nodeIndex !== 'number') {
 			return {left: null, right: null};
 		}
@@ -428,11 +425,8 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public query(
-		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
-		opts?: ADTQueryOptions
-	): ADTQueryResult<T>[] {
-		const resultsArray: ADTQueryResult<T>[] = [];
+	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
+		const resultsArray: QueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
 
 		this.forEach((element) => {
@@ -456,7 +450,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 				return false;
 			}
 
-			const result: ADTQueryResult<T> = {} as ADTQueryResult<T>;
+			const result: QueryResult<T> = {} as QueryResult<T>;
 			result.element = element;
 			result.key = (): string | null => null;
 			result.index = this.queryIndex.bind(this, element);

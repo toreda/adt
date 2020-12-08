@@ -1,16 +1,18 @@
 import {ADTBase} from './base';
-import {ADTQueryResult} from './query/result';
-import {ADTObjectPoolConstructor as Constructor} from './object-pool/constructor';
-import {ADTObjectPoolInstance as Instance} from './object-pool/instance';
-import {ADTObjectPoolOptions as Options} from './object-pool/options';
-import {ADTObjectPoolState as State} from './object-pool/state';
+import {ADTObjectPoolConstructor as PoolConstructor} from './object-pool/constructor';
+import {ADTObjectPoolInstance as PoolInstance} from './object-pool/instance';
+import {ADTObjectPoolOptions as PoolOptions} from './object-pool/options';
+import {ADTObjectPoolState as PoolState} from './object-pool/state';
+import {ADTQueryFilter as QueryFilter} from './query/filter';
+import {ADTQueryOptions as QueryOptions} from './query/options';
+import {ADTQueryResult as QueryResult} from './query/result';
 
-export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
-	public readonly state: State<T>;
-	public readonly objectClass: Constructor<T>;
+export class ADTObjectPool<T extends PoolInstance> implements ADTBase<T> {
+	public readonly state: PoolState<T>;
+	public readonly objectClass: PoolConstructor<T>;
 	public wastedSpace: number = 0;
 
-	constructor(objectClass: Constructor<T>, options?: Options) {
+	constructor(objectClass: PoolConstructor<T>, options?: PoolOptions) {
 		if (typeof objectClass !== 'function') {
 			throw Error('Must have a class contructor for object pool to operate properly');
 		}
@@ -22,22 +24,22 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		this.increaseCapacity(this.state.startSize);
 	}
 
-	public parseOptions(options?: Options): State<T> {
+	public parseOptions(options?: PoolOptions): PoolState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: Options): State<T> {
-		const state: State<T> = this.getDefaultState();
+	public parseOptionsState(options?: PoolOptions): PoolState<T> {
+		const state: PoolState<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: State<T> | Array<string> | null = null;
-		let result: State<T> | null = null;
+		let parsed: PoolState<T> | Array<string> | null = null;
+		let result: PoolState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parseOptionsStateString(options.serializedState);
@@ -64,13 +66,13 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(state: string): State<T> | Array<string> | null {
+	public parseOptionsStateString(state: string): PoolState<T> | Array<string> | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: State<T> | Array<string> | null = null;
-		let parsed: State<T> | null = null;
+		let result: PoolState<T> | Array<string> | null = null;
+		let parsed: PoolState<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -92,8 +94,8 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: State<T>, options?: Options): State<T> {
-		let state: State<T> | null = s;
+	public parseOptionsOther(s: PoolState<T>, options?: PoolOptions): PoolState<T> {
+		let state: PoolState<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -138,8 +140,8 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		this.wastedSpace = 0;
 	}
 
-	public getDefaultState(): State<T> {
-		const state: State<T> = {
+	public getDefaultState(): PoolState<T> {
+		const state: PoolState<T> = {
 			type: 'opState',
 			pool: [],
 			used: [],
@@ -155,7 +157,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: State<T>): Array<string> {
+	public getStateErrors(state: PoolState<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -228,7 +230,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return true;
 	}
 
-	public isValidState(state: State<T>): boolean {
+	public isValidState(state: PoolState<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -236,6 +238,40 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		}
 
 		return true;
+	}
+
+	public queryDelete(query: QueryResult<T>): T | null {
+		if (query.element == null) {
+			return null;
+		}
+
+		this.release(query.element);
+
+		return query.element;
+	}
+
+	public queryIndex(query: T): number | null {
+		const index = this.state.used.findIndex((element) => {
+			return element === query;
+		});
+
+		if (index < 0) {
+			return null;
+		}
+
+		return index;
+	}
+
+	public queryOptions(opts?: QueryOptions): Required<QueryOptions> {
+		const options: Required<QueryOptions> = {
+			limit: Infinity
+		};
+
+		if (opts?.limit && typeof opts.limit === 'number' && opts.limit >= 1) {
+			options.limit = Math.round(opts.limit);
+		}
+
+		return options;
 	}
 
 	public store(object: T): void {
@@ -331,8 +367,40 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		}
 	}
 
-	public query(): ADTQueryResult<T>[] {
-		return [];
+	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
+		const resultsArray: QueryResult<T>[] = [];
+		const options = this.queryOptions(opts);
+
+		this.forEach((element) => {
+			let take = false;
+
+			if (resultsArray.length >= options.limit) {
+				return false;
+			}
+
+			if (Array.isArray(filters)) {
+				take =
+					!!filters.length &&
+					filters.every((filter) => {
+						return filter(element);
+					});
+			} else {
+				take = filters(element);
+			}
+
+			if (!take) {
+				return false;
+			}
+
+			const result: QueryResult<T> = {} as QueryResult<T>;
+			result.element = element;
+			result.key = (): string | null => null;
+			result.index = this.queryIndex.bind(this, element);
+			result.delete = this.queryDelete.bind(this, result);
+			resultsArray.push(result);
+		});
+
+		return resultsArray;
 	}
 
 	public release(object: T): void {

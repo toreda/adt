@@ -1,33 +1,33 @@
 import {ADTBase} from './base';
-import {ADTCircularQueueOptions} from './circular-queue/options';
-import {ADTCircularQueueState} from './circular-queue/state';
-import {ADTQueryFilter} from './query/filter';
-import {ADTQueryOptions} from './query/options';
-import {ADTQueryResult} from './query/result';
+import {ADTCircularQueueOptions as CircOptions} from './circular-queue/options';
+import {ADTCircularQueueState as CircState} from './circular-queue/state';
+import {ADTQueryFilter as QueryFilter} from './query/filter';
+import {ADTQueryOptions as QueryOptions} from './query/options';
+import {ADTQueryResult as QueryResult} from './query/result';
 
 export class ADTCircularQueue<T> implements ADTBase<T> {
-	public state: ADTCircularQueueState<T>;
+	public state: CircState<T>;
 
-	constructor(options?: ADTCircularQueueOptions<T>) {
+	constructor(options?: CircOptions<T>) {
 		this.state = this.parseOptions(options);
 	}
 
-	public parseOptions(options?: ADTCircularQueueOptions<T>): ADTCircularQueueState<T> {
+	public parseOptions(options?: CircOptions<T>): CircState<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: ADTCircularQueueOptions<T>): ADTCircularQueueState<T> {
-		const state: ADTCircularQueueState<T> = this.getDefaultState();
+	public parseOptionsState(options?: CircOptions<T>): CircState<T> {
+		const state: CircState<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: ADTCircularQueueState<T> | Array<string> | null = null;
-		let result: ADTCircularQueueState<T> | null = null;
+		let parsed: CircState<T> | Array<string> | null = null;
+		let result: CircState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parseOptionsStateString(options.serializedState);
@@ -51,13 +51,13 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(data: string): ADTCircularQueueState<T> | Array<string> | null {
+	public parseOptionsStateString(data: string): CircState<T> | Array<string> | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: ADTCircularQueueState<T> | Array<string> | null = null;
-		let parsed: ADTCircularQueueState<T> | null = null;
+		let result: CircState<T> | Array<string> | null = null;
+		let parsed: CircState<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -79,11 +79,8 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(
-		s: ADTCircularQueueState<T>,
-		options?: ADTCircularQueueOptions<T>
-	): ADTCircularQueueState<T> {
-		let state: ADTCircularQueueState<T> | null = s;
+	public parseOptionsOther(s: CircState<T>, options?: CircOptions<T>): CircState<T> {
+		let state: CircState<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -114,8 +111,8 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getDefaultState(): ADTCircularQueueState<T> {
-		const state: ADTCircularQueueState<T> = {
+	public getDefaultState(): CircState<T> {
+		const state: CircState<T> = {
 			type: 'cqState',
 			elements: [],
 			overwrite: false,
@@ -128,7 +125,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: ADTCircularQueueState<T>): Array<string> {
+	public getStateErrors(state: CircState<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -174,7 +171,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public isValidState(state: ADTCircularQueueState<T>): boolean {
+	public isValidState(state: CircState<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -184,7 +181,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public queryDelete(query: ADTQueryResult<T>): T | null {
+	public queryDelete(query: QueryResult<T>): T | null {
 		if (!query || !query.index) {
 			return null;
 		}
@@ -237,8 +234,8 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return position;
 	}
 
-	public queryOptions(opts?: ADTQueryOptions): Required<ADTQueryOptions> {
-		const options: Required<ADTQueryOptions> = {
+	public queryOptions(opts?: QueryOptions): Required<QueryOptions> {
+		const options: Required<QueryOptions> = {
 			limit: Infinity
 		};
 
@@ -379,11 +376,8 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public query(
-		filters: ADTQueryFilter<T> | ADTQueryFilter<T>[],
-		opts?: ADTQueryOptions
-	): ADTQueryResult<T>[] {
-		const resultsArray: ADTQueryResult<T>[] = [];
+	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
+		const resultsArray: QueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
 
 		this.forEach((element) => {
@@ -407,7 +401,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 				return false;
 			}
 
-			const result: ADTQueryResult<T> = {} as ADTQueryResult<T>;
+			const result: QueryResult<T> = {} as QueryResult<T>;
 			result.element = element;
 			result.key = (): any => null;
 			result.index = this.queryIndex.bind(this, element);
