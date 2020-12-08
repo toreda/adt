@@ -1,4 +1,5 @@
 import {ADTObjectPool} from '../src/object-pool';
+import {ADTObjectPoolInstance} from '../src/object-pool/instance';
 import {ADTObjectPoolState} from '../src/object-pool/state';
 
 describe('ADTObjectPool', () => {
@@ -53,18 +54,18 @@ describe('ADTObjectPool', () => {
 		instanceArgs: []
 	};
 
-	class objectClass {
+	class objectClass implements ADTObjectPoolInstance {
 		public name!: string;
 		public amount!: number;
 
-		constructor(thing: any) {
-			objectClass.cleanObj(this);
-			this.name = thing;
+		constructor(name: string = '') {
+			this.cleanObj();
+			this.name = name;
 		}
 
-		static cleanObj(obj: objectClass): void {
-			obj.name = '';
-			obj.amount = 0;
+		cleanObj(): void {
+			this.name = '';
+			this.amount = 0;
 		}
 	}
 	const isValidStateRuns = function (action: (obj: any) => void): void {
@@ -613,12 +614,14 @@ describe('ADTObjectPool', () => {
 		describe('release', () => {
 			it('should call cleanObj and store if cleanObj is defined', () => {
 				const spy1 = jest.spyOn(instance, 'store');
-				const spy2 = jest.spyOn(instance.objectClass, 'cleanObj');
+
+				const obj = new objectClass();
+				const spy2 = jest.spyOn(obj, 'cleanObj');
 
 				spy1.mockClear();
 				spy2.mockClear();
 
-				instance.release({} as any);
+				instance.release(obj);
 
 				expect(spy1).toBeCalled();
 				expect(spy2).toBeCalled();
@@ -627,15 +630,13 @@ describe('ADTObjectPool', () => {
 			it('should not call store if cleanObj is not defined', () => {
 				const custom = new ADTObjectPool<objectClass>(objectClass, {startSize: 0});
 				const spy = jest.spyOn(custom, 'store');
+				const obj = {};
 
 				spy.mockClear();
 
-				const cleanObj = custom.objectClass.cleanObj;
-				custom.objectClass.cleanObj = undefined as any;
-				custom.release({} as any);
+				custom.release(obj as objectClass);
 
 				expect(spy).not.toBeCalled();
-				custom.objectClass.cleanObj = cleanObj;
 			});
 		});
 

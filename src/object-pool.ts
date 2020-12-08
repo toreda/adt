@@ -1,17 +1,19 @@
 import {ADTBase} from './base';
-import {ADTObjectPoolInstance} from './object-pool/instance';
-import {ADTObjectPoolOptions} from './object-pool/options';
-import {ADTObjectPoolState} from './object-pool/state';
 import {ADTQueryResult} from './query/result';
+import {ADTObjectPoolConstructor as Constructor} from './object-pool/constructor';
+import {ADTObjectPoolInstance as Instance} from './object-pool/instance';
+import {ADTObjectPoolOptions as Options} from './object-pool/options';
+import {ADTObjectPoolState as State} from './object-pool/state';
 
-export class ADTObjectPool<T> implements ADTBase<T> {
-	public readonly state: ADTObjectPoolState<T>;
-	public readonly objectClass: ADTObjectPoolInstance<T>;
+export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
+	public readonly state: State<T>;
+	public readonly objectClass: Constructor<T>;
 
-	constructor(objectClass: ADTObjectPoolInstance<T>, options?: ADTObjectPoolOptions<T>) {
+	constructor(objectClass: Constructor<T>, options?: Options) {
 		if (typeof objectClass !== 'function') {
 			throw Error('Must have a class contructor for object pool to operate properly');
 		}
+
 		this.objectClass = objectClass;
 
 		this.state = this.parseOptions(options);
@@ -19,22 +21,22 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		this.increaseCapacity(this.state.startSize);
 	}
 
-	public parseOptions(options?: ADTObjectPoolOptions<T>): ADTObjectPoolState<T> {
+	public parseOptions(options?: Options): State<T> {
 		const state = this.parseOptionsState(options);
 		const finalState = this.parseOptionsOther(state, options);
 
 		return finalState;
 	}
 
-	public parseOptionsState(options?: ADTObjectPoolOptions<T>): ADTObjectPoolState<T> {
-		const state: ADTObjectPoolState<T> = this.getDefaultState();
+	public parseOptionsState(options?: Options): State<T> {
+		const state: State<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let parsed: ADTObjectPoolState<T> | Array<string> | null = null;
-		let result: ADTObjectPoolState<T> | null = null;
+		let parsed: State<T> | Array<string> | null = null;
+		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			parsed = this.parseOptionsStateString(options.serializedState);
@@ -61,13 +63,13 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(state: string): ADTObjectPoolState<T> | Array<string> | null {
+	public parseOptionsStateString(state: string): State<T> | Array<string> | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: ADTObjectPoolState<T> | Array<string> | null = null;
-		let parsed: ADTObjectPoolState<T> | null = null;
+		let result: State<T> | Array<string> | null = null;
+		let parsed: State<T> | null = null;
 		let errors: Array<string> = [];
 
 		try {
@@ -89,11 +91,8 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(
-		s: ADTObjectPoolState<T>,
-		options?: ADTObjectPoolOptions<T>
-	): ADTObjectPoolState<T> {
-		let state: ADTObjectPoolState<T> | null = s;
+	public parseOptionsOther(s: State<T>, options?: Options): State<T> {
+		let state: State<T> | null = s;
 
 		if (!s) {
 			state = this.getDefaultState();
@@ -127,8 +126,8 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getDefaultState(): ADTObjectPoolState<T> {
-		const state: ADTObjectPoolState<T> = {
+	public getDefaultState(): State<T> {
+		const state: State<T> = {
 			type: 'opState',
 			elements: [],
 			autoIncrease: false,
@@ -143,7 +142,7 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: ADTObjectPoolState<T>): Array<string> {
+	public getStateErrors(state: State<T>): Array<string> {
 		const errors: Array<string> = [];
 
 		if (!state) {
@@ -213,7 +212,7 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 		return true;
 	}
 
-	public isValidState(state: ADTObjectPoolState<T>): boolean {
+	public isValidState(state: State<T>): boolean {
 		const errors = this.getStateErrors(state);
 
 		if (errors.length) {
@@ -295,11 +294,11 @@ export class ADTObjectPool<T> implements ADTBase<T> {
 	}
 
 	public release(object: T): void {
-		if (!this.objectClass || !this.objectClass.cleanObj) {
+		if (typeof object.cleanObj !== 'function') {
 			return;
 		}
 
-		this.objectClass.cleanObj(object);
+		object.cleanObj();
 		this.store(object);
 	}
 

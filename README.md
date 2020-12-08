@@ -412,20 +412,20 @@ Typescript
 
 ```typescript
 // Import
-import {ADTObjectPool} from '@toreda/adt';
+import {ADTObjectPool, ADTObjectPoolInstance} from '@toreda/adt';
 
 // Instantiate
-class objectClass {
+class objectClass implements ADTObjectPoolInstance {
 	public name!: string;
 	public amount!: number;
 
 	constructor() {
-		objectClass.cleanObj(this);
+		this.cleanObj();
 	}
 
-	static cleanObj(obj: objectClass): void {
-		obj.name = '';
-		obj.amount = 0;
+	cleanObj(): void {
+		this.name = 'cleaned';
+		this.amount = 0;
 	}
 }
 
