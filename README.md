@@ -472,13 +472,14 @@ Typescript
 
 ```typescript
 import {ADTQueryFilter, ADTQueryResult, ADTQueryOptions} from '@toreda/adt';
-import {ADTQueue, ADTStack, ADTLinkedList, ADTCircularQueue, ADTPriorityQueue} from '@toreda/adt';
+import {ADTQueue, ADTStack, ADTLinkedList, ADTCircularQueue, ADTPriorityQueue, ADTObjectPool} from '@toreda/adt';
 
 const myQueue = new ADTQueue<number>();
 const myStack = new ADTStack<number>();
 const myLinkedList = new ADTLinkedList<number>();
 const myCircularQueue = new ADTCircularQueue<number>();
 const myPriorityQueue = new ADTPriorityQueue<number>((a, b) => a < b);
+const myObjectPool = new ADTObjectPool<custom>(custom);
 
 // Create a query filter function
 const basicQueryFilter: ADTQueryFilter<number> = (value) => {
@@ -497,13 +498,16 @@ const genQueryFilter = function (target: number, lessthan: boolean) = ADTQueryFi
 }
 
 // Add elements to all ADTs
-[10, 20, 30, 40, 50].forEach((value) => {
+myObjectPool.allocateMultiple(5);
+[10, 20, 30, 40, 50].forEach((value, index) => {
 	myQueue.push(value);
 	myStack.push(value);
 	myLinkedList.insert(value);
 	myCircularQueue.push(value);
 	myPriorityQueue.push(value);
+	myObjectPool.state.used[index] = value
 });
+
 
 // Use a query filter to get a query result
 let resultsQueue = myQueue.query(basicQueryFilter); // return array of query result objects
@@ -511,6 +515,7 @@ let resultsStack = myStack.query(basicQueryFilter); // return array of query res
 let resultsLinkedList = myLinkedList.query(basicQueryFilter); // return array of query result objects
 let resultsCircularQueue = myCircularQueue.query(basicQueryFilter); // return array of query result objects
 let resultsPriorityQueue = myPriorityQueue.query(basicQueryFilter); // return array of query result objects
+let resultsObjectPool = myObjectPool.query(basicQueryFilter); // return array of query result objects
 
 // Get the element in query result
 resultQueue[0].element; // returns 30
@@ -518,6 +523,7 @@ resultStack[0].element; // returns 30
 resultLinkedList[0].element; // returns linked list element with value 30
 resultCircularQueue[0].element; // returns 30
 resultPriorityQueue[0].element; // returns 30
+resultObjectPool[0].element; // returns 30
 
 // Get the current index of the query result
 resultQueue[0].index(); // returns 2
@@ -525,25 +531,28 @@ resultStack[0].index(); // returns 2
 resultLinkedList[0].index(); // returns null
 resultCircularQueue[0].index(); // returns 2
 resultPriorityQueue[0].index(); // returns 2
+resultObjectPool[0].index(); // returns 2
 
 myQueue.pop(); // returns 10
 myStack.pop(); // returns 50
 myLinkedList.deleteNode(myLinkedList.head()); // returns 10
 myCircularQueue.pop(); // returns 10
 myPriorityQueue.pop(); // returns 10
+myObjectPool.pop(); // returns 10
 
 resultQueue[0].index(); // returns 1
 resultStack[0].index(); // returns 2
 resultLinkedList[0].index(); // returns null
 resultCircularQueue[0].index(); // returns 2
 resultPriorityQueue[0].index(); // returns 2
+resultObjectPool[0].index(); // returns 2
 
 // Delete query result from original ADT
 resultQueue[0].delete(); // returns 30
 resultStack[0].delete(); // returns 30
 resultLinkedList[0].delete(); // returns 30
 resultCircularQueue[0].delete(); // returns 30
-resultPriorityQueue[0].delete(); // returns 30
+resultObjectPool[0].delete(); // returns 30
 
 // Use multiple query filters and query options
 myQueue.reset();
