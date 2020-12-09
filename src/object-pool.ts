@@ -288,7 +288,6 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		}
 
 		if (this.state.autoIncrease && this.isAboveThreshold(1)) {
-			console.log('increase');
 			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor);
 			this.increaseCapacity(maxSize - this.state.objectCount);
 		}
@@ -414,7 +413,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			this.wastedSpace++;
 		}
 
-		if (this.wastedSpace * 10 > this.state.used.length) {
+		if (this.wastedSpace * 2 > this.state.used.length) {
 			this.cleanUsed();
 		}
 

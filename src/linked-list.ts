@@ -332,10 +332,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return node;
 	}
 
-	public query(
-		filters: QueryFilter<T> | QueryFilter<T>[],
-		opts?: QueryOptions
-	): QueryResult<Element<T>>[] {
+	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<Element<T>>[] {
 		const resultsArray: QueryResult<Element<T>>[] = [];
 		const options = this.queryOptions(opts);
 
