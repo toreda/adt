@@ -121,7 +121,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 				state.increaseBreakPoint = options.increaseBreakPoint;
 			}
 		}
-		if (options.increaseFactor && this.isFloat(options.increaseFactor) && options.increaseFactor >= 0) {
+		if (options.increaseFactor && this.isFloat(options.increaseFactor) && options.increaseFactor > 1) {
 			state.increaseFactor = options.increaseFactor;
 		}
 
@@ -146,10 +146,10 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			pool: [],
 			used: [],
 			autoIncrease: false,
-			startSize: 10,
+			startSize: 1,
 			objectCount: 0,
 			maxSize: 1000,
-			increaseBreakPoint: 0.8,
+			increaseBreakPoint: 1,
 			increaseFactor: 2,
 			instanceArgs: []
 		};
@@ -193,8 +193,8 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		if (!this.isFloat(state.increaseBreakPoint) || !between0and1) {
 			errors.push('state increaseBreakPoint must be a number between 0 and 1');
 		}
-		if (!this.isFloat(state.increaseFactor) || state.increaseFactor < 0) {
-			errors.push('state increaseFactor must be a positive number');
+		if (!this.isFloat(state.increaseFactor) || state.increaseFactor <= 1) {
+			errors.push('state increaseFactor must be a number > 1');
 		}
 
 		if (!Array.isArray(state.instanceArgs)) {
@@ -435,7 +435,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		this.state.type = 'opState';
 		this.state.autoIncrease = false;
 		this.state.increaseFactor = 2;
-		this.state.increaseBreakPoint = 0.8;
+		this.state.increaseBreakPoint = 1;
 
 		this.increaseCapacity(this.state.startSize);
 

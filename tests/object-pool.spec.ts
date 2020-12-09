@@ -40,11 +40,11 @@ describe('ADTObjectPool', () => {
 		'"pool": [],',
 		'"used": [],',
 		'"autoIncrease": true,',
-		'"startSize": 1,',
-		'"objectCount": 1,',
+		'"startSize": 2,',
+		'"objectCount": 2,',
 		'"maxSize": 4,',
 		'"increaseBreakPoint": 0,',
-		'"increaseFactor": 1,',
+		'"increaseFactor": 3,',
 		'"instanceArgs": []',
 		'}'
 	].join('');
@@ -53,10 +53,10 @@ describe('ADTObjectPool', () => {
 		pool: [],
 		used: [],
 		autoIncrease: false,
-		startSize: 10,
+		startSize: 1,
 		objectCount: 0,
 		maxSize: 1000,
-		increaseBreakPoint: 0.8,
+		increaseBreakPoint: 1,
 		increaseFactor: 2,
 		instanceArgs: []
 	};
@@ -123,7 +123,7 @@ describe('ADTObjectPool', () => {
 				const custom = new ADTObjectPool<objectClass>(objectClass, {
 					serializedState: VALID_SERIALIZED_STATE
 				});
-				expect(custom.state.objectCount).toBe(1);
+				expect(custom.state.objectCount).toBe(2);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
 			});
 
@@ -371,9 +371,9 @@ describe('ADTObjectPool', () => {
 				},
 				{
 					prop: 'increaseFactor',
-					result: 'not a number >= 0',
-					testSuite: ([] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES),
-					expectedV: 'state increaseFactor must be a positive number'
+					result: 'not a number > 1',
+					testSuite: ([0, 1] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES),
+					expectedV: 'state increaseFactor must be a number > 1'
 				},
 				{
 					prop: 'instanceArgs',
@@ -579,9 +579,9 @@ describe('ADTObjectPool', () => {
 			});
 
 			it('should add obj to pool', () => {
-				expect(instance.state.pool.length).toBe(10);
+				expect(instance.state.pool.length).toBe(DEFAULT_STATE.startSize);
 				instance.store({} as any);
-				expect(instance.state.pool.length).toBe(11);
+				expect(instance.state.pool.length).toBe(DEFAULT_STATE.startSize + 1);
 			});
 		});
 	});
@@ -613,6 +613,7 @@ describe('ADTObjectPool', () => {
 
 			it('should return 1 element from pool if multiple are available', () => {
 				expect(instance.state.autoIncrease).toBe(false);
+				instance.increaseCapacity(10 - DEFAULT_STATE.startSize);
 				expect(instance.state.objectCount).toBe(10);
 				expect(instance.state.pool.length).toBe(10);
 				expect(instance.allocate()).not.toBeNull();
@@ -702,22 +703,25 @@ describe('ADTObjectPool', () => {
 
 			const testSuite: any[] = ([0] as any[]).concat(FLOAT_VALUES, NAN_VALUES, NEG_NUM_VALUES);
 			it.each(testSuite)('should do nothing, %p is not an integer > 0', (myTest) => {
-				expect(instance.state.objectCount).toBe(10);
+				expect(instance.state.objectCount).toBe(DEFAULT_STATE.startSize);
 				instance.increaseCapacity(myTest!);
-				expect(instance.state.objectCount).toBe(10);
+				expect(instance.state.objectCount).toBe(DEFAULT_STATE.startSize);
 			});
 
 			it('should increase the objectCount by n up to maxSize and create that many new elements', () => {
-				expect(instance.state.objectCount).toBe(10);
-				expect(instance.state.pool.length).toBe(10);
+				let expectedV = DEFAULT_STATE.startSize;
+				expect(instance.state.objectCount).toBe(expectedV);
+				expect(instance.state.pool.length).toBe(expectedV);
 
+				expectedV += 1;
 				instance.increaseCapacity(1);
-				expect(instance.state.objectCount).toBe(11);
-				expect(instance.state.pool.length).toBe(11);
+				expect(instance.state.objectCount).toBe(expectedV);
+				expect(instance.state.pool.length).toBe(expectedV);
 
+				expectedV += 10;
 				instance.increaseCapacity(10);
-				expect(instance.state.objectCount).toBe(21);
-				expect(instance.state.pool.length).toBe(21);
+				expect(instance.state.objectCount).toBe(expectedV);
+				expect(instance.state.pool.length).toBe(expectedV);
 			});
 		});
 
@@ -752,13 +756,13 @@ describe('ADTObjectPool', () => {
 
 		describe('releaseMultiple', () => {
 			it('should not throw if array is empty', () => {
-				expect(instance.state.pool.length).toBe(10);
+				expect(instance.state.pool.length).toBe(DEFAULT_STATE.startSize);
 
 				expect(() => {
 					instance.releaseMultiple([]);
 				}).not.toThrow();
 
-				expect(instance.state.pool.length).toBe(10);
+				expect(instance.state.pool.length).toBe(DEFAULT_STATE.startSize);
 			});
 
 			it('should release element from array if there is only 1', () => {
@@ -772,6 +776,7 @@ describe('ADTObjectPool', () => {
 			});
 
 			it('should release all elements from the array', () => {
+				instance.increaseCapacity(10);
 				expect(instance.state.pool.length).toBe(instance.state.objectCount);
 
 				const amount = 5;
@@ -813,7 +818,7 @@ describe('ADTObjectPool', () => {
 				expect(custom.state.type).toBe('opState');
 				expect(custom.state.autoIncrease).toBe(false);
 				expect(custom.state.maxSize).toBe('test');
-				expect(custom.state.increaseBreakPoint).toBe(0.8);
+				expect(custom.state.increaseBreakPoint).toBe(1);
 				expect(custom.state.increaseFactor).toBe(2);
 			});
 		});
@@ -834,12 +839,12 @@ describe('ADTObjectPool', () => {
 					type: 'opState',
 					pool: [],
 					used: [],
-					startSize: 10,
-					objectCount: 10,
+					startSize: 1,
+					objectCount: 1,
 					maxSize: 1000,
 					autoIncrease: false,
 					increaseFactor: 2,
-					increaseBreakPoint: 0.8,
+					increaseBreakPoint: 1,
 					instanceArgs: []
 				});
 
@@ -848,12 +853,12 @@ describe('ADTObjectPool', () => {
 					type: 'opState',
 					pool: [],
 					used: [],
-					startSize: 10,
-					objectCount: 11,
+					startSize: 1,
+					objectCount: 2,
 					maxSize: 1000,
 					autoIncrease: false,
 					increaseFactor: 2,
-					increaseBreakPoint: 0.8,
+					increaseBreakPoint: 1,
 					instanceArgs: []
 				});
 
@@ -862,12 +867,12 @@ describe('ADTObjectPool', () => {
 					type: 'opState',
 					pool: [],
 					used: [],
-					startSize: 10,
-					objectCount: 13,
+					startSize: 1,
+					objectCount: 4,
 					maxSize: 1000,
 					autoIncrease: false,
 					increaseFactor: 2,
-					increaseBreakPoint: 0.8,
+					increaseBreakPoint: 1,
 					instanceArgs: []
 				});
 
@@ -876,12 +881,12 @@ describe('ADTObjectPool', () => {
 					type: 'opState',
 					pool: [],
 					used: [],
-					startSize: 10,
-					objectCount: 23,
+					startSize: 1,
+					objectCount: 14,
 					maxSize: 1000,
 					autoIncrease: false,
 					increaseFactor: 2,
-					increaseBreakPoint: 0.8,
+					increaseBreakPoint: 1,
 					instanceArgs: []
 				});
 			});
