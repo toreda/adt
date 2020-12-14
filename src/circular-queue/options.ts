@@ -1,10 +1,9 @@
 export interface ADTCircularQueueOptions<T> {
-	serializedState?: string;
-
 	elements?: T[];
-	overwrite?: boolean;
-	size?: number;
-	maxSize?: number;
 	front?: number;
+	maxSize?: number;
+	overwrite?: boolean;
 	rear?: number;
+	serializedState?: string;
+	size?: number;
 }

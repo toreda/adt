@@ -26,7 +26,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return state;
 		}
 
-		let parsed: State<T> | Array<string> | null = null;
+		let parsed: State<T> | Error[] | null = null;
 		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
@@ -51,17 +51,16 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(data: string): State<T> | Array<string> | null {
+	public parseOptionsStateString(data: string): State<T> | Error[] | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: State<T> | Array<string> | null = null;
-		let parsed: State<T> | null = null;
-		let errors: Array<string> = [];
+		let result: State<T> | Error[] | null = null;
+		let errors: Error[] = [];
 
 		try {
-			parsed = JSON.parse(data);
+			const parsed = JSON.parse(data);
 
 			if (parsed) {
 				errors = this.getStateErrors(parsed);
@@ -73,7 +72,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 
 			result = parsed;
 		} catch (error) {
-			result = [error.message].concat(errors);
+			result = [error].concat(errors);
 		}
 
 		return result;
@@ -90,22 +89,23 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return state;
 		}
 
-		if (options.elements && Array.isArray(options.elements)) {
+		if (options.elements != null && this.getStateErrorsElements(options.elements).length === 0) {
 			state.elements = options.elements.slice();
 		}
-
-		if (options.size && this.isInteger(options.size) && options.size >= 0) {
-			state.size = options.size;
-		}
-		if (options.front && this.isInteger(options.front)) {
+		if (options.front != null && this.getStateErrorsFront(options.front).length === 0) {
 			state.front = options.front;
 		}
-		if (options.rear && this.isInteger(options.rear)) {
+		if (options.maxSize != null && this.getStateErrorsMaxSize(options.maxSize).length === 0) {
+			state.maxSize = options.maxSize;
+		}
+		if (options.overwrite != null && this.getStateErrorsOverwrite(options.overwrite).length === 0) {
+			state.overwrite = options.overwrite;
+		}
+		if (options.rear != null && this.getStateErrorsRear(options.rear).length === 0) {
 			state.rear = options.rear;
 		}
-
-		if (options.maxSize && this.isInteger(options.maxSize) && options.maxSize >= 1) {
-			state.maxSize = options.maxSize;
+		if (options.size != null && this.getStateErrorsSize(options.size).length === 0) {
+			state.size = options.size;
 		}
 
 		return state;
@@ -125,42 +125,96 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: State<T>): Array<string> {
-		const errors: Array<string> = [];
+	public getStateErrors(state: State<T>): Error[] {
+		const errors: Error[] = [];
 
 		if (!state) {
-			errors.push('state is null or undefined');
+			errors.push(Error('state is null or undefined'));
 			return errors;
 		}
 
-		if (state.type !== 'CircularQueue') {
-			errors.push('state type must be CircularQueue');
-		}
-		if (!Array.isArray(state.elements)) {
-			errors.push('state elements must be an array');
-		}
-		if (typeof state.overwrite !== 'boolean') {
-			errors.push('state overwrite must be a boolean');
-		}
-
-		if (!this.isInteger(state.size) || state.size < 0) {
-			errors.push('state size must be an integer >= 0');
-		}
-		if (!this.isInteger(state.maxSize) || state.maxSize < 1) {
-			errors.push('state maxSize must be an integer >= 1');
-		}
-
-		if (!this.isInteger(state.front)) {
-			errors.push('state front must be an integer');
-		}
-		if (!this.isInteger(state.rear)) {
-			errors.push('state rear must be an integer');
-		}
+		errors.push(...this.getStateErrorsElements(state.elements));
+		errors.push(...this.getStateErrorsFront(state.front));
+		errors.push(...this.getStateErrorsMaxSize(state.maxSize));
+		errors.push(...this.getStateErrorsOverwrite(state.overwrite));
+		errors.push(...this.getStateErrorsRear(state.rear));
+		errors.push(...this.getStateErrorsSize(state.size));
+		errors.push(...this.getStateErrorsType(state.type));
 
 		return errors;
 	}
 
-	public isInteger(n: number): boolean {
+	public getStateErrorsElements(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !Array.isArray(data)) {
+			result.push(Error('state elements must be an array'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsFront(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !this.isInteger(data)) {
+			result.push(Error('state front must be an integer'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsMaxSize(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !this.isInteger(data) || (data as number) < 1) {
+			result.push(Error('state maxSize must be an integer >= 1'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsOverwrite(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || typeof data !== 'boolean') {
+			result.push(Error('state overwrite must be a boolean'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsRear(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !this.isInteger(data)) {
+			result.push(Error('state rear must be an integer'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsSize(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !this.isInteger(data) || (data as number) < 0) {
+			result.push(Error('state size must be an integer >= 0'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsType(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || data !== 'CircularQueue') {
+			result.push(Error('state type must be CircularQueue'));
+		}
+
+		return result;
+	}
+
+	public isInteger(n: unknown): boolean {
 		if (typeof n !== 'number') {
 			return false;
 		}
@@ -172,13 +226,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 	}
 
 	public isValidState(state: State<T>): boolean {
-		const errors = this.getStateErrors(state);
-
-		if (errors.length) {
-			return false;
-		}
-
-		return true;
+		return this.getStateErrors(state).length === 0;
 	}
 
 	public queryDelete(query: QueryResult<T>): T | null {
@@ -270,10 +318,11 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 
 	// prettier-ignore
 	// eslint-disable-next-line max-len, prettier/prettier
-	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: any): ADTCircularQueue<T> {
+	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: unknown): ADTCircularQueue<T> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		const queue = new ADTCircularQueue<T>({
@@ -291,7 +340,9 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return queue;
 	}
 
-	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTCircularQueue<T> {
+	// prettier-ignore
+	// eslint-disable-next-line max-len, prettier/prettier
+	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: unknown): ADTCircularQueue<T> {
 		const front = this.wrapIndex(this.state.front);
 		let rear = this.wrapIndex(this.state.rear);
 
@@ -299,9 +350,10 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			rear = rear + this.state.maxSize;
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		for (let i = front; i < rear; i++) {
@@ -317,7 +369,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return null;
 		}
 
-		if (!this.size()) {
+		if (this.size() === 0) {
 			return null;
 		}
 
@@ -331,7 +383,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		if (!this.isInteger(n)) {
 			return null;
 		}
-		if (!this.size()) {
+		if (this.size() === 0) {
 			return null;
 		}
 
@@ -426,7 +478,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 
 			const result: QueryResult<T> = {} as QueryResult<T>;
 			result.element = element;
-			result.key = (): any => null;
+			result.key = (): null => null;
 			result.index = this.queryIndex.bind(this, element);
 			result.delete = this.queryDelete.bind(this, result);
 			resultsArray.push(result);
