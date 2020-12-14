@@ -104,7 +104,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 
 	public getDefaultState(): State<T> {
 		const state: State<T> = {
-			type: 'pqState',
+			type: 'PriorityQueue',
 			elements: []
 		};
 
@@ -119,8 +119,8 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 			return errors;
 		}
 
-		if (state.type !== 'pqState') {
-			errors.push('state type must be pqState');
+		if (state.type !== 'PriorityQueue') {
+			errors.push('state type must be PriorityQueue');
 		}
 		if (!Array.isArray(state.elements)) {
 			errors.push('state elements must be an array');
@@ -382,6 +382,26 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
+	// prettier-ignore
+	// eslint-disable-next-line max-len, prettier/prettier
+	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: any): ADTPriorityQueue<T> {
+		let boundThis = this;
+		if (thisArg) {
+			boundThis = thisArg;
+		}
+
+		const elements: T[] = [];
+
+		this.forEach((elem, idx, arr) => {
+			const result = func.call(boundThis, elem, idx, arr);
+			if (result) {
+				elements.push(elem);
+			}
+		}, boundThis);
+
+		return new ADTPriorityQueue(this.comparator, {...this.state, elements});
+	}
+
 	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTPriorityQueue<T> {
 		let boundThis = this;
 
@@ -464,7 +484,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 	public reset(): ADTPriorityQueue<T> {
 		this.clearElements();
 
-		this.state.type = 'pqState';
+		this.state.type = 'PriorityQueue';
 
 		return this;
 	}

@@ -24,14 +24,14 @@ describe('ADTQueue', () => {
 	const STATE_PROPERTIES = ['type', 'elements', 'deepClone', 'objectPool'];
 	const VALID_SERIALIZED_STATE = [
 		'{',
-		'"type": "qState",',
+		'"type": "Queue",',
 		'"elements": [],',
 		'"deepClone": true,',
 		'"objectPool": true',
 		'}'
 	].join('');
 	const DEFAULT_STATE: ADTQueueState<number> = {
-		type: 'qState',
+		type: 'Queue',
 		elements: [],
 		deepClone: false,
 		objectPool: false
@@ -170,7 +170,7 @@ describe('ADTQueue', () => {
 				);
 			});
 
-			const toParseList = ['{}', '{"type": "qState"}', '{"elements":4, "type": "qState"}'];
+			const toParseList = ['{}', '{"type": "Queue"}', '{"elements":4, "type": "Queue"}'];
 			it.each(toParseList)('should return errors, %p wont parse into an ADTQueueState', (toParse) => {
 				let errors: Array<string> = [];
 				errors = instance.getStateErrors(JSON.parse(toParse) as any);
@@ -248,9 +248,9 @@ describe('ADTQueue', () => {
 			}> = [
 				{
 					prop: 'type',
-					result: 'not "qState"',
+					result: 'not "Queue"',
 					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be qState'
+					expectedV: 'state type must be Queue'
 				},
 				{
 					prop: 'elements',
@@ -792,7 +792,7 @@ describe('ADTQueue', () => {
 
 				custom.reset();
 
-				expect(custom.state.type).toBe('qState');
+				expect(custom.state.type).toBe('Queue');
 				expect(custom.state.deepClone).toBe('test');
 				expect(custom.state.objectPool).toBe('test');
 			});
@@ -885,7 +885,7 @@ describe('ADTQueue', () => {
 			it('should return the state as a string if it is validated', () => {
 				const custom = new ADTQueue<number>();
 				const expected: ADTQueueState<number> = {
-					type: 'qState',
+					type: 'Queue',
 					elements: [],
 					deepClone: false,
 					objectPool: false

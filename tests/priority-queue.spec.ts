@@ -23,9 +23,9 @@ describe('ADTPriorityQueue', () => {
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
 	const STATE_PROPERTIES = ['type', 'elements'];
-	const VALID_SERIALIZED_STATE = ['{', '"type": "pqState",', '"elements": [1,2]', '}'].join('');
+	const VALID_SERIALIZED_STATE = ['{', '"type": "PriorityQueue",', '"elements": [1,2]', '}'].join('');
 	const DEFAULT_STATE: ADTPriorityQueueState<number> = {
-		type: 'pqState',
+		type: 'PriorityQueue',
 		elements: []
 	};
 
@@ -217,7 +217,7 @@ describe('ADTPriorityQueue', () => {
 				);
 			});
 
-			const toParseList = ['{}', '{"type": "pqState"}', '{"elements":4, "type": "pqState"}'];
+			const toParseList = ['{}', '{"type": "PriorityQueue"}', '{"elements":4, "type": "PriorityQueue"}'];
 			it.each(toParseList)(
 				'should return errors, %p wont parse into an ADTPriorityQueueState',
 				(toParse) => {
@@ -312,9 +312,9 @@ describe('ADTPriorityQueue', () => {
 			}> = [
 				{
 					prop: 'type',
-					result: 'should return array of errors if state.type is not "pqState"',
+					result: 'should return array of errors if state.type is not "PriorityQueue"',
 					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be pqState'
+					expectedV: 'state type must be PriorityQueue'
 				},
 				{
 					prop: 'elements',
@@ -1476,25 +1476,25 @@ describe('ADTPriorityQueue', () => {
 			it('should return the state as a string if it is validated', () => {
 				const custom = new ADTPriorityQueue<number>(comparator);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'pqState',
+					type: 'PriorityQueue',
 					elements: []
 				});
 
 				custom.push(30);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'pqState',
+					type: 'PriorityQueue',
 					elements: [30]
 				});
 
 				custom.push(20);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'pqState',
+					type: 'PriorityQueue',
 					elements: [20, 30]
 				});
 
 				custom.push(10);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'pqState',
+					type: 'PriorityQueue',
 					elements: [10, 30, 20]
 				});
 			});

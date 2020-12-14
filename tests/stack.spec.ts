@@ -24,7 +24,7 @@ describe('ADTStack', () => {
 	const STATE_PROPERTIES = ['type', 'elements', 'size', 'top', 'bottom'];
 	const VALID_SERIALIZED_STATE = [
 		'{',
-		'"type": "sState",',
+		'"type": "Stack",',
 		'"elements": [1,2],',
 		'"size": 2,',
 		'"top": 1,',
@@ -32,7 +32,7 @@ describe('ADTStack', () => {
 		'}'
 	].join('');
 	const DEFAULT_STATE: ADTStackState<number> = {
-		type: 'sState',
+		type: 'Stack',
 		elements: [],
 		size: 0,
 		top: -1,
@@ -171,7 +171,7 @@ describe('ADTStack', () => {
 				);
 			});
 
-			const toParseList = ['{}', '{"type": "sState"}', '{"elements":4, "type": "sState"}'];
+			const toParseList = ['{}', '{"type": "Stack"}', '{"elements":4, "type": "Stack"}'];
 			it.each(toParseList)('should return errors, %p wont parse into an ADTStackState', (toParse) => {
 				let errors: Array<string> = [];
 				errors = instance.getStateErrors(JSON.parse(toParse) as any);
@@ -254,9 +254,9 @@ describe('ADTStack', () => {
 			}> = [
 				{
 					prop: 'type',
-					result: 'not "sState"',
+					result: 'not "Stack"',
 					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be sState'
+					expectedV: 'state type must be Stack'
 				},
 				{
 					prop: 'elements',
@@ -765,7 +765,7 @@ describe('ADTStack', () => {
 
 				custom.reset();
 
-				expect(custom.state.type).toBe('sState');
+				expect(custom.state.type).toBe('Stack');
 				expect(custom.state.bottom).toBe(0);
 			});
 		});
@@ -842,7 +842,7 @@ describe('ADTStack', () => {
 			it('should return the state as a string if it is validated', () => {
 				const custom = new ADTStack<number>();
 				const expected: ADTStackState<number> = {
-					type: 'sState',
+					type: 'Stack',
 					elements: [],
 					size: 0,
 					top: -1,

@@ -25,7 +25,7 @@ describe('ADTLinkedList', () => {
 	const STATE_PROPERTIES = ['type', 'elements', 'objectPool'];
 	const VALID_SERIALIZED_STATE = [
 		'{',
-		'"type": "llState",',
+		'"type": "LinkedList",',
 		'"elements": [1,2],',
 		'"objectPool": true,',
 		'"size": 2,',
@@ -34,7 +34,7 @@ describe('ADTLinkedList', () => {
 		'}'
 	].join('');
 	const DEFAULT_STATE: ADTLinkedListState<number> = {
-		type: 'llState',
+		type: 'LinkedList',
 		elements: [],
 		objectPool: false,
 		size: 0,
@@ -209,7 +209,7 @@ describe('ADTLinkedList', () => {
 				);
 			});
 
-			const toParseList = ['{}', '{"type": "llState"}', '{"elements":4, "type": "llState"}'];
+			const toParseList = ['{}', '{"type": "LinkedList"}', '{"elements":4, "type": "LinkedList"}'];
 			it.each(toParseList)(
 				'should return errors, %p wont parse into an ADTLinkedListState',
 				(toParse) => {
@@ -290,9 +290,9 @@ describe('ADTLinkedList', () => {
 			}> = [
 				{
 					prop: 'type',
-					result: 'not "llState"',
+					result: 'not "LinkedList"',
 					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be llState'
+					expectedV: 'state type must be LinkedList'
 				},
 				{
 					prop: 'elements',
@@ -902,7 +902,7 @@ describe('ADTLinkedList', () => {
 
 				custom.reset();
 
-				expect(custom.state.type).toBe('llState');
+				expect(custom.state.type).toBe('LinkedList');
 			});
 		});
 

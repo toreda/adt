@@ -1,5 +1,5 @@
 export interface ADTStackState<T> {
-	type: 'sState';
+	type: 'Stack';
 	elements: Array<T>;
 	size: number;
 	top: number;

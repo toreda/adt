@@ -1,5 +1,5 @@
 export interface ADTObjectPoolState<T> {
-	type: 'opState';
+	type: 'ObjectPool';
 
 	pool: T[];
 	used: (T | null)[];

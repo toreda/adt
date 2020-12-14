@@ -104,7 +104,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 
 	public getDefaultState(): State<T> {
 		const state: State<T> = {
-			type: 'qState',
+			type: 'Queue',
 			elements: [],
 			deepClone: false,
 			objectPool: false
@@ -121,8 +121,8 @@ export class ADTQueue<T> implements ADTBase<T> {
 			return errors;
 		}
 
-		if (state.type !== 'qState') {
-			errors.push('state type must be qState');
+		if (state.type !== 'Queue') {
+			errors.push('state type must be Queue');
 		}
 		if (!Array.isArray(state.elements)) {
 			errors.push('state elements must be an array');
@@ -199,6 +199,24 @@ export class ADTQueue<T> implements ADTBase<T> {
 		this.state.elements = [];
 
 		return this;
+	}
+
+	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: any): ADTQueue<T> {
+		let boundThis = this;
+		if (thisArg) {
+			boundThis = thisArg;
+		}
+
+		const elements: T[] = [];
+
+		this.forEach((elem, idx, arr) => {
+			const result = func.call(boundThis, elem, idx, arr);
+			if (result) {
+				elements.push(elem);
+			}
+		}, boundThis);
+
+		return new ADTQueue({...this.state, elements});
 	}
 
 	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTQueue<T> {
@@ -298,7 +316,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 	public reset(): ADTQueue<T> {
 		this.clearElements();
 
-		this.state.type = 'qState';
+		this.state.type = 'Queue';
 
 		return this;
 	}

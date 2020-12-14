@@ -36,7 +36,7 @@ describe('ADTObjectPool', () => {
 	];
 	const VALID_SERIALIZED_STATE = [
 		'{',
-		'"type": "opState",',
+		'"type": "ObjectPool",',
 		'"pool": [],',
 		'"used": [],',
 		'"autoIncrease": true,',
@@ -49,7 +49,7 @@ describe('ADTObjectPool', () => {
 		'}'
 	].join('');
 	const DEFAULT_STATE: ADTObjectPoolState<objectClass> = {
-		type: 'opState',
+		type: 'ObjectPool',
 		pool: [],
 		used: [],
 		autoIncrease: false,
@@ -241,7 +241,7 @@ describe('ADTObjectPool', () => {
 				);
 			});
 
-			const toParseList = ['{}', '{"type": "opState"}', '{"pool":4, "type": "opState"}'];
+			const toParseList = ['{}', '{"type": "ObjectPool"}', '{"pool":4, "type": "ObjectPool"}'];
 			it.each(toParseList)('should return errors, %p wont parse into an ADTStackState', (toParse) => {
 				let errors: Array<string> = [];
 				errors = instance.getStateErrors(JSON.parse(toParse) as any);
@@ -323,9 +323,9 @@ describe('ADTObjectPool', () => {
 			}> = [
 				{
 					prop: 'type',
-					result: 'not "opState"',
+					result: 'not "ObjectPool"',
 					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be opState'
+					expectedV: 'state type must be ObjectPool'
 				},
 				{
 					prop: 'pool',
@@ -407,13 +407,13 @@ describe('ADTObjectPool', () => {
 
 			const testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
 				{
-					resultText: 'true, n is a number >= 0',
-					testSuite: ([] as any).concat(([0] as any[]).concat(POS_NUM_VALUES, NAN_VALUES)),
+					resultText: 'true, n is a number > 0',
+					testSuite: ([] as any).concat(([] as any[]).concat(POS_NUM_VALUES)),
 					expectedV: true
 				},
 				{
-					resultText: 'false, n is a number < 0',
-					testSuite: ([] as any).concat(NEG_NUM_VALUES),
+					resultText: 'false, n is a number <= 0',
+					testSuite: ([0] as any).concat(NEG_NUM_VALUES, NAN_VALUES),
 					expectedV: false
 				}
 			];
@@ -815,7 +815,7 @@ describe('ADTObjectPool', () => {
 
 				custom.reset();
 
-				expect(custom.state.type).toBe('opState');
+				expect(custom.state.type).toBe('ObjectPool');
 				expect(custom.state.autoIncrease).toBe(false);
 				expect(custom.state.maxSize).toBe('test');
 				expect(custom.state.increaseBreakPoint).toBe(1);
@@ -836,7 +836,7 @@ describe('ADTObjectPool', () => {
 			it('should return the state as a string if it is validated', () => {
 				const custom = new ADTObjectPool<objectClass>(objectClass);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'opState',
+					type: 'ObjectPool',
 					pool: [],
 					used: [],
 					startSize: 1,
@@ -850,7 +850,7 @@ describe('ADTObjectPool', () => {
 
 				custom.increaseCapacity(1);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'opState',
+					type: 'ObjectPool',
 					pool: [],
 					used: [],
 					startSize: 1,
@@ -864,7 +864,7 @@ describe('ADTObjectPool', () => {
 
 				custom.increaseCapacity(2);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'opState',
+					type: 'ObjectPool',
 					pool: [],
 					used: [],
 					startSize: 1,
@@ -878,7 +878,7 @@ describe('ADTObjectPool', () => {
 
 				custom.increaseCapacity(10);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'opState',
+					type: 'ObjectPool',
 					pool: [],
 					used: [],
 					startSize: 1,

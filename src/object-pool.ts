@@ -142,7 +142,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 
 	public getDefaultState(): State<T> {
 		const state: State<T> = {
-			type: 'opState',
+			type: 'ObjectPool',
 			pool: [],
 			used: [],
 			autoIncrease: false,
@@ -165,8 +165,8 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			return errors;
 		}
 
-		if (state.type !== 'opState') {
-			errors.push('state type must be opState');
+		if (state.type !== 'ObjectPool') {
+			errors.push('state type must be ObjectPool');
 		}
 		if (!Array.isArray(state.pool)) {
 			errors.push('state pool must be an array');
@@ -205,7 +205,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	}
 
 	public isAboveThreshold(allocationsPending: number = 0): boolean {
-		return this.utilization(allocationsPending) >= this.state.increaseBreakPoint;
+		return this.utilization(allocationsPending) > this.state.increaseBreakPoint;
 	}
 
 	public isInteger(n: number): boolean {
@@ -432,7 +432,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	public reset(): ADTObjectPool<T> {
 		this.clearElements();
 
-		this.state.type = 'opState';
+		this.state.type = 'ObjectPool';
 		this.state.autoIncrease = false;
 		this.state.increaseFactor = 2;
 		this.state.increaseBreakPoint = 1;

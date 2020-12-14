@@ -100,7 +100,7 @@ export class ADTStack<T> implements ADTBase<T> {
 
 	public getDefaultState(): State<T> {
 		const state: State<T> = {
-			type: 'sState',
+			type: 'Stack',
 			elements: [],
 			size: 0,
 			top: -1,
@@ -118,8 +118,8 @@ export class ADTStack<T> implements ADTBase<T> {
 			return errors;
 		}
 
-		if (state.type !== 'sState') {
-			errors.push('state type must be sState');
+		if (state.type !== 'Stack') {
+			errors.push('state type must be Stack');
 		}
 		if (!Array.isArray(state.elements)) {
 			errors.push('state elements must be an array');
@@ -221,6 +221,24 @@ export class ADTStack<T> implements ADTBase<T> {
 		return this;
 	}
 
+	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: any): ADTStack<T> {
+		let boundThis = this;
+		if (thisArg) {
+			boundThis = thisArg;
+		}
+
+		const elements: T[] = [];
+
+		this.forEach((elem, idx, arr) => {
+			const result = func.call(boundThis, elem, idx, arr);
+			if (result) {
+				elements.unshift(elem);
+			}
+		}, boundThis);
+
+		return new ADTStack({...this.state, elements});
+	}
+
 	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTStack<T> {
 		let boundThis = this;
 		if (thisArg) {
@@ -298,7 +316,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		this.clearElements();
 		this.state.bottom = 0;
 
-		this.state.type = 'sState';
+		this.state.type = 'Stack';
 
 		return this;
 	}

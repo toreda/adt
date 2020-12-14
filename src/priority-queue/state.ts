@@ -1,4 +1,4 @@
 export interface ADTPriorityQueueState<T> {
-	type: 'pqState';
+	type: 'PriorityQueue';
 	elements: T[];
 }

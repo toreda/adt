@@ -106,7 +106,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 
 	public getDefaultState(): State<T> {
 		const state: State<T> = {
-			type: 'llState',
+			type: 'LinkedList',
 			elements: [],
 			objectPool: false,
 			size: 0,
@@ -125,8 +125,8 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 			return errors;
 		}
 
-		if (state.type !== 'llState') {
-			errors.push('state type must be llState');
+		if (state.type !== 'LinkedList') {
+			errors.push('state type must be LinkedList');
 		}
 
 		if (!Array.isArray(state.elements)) {
@@ -237,10 +237,30 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return node.value();
 	}
 
-	public forEach(
-		func: (element: Element<T>, index: number, arr: Element<T>[]) => void,
-		thisArg?: any
-	): ADTLinkedList<T> {
+	// prettier-ignore
+	// eslint-disable-next-line max-len, prettier/prettier
+	public filter(func: (element: Element<T>, index: number, arr: Element<T>[]) => boolean, thisArg?: any): ADTLinkedList<T> {
+		let boundThis = this;
+		if (thisArg) {
+			boundThis = thisArg;
+		}
+
+		const elements: T[] = [];
+
+		this.forEach((elem, idx, arr) => {
+			const result = func.call(boundThis, elem, idx, arr);
+			const e = elem.value();
+			if (result && e != null) {
+				elements.push(e);
+			}
+		}, boundThis);
+
+		return new ADTLinkedList({...this.state, elements});
+	}
+
+	// prettier-ignore
+	// eslint-disable-next-line max-len, prettier/prettier
+	public forEach(func: (element: Element<T>, index: number, arr: Element<T>[]) => void, thisArg?: any): ADTLinkedList<T> {
 		const arr = this.getAsArray();
 
 		let boundThis = this;
@@ -378,7 +398,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	public reset(): ADTLinkedList<T> {
 		this.clearElements();
 
-		this.state.type = 'llState';
+		this.state.type = 'LinkedList';
 		this.state.elements = [];
 
 		return this;

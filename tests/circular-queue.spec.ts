@@ -24,7 +24,7 @@ describe('ADTCircularQueue', () => {
 	const STATE_PROPERTIES = ['type', 'elements', 'overwrite', 'maxSize', 'size', 'front', 'rear'];
 	const VALID_SERIALIZED_STATE = [
 		'{',
-		'"type": "cqState",',
+		'"type": "CircularQueue",',
 		'"elements": [1,2],',
 		'"overwrite": false,',
 		'"maxSize": 9,',
@@ -34,7 +34,7 @@ describe('ADTCircularQueue', () => {
 		'}'
 	].join('');
 	const DEFAULT_STATE: ADTCircularQueueState<number> = {
-		type: 'cqState',
+		type: 'CircularQueue',
 		elements: [],
 		overwrite: false,
 		size: 0,
@@ -173,7 +173,7 @@ describe('ADTCircularQueue', () => {
 				);
 			});
 
-			const toParseList = ['{}', '{"type": "cqState"}', '{"elements":4, "type": "cqState"}'];
+			const toParseList = ['{}', '{"type": "CircularQueue"}', '{"elements":4, "type": "CircularQueue"}'];
 			it.each(toParseList)(
 				'should return errors, %p wont parse into an ADTCircularQueueState',
 				(toParse) => {
@@ -254,9 +254,9 @@ describe('ADTCircularQueue', () => {
 			}> = [
 				{
 					prop: 'type',
-					result: 'not "cqState"',
+					result: 'not "CircularQueue"',
 					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be cqState'
+					expectedV: 'state type must be CircularQueue'
 				},
 				{
 					prop: 'elements',
@@ -1123,7 +1123,7 @@ describe('ADTCircularQueue', () => {
 
 				custom.reset();
 
-				expect(custom.state.type).toBe('cqState');
+				expect(custom.state.type).toBe('CircularQueue');
 				expect(custom.state.overwrite).toBe('test');
 				expect(custom.state.maxSize).toBe('test');
 			});
@@ -1173,7 +1173,7 @@ describe('ADTCircularQueue', () => {
 			it('should return the state as a string if it is validated', () => {
 				const custom = new ADTCircularQueue<number>({maxSize: 10});
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'cqState',
+					type: 'CircularQueue',
 					elements: [],
 					overwrite: false,
 					size: 0,
@@ -1184,7 +1184,7 @@ describe('ADTCircularQueue', () => {
 
 				custom.push(1);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'cqState',
+					type: 'CircularQueue',
 					elements: [1],
 					overwrite: false,
 					size: 1,
@@ -1195,7 +1195,7 @@ describe('ADTCircularQueue', () => {
 
 				custom.push(2);
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'cqState',
+					type: 'CircularQueue',
 					elements: [1, 2],
 					overwrite: false,
 					size: 2,
@@ -1206,7 +1206,7 @@ describe('ADTCircularQueue', () => {
 
 				custom.pop();
 				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'cqState',
+					type: 'CircularQueue',
 					elements: [1, 2],
 					overwrite: false,
 					size: 1,

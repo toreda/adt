@@ -113,7 +113,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 
 	public getDefaultState(): State<T> {
 		const state: State<T> = {
-			type: 'cqState',
+			type: 'CircularQueue',
 			elements: [],
 			overwrite: false,
 			size: 0,
@@ -133,8 +133,8 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return errors;
 		}
 
-		if (state.type !== 'cqState') {
-			errors.push('state type must be cqState');
+		if (state.type !== 'CircularQueue') {
+			errors.push('state type must be CircularQueue');
 		}
 		if (!Array.isArray(state.elements)) {
 			errors.push('state elements must be an array');
@@ -266,6 +266,29 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		this.state.size = 0;
 
 		return this;
+	}
+
+	// prettier-ignore
+	// eslint-disable-next-line max-len, prettier/prettier
+	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: any): ADTCircularQueue<T> {
+		let boundThis = this;
+		if (thisArg) {
+			boundThis = thisArg;
+		}
+
+		const queue = new ADTCircularQueue<T>({
+			overwrite: this.state.overwrite,
+			maxSize: this.state.maxSize
+		});
+
+		this.forEach((elem, idx, arr) => {
+			const result = func.call(boundThis, elem, idx, arr);
+			if (result) {
+				queue.push(elem);
+			}
+		}, boundThis);
+
+		return queue;
 	}
 
 	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTCircularQueue<T> {
@@ -427,7 +450,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 	public reset(): ADTCircularQueue<T> {
 		this.clearElements();
 
-		this.state.type = 'cqState';
+		this.state.type = 'CircularQueue';
 
 		return this;
 	}

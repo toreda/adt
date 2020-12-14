@@ -1,7 +1,7 @@
 import {ADTLinkedListElement} from './element';
 
 export interface ADTLinkedListState<T> {
-	type: 'llState';
+	type: 'LinkedList';
 	elements: T[];
 	objectPool: boolean;
 	size: number;
