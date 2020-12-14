@@ -9,7 +9,7 @@ import {ADTLinkedListState as State} from './linked-list/state';
 export class ADTLinkedList<T> implements ADTBase<T> {
 	public readonly state: State<T>;
 
-	constructor(options?: Options<T>, elements?: T | T[]) {
+	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
 
 		this.state.elements.forEach((element: T) => {
@@ -33,14 +33,13 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 			return state;
 		}
 
-		let parsed: State<T> | Array<string> | null = null;
 		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parseOptionsStateString(options.serializedState);
+			const parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
-				throw new Error(parsed.join('\n'));
+				throw parsed;
 			}
 
 			result = parsed;
@@ -54,17 +53,16 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(data: string): State<T> | Array<string> | null {
+	public parseOptionsStateString(data: string): State<T> | Error[] | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: State<T> | Array<string> | null = null;
-		let parsed: State<T> | null = null;
-		let errors: Array<string> = [];
+		let result: State<T> | Error[] | null = null;
+		let errors: Error[] = [];
 
 		try {
-			parsed = JSON.parse(data);
+			const parsed = JSON.parse(data);
 
 			if (parsed) {
 				errors = this.getStateErrors(parsed);
@@ -76,16 +74,16 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 
 			result = parsed;
 		} catch (error) {
-			result = [error.message].concat(errors);
+			result = [error, ...errors];
 		}
 
 		return result;
 	}
 
-	public parseOptionsOther(s: State<T>, options?: Options<T>): State<T> {
-		let state: State<T> | null = s;
+	public parseOptionsOther(stateArg: State<T>, options?: Options<T>): State<T> {
+		let state: State<T> | null = stateArg;
 
-		if (!s) {
+		if (!stateArg) {
 			state = this.getDefaultState();
 		}
 
@@ -93,11 +91,10 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 			return state;
 		}
 
-		if (options.elements && Array.isArray(options.elements)) {
+		if (options.elements != null && this.getStateErrorsElements(options.elements).length === 0) {
 			state.elements = options.elements.slice();
 		}
-
-		if (typeof options.objectPool === 'boolean') {
+		if (options.objectPool != null && this.getStateErrorsObjectPool(options.objectPool).length === 0) {
 			state.objectPool = options.objectPool;
 		}
 
@@ -117,41 +114,49 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: State<T>): Array<string> {
-		const errors: Array<string> = [];
+	public getStateErrors(state: State<T>): Error[] {
+		const errors: Error[] = [];
 
 		if (!state) {
-			errors.push('state is null or undefined');
+			errors.push(Error('state is null or undefined'));
 			return errors;
 		}
 
-		if (state.type !== 'LinkedList') {
-			errors.push('state type must be LinkedList');
-		}
-
-		if (!Array.isArray(state.elements)) {
-			errors.push('state elements must be an array');
-		}
-
-		// const properties = Object.keys(state.elements[0]);
-
-		// const allSameType = state.elements.every((elem) => {
-		// 	return Object.keys(elem).every((key, index) => {
-		// 		const sameKeyName = key == properties[index];
-		// 		const sameType = typeof key === typeof properties[index];
-		// 		return sameKeyName && sameType;
-		// 	});
-		// });
-
-		// if (!allSameType) {
-		// 	errors.push('All elements must be the same type');
-		// }
-
-		if (typeof state.objectPool !== 'boolean') {
-			errors.push('state objectPool must be a boolean');
-		}
+		errors.push(...this.getStateErrorsElements(state.elements));
+		errors.push(...this.getStateErrorsObjectPool(state.objectPool));
+		errors.push(...this.getStateErrorsType(state.type));
 
 		return errors;
+	}
+
+	public getStateErrorsElements(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !Array.isArray(data)) {
+			result.push(Error('state elements must be an array'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsObjectPool(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || typeof data !== 'boolean') {
+			result.push(Error('state objectPool must be a boolean'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsType(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || data !== 'LinkedList') {
+			result.push(Error('state type must be LinkedList'));
+		}
+
+		return result;
 	}
 
 	public isPartOfList(node: Element<T> | null): boolean {
@@ -239,10 +244,11 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 
 	// prettier-ignore
 	// eslint-disable-next-line max-len, prettier/prettier
-	public filter(func: (element: Element<T>, index: number, arr: Element<T>[]) => boolean, thisArg?: any): ADTLinkedList<T> {
+	public filter(func: (element: Element<T>, index: number, arr: Element<T>[]) => boolean, thisArg?: unknown): ADTLinkedList<T> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		const elements: T[] = [];
@@ -260,12 +266,13 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 
 	// prettier-ignore
 	// eslint-disable-next-line max-len, prettier/prettier
-	public forEach(func: (element: Element<T>, index: number, arr: Element<T>[]) => void, thisArg?: any): ADTLinkedList<T> {
+	public forEach(func: (element: Element<T>, index: number, arr: Element<T>[]) => void, thisArg?: unknown): ADTLinkedList<T> {
 		const arr = this.getAsArray();
 
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		arr.forEach((elem, idx, thisArr) => {

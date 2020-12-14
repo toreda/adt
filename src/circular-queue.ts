@@ -26,14 +26,13 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			return state;
 		}
 
-		let parsed: State<T> | Error[] | null = null;
 		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parseOptionsStateString(options.serializedState);
+			const parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
-				throw new Error(parsed.join('\n'));
+				throw parsed;
 			}
 
 			result = parsed;
@@ -51,8 +50,8 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(data: string): State<T> | Error[] | null {
-		if (typeof data !== 'string' || data === '') {
+	public parseOptionsStateString(state: string): State<T> | Error[] | null {
+		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
@@ -60,7 +59,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		let errors: Error[] = [];
 
 		try {
-			const parsed = JSON.parse(data);
+			const parsed = JSON.parse(state);
 
 			if (parsed) {
 				errors = this.getStateErrors(parsed);
@@ -72,16 +71,16 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 
 			result = parsed;
 		} catch (error) {
-			result = [error].concat(errors);
+			result = [error, ...errors];
 		}
 
 		return result;
 	}
 
-	public parseOptionsOther(s: State<T>, options?: Options<T>): State<T> {
-		let state: State<T> | null = s;
+	public parseOptionsOther(stateArg: State<T>, options?: Options<T>): State<T> {
+		let state: State<T> | null = stateArg;
 
-		if (!s) {
+		if (!stateArg) {
 			state = this.getDefaultState();
 		}
 

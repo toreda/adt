@@ -1,5 +1,5 @@
 export interface ADTLinkedListOptions<T> {
-	serializedState?: string;
-	objectPool?: boolean;
 	elements?: T[];
+	objectPool?: boolean;
+	serializedState?: string;
 }
