@@ -1,6 +1,6 @@
 export interface ADTQueueOptions<T> {
-	serializedState?: string;
+	deepClone?: boolean;
 	elements?: Array<T>;
 	objectPool?: boolean;
-	deepClone?: boolean;
+	serializedState?: string;
 }

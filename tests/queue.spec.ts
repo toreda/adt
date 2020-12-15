@@ -2,7 +2,8 @@ import {ADTQueryFilter} from '../src/query/filter';
 import {ADTQueryOptions} from '../src/query/options';
 import {ADTQueryResult} from '../src/query/result';
 import {ADTQueue} from '../src/queue';
-import {ADTQueueState} from '../src/queue/state';
+import {ADTQueueOptions as Options} from '../src/queue/options';
+import {ADTQueueState as State} from '../src/queue/state';
 
 describe('ADTQueue', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -21,7 +22,13 @@ describe('ADTQueue', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	const STATE_PROPERTIES = ['type', 'elements', 'deepClone', 'objectPool'];
+	const DEFAULT_STATE: State<number> = {
+		type: 'Queue',
+		elements: [],
+		deepClone: false,
+		objectPool: false
+	};
+	const STATE_PROPERTIES = Object.keys(DEFAULT_STATE);
 	const VALID_SERIALIZED_STATE = [
 		'{',
 		'"type": "Queue",',
@@ -30,12 +37,6 @@ describe('ADTQueue', () => {
 		'"objectPool": true',
 		'}'
 	].join('');
-	const DEFAULT_STATE: ADTQueueState<number> = {
-		type: 'Queue',
-		elements: [],
-		deepClone: false,
-		objectPool: false
-	};
 
 	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 
@@ -80,7 +81,7 @@ describe('ADTQueue', () => {
 			});
 
 			it('should initialize with other options overriding serializedState if they are valid', () => {
-				const expectedV: ADTQueueState<number> = JSON.parse(VALID_SERIALIZED_STATE);
+				const expectedV: State<number> = JSON.parse(VALID_SERIALIZED_STATE);
 				expectedV.elements = [3, 4];
 
 				const custom = new ADTQueue<number>({
@@ -164,17 +165,18 @@ describe('ADTQueue', () => {
 			});
 
 			it('should return array of errors if string cant be parsed', () => {
-				expect(instance.parseOptionsStateString('[4,3,')).toContain('Unexpected end of JSON input');
-				expect(instance.parseOptionsStateString('{left:f,right:')).toContain(
-					'Unexpected token l in JSON at position 1'
-				);
+				const expectedErrorEnd = Error('Unexpected end of JSON input');
+				expect(instance.parseOptionsStateString('[4,3,')).toContainEqual(expectedErrorEnd);
+
+				const expectedErrorToken = Error('Unexpected token l in JSON at position 1');
+				expect(instance.parseOptionsStateString('{left:f,right:')).toContainEqual(expectedErrorToken);
 			});
 
 			const toParseList = ['{}', '{"type": "Queue"}', '{"elements":4, "type": "Queue"}'];
 			it.each(toParseList)('should return errors, %p wont parse into an ADTQueueState', (toParse) => {
-				let errors: Array<string> = [];
+				let errors: Error[] = [];
 				errors = instance.getStateErrors(JSON.parse(toParse) as any);
-				errors.unshift('state is not a valid ADTQueueState');
+				errors.unshift(Error('state is not a valid ADTQueueState'));
 				expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
 			});
 
@@ -203,16 +205,14 @@ describe('ADTQueue', () => {
 			});
 
 			it('should return passed state with values changed to match other passed options if those are valid', () => {
-				const expectedV: ADTQueueState<number> = {...DEFAULT_STATE};
-				expectedV.elements = [3, 4];
+				const opts: Required<Omit<Options<number>, 'serializedState'>> = {
+					elements: [],
+					deepClone: true,
+					objectPool: true
+				};
 
-				const result = instance.parseOptionsOther(
-					{...DEFAULT_STATE},
-					{
-						elements: expectedV.elements,
-						objectPool: 0 as any
-					}
-				);
+				const expectedV = {...DEFAULT_STATE, ...opts};
+				const result = instance.parseOptionsOther({...DEFAULT_STATE}, opts);
 
 				expect(result).toStrictEqual(expectedV);
 			});
@@ -230,64 +230,54 @@ describe('ADTQueue', () => {
 			it('should return an empty array if state is valid', () => {
 				expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
 			});
+		});
 
-			const testSuite = [null, undefined, '', 0];
-			it.each(testSuite)('should return errors if state is %p', (myTest) => {
-				const expectedV = 'state is null or undefined';
-				const errors = instance.getStateErrors(myTest as any);
+		const testSuite = [null, undefined, '', 0];
+		it.each(testSuite)('should return errors if state is %p', (myTest) => {
+			const expectedV = Error('state is null or undefined');
+			const errors = instance.getStateErrors(myTest as any);
+
+			expect(Array.isArray(errors)).toBe(true);
+			expect(errors).toContainEqual(expectedV);
+		});
+
+		const stateTestSuiteObj = [
+			{
+				prop: 'Type',
+				result: 'not "Queue"',
+				testSuite: ([] as any).concat([null, undefined, '', 'state']),
+				expectedV: Error('state type must be Queue')
+			},
+			{
+				prop: 'Elements',
+				result: 'not an array',
+				testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
+				expectedV: Error('state elements must be an array')
+			},
+			{
+				prop: 'DeepClone',
+				result: 'not a boolean',
+				testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
+				expectedV: Error('state deepClone must be a boolean')
+			},
+			{
+				prop: 'ObjectPool',
+				result: 'not a boolean',
+				testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
+				expectedV: Error('state objectPool must be a boolean')
+			}
+		];
+		const stateTestSuite = stateTestSuiteObj.map((elem) => {
+			return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
+		});
+
+		describe.each(stateTestSuite)('getStateErrors%s', (prop, result, myTests, expectedV) => {
+			it.each(myTests)(`should return errors, ${prop} is %p, ${result}`, (myTest) => {
+				const errors = instance[`getStateErrors${prop}`](myTest);
 
 				expect(Array.isArray(errors)).toBe(true);
-				expect(errors).toContain(expectedV);
+				expect(errors).toContainEqual(expectedV);
 			});
-
-			const stateTestSuiteObj: Array<{
-				prop: string;
-				result: string;
-				testSuite: any[];
-				expectedV: string;
-			}> = [
-				{
-					prop: 'type',
-					result: 'not "Queue"',
-					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be Queue'
-				},
-				{
-					prop: 'elements',
-					result: 'not an array',
-					testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
-					expectedV: 'state elements must be an array'
-				},
-				{
-					prop: 'deepClone',
-					result: 'not a boolean',
-					testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
-					expectedV: 'state deepClone must be a boolean'
-				},
-				{
-					prop: 'objectPool',
-					result: 'not a boolean',
-					testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
-					expectedV: 'state objectPool must be a boolean'
-				}
-			];
-			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
-				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
-			});
-
-			describe.each(stateTestSuite)(
-				'should return errors, state.%s is %s',
-				(prop, result, myTests, expectedV) => {
-					it.each(myTests)(`state.${prop} is %p`, (myTest) => {
-						const state = {...DEFAULT_STATE};
-						state[prop] = myTest as any;
-						const errors = instance.getStateErrors(state);
-
-						expect(Array.isArray(errors)).toBe(true);
-						expect(errors).toContain(expectedV);
-					});
-				}
-			);
 		});
 
 		describe('isValidState', () => {
@@ -884,7 +874,7 @@ describe('ADTQueue', () => {
 
 			it('should return the state as a string if it is validated', () => {
 				const custom = new ADTQueue<number>();
-				const expected: ADTQueueState<number> = {
+				const expected: State<number> = {
 					type: 'Queue',
 					elements: [],
 					deepClone: false,

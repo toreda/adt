@@ -1,6 +1,6 @@
 export interface ADTQueueState<T> {
-	type: 'Queue';
-	elements: Array<T>;
 	deepClone?: boolean;
+	elements: Array<T>;
 	objectPool?: boolean;
+	type: 'Queue';
 }

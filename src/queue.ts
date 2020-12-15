@@ -28,14 +28,13 @@ export class ADTQueue<T> implements ADTBase<T> {
 			return state;
 		}
 
-		let parsed: State<T> | Array<string> | null = null;
 		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parseOptionsStateString(options.serializedState);
+			const parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
-				throw new Error(parsed.join('\n'));
+				throw parsed;
 			}
 
 			result = parsed;
@@ -50,17 +49,16 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(state: string): State<T> | Array<string> | null {
+	public parseOptionsStateString(state: string): State<T> | Error[] | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: State<T> | Array<string> | null = null;
-		let parsed: State<T> | null = null;
-		let errors: Array<string> = [];
+		let result: State<T> | Error[] | null = null;
+		let errors: Error[] = [];
 
 		try {
-			parsed = JSON.parse(state);
+			const parsed = JSON.parse(state);
 
 			if (parsed) {
 				errors = this.getStateErrors(parsed);
@@ -72,7 +70,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 
 			result = parsed;
 		} catch (error) {
-			result = [error.message].concat(errors);
+			result = [error, ...errors];
 		}
 
 		return result;
@@ -89,13 +87,13 @@ export class ADTQueue<T> implements ADTBase<T> {
 			return state;
 		}
 
-		if (options.elements && Array.isArray(options.elements)) {
+		if (options.elements != null && this.getStateErrorsElements(options.elements).length === 0) {
 			state.elements = options.elements.slice();
 		}
-		if (typeof options.deepClone === 'boolean') {
+		if (options.deepClone != null && this.getStateErrorsDeepClone(options.deepClone).length === 0) {
 			state.deepClone = options.deepClone;
 		}
-		if (typeof options.objectPool === 'boolean') {
+		if (options.objectPool != null && this.getStateErrorsObjectPool(options.objectPool).length === 0) {
 			state.objectPool = options.objectPool;
 		}
 
@@ -113,39 +111,64 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: State<T>): Array<string> {
-		const errors: Array<string> = [];
+	public getStateErrors(state: State<T>): Error[] {
+		const errors: Error[] = [];
 
 		if (!state) {
-			errors.push('state is null or undefined');
+			errors.push(Error('state is null or undefined'));
 			return errors;
 		}
 
-		if (state.type !== 'Queue') {
-			errors.push('state type must be Queue');
-		}
-		if (!Array.isArray(state.elements)) {
-			errors.push('state elements must be an array');
+		errors.push(...this.getStateErrorsDeepClone(state.deepClone));
+		errors.push(...this.getStateErrorsElements(state.elements));
+		errors.push(...this.getStateErrorsObjectPool(state.objectPool));
+		errors.push(...this.getStateErrorsType(state.type));
+
+		return errors;
+	}
+
+	public getStateErrorsDeepClone(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || typeof data !== 'boolean') {
+			errors.push(Error('state deepClone must be a boolean'));
 		}
 
-		if (typeof state.deepClone !== 'boolean') {
-			errors.push('state deepClone must be a boolean');
+		return errors;
+	}
+
+	public getStateErrorsElements(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || !Array.isArray(data)) {
+			errors.push(Error('state elements must be an array'));
 		}
-		if (typeof state.objectPool !== 'boolean') {
-			errors.push('state objectPool must be a boolean');
+
+		return errors;
+	}
+
+	public getStateErrorsObjectPool(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || typeof data !== 'boolean') {
+			errors.push(Error('state objectPool must be a boolean'));
+		}
+
+		return errors;
+	}
+
+	public getStateErrorsType(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || data !== 'Queue') {
+			errors.push(Error('state type must be Queue'));
 		}
 
 		return errors;
 	}
 
 	public isValidState(state: State<T>): boolean {
-		const errors = this.getStateErrors(state);
-
-		if (errors.length) {
-			return false;
-		}
-
-		return true;
+		return this.getStateErrors(state).length === 0;
 	}
 
 	public queryDelete(query: QueryResult<T>): T | null {
@@ -201,10 +224,12 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: any): ADTQueue<T> {
+	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: unknown): ADTQueue<T> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
+
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		const elements: T[] = [];
@@ -219,10 +244,12 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return new ADTQueue({...this.state, elements});
 	}
 
-	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTQueue<T> {
+	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: unknown): ADTQueue<T> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
+
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		this.state.elements.forEach((elem, idx) => {
@@ -271,7 +298,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 	/**
 	 * Add element to the end of the queue.
 	 */
-	public push(element: any): ADTQueue<T> {
+	public push(element: T): ADTQueue<T> {
 		this.state.elements.push(element);
 
 		return this;
