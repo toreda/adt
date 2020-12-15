@@ -38,14 +38,13 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			return state;
 		}
 
-		let parsed: State<T> | Array<string> | null = null;
 		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parseOptionsStateString(options.serializedState);
+			const parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
-				throw Error(parsed.join('\n'));
+				throw parsed;
 			}
 
 			result = parsed;
@@ -53,30 +52,26 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 
 		if (result) {
 			state.autoIncrease = result.autoIncrease;
-
-			state.startSize = result.objectCount;
-			state.maxSize = result.maxSize;
-
 			state.increaseBreakPoint = result.increaseBreakPoint;
 			state.increaseFactor = result.increaseFactor;
-
 			state.instanceArgs = result.instanceArgs;
+			state.maxSize = result.maxSize;
+			state.startSize = result.objectCount;
 		}
 
 		return state;
 	}
 
-	public parseOptionsStateString(state: string): State<T> | Array<string> | null {
+	public parseOptionsStateString(state: string): State<T> | Error[] | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: State<T> | Array<string> | null = null;
-		let parsed: State<T> | null = null;
-		let errors: Array<string> = [];
+		let result: State<T> | Error[] | null = null;
+		let errors: Error[] = [];
 
 		try {
-			parsed = JSON.parse(state);
+			const parsed = JSON.parse(state);
 
 			if (parsed) {
 				errors = this.getStateErrors(parsed);
@@ -88,7 +83,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 
 			result = parsed;
 		} catch (error) {
-			result = [error.message].concat(errors);
+			result = [error, ...errors];
 		}
 
 		return result;
@@ -157,58 +152,133 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: State<T>): Array<string> {
-		const errors: Array<string> = [];
+	public getStateErrors(state: State<T>): Error[] {
+		const errors: Error[] = [];
 
 		if (!state) {
-			errors.push('state is null or undefined');
+			errors.push(Error('state is null or undefined'));
 			return errors;
 		}
 
-		if (state.type !== 'ObjectPool') {
-			errors.push('state type must be ObjectPool');
-		}
-		if (!Array.isArray(state.pool)) {
-			errors.push('state pool must be an array');
-		}
-		if (!Array.isArray(state.used)) {
-			errors.push('state used must be an array');
-		}
-
-		if (typeof state.autoIncrease !== 'boolean') {
-			errors.push('state autoIncrease must be a boolean');
-		}
-
-		if (!this.isInteger(state.startSize) || state.startSize < 0) {
-			errors.push('state startSize must be an integer >= 0');
-		}
-		if (!this.isInteger(state.objectCount) || state.objectCount < 0) {
-			errors.push('state objectCount must be an integer >= 0');
-		}
-		if (!this.isInteger(state.maxSize) || state.maxSize < 1) {
-			errors.push('state maxSize must be an integer >= 1');
-		}
-
-		const between0and1 = state.increaseBreakPoint >= 0 && state.increaseBreakPoint <= 1;
-		if (!this.isFloat(state.increaseBreakPoint) || !between0and1) {
-			errors.push('state increaseBreakPoint must be a number between 0 and 1');
-		}
-		if (!this.isFloat(state.increaseFactor) || state.increaseFactor <= 1) {
-			errors.push('state increaseFactor must be a number > 1');
-		}
-
-		if (!Array.isArray(state.instanceArgs)) {
-			errors.push('state instanceArgs must be an array');
-		}
+		errors.push(...this.getStateErrorsAutoIncrease(state.autoIncrease));
+		errors.push(...this.getStateErrorsIncreaseBreakPoint(state.increaseBreakPoint));
+		errors.push(...this.getStateErrorsIncreaseFactor(state.increaseFactor));
+		errors.push(...this.getStateErrorsInstanceArgs(state.instanceArgs));
+		errors.push(...this.getStateErrorsMaxSize(state.maxSize));
+		errors.push(...this.getStateErrorsObjectCount(state.objectCount));
+		errors.push(...this.getStateErrorsPool(state.pool));
+		errors.push(...this.getStateErrorsStartSize(state.startSize));
+		errors.push(...this.getStateErrorsType(state.type));
+		errors.push(...this.getStateErrorsUsed(state.used));
 
 		return errors;
+	}
+
+	public getStateErrorsAutoIncrease(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || typeof data !== 'boolean') {
+			result.push(Error('state autoIncrease must be a boolean'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsIncreaseBreakPoint(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !this.isFloat(data) || !((data as number) >= 0 && (data as number) <= 1)) {
+			result.push(Error('state increaseBreakPoint must be a number between 0 and 1'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsIncreaseFactor(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !this.isFloat(data) || (data as number) <= 1) {
+			result.push(Error('state increaseFactor must be a number > 1'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsInstanceArgs(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !Array.isArray(data)) {
+			result.push(Error('state instanceArgs must be an array'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsMaxSize(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !this.isInteger(data) || (data as number) < 1) {
+			result.push(Error('state maxSize must be an integer >= 1'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsObjectCount(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !this.isInteger(data) || (data as number) < 0) {
+			result.push(Error('state objectCount must be an integer >= 0'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsPool(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !Array.isArray(data)) {
+			result.push(Error('state pool must be an array'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsStartSize(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !this.isInteger(data) || (data as number) < 0) {
+			result.push(Error('state startSize must be an integer >= 0'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsType(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || data !== 'ObjectPool') {
+			result.push(Error('state type must be ObjectPool'));
+		}
+
+		return result;
+	}
+
+	public getStateErrorsUsed(data: unknown): Error[] {
+		const result: Error[] = [];
+
+		if (data == null || !Array.isArray(data)) {
+			result.push(Error('state used must be an array'));
+		}
+
+		return result;
 	}
 
 	public isAboveThreshold(allocationsPending: number = 0): boolean {
 		return this.utilization(allocationsPending) > this.state.increaseBreakPoint;
 	}
 
-	public isInteger(n: number): boolean {
+	public isInteger(n: unknown): boolean {
 		if (typeof n !== 'number') {
 			return false;
 		}
@@ -219,7 +289,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return true;
 	}
 
-	public isFloat(n: number): boolean {
+	public isFloat(n: unknown): boolean {
 		if (typeof n !== 'number') {
 			return false;
 		}
@@ -231,13 +301,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	}
 
 	public isValidState(state: State<T>): boolean {
-		const errors = this.getStateErrors(state);
-
-		if (errors.length) {
-			return false;
-		}
-
-		return true;
+		return this.getStateErrors(state).length === 0;
 	}
 
 	public queryDelete(query: QueryResult<T>): T | null {
@@ -272,6 +336,13 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		}
 
 		return options;
+	}
+
+	public shouldCleanUsed(): boolean {
+		const empty = this.wastedSpace || 1;
+		const total = this.state.used.length;
+
+		return total / empty < Math.log(total);
 	}
 
 	public store(object: T): void {
@@ -335,10 +406,11 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return this;
 	}
 
-	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTObjectPool<T> {
+	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: unknown): ADTObjectPool<T> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		this.state.used.forEach((elem, idx) => {
@@ -413,7 +485,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			this.wastedSpace++;
 		}
 
-		if (this.wastedSpace * 2 > this.state.used.length) {
+		if (this.shouldCleanUsed()) {
 			this.cleanUsed();
 		}
 

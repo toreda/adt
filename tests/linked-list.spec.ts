@@ -23,7 +23,15 @@ describe('ADTLinkedList', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	const STATE_PROPERTIES = ['type', 'elements', 'objectPool'];
+	const DEFAULT_STATE: State<number> = {
+		type: 'LinkedList',
+		elements: [],
+		objectPool: false,
+		size: 0,
+		head: null,
+		tail: null
+	};
+	const STATE_PROPERTIES = Object.keys(DEFAULT_STATE);
 	const VALID_SERIALIZED_STATE = [
 		'{',
 		'"type": "LinkedList",',
@@ -34,14 +42,6 @@ describe('ADTLinkedList', () => {
 		'"tail": null',
 		'}'
 	].join('');
-	const DEFAULT_STATE: State<number> = {
-		type: 'LinkedList',
-		elements: [],
-		objectPool: false,
-		size: 0,
-		head: null,
-		tail: null
-	};
 
 	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 

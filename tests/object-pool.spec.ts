@@ -1,10 +1,9 @@
 import {ADTObjectPool} from '../src/object-pool';
 import {ADTObjectPoolInstance} from '../src/object-pool/instance';
-import {ADTObjectPoolOptions} from '../src/object-pool/options';
-import {ADTObjectPoolState} from '../src/object-pool/state';
 import {ADTQueryFilter} from '../src/query/filter';
 import {ADTQueryOptions} from '../src/query/options';
-import {ADTQueryResult} from '../src/query/result';
+import {ADTObjectPoolOptions as Options} from '../src/object-pool/options';
+import {ADTObjectPoolState as State} from '../src/object-pool/state';
 
 describe('ADTObjectPool', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -23,17 +22,19 @@ describe('ADTObjectPool', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	const STATE_PROPERTIES = [
-		'type',
-		'pool',
-		'used',
-		'startSize',
-		'objectCount',
-		'maxSize',
-		'autoIncrease',
-		'increaseBreakPoint',
-		'increaseFactor'
-	];
+	const DEFAULT_STATE: State<objectClass> = {
+		type: 'ObjectPool',
+		pool: [],
+		used: [],
+		autoIncrease: false,
+		startSize: 1,
+		objectCount: 0,
+		maxSize: 1000,
+		increaseBreakPoint: 1,
+		increaseFactor: 2,
+		instanceArgs: []
+	};
+	const STATE_PROPERTIES = Object.keys(DEFAULT_STATE);
 	const VALID_SERIALIZED_STATE = [
 		'{',
 		'"type": "ObjectPool",',
@@ -48,18 +49,6 @@ describe('ADTObjectPool', () => {
 		'"instanceArgs": []',
 		'}'
 	].join('');
-	const DEFAULT_STATE: ADTObjectPoolState<objectClass> = {
-		type: 'ObjectPool',
-		pool: [],
-		used: [],
-		autoIncrease: false,
-		startSize: 1,
-		objectCount: 0,
-		maxSize: 1000,
-		increaseBreakPoint: 1,
-		increaseFactor: 2,
-		instanceArgs: []
-	};
 
 	class objectClass implements ADTObjectPoolInstance {
 		public name!: string;
@@ -128,7 +117,7 @@ describe('ADTObjectPool', () => {
 			});
 
 			it('should initialize with other options overriding serializedState if they are valid', () => {
-				const expectedV: ADTObjectPoolState<objectClass> = JSON.parse(VALID_SERIALIZED_STATE);
+				const expectedV: State<objectClass> = JSON.parse(VALID_SERIALIZED_STATE);
 				expectedV.startSize = 20;
 				expectedV.objectCount = expectedV.startSize;
 				expectedV.maxSize = 100;
@@ -235,17 +224,18 @@ describe('ADTObjectPool', () => {
 			});
 
 			it('should return array of errors if string cant be parsed', () => {
-				expect(instance.parseOptionsStateString('[4,3,')).toContain('Unexpected end of JSON input');
-				expect(instance.parseOptionsStateString('{left:f,right:')).toContain(
-					'Unexpected token l in JSON at position 1'
-				);
+				const expectedErrorEnd = Error('Unexpected end of JSON input');
+				expect(instance.parseOptionsStateString('[4,3,')).toContainEqual(expectedErrorEnd);
+
+				const expectedErrorToken = Error('Unexpected token l in JSON at position 1');
+				expect(instance.parseOptionsStateString('{left:f,right:')).toContainEqual(expectedErrorToken);
 			});
 
 			const toParseList = ['{}', '{"type": "ObjectPool"}', '{"pool":4, "type": "ObjectPool"}'];
 			it.each(toParseList)('should return errors, %p wont parse into an ADTStackState', (toParse) => {
-				let errors: Array<string> = [];
+				let errors: Error[] = [];
 				errors = instance.getStateErrors(JSON.parse(toParse) as any);
-				errors.unshift('state is not a valid ADTObjectPoolState');
+				errors.unshift(Error('state is not a valid ADTObjectPoolState'));
 				expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
 			});
 
@@ -276,7 +266,7 @@ describe('ADTObjectPool', () => {
 			});
 
 			it('should return passed state with values changed to match other passed options if those are valid', () => {
-				type Option = Required<Omit<ADTObjectPoolOptions, 'serializedState'>>;
+				type Option = Required<Omit<Options, 'serializedState'>>;
 				const opts: Option = {
 					startSize: 20,
 					maxSize: 666,
@@ -308,96 +298,86 @@ describe('ADTObjectPool', () => {
 
 			const testSuite = [null, undefined, '', 0];
 			it.each(testSuite)('should return errors if state is %p', (myTest) => {
-				const expectedV = 'state is null or undefined';
+				const expectedV = Error('state is null or undefined');
 				const errors = instance.getStateErrors(myTest as any);
 
 				expect(Array.isArray(errors)).toBe(true);
-				expect(errors).toContain(expectedV);
+				expect(errors).toContainEqual(expectedV);
 			});
+		});
 
-			const stateTestSuiteObj: Array<{
-				prop: string;
-				result: string;
-				testSuite: any[];
-				expectedV: string;
-			}> = [
-				{
-					prop: 'type',
-					result: 'not "ObjectPool"',
-					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be ObjectPool'
-				},
-				{
-					prop: 'pool',
-					result: 'not an array',
-					testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
-					expectedV: 'state pool must be an array'
-				},
-				{
-					prop: 'used',
-					result: 'not an array',
-					testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
-					expectedV: 'state used must be an array'
-				},
-				{
-					prop: 'autoIncrease',
-					result: 'not a boolean',
-					testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
-					expectedV: 'state autoIncrease must be a boolean'
-				},
-				{
-					prop: 'startSize',
-					result: 'not an integer >= 0',
-					testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
-					expectedV: 'state startSize must be an integer >= 0'
-				},
-				{
-					prop: 'objectCount',
-					result: 'not an integer >= 0',
-					testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
-					expectedV: 'state objectCount must be an integer >= 0'
-				},
-				{
-					prop: 'maxSize',
-					result: 'not an integer >= 1',
-					testSuite: ([0] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
-					expectedV: 'state maxSize must be an integer >= 1'
-				},
-				{
-					prop: 'increaseBreakPoint',
-					result: 'not (0 <= number <= 1)',
-					testSuite: ([2, 2.5] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES),
-					expectedV: 'state increaseBreakPoint must be a number between 0 and 1'
-				},
-				{
-					prop: 'increaseFactor',
-					result: 'not a number > 1',
-					testSuite: ([0, 1] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES),
-					expectedV: 'state increaseFactor must be a number > 1'
-				},
-				{
-					prop: 'instanceArgs',
-					result: 'not an array',
-					testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
-					expectedV: 'state instanceArgs must be an array'
-				}
-			];
-			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
-				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
+		const stateTestSuiteObj = [
+			{
+				prop: 'Type',
+				result: 'not "ObjectPool"',
+				testSuite: ([] as any).concat([null, undefined, '', 'state']),
+				expectedV: Error('state type must be ObjectPool')
+			},
+			{
+				prop: 'Pool',
+				result: 'not an array',
+				testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
+				expectedV: Error('state pool must be an array')
+			},
+			{
+				prop: 'Used',
+				result: 'not an array',
+				testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
+				expectedV: Error('state used must be an array')
+			},
+			{
+				prop: 'AutoIncrease',
+				result: 'not a boolean',
+				testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
+				expectedV: Error('state autoIncrease must be a boolean')
+			},
+			{
+				prop: 'StartSize',
+				result: 'not an integer >= 0',
+				testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
+				expectedV: Error('state startSize must be an integer >= 0')
+			},
+			{
+				prop: 'ObjectCount',
+				result: 'not an integer >= 0',
+				testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
+				expectedV: Error('state objectCount must be an integer >= 0')
+			},
+			{
+				prop: 'MaxSize',
+				result: 'not an integer >= 1',
+				testSuite: ([0] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
+				expectedV: Error('state maxSize must be an integer >= 1')
+			},
+			{
+				prop: 'IncreaseBreakPoint',
+				result: 'not (0 <= number <= 1)',
+				testSuite: ([2, 2.5] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES),
+				expectedV: Error('state increaseBreakPoint must be a number between 0 and 1')
+			},
+			{
+				prop: 'IncreaseFactor',
+				result: 'not a number > 1',
+				testSuite: ([0, 1] as any[]).concat(NAN_VALUES, NEG_NUM_VALUES),
+				expectedV: Error('state increaseFactor must be a number > 1')
+			},
+			{
+				prop: 'InstanceArgs',
+				result: 'not an array',
+				testSuite: ([] as any).concat([{}, '', 'true', 'false', 0, 1, null, undefined]),
+				expectedV: Error('state instanceArgs must be an array')
+			}
+		];
+		const stateTestSuite = stateTestSuiteObj.map((elem) => {
+			return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
+		});
+		describe.each(stateTestSuite)('%p', (prop, result, myTests, expectedV) => {
+			it.each(myTests)(`should return errors, ${prop} is %p, ${result}`, (myTest) => {
+				const errors = instance[`getStateErrors${prop}`](myTest);
+
+				expect(Array.isArray(errors)).toBe(true);
+				expect(errors).toContainEqual(expectedV);
 			});
-			describe.each(stateTestSuite)(
-				'should return errors, state.%s is %s',
-				(prop, result, myTests, expectedV) => {
-					it.each(myTests)(`state.${prop} is %p`, (myTest) => {
-						const state = {...DEFAULT_STATE};
-						state[prop] = myTest as any;
-						const errors = instance.getStateErrors(state);
-
-						expect(Array.isArray(errors)).toBe(true);
-						expect(errors).toContain(expectedV);
-					});
-				}
-			);
 		});
 
 		describe('isAboveThreshold', () => {

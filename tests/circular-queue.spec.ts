@@ -22,7 +22,16 @@ describe('ADTCircularQueue', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	const STATE_PROPERTIES = ['type', 'elements', 'overwrite', 'maxSize', 'size', 'front', 'rear'];
+	const DEFAULT_STATE: State<number> = {
+		type: 'CircularQueue',
+		elements: [],
+		overwrite: false,
+		size: 0,
+		maxSize: 100,
+		front: 0,
+		rear: 0
+	};
+	const STATE_PROPERTIES = Object.keys(DEFAULT_STATE);
 	const VALID_SERIALIZED_STATE = [
 		'{',
 		'"type": "CircularQueue",',
@@ -34,15 +43,6 @@ describe('ADTCircularQueue', () => {
 		'"rear": 5',
 		'}'
 	].join('');
-	const DEFAULT_STATE: State<number> = {
-		type: 'CircularQueue',
-		elements: [],
-		overwrite: false,
-		size: 0,
-		maxSize: 100,
-		front: 0,
-		rear: 0
-	};
 
 	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 	const MAX_SIZE = 4;
