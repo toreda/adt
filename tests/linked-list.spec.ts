@@ -31,7 +31,7 @@ describe('ADTLinkedList', () => {
 		head: null,
 		tail: null
 	};
-	const STATE_PROPERTIES = Object.keys(DEFAULT_STATE);
+	const STATE_PROPERTIES = Object.keys(DEFAULT_STATE).filter((k) => DEFAULT_STATE[k] != null);
 	const VALID_SERIALIZED_STATE = [
 		'{',
 		'"type": "LinkedList",',

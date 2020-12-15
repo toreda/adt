@@ -124,6 +124,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 
 		errors.push(...this.getStateErrorsElements(state.elements));
 		errors.push(...this.getStateErrorsObjectPool(state.objectPool));
+		errors.push(...this.getStateErrorsSize(state.size));
 		errors.push(...this.getStateErrorsType(state.type));
 
 		return errors;
@@ -144,6 +145,16 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 
 		if (data == null || typeof data !== 'boolean') {
 			errors.push(Error('state objectPool must be a boolean'));
+		}
+
+		return errors;
+	}
+
+	public getStateErrorsSize(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || typeof data !== 'number') {
+			errors.push(Error('state size must a number'));
 		}
 
 		return errors;
