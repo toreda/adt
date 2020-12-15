@@ -1,9 +1,10 @@
 import {ADTPriorityQueue} from '../src/priority-queue';
 import {ADTPriorityQueueComparator} from '../src/priority-queue/comparator';
-import {ADTPriorityQueueState} from '../src/priority-queue/state';
 import {ADTQueryFilter} from '../src/query/filter';
 import {ADTQueryOptions} from '../src/query/options';
 import {ADTQueryResult} from '../src/query/result';
+import {ADTPriorityQueueOptions as Options} from '../src/priority-queue/options';
+import {ADTPriorityQueueState as State} from '../src/priority-queue/state';
 
 describe('ADTPriorityQueue', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -22,12 +23,12 @@ describe('ADTPriorityQueue', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	const STATE_PROPERTIES = ['type', 'elements'];
-	const VALID_SERIALIZED_STATE = ['{', '"type": "PriorityQueue",', '"elements": [1,2]', '}'].join('');
-	const DEFAULT_STATE: ADTPriorityQueueState<number> = {
+	const DEFAULT_STATE: State<number> = {
 		type: 'PriorityQueue',
 		elements: []
 	};
+	const STATE_PROPERTIES = Object.keys(DEFAULT_STATE);
+	const VALID_SERIALIZED_STATE = ['{', '"type": "PriorityQueue",', '"elements": [1,2]', '}'].join('');
 
 	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 	/**
@@ -211,19 +212,24 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return array of errors if string cant be parsed', () => {
-				expect(instance.parseOptionsStateString('[4,3,')).toContain('Unexpected end of JSON input');
-				expect(instance.parseOptionsStateString('{left:f,right:')).toContain(
-					'Unexpected token l in JSON at position 1'
-				);
+				const expectedErrorEnd = Error('Unexpected end of JSON input');
+				expect(instance.parseOptionsStateString('[4,3,')).toContainEqual(expectedErrorEnd);
+
+				const expectedErrorToken = Error('Unexpected token l in JSON at position 1');
+				expect(instance.parseOptionsStateString('{left:f,right:')).toContainEqual(expectedErrorToken);
 			});
 
-			const toParseList = ['{}', '{"type": "PriorityQueue"}', '{"elements":4, "type": "PriorityQueue"}'];
+			const toParseList = [
+				'{}',
+				'{"type": "PriorityQueue"}',
+				'{"elements":4, "type": "PriorityQueue"}'
+			];
 			it.each(toParseList)(
 				'should return errors, %p wont parse into an ADTPriorityQueueState',
 				(toParse) => {
-					let errors: Array<string> = [];
+					let errors: Error[] = [];
 					errors = instance.getStateErrors(JSON.parse(toParse) as any);
-					errors.unshift('state is not a valid ADTPriorityQueueState');
+					errors.unshift(Error('state is not a valid ADTPriorityQueueState'));
 					expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
 				}
 			);
@@ -255,7 +261,7 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return passed state with values changed to match other passed options', () => {
-				const expectedV: ADTPriorityQueueState<number> = {...DEFAULT_STATE};
+				const expectedV: State<number> = {...DEFAULT_STATE};
 				expectedV.elements = [3, 4];
 
 				const result = instance.parseOptionsOther(
@@ -269,14 +275,12 @@ describe('ADTPriorityQueue', () => {
 			});
 
 			it('should return passed state with values changed to match other passed options if those are valid', () => {
-				const expectedV: ADTPriorityQueueState<number> = {...DEFAULT_STATE};
+				const opts: Required<Omit<Options<number>, 'serializedState'>> = {
+					elements: []
+				};
 
-				const result = instance.parseOptionsOther(
-					{...DEFAULT_STATE},
-					{
-						elements: {} as any
-					}
-				);
+				const expectedV = {...DEFAULT_STATE, ...opts};
+				const result = instance.parseOptionsOther({...DEFAULT_STATE}, opts);
 
 				expect(result).toStrictEqual(expectedV);
 			});
@@ -297,48 +301,39 @@ describe('ADTPriorityQueue', () => {
 
 			const testSuite = [null, undefined, '', 0];
 			it.each(testSuite)('should return errors if state is %p', (myTest) => {
-				const expectedV = 'state is null or undefined';
+				const expectedV = Error('state is null or undefined');
 				const errors = instance.getStateErrors(myTest as any);
 
 				expect(Array.isArray(errors)).toBe(true);
-				expect(errors).toContain(expectedV);
+				expect(errors).toContainEqual(expectedV);
 			});
+		});
 
-			const stateTestSuiteObj: Array<{
-				prop: string;
-				result: string;
-				testSuite: any[];
-				expectedV: string;
-			}> = [
-				{
-					prop: 'type',
-					result: 'should return array of errors if state.type is not "PriorityQueue"',
-					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be PriorityQueue'
-				},
-				{
-					prop: 'elements',
-					result: 'should return array of errors if state.elements is not an array',
-					testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
-					expectedV: 'state elements must be an array'
-				}
-			];
-			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
-				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
+		const stateTestSuiteObj = [
+			{
+				prop: 'Type',
+				result: 'should return array of errors if state.type is not "PriorityQueue"',
+				testSuite: ([] as any).concat([null, undefined, '', 'state']),
+				expectedV: Error('state type must be PriorityQueue')
+			},
+			{
+				prop: 'Elements',
+				result: 'should return array of errors if state.elements is not an array',
+				testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
+				expectedV: Error('state elements must be an array')
+			}
+		];
+		const stateTestSuite = stateTestSuiteObj.map((elem) => {
+			return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
+		});
+
+		describe.each(stateTestSuite)('getStateErrors%s', (prop, result, myTests, expectedV) => {
+			it.each(myTests)(`should return errors, ${prop} is %p, ${result}`, (myTest) => {
+				const errors = instance[`getStateErrors${prop}`](myTest);
+
+				expect(Array.isArray(errors)).toBe(true);
+				expect(errors).toContainEqual(expectedV);
 			});
-			describe.each(stateTestSuite)(
-				'should return errors, state.%s is %s',
-				(prop, result, myTests, expectedV) => {
-					it.each(myTests)(`state.${prop} is %p`, (myTest) => {
-						const state = {...DEFAULT_STATE};
-						state[prop] = myTest as any;
-						const errors = instance.getStateErrors(state);
-
-						expect(Array.isArray(errors)).toBe(true);
-						expect(errors).toContain(expectedV);
-					});
-				}
-			);
 		});
 
 		describe('isValidState', () => {

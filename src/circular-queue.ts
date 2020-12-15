@@ -144,73 +144,73 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 	}
 
 	public getStateErrorsElements(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !Array.isArray(data)) {
-			result.push(Error('state elements must be an array'));
+			errors.push(Error('state elements must be an array'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsFront(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !this.isInteger(data)) {
-			result.push(Error('state front must be an integer'));
+			errors.push(Error('state front must be an integer'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsMaxSize(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !this.isInteger(data) || (data as number) < 1) {
-			result.push(Error('state maxSize must be an integer >= 1'));
+			errors.push(Error('state maxSize must be an integer >= 1'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsOverwrite(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || typeof data !== 'boolean') {
-			result.push(Error('state overwrite must be a boolean'));
+			errors.push(Error('state overwrite must be a boolean'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsRear(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !this.isInteger(data)) {
-			result.push(Error('state rear must be an integer'));
+			errors.push(Error('state rear must be an integer'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsSize(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !this.isInteger(data) || (data as number) < 0) {
-			result.push(Error('state size must be an integer >= 0'));
+			errors.push(Error('state size must be an integer >= 0'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsType(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || data !== 'CircularQueue') {
-			result.push(Error('state type must be CircularQueue'));
+			errors.push(Error('state type must be CircularQueue'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public isInteger(n: unknown): boolean {
@@ -320,6 +320,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: unknown): ADTCircularQueue<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
+
 		if (thisArg) {
 			boundThis = thisArg as this;
 		}

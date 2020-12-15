@@ -130,33 +130,33 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	}
 
 	public getStateErrorsElements(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !Array.isArray(data)) {
-			result.push(Error('state elements must be an array'));
+			errors.push(Error('state elements must be an array'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsObjectPool(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || typeof data !== 'boolean') {
-			result.push(Error('state objectPool must be a boolean'));
+			errors.push(Error('state objectPool must be a boolean'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsType(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || data !== 'LinkedList') {
-			result.push(Error('state type must be LinkedList'));
+			errors.push(Error('state type must be LinkedList'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public isPartOfList(node: Element<T> | null): boolean {
@@ -164,15 +164,15 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 			return false;
 		}
 
-		let result = false;
+		let errors = false;
 
 		this.forEach((elem) => {
 			if (elem === node) {
-				result = true;
+				errors = true;
 			}
 		});
 
-		return result;
+		return errors;
 	}
 
 	public queryDelete(query: QueryResult<Element<T>>): T | null {

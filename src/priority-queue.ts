@@ -36,14 +36,13 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 			return state;
 		}
 
-		let parsed: State<T> | Array<string> | null = null;
 		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parseOptionsStateString(options.serializedState);
+			const parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
-				throw new Error(parsed.join('\n'));
+				throw parsed;
 			}
 
 			result = parsed;
@@ -56,17 +55,16 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(data: string): State<T> | Array<string> | null {
+	public parseOptionsStateString(data: string): State<T> | Error[] | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: State<T> | Array<string> | null = null;
-		let parsed: State<T> | null = null;
-		let errors: Array<string> = [];
+		let result: State<T> | Error[] | null = null;
+		let errors: Error[] = [];
 
 		try {
-			parsed = JSON.parse(data);
+			const parsed = JSON.parse(data);
 
 			if (parsed) {
 				errors = this.getStateErrors(parsed);
@@ -78,7 +76,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 
 			result = parsed;
 		} catch (error) {
-			result = [error.message].concat(errors);
+			result = [error, ...errors];
 		}
 
 		return result;
@@ -95,7 +93,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 			return state;
 		}
 
-		if (options.elements && Array.isArray(options.elements)) {
+		if (options.elements != null && this.getStateErrorsElements(options.elements).length === 0) {
 			state.elements = options.elements.slice();
 		}
 
@@ -111,32 +109,40 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: State<T>): Array<string> {
-		const errors: Array<string> = [];
+	public getStateErrors(state: State<T>): Error[] {
+		const errors: Error[] = [];
 
 		if (!state) {
-			errors.push('state is null or undefined');
+			errors.push(Error('state is null or undefined'));
 			return errors;
 		}
 
-		if (state.type !== 'PriorityQueue') {
-			errors.push('state type must be PriorityQueue');
+		errors.push(...this.getStateErrorsElements(state.elements));
+		errors.push(...this.getStateErrorsType(state.type));
+
+		return errors;
+	}
+
+	public getStateErrorsElements(data: unknown): Error[] {
+		const errors: Error[] = [];
+		if (data == null || !Array.isArray(data)) {
+			errors.push(Error('state elements must be an array'));
 		}
-		if (!Array.isArray(state.elements)) {
-			errors.push('state elements must be an array');
+
+		return errors;
+	}
+
+	public getStateErrorsType(data: unknown): Error[] {
+		const errors: Error[] = [];
+		if (data == null || data !== 'PriorityQueue') {
+			errors.push(Error('state type must be PriorityQueue'));
 		}
 
 		return errors;
 	}
 
 	public isValidState(state: State<T>): boolean {
-		const errors = this.getStateErrors(state);
-
-		if (errors.length) {
-			return false;
-		}
-
-		return true;
+		return this.getStateErrors(state).length === 0;
 	}
 
 	public queryDelete(query: QueryResult<T>): T | null {
@@ -384,10 +390,12 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 
 	// prettier-ignore
 	// eslint-disable-next-line max-len, prettier/prettier
-	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: any): ADTPriorityQueue<T> {
+	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: unknown): ADTPriorityQueue<T> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
+
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		const elements: T[] = [];
@@ -402,11 +410,14 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return new ADTPriorityQueue(this.comparator, {...this.state, elements});
 	}
 
-	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTPriorityQueue<T> {
+	// prettier-ignore
+	// eslint-disable-next-line max-len, prettier/prettier
+	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: unknown): ADTPriorityQueue<T> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		this.state.elements.forEach((elem, idx) => {

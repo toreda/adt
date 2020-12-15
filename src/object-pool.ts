@@ -175,103 +175,103 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	}
 
 	public getStateErrorsAutoIncrease(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || typeof data !== 'boolean') {
-			result.push(Error('state autoIncrease must be a boolean'));
+			errors.push(Error('state autoIncrease must be a boolean'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsIncreaseBreakPoint(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !this.isFloat(data) || !((data as number) >= 0 && (data as number) <= 1)) {
-			result.push(Error('state increaseBreakPoint must be a number between 0 and 1'));
+			errors.push(Error('state increaseBreakPoint must be a number between 0 and 1'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsIncreaseFactor(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !this.isFloat(data) || (data as number) <= 1) {
-			result.push(Error('state increaseFactor must be a number > 1'));
+			errors.push(Error('state increaseFactor must be a number > 1'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsInstanceArgs(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !Array.isArray(data)) {
-			result.push(Error('state instanceArgs must be an array'));
+			errors.push(Error('state instanceArgs must be an array'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsMaxSize(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !this.isInteger(data) || (data as number) < 1) {
-			result.push(Error('state maxSize must be an integer >= 1'));
+			errors.push(Error('state maxSize must be an integer >= 1'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsObjectCount(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !this.isInteger(data) || (data as number) < 0) {
-			result.push(Error('state objectCount must be an integer >= 0'));
+			errors.push(Error('state objectCount must be an integer >= 0'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsPool(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !Array.isArray(data)) {
-			result.push(Error('state pool must be an array'));
+			errors.push(Error('state pool must be an array'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsStartSize(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !this.isInteger(data) || (data as number) < 0) {
-			result.push(Error('state startSize must be an integer >= 0'));
+			errors.push(Error('state startSize must be an integer >= 0'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsType(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || data !== 'ObjectPool') {
-			result.push(Error('state type must be ObjectPool'));
+			errors.push(Error('state type must be ObjectPool'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public getStateErrorsUsed(data: unknown): Error[] {
-		const result: Error[] = [];
+		const errors: Error[] = [];
 
 		if (data == null || !Array.isArray(data)) {
-			result.push(Error('state used must be an array'));
+			errors.push(Error('state used must be an array'));
 		}
 
-		return result;
+		return errors;
 	}
 
 	public isAboveThreshold(allocationsPending: number = 0): boolean {
