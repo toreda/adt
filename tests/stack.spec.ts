@@ -2,7 +2,8 @@ import {ADTQueryFilter} from '../src/query/filter';
 import {ADTQueryOptions} from '../src/query/options';
 import {ADTQueryResult} from '../src/query/result';
 import {ADTStack} from '../src/stack';
-import {ADTStackState} from '../src/stack/state';
+import {ADTStackOptions as Options} from '../src/stack/options';
+import {ADTStackState as State} from '../src/stack/state';
 
 describe('ADTStack', () => {
 	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
@@ -21,7 +22,14 @@ describe('ADTStack', () => {
 	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
 	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
 
-	const STATE_PROPERTIES = ['type', 'elements', 'size', 'top', 'bottom'];
+	const DEFAULT_STATE: State<number> = {
+		type: 'Stack',
+		elements: [],
+		size: 0,
+		top: -1,
+		bottom: 0
+	};
+	const STATE_PROPERTIES = Object.keys(DEFAULT_STATE);
 	const VALID_SERIALIZED_STATE = [
 		'{',
 		'"type": "Stack",',
@@ -31,13 +39,6 @@ describe('ADTStack', () => {
 		'"bottom": 0',
 		'}'
 	].join('');
-	const DEFAULT_STATE: ADTStackState<number> = {
-		type: 'Stack',
-		elements: [],
-		size: 0,
-		top: -1,
-		bottom: 0
-	};
 
 	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
 
@@ -82,7 +83,7 @@ describe('ADTStack', () => {
 			});
 
 			it('should initialize with other options overriding serializedState if they are valid', () => {
-				const expectedV: ADTStackState<number> = JSON.parse(VALID_SERIALIZED_STATE);
+				const expectedV: State<number> = JSON.parse(VALID_SERIALIZED_STATE);
 				const result1 = new ADTStack<number>({
 					serializedState: VALID_SERIALIZED_STATE,
 					elements: -4 as any
@@ -165,17 +166,18 @@ describe('ADTStack', () => {
 			});
 
 			it('should return array of errors if string cant be parsed', () => {
-				expect(instance.parseOptionsStateString('[4,3,')).toContain('Unexpected end of JSON input');
-				expect(instance.parseOptionsStateString('{left:f,right:')).toContain(
-					'Unexpected token l in JSON at position 1'
-				);
+				const expectedErrorEnd = Error('Unexpected end of JSON input');
+				expect(instance.parseOptionsStateString('[4,3,')).toContainEqual(expectedErrorEnd);
+
+				const expectedErrorToken = Error('Unexpected token l in JSON at position 1');
+				expect(instance.parseOptionsStateString('{left:f,right:')).toContainEqual(expectedErrorToken);
 			});
 
 			const toParseList = ['{}', '{"type": "Stack"}', '{"elements":4, "type": "Stack"}'];
 			it.each(toParseList)('should return errors, %p wont parse into an ADTStackState', (toParse) => {
-				let errors: Array<string> = [];
+				let errors: Error[] = [];
 				errors = instance.getStateErrors(JSON.parse(toParse) as any);
-				errors.unshift('state is not a valid ADTStackState');
+				errors.unshift(Error('state is not a valid ADTStackState'));
 				expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
 			});
 
@@ -204,23 +206,14 @@ describe('ADTStack', () => {
 			});
 
 			it('should return passed state with values changed to match other passed options if those are valid', () => {
-				const expectedV: ADTStackState<number> = {...DEFAULT_STATE};
-				const result1 = instance.parseOptionsOther(
-					{...DEFAULT_STATE},
-					{
-						elements: 4 as any
-					}
-				);
-				expect(result1).toStrictEqual(expectedV);
+				const opts: Required<Omit<Options<number>, 'serializedState'>> = {
+					elements: []
+				};
 
-				expectedV.elements = [3, 4];
-				const result2 = instance.parseOptionsOther(
-					{...DEFAULT_STATE},
-					{
-						elements: expectedV.elements
-					}
-				);
-				expect(result2).toStrictEqual(expectedV);
+				const expectedV = {...DEFAULT_STATE, ...opts};
+				const result = instance.parseOptionsOther({...DEFAULT_STATE}, opts);
+
+				expect(result).toStrictEqual(expectedV);
 			});
 		});
 	});
@@ -239,67 +232,57 @@ describe('ADTStack', () => {
 
 			const testSuite = [null, undefined, '', 0];
 			it.each(testSuite)('should return errors if state is %p', (myTest) => {
-				const expectedV = 'state is null or undefined';
+				const expectedV = Error('state is null or undefined');
 				const errors = instance.getStateErrors(myTest as any);
 
 				expect(Array.isArray(errors)).toBe(true);
-				expect(errors).toContain(expectedV);
+				expect(errors).toContainEqual(expectedV);
 			});
+		});
 
-			const stateTestSuiteObj: Array<{
-				prop: string;
-				result: string;
-				testSuite: any[];
-				expectedV: string;
-			}> = [
-				{
-					prop: 'type',
-					result: 'not "Stack"',
-					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be Stack'
-				},
-				{
-					prop: 'elements',
-					result: 'not an array',
-					testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
-					expectedV: 'state elements must be an array'
-				},
-				{
-					prop: 'size',
-					result: 'not an integer >= 0',
-					testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
-					expectedV: 'state size must be an integer >= 0'
-				},
-				{
-					prop: 'top',
-					result: 'not an integer',
-					testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES),
-					expectedV: 'state top must be an integer'
-				},
-				{
-					prop: 'bottom',
-					result: 'not 0',
-					testSuite: ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES, POS_INT_VALUES),
-					expectedV: 'state bottom must be 0'
-				}
-			];
-			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
-				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
+		const stateTestSuiteObj = [
+			{
+				prop: 'Type',
+				result: 'not "Stack"',
+				testSuite: ([] as any).concat([null, undefined, '', 'state']),
+				expectedV: Error('state type must be Stack')
+			},
+			{
+				prop: 'Elements',
+				result: 'not an array',
+				testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
+				expectedV: Error('state elements must be an array')
+			},
+			{
+				prop: 'Size',
+				result: 'not an integer >= 0',
+				testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES),
+				expectedV: Error('state size must be an integer >= 0')
+			},
+			{
+				prop: 'Top',
+				result: 'not an integer',
+				testSuite: ([] as any).concat(NAN_VALUES, FLOAT_VALUES),
+				expectedV: Error('state top must be an integer')
+			},
+			{
+				prop: 'Bottom',
+				result: 'not 0',
+				testSuite: ([] as any[]).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES, POS_INT_VALUES),
+				expectedV: Error('state bottom must be 0')
+			}
+		];
+		const stateTestSuite = stateTestSuiteObj.map((elem) => {
+			return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
+		});
+
+		describe.each(stateTestSuite)('getStateErrors%s', (prop, result, myTests, expectedV) => {
+			it.each(myTests)(`should return errors, ${prop} is %p, ${result}`, (myTest) => {
+				const errors = instance[`getStateErrors${prop}`](myTest);
+
+				expect(Array.isArray(errors)).toBe(true);
+				expect(errors).toContainEqual(expectedV);
 			});
-
-			describe.each(stateTestSuite)(
-				'should return errors, state.%s is %s',
-				(prop, result, myTests, expectedV) => {
-					it.each(myTests)(`state.${prop} is %p`, (myTest) => {
-						const state = {...DEFAULT_STATE};
-						state[prop] = myTest as any;
-						const errors = instance.getStateErrors(state);
-
-						expect(Array.isArray(errors)).toBe(true);
-						expect(errors).toContain(expectedV);
-					});
-				}
-			);
 		});
 
 		describe('isInteger', () => {
@@ -841,7 +824,7 @@ describe('ADTStack', () => {
 
 			it('should return the state as a string if it is validated', () => {
 				const custom = new ADTStack<number>();
-				const expected: ADTStackState<number> = {
+				const expected: State<number> = {
 					type: 'Stack',
 					elements: [],
 					size: 0,

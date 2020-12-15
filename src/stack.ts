@@ -29,14 +29,13 @@ export class ADTStack<T> implements ADTBase<T> {
 			return state;
 		}
 
-		let parsed: State<T> | Array<string> | null = null;
 		let result: State<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
-			parsed = this.parseOptionsStateString(options.serializedState);
+			const parsed = this.parseOptionsStateString(options.serializedState);
 
 			if (Array.isArray(parsed)) {
-				throw new Error(parsed.join('\n'));
+				throw parsed;
 			}
 
 			result = parsed;
@@ -52,17 +51,16 @@ export class ADTStack<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public parseOptionsStateString(state: string): State<T> | Array<string> | null {
+	public parseOptionsStateString(state: string): State<T> | Error[] | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: State<T> | Array<string> | null = null;
-		let parsed: State<T> | null = null;
-		let errors: Array<string> = [];
+		let result: State<T> | Error[] | null = null;
+		let errors: Error[] = [];
 
 		try {
-			parsed = JSON.parse(state);
+			const parsed = JSON.parse(state);
 
 			if (parsed) {
 				errors = this.getStateErrors(parsed);
@@ -74,7 +72,7 @@ export class ADTStack<T> implements ADTBase<T> {
 
 			result = parsed;
 		} catch (error) {
-			result = [error.message].concat(errors);
+			result = [error, ...errors];
 		}
 
 		return result;
@@ -91,7 +89,7 @@ export class ADTStack<T> implements ADTBase<T> {
 			return state;
 		}
 
-		if (options.elements && Array.isArray(options.elements)) {
+		if (options.elements != null && this.getStateErrorsElements(options.elements).length === 0) {
 			state.elements = options.elements.slice();
 		}
 
@@ -110,35 +108,74 @@ export class ADTStack<T> implements ADTBase<T> {
 		return state;
 	}
 
-	public getStateErrors(state: State<T>): Array<string> {
-		const errors: Array<string> = [];
+	public getStateErrors(state: State<T>): Error[] {
+		const errors: Error[] = [];
 
 		if (!state) {
-			errors.push('state is null or undefined');
+			errors.push(Error('state is null or undefined'));
 			return errors;
 		}
 
-		if (state.type !== 'Stack') {
-			errors.push('state type must be Stack');
-		}
-		if (!Array.isArray(state.elements)) {
-			errors.push('state elements must be an array');
-		}
+		errors.push(...this.getStateErrorsBottom(state.bottom));
+		errors.push(...this.getStateErrorsElements(state.elements));
+		errors.push(...this.getStateErrorsSize(state.size));
+		errors.push(...this.getStateErrorsTop(state.top));
+		errors.push(...this.getStateErrorsType(state.type));
 
-		if (!this.isInteger(state.size) || state.size < 0) {
-			errors.push('state size must be an integer >= 0');
-		}
-		if (!this.isInteger(state.top)) {
-			errors.push('state top must be an integer');
-		}
-		if (state.bottom !== 0) {
-			errors.push('state bottom must be 0');
+		return errors;
+	}
+
+	public getStateErrorsBottom(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || data !== 0) {
+			errors.push(Error('state bottom must be 0'));
 		}
 
 		return errors;
 	}
 
-	public isInteger(n: number): boolean {
+	public getStateErrorsElements(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || !Array.isArray(data)) {
+			errors.push(Error('state elements must be an array'));
+		}
+
+		return errors;
+	}
+
+	public getStateErrorsSize(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || !this.isInteger(data) || (data as number) < 0) {
+			errors.push(Error('state size must be an integer >= 0'));
+		}
+
+		return errors;
+	}
+
+	public getStateErrorsTop(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || !this.isInteger(data)) {
+			errors.push(Error('state top must be an integer'));
+		}
+
+		return errors;
+	}
+
+	public getStateErrorsType(data: unknown): Error[] {
+		const errors: Error[] = [];
+
+		if (data == null || data !== 'Stack') {
+			errors.push(Error('state type must be Stack'));
+		}
+
+		return errors;
+	}
+
+	public isInteger(n: unknown): boolean {
 		if (typeof n !== 'number') {
 			return false;
 		}
@@ -150,13 +187,7 @@ export class ADTStack<T> implements ADTBase<T> {
 	}
 
 	public isValidState(state: State<T>): boolean {
-		const errors = this.getStateErrors(state);
-
-		if (errors.length) {
-			return false;
-		}
-
-		return true;
+		return this.getStateErrors(state).length === 0;
 	}
 
 	public queryDelete(query: QueryResult<T>): T | null {
@@ -221,10 +252,12 @@ export class ADTStack<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: any): ADTStack<T> {
+	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: unknown): ADTStack<T> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
+
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		const elements: T[] = [];
@@ -239,10 +272,12 @@ export class ADTStack<T> implements ADTBase<T> {
 		return new ADTStack({...this.state, elements});
 	}
 
-	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: any): ADTStack<T> {
+	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: unknown): ADTStack<T> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
+
 		if (thisArg) {
-			boundThis = thisArg;
+			boundThis = thisArg as this;
 		}
 
 		for (let i = this.state.top; i >= 0; i--) {
