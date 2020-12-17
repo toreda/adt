@@ -946,30 +946,6 @@ describe('ADTPriorityQueue', () => {
 			});
 		});
 
-		describe('isHeapSorted', () => {
-			it('should run areNodesValidHeap once per node that has a child', () => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-
-				let expectedV = 0;
-				instance.state.elements.forEach((e, index) => {
-					const children = instance.getChildNodesIndexes(index);
-					if (children.left !== null || children.right !== null) {
-						expectedV++;
-					}
-				});
-
-				const spy = jest.spyOn(instance, 'areNodesValidHeap');
-				expect(spy).not.toBeCalled();
-
-				instance.isHeapSorted();
-				expect(spy).toBeCalledTimes(expectedV);
-
-				spy.mockRestore();
-			});
-		});
-
 		describe('heapify', () => {
 			beforeEach(() => {
 				const list: number[] = [];
@@ -1001,6 +977,66 @@ describe('ADTPriorityQueue', () => {
 			it('should sort the heap', () => {
 				instance.heapify();
 				expect(instance.isHeapSorted()).toBe(true);
+			});
+		});
+
+		describe('isInsideHeapRange', () => {
+			beforeEach(() => {
+				ITEMS.forEach((item) => {
+					instance.push(item);
+				});
+			});
+
+			afterEach(() => {
+				instance.clearElements();
+			});
+
+			it('should return false if null or underfined is passed', () => {
+				expect(instance.isInsideHeapRange(null)).toBe(false);
+				expect(instance.isInsideHeapRange(undefined!)).toBe(false);
+			});
+
+			it('should return false if a float is passed', () => {
+				expect(instance.isInsideHeapRange(Math.PI)).toBe(false);
+			});
+
+			it('should return false if less than 0 is passed', () => {
+				expect(instance.isInsideHeapRange(-1)).toBe(false);
+				expect(instance.isInsideHeapRange(-99)).toBe(false);
+			});
+
+			it('should return false if the index passed is larger than the aray', () => {
+				expect(instance.isInsideHeapRange(instance.size() + 1)).toBe(false);
+				expect(instance.isInsideHeapRange(instance.size() * 2)).toBe(false);
+			});
+
+			it('should return true if the index passed is inside the array', () => {
+				expect(instance.isInsideHeapRange(0)).toBe(true);
+				expect(instance.isInsideHeapRange(Math.round(instance.size() / 2))).toBe(true);
+			});
+		});
+
+		describe('isHeapSorted', () => {
+			it('should run areNodesValidHeap once per node that has a child', () => {
+				ITEMS.forEach((item) => {
+					instance.push(item);
+				});
+
+				let expectedV = 0;
+				instance.state.elements.forEach((e, index) => {
+					const children = instance.getChildNodesIndexes(index);
+					if (children.left !== null || children.right !== null) {
+						expectedV++;
+					}
+				});
+
+				const spy = jest.spyOn(instance, 'areNodesValidHeap');
+				expect(spy).not.toBeCalled();
+
+				instance.isHeapSorted();
+				expect(spy).toBeCalledTimes(expectedV);
+
+				spy.mockRestore();
 			});
 		});
 

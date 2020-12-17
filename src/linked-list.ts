@@ -5,6 +5,7 @@ import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
 import {ADTLinkedListState as State} from './linked-list/state';
+import {isNumber} from './utility';
 
 export class ADTLinkedList<T> implements ADTBase<T> {
 	public readonly state: State<T>;
@@ -197,7 +198,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 			limit: Infinity
 		};
 
-		if (opts?.limit && typeof opts.limit === 'number' && opts.limit >= 1) {
+		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
 			options.limit = Math.round(opts.limit);
 		}
 

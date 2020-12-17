@@ -1,3 +1,5 @@
+import {isInteger, isNumber} from './utility';
+
 import {ADTBase} from './base';
 import {ADTStackOptions as Options} from './stack/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
@@ -148,7 +150,7 @@ export class ADTStack<T> implements ADTBase<T> {
 	public getStateErrorsSize(data: unknown): Error[] {
 		const errors: Error[] = [];
 
-		if (data == null || !this.isInteger(data) || (data as number) < 0) {
+		if (data == null || !isInteger(data) || data < 0) {
 			errors.push(Error('state size must be an integer >= 0'));
 		}
 
@@ -158,7 +160,7 @@ export class ADTStack<T> implements ADTBase<T> {
 	public getStateErrorsTop(data: unknown): Error[] {
 		const errors: Error[] = [];
 
-		if (data == null || !this.isInteger(data)) {
+		if (data == null || !isInteger(data)) {
 			errors.push(Error('state top must be an integer'));
 		}
 
@@ -173,17 +175,6 @@ export class ADTStack<T> implements ADTBase<T> {
 		}
 
 		return errors;
-	}
-
-	public isInteger(n: unknown): boolean {
-		if (typeof n !== 'number') {
-			return false;
-		}
-		if (n % 1 !== 0) {
-			return false;
-		}
-
-		return true;
 	}
 
 	public isValidState(state: State<T>): boolean {
@@ -229,7 +220,7 @@ export class ADTStack<T> implements ADTBase<T> {
 			limit: Infinity
 		};
 
-		if (opts?.limit && typeof opts.limit === 'number' && opts.limit >= 1) {
+		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
 			options.limit = Math.round(opts.limit);
 		}
 

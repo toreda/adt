@@ -1,3 +1,5 @@
+import {isInteger, isNumber} from './utility';
+
 import {ADTBase} from './base';
 import {ADTPriorityQueueChildren as Children} from './priority-queue/children';
 import {ADTPriorityQueueComparator as Comparator} from './priority-queue/comparator';
@@ -183,7 +185,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 			limit: Infinity
 		};
 
-		if (opts?.limit && typeof opts.limit === 'number' && opts.limit >= 1) {
+		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
 			options.limit = Math.round(opts.limit);
 		}
 
@@ -191,10 +193,10 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 	}
 
 	public areNodesValidHeap(nodeIndex: number | null, nextIndex: number | null): boolean {
-		if (typeof nextIndex !== 'number') {
+		if (!isInteger(nextIndex)) {
 			return true;
 		}
-		if (typeof nodeIndex !== 'number') {
+		if (!isInteger(nodeIndex)) {
 			return true;
 		}
 
@@ -220,16 +222,8 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		if (this.size() <= 1) {
 			return;
 		}
-		if (typeof nodeIndex !== 'number') {
-			return;
-		}
-		if (nodeIndex < 0) {
-			return;
-		}
-		if (nodeIndex >= this.size()) {
-			return;
-		}
-		if (nodeIndex % 1 !== 0) {
+
+		if (!this.isInsideHeapRange(nodeIndex)) {
 			return;
 		}
 
@@ -244,23 +238,16 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 	}
 
 	public getChildNodesIndexes(nodeIndex: number | null): Children {
-		if (typeof nodeIndex !== 'number') {
-			return {left: null, right: null};
-		}
-		if (nodeIndex < 0) {
-			return {left: null, right: null};
-		}
-		if (nodeIndex >= this.size()) {
-			return {left: null, right: null};
-		}
-		if (nodeIndex % 1 !== 0) {
-			return {left: null, right: null};
+		const defaultReturn = {left: null, right: null};
+
+		if (!this.isInsideHeapRange(nodeIndex)) {
+			return defaultReturn;
 		}
 
 		const childOneIndex = nodeIndex * 2 + 1;
 		const childTwoIndex = nodeIndex * 2 + 2;
 		if (childOneIndex >= this.size()) {
-			return {left: null, right: null};
+			return defaultReturn;
 		}
 		if (childTwoIndex >= this.size()) {
 			return {left: childOneIndex, right: null};
@@ -296,36 +283,11 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 	}
 
 	public getParentNodeIndex(nodeIndex: number | null): number | null {
-		if (typeof nodeIndex !== 'number') {
-			return null;
-		}
-		if (nodeIndex <= 0) {
-			return null;
-		}
-		if (nodeIndex >= this.size()) {
-			return null;
-		}
-		if (nodeIndex % 1 !== 0) {
+		if (!this.isInsideHeapRange(nodeIndex) || nodeIndex < 1) {
 			return null;
 		}
 
 		return Math.floor((nodeIndex - 1) / 2);
-	}
-
-	public isHeapSorted(): boolean {
-		let result = true;
-		const size = this.getParentNodeIndex(this.size() - 1);
-
-		if (!size) {
-			return true;
-		}
-
-		for (let i = 0; i <= size; i++) {
-			const child = this.getNextIndex(true, i);
-			result = result && this.areNodesValidHeap(i, child);
-		}
-
-		return result;
 	}
 
 	public heapify(): void {
@@ -344,32 +306,44 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		}
 	}
 
+	public isInsideHeapRange(index: unknown): index is number {
+		if (!isInteger(index)) {
+			return false;
+		}
+
+		if (index < 0) {
+			return false;
+		}
+
+		if (index >= this.size()) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public isHeapSorted(): boolean {
+		let result = true;
+		const size = this.getParentNodeIndex(this.size() - 1);
+
+		if (!size) {
+			return true;
+		}
+
+		for (let i = 0; i <= size; i++) {
+			const child = this.getNextIndex(true, i);
+			result = result && this.areNodesValidHeap(i, child);
+		}
+
+		return result;
+	}
+
 	public swapNodes(nodeOneIndex: number | null, nodeTwoIndex: number | null): void {
-		if (typeof nodeOneIndex !== 'number') {
-			return;
-		}
-		if (typeof nodeTwoIndex !== 'number') {
+		if (!this.isInsideHeapRange(nodeOneIndex)) {
 			return;
 		}
 
-		if (nodeOneIndex < 0) {
-			return;
-		}
-		if (nodeTwoIndex < 0) {
-			return;
-		}
-
-		if (nodeOneIndex >= this.size()) {
-			return;
-		}
-		if (nodeTwoIndex >= this.size()) {
-			return;
-		}
-
-		if (nodeOneIndex % 1 !== 0) {
-			return;
-		}
-		if (nodeTwoIndex % 1 !== 0) {
+		if (!this.isInsideHeapRange(nodeTwoIndex)) {
 			return;
 		}
 

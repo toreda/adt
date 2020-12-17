@@ -1,3 +1,5 @@
+import {isInteger, isNumber} from './utility';
+
 import {ADTBase} from './base';
 import {ADTObjectPoolConstructor as Constructor} from './object-pool/constructor';
 import {ADTObjectPoolInstance as Instance} from './object-pool/instance';
@@ -89,10 +91,10 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return result;
 	}
 
-	public parseOptionsOther(s: State<T>, options?: Options): State<T> {
-		let state: State<T> | null = s;
+	public parseOptionsOther(stateArg: State<T>, options?: Options): State<T> {
+		let state: State<T> | null = stateArg;
 
-		if (!s) {
+		if (!stateArg) {
 			state = this.getDefaultState();
 		}
 
@@ -100,29 +102,38 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			return state;
 		}
 
-		if (options.startSize && this.isInteger(options.startSize) && options.startSize >= 0) {
-			state.startSize = options.startSize;
-		}
-		if (options.maxSize && this.isInteger(options.maxSize) && options.maxSize >= 1) {
-			state.maxSize = options.maxSize;
-		}
-
-		if (typeof options.autoIncrease === 'boolean') {
+		/* eslint-disable prettier/prettier */
+		if (
+			options.autoIncrease != null &&
+			this.getStateErrorsAutoIncrease(options.autoIncrease).length === 0
+		) {
 			state.autoIncrease = options.autoIncrease;
 		}
-		if (options.increaseBreakPoint) {
-			const between0and1 = options.increaseBreakPoint >= 0 && options.increaseBreakPoint <= 1;
-			if (this.isFloat(options.increaseBreakPoint) && between0and1) {
-				state.increaseBreakPoint = options.increaseBreakPoint;
-			}
+		if (
+			options.increaseBreakPoint != null &&
+			this.getStateErrorsIncreaseBreakPoint(options.increaseBreakPoint).length === 0
+		) {
+			state.increaseBreakPoint = options.increaseBreakPoint;
 		}
-		if (options.increaseFactor && this.isFloat(options.increaseFactor) && options.increaseFactor > 1) {
+		if (
+			options.increaseFactor != null &&
+			this.getStateErrorsIncreaseFactor(options.increaseFactor).length === 0
+		) {
 			state.increaseFactor = options.increaseFactor;
 		}
-
-		if (options.instanceArgs && Array.isArray(options.instanceArgs)) {
+		if (
+			options.instanceArgs != null &&
+			this.getStateErrorsInstanceArgs(options.instanceArgs).length === 0
+		) {
 			state.instanceArgs = options.instanceArgs;
 		}
+		if (options.maxSize != null && this.getStateErrorsMaxSize(options.maxSize).length === 0) {
+			state.maxSize = options.maxSize;
+		}
+		if (options.startSize != null && this.getStateErrorsStartSize(options.startSize).length === 0) {
+			state.startSize = options.startSize;
+		}
+		/* eslint-enable prettier/prettier */
 
 		return state;
 	}
@@ -187,7 +198,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	public getStateErrorsIncreaseBreakPoint(data: unknown): Error[] {
 		const errors: Error[] = [];
 
-		if (data == null || !this.isFloat(data) || !((data as number) >= 0 && (data as number) <= 1)) {
+		if (data == null || !isNumber(data) || data < 0 || data > 1) {
 			errors.push(Error('state increaseBreakPoint must be a number between 0 and 1'));
 		}
 
@@ -197,7 +208,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	public getStateErrorsIncreaseFactor(data: unknown): Error[] {
 		const errors: Error[] = [];
 
-		if (data == null || !this.isFloat(data) || (data as number) <= 1) {
+		if (data == null || !isNumber(data) || data <= 1) {
 			errors.push(Error('state increaseFactor must be a number > 1'));
 		}
 
@@ -217,7 +228,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	public getStateErrorsMaxSize(data: unknown): Error[] {
 		const errors: Error[] = [];
 
-		if (data == null || !this.isInteger(data) || (data as number) < 1) {
+		if (data == null || !isInteger(data) || data < 1) {
 			errors.push(Error('state maxSize must be an integer >= 1'));
 		}
 
@@ -227,7 +238,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	public getStateErrorsObjectCount(data: unknown): Error[] {
 		const errors: Error[] = [];
 
-		if (data == null || !this.isInteger(data) || (data as number) < 0) {
+		if (data == null || !isInteger(data) || data < 0) {
 			errors.push(Error('state objectCount must be an integer >= 0'));
 		}
 
@@ -247,7 +258,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 	public getStateErrorsStartSize(data: unknown): Error[] {
 		const errors: Error[] = [];
 
-		if (data == null || !this.isInteger(data) || (data as number) < 0) {
+		if (data == null || !isInteger(data) || data < 0) {
 			errors.push(Error('state startSize must be an integer >= 0'));
 		}
 
@@ -276,28 +287,6 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 
 	public isAboveThreshold(allocationsPending: number = 0): boolean {
 		return this.utilization(allocationsPending) > this.state.increaseBreakPoint;
-	}
-
-	public isInteger(n: unknown): boolean {
-		if (typeof n !== 'number') {
-			return false;
-		}
-		if (n % 1 !== 0) {
-			return false;
-		}
-
-		return true;
-	}
-
-	public isFloat(n: unknown): boolean {
-		if (typeof n !== 'number') {
-			return false;
-		}
-		if (isNaN(n)) {
-			return false;
-		}
-
-		return true;
 	}
 
 	public isValidState(state: State<T>): boolean {
@@ -331,7 +320,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			limit: Infinity
 		};
 
-		if (opts?.limit && typeof opts.limit === 'number' && opts.limit >= 1) {
+		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
 			options.limit = Math.round(opts.limit);
 		}
 
@@ -376,7 +365,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 
 	public allocateMultiple(n: number = 1): Array<T> {
 		let num: number;
-		if (!this.isInteger(n) || n < 1) {
+		if (!isInteger(n) || n < 1) {
 			num = 1;
 		} else {
 			num = n;
@@ -428,7 +417,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		if (!this.isValidState(this.state)) {
 			return;
 		}
-		if (!this.isInteger(n)) {
+		if (!isInteger(n)) {
 			return;
 		}
 
@@ -534,7 +523,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		}
 
 		let num: number = allocationsPending;
-		if (typeof num !== 'number' || isNaN(num)) {
+		if (!isNumber(num)) {
 			num = 0;
 		}
 

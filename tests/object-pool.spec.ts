@@ -408,54 +408,6 @@ describe('ADTObjectPool', () => {
 			});
 		});
 
-		describe('isInteger', () => {
-			const testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
-				{
-					resultText: 'true, n is an integer',
-					testSuite: ([] as any).concat(INT_VALUES),
-					expectedV: true
-				},
-				{
-					resultText: 'false, n is not an integer',
-					testSuite: ([] as any).concat(FLOAT_VALUES, NAN_VALUES),
-					expectedV: false
-				}
-			];
-			const testSuite: Array<any[]> = testSuiteObj.map((elem) => {
-				return [elem.resultText, elem.testSuite, elem.expectedV];
-			});
-
-			describe.each(testSuite)('should return %s', (resultText, myTests, expectedV) => {
-				it.each(myTests)(`should return ${resultText}, it is %p`, (myTest) => {
-					expect(instance.isInteger(myTest)).toBe(expectedV);
-				});
-			});
-		});
-
-		describe('isFloat', () => {
-			const testSuiteObj: Array<{resultText: string; testSuite: any[]; expectedV: boolean}> = [
-				{
-					resultText: 'true, n is a float',
-					testSuite: ([] as any).concat(NUM_VALUES),
-					expectedV: true
-				},
-				{
-					resultText: 'false, n is not a float',
-					testSuite: ([] as any).concat(NAN_VALUES),
-					expectedV: false
-				}
-			];
-			const testSuite: Array<any[]> = testSuiteObj.map((elem) => {
-				return [elem.resultText, elem.testSuite, elem.expectedV];
-			});
-
-			describe.each(testSuite)('should return %s', (resultText, myTests, expectedV) => {
-				it.each(myTests)(`should return ${resultText}, it is %p`, (myTest) => {
-					expect(instance.isFloat(myTest)).toBe(expectedV);
-				});
-			});
-		});
-
 		describe('isValidState', () => {
 			it('should return true if state is a valid ADTObjectPoolState', () => {
 				expect(instance.isValidState(instance.state)).toBe(true);
