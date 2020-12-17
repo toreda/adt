@@ -1,3 +1,4 @@
+import {UnavoidableAny} from '../types';
 export interface ADTObjectPoolConstructor<T> {
-	new (...args: unknown[]): T;
+	new (...args: UnavoidableAny[]): T;
 }

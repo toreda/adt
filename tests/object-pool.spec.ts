@@ -371,7 +371,7 @@ describe('ADTObjectPool', () => {
 		const stateTestSuite = stateTestSuiteObj.map((elem) => {
 			return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
 		});
-		describe.each(stateTestSuite)('%p', (prop, result, myTests, expectedV) => {
+		describe.each(stateTestSuite)('%p', (prop, result, myTests: any[], expectedV) => {
 			it.each(myTests)(`should return errors, ${prop} is %p, ${result}`, (myTest) => {
 				const errors = instance[`getStateErrors${prop}`](myTest);
 
@@ -400,7 +400,7 @@ describe('ADTObjectPool', () => {
 			const testSuite: Array<any[]> = testSuiteObj.map((elem) => {
 				return [elem.resultText, elem.testSuite, elem.expectedV];
 			});
-			describe.each(testSuite)('should return %s', (resultText, myTests, expectedV) => {
+			describe.each(testSuite)('should return %s', (resultText, myTests: any[], expectedV) => {
 				it.each(myTests)(`should return ${resultText}, it is %p`, (myTest) => {
 					instance.state.increaseBreakPoint = 0;
 					expect(instance.isAboveThreshold(myTest!)).toBe(expectedV);
@@ -498,7 +498,7 @@ describe('ADTObjectPool', () => {
 				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
 			});
 
-			const testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
+			const testSuite: any[] = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
 			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
 				const opts = {limit: myTest as any};
 				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
