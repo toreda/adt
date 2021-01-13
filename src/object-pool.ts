@@ -427,6 +427,28 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		}
 	}
 
+	public map(): T[];
+	public map<U>(func: (element: T, index: number, arr: T[]) => U, thisArg?: unknown): U[];
+	public map<U>(func?: (element: T, index: number, arr: T[]) => U, thisArg?: unknown): U[] | T[] {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		let boundThis = this;
+		if (thisArg) {
+			boundThis = thisArg as this;
+		}
+
+		const filtered = this.state.used.filter((elem) => elem != null) as T[];
+
+		if (func == null) {
+			return filtered;
+		}
+
+		const mapped = filtered.map((elem, idx) => {
+			return func.call(boundThis, elem, idx, filtered);
+		});
+
+		return mapped;
+	}
+
 	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
 		const resultsArray: QueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
