@@ -177,17 +177,6 @@ describe('ARRAY LIKE USAGE', () => {
 		}, list);
 	});
 
-	it('reverse', () => {
-		const asArray = list.getAsArray();
-
-		expect(list.reverse().getAsArray()).toEqual(asArray.reverse());
-
-		list.clearElements();
-		list.insert(Math.random());
-		const singleItem = list.getAsArray();
-		expect(list.reverse().getAsArray()).toEqual(singleItem.reverse());
-	});
-
 	it('filter', () => {
 		repeat(5, () => list.insert('random string - ' + Math.random().toString()));
 
@@ -200,6 +189,17 @@ describe('ARRAY LIKE USAGE', () => {
 		strings.forEach((e) => {
 			expect(e.value()).toContain('random string - ');
 		});
+	});
+
+	it('reverse', () => {
+		const asArray = list.getAsArray();
+
+		expect(list.reverse().getAsArray()).toEqual(asArray.reverse());
+
+		list.clearElements();
+		list.insert(Math.random());
+		const singleItem = list.getAsArray();
+		expect(list.reverse().getAsArray()).toEqual(singleItem.reverse());
 	});
 });
 
