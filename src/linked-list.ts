@@ -131,9 +131,14 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return this.state.size;
 	}
 
+	public isEmpty(): boolean {
+		return this.state.size === 0;
+	}
+
 	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): ADTLinkedList<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
+
 		if (thisArg) {
 			boundThis = thisArg as this;
 		}
@@ -156,6 +161,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
+
 		if (thisArg) {
 			boundThis = thisArg as this;
 		}

@@ -46,14 +46,17 @@ describe('INSTANTIATION', () => {
 			const result = new ADTStack({elements: 'adsf' as any});
 			console.log(result);
 		}).toThrow();
+
 		expect(() => {
 			const result = new ADTStack({serializedState: 'null'});
 			console.log(result);
 		}).toThrow();
+
 		expect(() => {
 			const result = new ADTStack({serializedState: 'in{valid'});
 			console.log(result);
 		}).toThrow();
+
 		expect(() => {
 			const result = new ADTStack({serializedState: '{"elements": [4]}'});
 			console.log(result);
@@ -76,6 +79,7 @@ describe('PUSH/POP', () => {
 			expect(stack.bottom()).toBe(bottom);
 		});
 
+		const initialTop = stack.top();
 		let top = stack.top();
 
 		while (stack.size()) {
@@ -83,6 +87,7 @@ describe('PUSH/POP', () => {
 			expect(stack.bottom()).toBe(bottom);
 			stack.pop();
 			top = stack.top();
+			expect(top).not.toBe(initialTop);
 		}
 
 		stack.pop();
@@ -100,7 +105,7 @@ describe('ARRAY LIKE USAGE', () => {
 		}, stack);
 
 		topToBot.forEach((e) => {
-			expect(e).toBe(stack.top());
+			expect(e).toBe(stack.peek());
 			stack.pop();
 		});
 	});
@@ -134,8 +139,8 @@ describe('ARRAY LIKE USAGE', () => {
 
 		stack.clearElements();
 		stack.push(Math.random());
-		const singleItem = stack.top();
-		expect(stack.reverse().top()).toBe(singleItem);
+		const singleItem = stack.peek();
+		expect(stack.reverse().peek()).toBe(singleItem);
 	});
 });
 

@@ -1,62 +1,59 @@
-import {isInteger, isNumber} from './utility';
-
 import {ADTBase} from './base';
 import {ADTStackOptions as Options} from './stack/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
 import {ADTStackState as State} from './stack/state';
+import {isNumber} from './utility';
 
 export class ADTStack<T> implements ADTBase<T> {
 	private readonly state: State<T>;
 
 	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
+	}
 
-		this.state.size = this.state.elements.length;
-		this.state.top = this.size() - 1;
+	public peek(): T | null {
+		return this.top();
+	}
+
+	public pop(): ADTStack<T> {
+		this.state.elements.pop();
+
+		return this;
 	}
 
 	public push(element: T): ADTStack<T> {
 		this.state.elements.push(element);
-		this.state.top++;
-		this.state.size++;
+
 		return this;
 	}
 
 	public top(): T | null {
-		if (!this.size()) {
+		if (this.isEmpty()) {
 			return null;
 		}
 
-		return this.state.elements[this.state.top];
-	}
-
-	public pop(): T | null {
-		if (!this.size()) {
-			return null;
-		}
-
-		const result = this.state.elements[this.state.top];
-		this.state.top--;
-		this.state.size--;
-
-		return result;
-	}
-
-	public size(): number {
-		return this.state.size;
+		return this.state.elements[this.state.elements.length - 1];
 	}
 
 	public bottom(): T | null {
-		if (!this.size()) {
+		if (this.isEmpty()) {
 			return null;
 		}
 
-		return this.state.elements[this.state.bottom];
+		return this.state.elements[0];
 	}
 
-	public filter(func: (element: T, index: number, arr: T[]) => boolean, thisArg?: unknown): ADTStack<T> {
+	public size(): number {
+		return this.state.elements.length;
+	}
+
+	public isEmpty(): boolean {
+		return this.state.elements.length === 0;
+	}
+
+	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): ADTStack<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -76,7 +73,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		return new ADTStack({...this.state, elements});
 	}
 
-	public forEach(func: (element: T, index: number, arr: T[]) => void, thisArg?: unknown): ADTStack<T> {
+	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): ADTStack<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -84,13 +81,9 @@ export class ADTStack<T> implements ADTBase<T> {
 			boundThis = thisArg as this;
 		}
 
-		for (let i = this.state.top; i >= 0; i--) {
-			func.call(
-				boundThis,
-				this.state.elements[i],
-				this.state.top - i,
-				this.state.elements.slice().reverse()
-			);
+		const top = this.state.elements.length - 1;
+		for (let i = top; i >= 0; i--) {
+			func.call(boundThis, this.state.elements[i], top - i, this.state.elements.slice().reverse());
 		}
 
 		return this;
@@ -147,15 +140,12 @@ export class ADTStack<T> implements ADTBase<T> {
 
 	public clearElements(): ADTStack<T> {
 		this.state.elements = [];
-		this.state.top = -1;
-		this.state.size = 0;
 
 		return this;
 	}
 
 	public reset(): ADTStack<T> {
 		this.clearElements();
-		this.state.bottom = 0;
 
 		this.state.type = 'Stack';
 
@@ -190,9 +180,6 @@ export class ADTStack<T> implements ADTBase<T> {
 
 		if (result) {
 			state.elements = result.elements;
-			state.size = result.size;
-			state.top = result.top;
-			state.bottom = result.bottom;
 		}
 
 		return state;
@@ -254,10 +241,7 @@ export class ADTStack<T> implements ADTBase<T> {
 	private getDefaultState(): State<T> {
 		const state: State<T> = {
 			type: 'Stack',
-			elements: [],
-			size: 0,
-			top: -1,
-			bottom: 0
+			elements: []
 		};
 
 		return state;
@@ -266,21 +250,8 @@ export class ADTStack<T> implements ADTBase<T> {
 	private getStateErrors(state: State<T>): Error[] {
 		const errors: Error[] = [];
 
-		errors.push(...this.getStateErrorsBottom(state.bottom));
 		errors.push(...this.getStateErrorsElements(state.elements));
-		errors.push(...this.getStateErrorsSize(state.size));
-		errors.push(...this.getStateErrorsTop(state.top));
 		errors.push(...this.getStateErrorsType(state.type));
-
-		return errors;
-	}
-
-	private getStateErrorsBottom(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || data !== 0) {
-			errors.push(Error('state bottom must be 0'));
-		}
 
 		return errors;
 	}
@@ -290,26 +261,6 @@ export class ADTStack<T> implements ADTBase<T> {
 
 		if (data == null || !Array.isArray(data)) {
 			errors.push(Error('state elements must be an array'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsSize(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !isInteger(data) || data < 0) {
-			errors.push(Error('state size must be an integer >= 0'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsTop(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !isInteger(data)) {
-			errors.push(Error('state top must be an integer'));
 		}
 
 		return errors;
@@ -333,8 +284,6 @@ export class ADTStack<T> implements ADTBase<T> {
 		}
 
 		const result = this.state.elements.splice(index, 1);
-		this.state.top--;
-		this.state.size--;
 
 		return result[0];
 	}
@@ -363,3 +312,5 @@ export class ADTStack<T> implements ADTBase<T> {
 		return options;
 	}
 }
+
+type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;
