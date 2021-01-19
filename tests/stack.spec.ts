@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import {ADTStack} from '../src/stack';
+import {ADTStackOptions} from '../src/stack/options';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -23,7 +24,10 @@ describe('INSTANTIATION', () => {
 	});
 
 	it('with options', () => {
-		const result = new ADTStack({elements: [1, 2, 3]});
+		const options: Required<Omit<ADTStackOptions<any>, 'serializedState'>> = {
+			elements: [1, 2, 3]
+		};
+		const result = new ADTStack(options);
 		expect(result).toBeInstanceOf(ADTStack);
 		expect(result.size()).toBe(3);
 	});
@@ -35,10 +39,12 @@ describe('INSTANTIATION', () => {
 
 	it('with serialized', () => {
 		expect(new ADTStack({serializedState: ''})).toBeInstanceOf(ADTStack);
-		const serialized = new ADTStack({elements: [2, 3, 4]}).stringify();
+		const source = new ADTStack({elements: [2, 3, 4]});
+		const serialized = source.stringify();
 		const result = new ADTStack({serializedState: serialized});
 		expect(result).toBeInstanceOf(ADTStack);
 		expect(result.size()).toBe(3);
+		expect(result).toEqual(source);
 	});
 
 	it('invalid', () => {

@@ -1,13 +1,11 @@
-import {isInteger, isNumber} from './utility';
-
 import {ADTBase} from './base';
-import {ADTPriorityQueueChildren as Children} from './priority-queue/children';
 import {ADTPriorityQueueComparator as Comparator} from './priority-queue/comparator';
 import {ADTPriorityQueueOptions as Options} from './priority-queue/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
 import {ADTPriorityQueueState as State} from './priority-queue/state';
+import {isNumber} from './utility';
 
 export class ADTPriorityQueue<T> implements ADTBase<T> {
 	private readonly state: State<T>;

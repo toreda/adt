@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import {ADTQueue} from '../src/queue';
+import {ADTQueueOptions} from '../src/queue/options';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -23,7 +24,10 @@ describe('INSTANTIATION', () => {
 	});
 
 	it('with options', () => {
-		const result = new ADTQueue({elements: [1, 2, 3]});
+		const options: Required<Omit<ADTQueueOptions<any>, 'serializedState'>> = {
+			elements: [1, 2, 3]
+		};
+		const result = new ADTQueue(options);
 		expect(result).toBeInstanceOf(ADTQueue);
 		expect(result.size()).toBe(3);
 	});
@@ -35,9 +39,11 @@ describe('INSTANTIATION', () => {
 
 	it('with serialized', () => {
 		expect(new ADTQueue({serializedState: ''})).toBeInstanceOf(ADTQueue);
-		const serialized = new ADTQueue({elements: [2, 3, 4]}).stringify();
+		const source = new ADTQueue({elements: [2, 3, 4]});
+		const serialized = source.stringify();
 		const result = new ADTQueue({serializedState: serialized});
 		expect(result).toBeInstanceOf(ADTQueue);
+		expect(result).toEqual(source);
 		expect(result.size()).toBe(3);
 	});
 

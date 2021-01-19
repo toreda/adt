@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import {ADTCircularQueue} from '../src/circular-queue';
+import {ADTCircularQueueOptions} from '../src/circular-queue/options';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -30,14 +31,15 @@ describe('INSTANTIATION', () => {
 	});
 
 	it('with options', () => {
-		const result = new ADTCircularQueue({
+		const options: Required<Omit<ADTCircularQueueOptions<any>, 'serializedState'>> = {
 			elements: [1, 2, 3, 4, 5, 6, 7],
 			front: 5,
 			rear: 0,
 			size: 2,
 			maxSize: 7,
 			overwrite: true
-		});
+		};
+		const result = new ADTCircularQueue(options);
 		expect(result).toBeInstanceOf(ADTCircularQueue);
 		expect(result.size()).toBe(2);
 	});
@@ -49,9 +51,11 @@ describe('INSTANTIATION', () => {
 
 	it('with serialized', () => {
 		expect(new ADTCircularQueue({serializedState: ''})).toBeInstanceOf(ADTCircularQueue);
-		const serialized = new ADTCircularQueue({elements: [2, 3, 4], front: 1, rear: 3}).stringify();
+		const source = new ADTCircularQueue({elements: [2, 3, 4], front: 1, rear: 3});
+		const serialized = source.stringify();
 		const result = new ADTCircularQueue({serializedState: serialized});
 		expect(result).toBeInstanceOf(ADTCircularQueue);
+		expect(result).toEqual(source);
 		expect(result.size()).toBe(2);
 	});
 

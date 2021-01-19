@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import {ADTPriorityQueue} from '../src/priority-queue';
+import {ADTPriorityQueueOptions} from '../src/priority-queue/options';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -73,7 +74,10 @@ describe('INSTANTIATION', () => {
 	});
 
 	it('with options', () => {
-		const result = new ADTPriorityQueue(comparator, {elements: [1, 2, 3]});
+		const options: Required<Omit<ADTPriorityQueueOptions<any>, 'serializedState'>> = {
+			elements: [1, 2, 3]
+		};
+		const result = new ADTPriorityQueue(comparator, options);
 		expect(result).toBeInstanceOf(ADTPriorityQueue);
 		expect(result.size()).toBe(3);
 	});
@@ -85,9 +89,11 @@ describe('INSTANTIATION', () => {
 
 	it('with serialized', () => {
 		expect(new ADTPriorityQueue(comparator, {serializedState: ''})).toBeInstanceOf(ADTPriorityQueue);
-		const serialized = new ADTPriorityQueue(comparator, {elements: [2, 3, 4]}).stringify();
+		const source = new ADTPriorityQueue(comparator, {elements: [2, 3, 4]});
+		const serialized = source.stringify();
 		const result = new ADTPriorityQueue(comparator, {serializedState: serialized});
 		expect(result).toBeInstanceOf(ADTPriorityQueue);
+		expect(result).toEqual(source);
 		expect(result.size()).toBe(3);
 	});
 
@@ -235,17 +241,3 @@ describe('QUERY', () => {
 		expect(queue.size()).toBe(0);
 	});
 });
-
-// it('huge test', () => {
-// 	repeat(99, () => {
-// 		repeat(Math.floor(Math.random() * 1000 + 100), () => queue.push(Math.floor(Math.random() * 1000)));
-
-// 		let root = queue.peek();
-
-// 		while (queue.size()) {
-// 			expect(root).toBeLessThanOrEqual(queue.peek());
-// 			queue.pop();
-// 			root = queue.peek();
-// 		}
-// 	});
-// });

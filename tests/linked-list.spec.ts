@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import {ADTLinkedList} from '../src/linked-list';
+import {ADTLinkedListOptions} from '../src/linked-list/options';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f();
@@ -12,7 +13,7 @@ const list = new ADTLinkedList();
 
 beforeEach(() => {
 	list.reset();
-	expect(list.size()).toBe(0);
+	expect(list.isEmpty()).toBe(true);
 });
 
 describe('INSTANTIATION', () => {
@@ -25,8 +26,10 @@ describe('INSTANTIATION', () => {
 	it('with options', () => {
 		const head = 789;
 		const tail = 456;
-
-		const result = new ADTLinkedList({elements: [head, tail]});
+		const options: Required<Omit<ADTLinkedListOptions<any>, 'serializedState'>> = {
+			elements: [head, tail]
+		};
+		const result = new ADTLinkedList(options);
 
 		expect(result).toBeInstanceOf(ADTLinkedList);
 		expect(result.size()).toBe(2);

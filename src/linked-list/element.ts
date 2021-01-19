@@ -5,15 +5,10 @@ export class ADTLinkedListElement<T> implements ADTBaseElement<T> {
 	public _next: ADTLinkedListElement<T> | null;
 	public _prev: ADTLinkedListElement<T> | null;
 
-	constructor(element?: T) {
+	constructor(element: T) {
 		this._next = null;
 		this._prev = null;
-
-		if (typeof element !== 'undefined') {
-			this._value = element;
-		} else {
-			this._value = null;
-		}
+		this._value = element;
 	}
 
 	public value(elementValue?: T): T | null {
