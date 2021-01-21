@@ -180,6 +180,12 @@ describe('ALLOC / RELEASE', () => {
 		expect(pool.size()).toBe(expectedCount);
 	});
 
+	it('with zero starting size', () => {
+		const zeroStart = new ADTObjectPool(objectClass, {autoIncrease: true, startSize: 0});
+		const result = zeroStart.allocate();
+		expect(result).not.toBeNull();
+	});
+
 	it('without autoincrease', () => {
 		let expectedCount = 0;
 		let expectedTotal = 0;

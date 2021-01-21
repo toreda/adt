@@ -28,7 +28,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 
 	public allocate(): T | null {
 		if (this.state.autoIncrease && this.isAboveThreshold(1)) {
-			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor);
+			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor) || 1;
 			this.increaseCapacity(maxSize - this.state.objectCount);
 		}
 
