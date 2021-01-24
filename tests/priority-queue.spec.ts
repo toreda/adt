@@ -1,1503 +1,243 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import {ADTPriorityQueue} from '../src/priority-queue';
-import {ADTPriorityQueueComparator} from '../src/priority-queue/comparator';
-import {ADTPriorityQueueState} from '../src/priority-queue/state';
-import {ADTQueryFilter} from '../src/query/filter';
-import {ADTQueryOptions} from '../src/query/options';
-import {ADTQueryResult} from '../src/query/result';
+import {ADTPriorityQueueOptions} from '../src/priority-queue/options';
 
-describe('ADTPriorityQueue', () => {
-	const FALSY_NAN_VALUES = [null, undefined, '', NaN];
-	const TRUTHY_NAN_VALUES = ['1.5', '-1', '0', '1', '1.5'];
-	const NAN_VALUES = ([] as any[]).concat(FALSY_NAN_VALUES, TRUTHY_NAN_VALUES);
+const repeat = (n, f) => {
+	while (n-- > 0) f(n);
+};
 
-	const NEG_FLOAT_VALUES = [-9.9, -0.5];
-	const POS_FLOAT_VALUES = [0.5, 9.9];
-	const FLOAT_VALUES = ([] as any[]).concat(NEG_FLOAT_VALUES, POS_FLOAT_VALUES);
-
-	const NEG_INT_VALUES = [-1, -10];
-	const POS_INT_VALUES = [1, 10];
-	const INT_VALUES = ([0] as any[]).concat(NEG_INT_VALUES, POS_INT_VALUES);
-
-	const NEG_NUM_VALUES = ([] as any[]).concat(NEG_INT_VALUES, NEG_FLOAT_VALUES);
-	const POS_NUM_VALUES = ([] as any[]).concat(POS_INT_VALUES, POS_FLOAT_VALUES);
-	const NUM_VALUES = ([0] as any[]).concat(NEG_NUM_VALUES, POS_NUM_VALUES);
-
-	const STATE_PROPERTIES = ['type', 'elements'];
-	const VALID_SERIALIZED_STATE = ['{', '"type": "pqState",', '"elements": [1,2]', '}'].join('');
-	const DEFAULT_STATE: ADTPriorityQueueState<number> = {
-		type: 'pqState',
-		elements: []
-	};
-
-	const ITEMS = [90, 70, 50, 30, 10, 80, 60, 40, 20];
-	/**
-	 * instance.state.elements is
-	 * [10, 20, 60, 30, 50, 80, 70, 90, 40]
-	 *               10
-	 *       20              60
-	 *   30      50      80      70
-	 * 90  40  __  __  __  __  __  __
-	 *
-	 * after initialization with pushes
-	 */
-	const comparator: ADTPriorityQueueComparator<number> = function (a, b) {
-		if (typeof a !== 'number') {
-			return false;
+const printHeap = function (obj: ADTPriorityQueue<number>): any {
+	let longest = 0;
+	let count = 1;
+	obj.forEach((v) => {
+		if (v == null) {
+			v = 0;
 		}
-		if (typeof b !== 'number') {
-			return false;
-		}
+		const size = v.toString().length;
+		if (longest < size) longest = size;
+	});
 
-		return a <= b;
-	};
-	const isValidStateRuns = function (action: (obj: any) => void): void {
-		it('should run isValidState check', () => {
-			const custom: ADTPriorityQueue<number> = new ADTPriorityQueue<number>(comparator);
-			const spy = jest.spyOn(custom, 'isValidState');
-			spy.mockClear();
-			custom.state.type = '' as any;
-			action(custom);
-			expect(spy).toBeCalled();
-		});
-	};
-	const queryFilter = function (target: number): ADTQueryFilter<number> {
-		const filter: ADTQueryFilter<number> = (element): boolean => {
-			return element === target;
+	while (count < obj.size()) {
+		count *= 2;
+	}
+
+	const output: Array<number[]> = [];
+	let temp: number[] = [];
+
+	obj.forEach((v, i) => {
+		if (Math.log2(i + 1) % 1 == 0) {
+			output.push(temp);
+			temp = [];
+		}
+		temp.push(v);
+	});
+	output.push(temp);
+
+	return output
+		.map((v, i) => {
+			const total = Math.pow(2, i) * 2 - 1;
+			const leftpad = ' '.repeat(longest * Math.pow(2, output.length - i - 1) - longest);
+			const midpad = ' '.repeat(longest * Math.pow(2, output.length - i) - longest);
+			return leftpad + v.map((vv) => ('0'.repeat(longest) + vv).slice(-1 * longest)).join(midpad);
+		})
+		.join('\n');
+};
+
+const INIT_VALUES = [90, 70, 50, 30, 10, 80, 60, 40, 20];
+const loadQueue = () => repeat(9, (n) => queue.push(INIT_VALUES[8 - n]));
+
+const comparator = function (a, b) {
+	if (typeof b !== 'number') {
+		return false;
+	}
+
+	if (typeof a !== 'number') {
+		return false;
+	}
+
+	return a <= b;
+};
+const queue = new ADTPriorityQueue(comparator);
+
+beforeEach(() => {
+	queue.reset();
+	expect(queue.size()).toBe(0);
+});
+
+describe('INSTANTIATION', () => {
+	it('default params', () => {
+		const result = new ADTPriorityQueue(comparator);
+		expect(result).toBeInstanceOf(ADTPriorityQueue);
+		expect(result.size()).toBe(0);
+	});
+
+	it('with options', () => {
+		const options: Required<Omit<ADTPriorityQueueOptions<any>, 'serializedState'>> = {
+			elements: [1, 2, 3]
 		};
+		const result = new ADTPriorityQueue(comparator, options);
+		expect(result).toBeInstanceOf(ADTPriorityQueue);
+		expect(result.size()).toBe(3);
+	});
 
-		return filter;
-	};
-	const printHeap = function (obj: ADTPriorityQueue<number>): any {
-		let longest = 0;
-		let count = 1;
-		obj.state.elements.forEach((v) => {
-			const size = v.toString().length;
-			if (longest < size) longest = size;
+	it('stringify queue', () => {
+		const stringified = queue.stringify();
+		expect(new ADTPriorityQueue(comparator, {serializedState: stringified})).toEqual(queue);
+	});
+
+	it('with serialized', () => {
+		expect(new ADTPriorityQueue(comparator, {serializedState: ''})).toBeInstanceOf(ADTPriorityQueue);
+		const source = new ADTPriorityQueue(comparator, {elements: [2, 3, 4]});
+		const serialized = source.stringify();
+		const result = new ADTPriorityQueue(comparator, {serializedState: serialized});
+		expect(result).toBeInstanceOf(ADTPriorityQueue);
+		expect(result).toEqual(source);
+		expect(result.size()).toBe(3);
+	});
+
+	it('invalid', () => {
+		expect(() => {
+			const result = new ADTPriorityQueue(null as any);
+			console.log(result);
+		}).toThrow();
+
+		expect(() => {
+			const result = new ADTPriorityQueue(comparator, {elements: 'adsf' as any});
+			console.log(result);
+		}).toThrow();
+
+		expect(() => {
+			const result = new ADTPriorityQueue(comparator, {serializedState: 'null'});
+			console.log(result);
+		}).toThrow();
+
+		expect(() => {
+			const result = new ADTPriorityQueue(comparator, {serializedState: 'in{valid'});
+			console.log(result);
+		}).toThrow();
+
+		expect(() => {
+			const result = new ADTPriorityQueue(comparator, {serializedState: '{"elements": [4]}'});
+			console.log(result);
+		}).toThrow();
+	});
+});
+
+describe('PUSH/POP', () => {
+	it('maintain heap', () => {
+		expect(queue.peek()).toBeNull();
+
+		([null, 95, 73, 84, null, 62, 40, 51, null, 99] as any).forEach((v, i, a) => {
+			const smallestL = a.slice(0, i + 1).sort((a, b) => {
+				if (b == null) return a;
+				if (a == null) return b;
+				return a - b;
+			});
+			const smallest = smallestL[0];
+			queue.push(v);
+			expect(queue.peek()).toBe(smallest);
 		});
 
-		while (count < obj.state.elements.length) {
-			count *= 2;
+		let gettingBigger = queue.peek();
+
+		while (!queue.isEmpty()) {
+			if (queue.peek()) {
+				expect(queue.peek()).toBeGreaterThanOrEqual(gettingBigger);
+			}
+			queue.pop();
+			gettingBigger = queue.peek();
 		}
 
-		const output: Array<number[]> = [];
-		let temp: number[] = [];
+		queue.pop();
 
-		obj.state.elements.forEach((v, i) => {
-			if (Math.log2(i + 1) % 1 == 0) {
-				output.push(temp);
-				temp = [];
-			}
-			temp.push(v);
+		[50, null, 99, null].forEach((v) => {
+			queue.push(v);
+			expect(queue.peek()).toBe(50);
 		});
-		output.push(temp);
 
-		return output
-			.map((v, i) => {
-				const total = Math.pow(2, i) * 2 - 1;
-				const leftpad = ' '.repeat(longest * Math.pow(2, output.length - i - 1) - longest);
-				const midpad = ' '.repeat(longest * Math.pow(2, output.length - i) - longest);
-				return leftpad + v.map((vv) => ('0'.repeat(longest) + vv).slice(-1 * longest)).join(midpad);
+		queue.pop();
+	});
+});
+
+describe('ARRAY LIKE USAGE', () => {
+	beforeEach(loadQueue);
+
+	it('forEach', () => {
+		const lowToHigh: any = [];
+
+		queue.forEach((e) => {
+			lowToHigh.push(e);
+		}, queue);
+
+		lowToHigh.sort((a, b) => a - b);
+
+		lowToHigh.forEach((e) => {
+			expect(e).toBe(queue.peek());
+			queue.pop();
+		});
+	});
+
+	it('filter', () => {
+		repeat(5, () => queue.push('random string - ' + Math.random().toString()));
+
+		const strings = queue.filter((e) => typeof e === 'string', queue);
+		const numbers = queue.filter((e) => typeof e === 'number');
+
+		expect(strings.size()).toBe(5);
+		expect(numbers.size()).toBe(9);
+
+		strings.forEach((e) => {
+			expect(e).toContain('random string - ');
+		});
+	});
+});
+
+describe('QUERY', () => {
+	beforeEach(loadQueue);
+
+	it('array of matches', () => {
+		queue.push(null);
+		const above = queue.query((value) => (value as number) > 55);
+		const below = queue.query((value) => (value as number) < 55);
+
+		expect(above.length + below.length).toBe(queue.size());
+
+		expect(
+			above.every((res) => {
+				const value = res.element as number;
+				return value > 55;
 			})
-			.join('\n');
-	};
+		).toBe(true);
 
-	let instance: ADTPriorityQueue<number>;
-
-	beforeAll(() => {
-		instance = new ADTPriorityQueue<number>(comparator);
+		expect(
+			below.every((res) => {
+				const value = res.element as number;
+				return value < 55;
+			})
+		).toBe(true);
 	});
 
-	beforeEach(() => {
-		instance.reset();
-	});
-
-	describe('Constructor', () => {
-		describe('constructor', () => {
-			it('should throw if comparator is not a function', () => {
-				expect(() => {
-					const custom = new ADTPriorityQueue<number>(null as any);
-				}).toThrow('Must have a comparator function for priority queue to operate properly');
-			});
-
-			it('should initialize with default state when no options are passed', () => {
-				const custom = new ADTPriorityQueue<number>(comparator);
-				expect(JSON.parse(custom.stringify()!)).toStrictEqual(DEFAULT_STATE);
-			});
-
-			it('should initialize with serializedState', () => {
-				const custom = new ADTPriorityQueue<number>(comparator, {
-					serializedState: VALID_SERIALIZED_STATE
-				});
-				expect(JSON.parse(custom.stringify()!)).toStrictEqual(JSON.parse(VALID_SERIALIZED_STATE));
-			});
-
-			it('should initialize with other options overriding serializedState', () => {
-				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
-				expectedV.elements = [3, 4];
-
-				const custom = new ADTPriorityQueue<number>(comparator, {
-					serializedState: VALID_SERIALIZED_STATE,
-					elements: expectedV.elements
-				});
-
-				expect(JSON.parse(custom.stringify()!)).toStrictEqual(expectedV);
-			});
-		});
-
-		describe('parseOptions', () => {
-			it('should return default properties if options is falsey', () => {
-				expect(instance.parseOptions()).toStrictEqual(DEFAULT_STATE);
-				expect(instance.parseOptions(null!)).toStrictEqual(DEFAULT_STATE);
-				expect(instance.parseOptions(undefined!)).toStrictEqual(DEFAULT_STATE);
-				expect(instance.parseOptions({} as any)).toStrictEqual(DEFAULT_STATE);
-			});
-
-			it('should return properties from parsed options', () => {
-				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
-
-				expect(
-					instance.parseOptions({
-						serializedState: VALID_SERIALIZED_STATE
-					})
-				).toStrictEqual(expectedV);
-
-				expectedV.elements = [3, 4];
-				expect(
-					instance.parseOptions({
-						serializedState: VALID_SERIALIZED_STATE,
-						elements: expectedV.elements
-					})
-				).toStrictEqual(expectedV);
-			});
-		});
-
-		describe('parseOptionsState', () => {
-			it('should return the default state if options is falsey', () => {
-				expect(instance.parseOptionsState(null!)).toStrictEqual(DEFAULT_STATE);
-				expect(instance.parseOptionsState('' as any)).toStrictEqual(DEFAULT_STATE);
-				expect(instance.parseOptionsState(undefined!)).toStrictEqual(DEFAULT_STATE);
-			});
-
-			it.each(STATE_PROPERTIES)('should throw when state.%s is null', (myTest) => {
-				const state = {...DEFAULT_STATE};
-				state[myTest] = null!;
-				const errors = instance.getStateErrors(state);
-
-				expect(() => {
-					instance.parseOptionsState({
-						serializedState: JSON.stringify(state)
-					});
-				}).toThrow(errors.join('\n'));
-			});
-
-			it('should return serializedState as ADTPriorityQueueState if it is valid', () => {
-				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
-
-				expect(
-					instance.parseOptionsState({
-						serializedState: VALID_SERIALIZED_STATE
-					})
-				).toStrictEqual(expectedV);
-			});
-		});
-
-		describe('parseOptionsStateString', () => {
-			it('should return null if argument is not a string with length > 0', () => {
-				expect(instance.parseOptionsStateString(4 as any)).toBeNull();
-				expect(instance.parseOptionsStateString([] as any)).toBeNull();
-				expect(instance.parseOptionsStateString({} as any)).toBeNull();
-				expect(instance.parseOptionsStateString('' as any)).toBeNull();
-				expect(instance.parseOptionsStateString(false as any)).toBeNull();
-			});
-
-			it('should return array of errors if string cant be parsed', () => {
-				expect(instance.parseOptionsStateString('[4,3,')).toContain('Unexpected end of JSON input');
-				expect(instance.parseOptionsStateString('{left:f,right:')).toContain(
-					'Unexpected token l in JSON at position 1'
-				);
-			});
-
-			const toParseList = ['{}', '{"type": "pqState"}', '{"elements":4, "type": "pqState"}'];
-			it.each(toParseList)(
-				'should return errors, %p wont parse into an ADTPriorityQueueState',
-				(toParse) => {
-					let errors: Array<string> = [];
-					errors = instance.getStateErrors(JSON.parse(toParse) as any);
-					errors.unshift('state is not a valid ADTPriorityQueueState');
-					expect(instance.parseOptionsStateString(toParse)).toStrictEqual(errors);
-				}
-			);
-
-			it('should return an ADTPriorityQueueState when a parsable string is passed', () => {
-				const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
-				expect(instance.parseOptionsStateString(VALID_SERIALIZED_STATE)).toStrictEqual(expectedV);
-			});
-		});
-
-		describe('parseOptionsOther', () => {
-			it('should return the default state if options is falsey', () => {
-				expect(instance.parseOptionsOther(null!)).toStrictEqual(DEFAULT_STATE);
-				expect(instance.parseOptionsOther('' as any)).toStrictEqual(DEFAULT_STATE);
-				expect(instance.parseOptionsOther(undefined!)).toStrictEqual(DEFAULT_STATE);
-			});
-
-			it('should return passed state if options is null or undefined', () => {
-				const testSuite = [null, undefined];
-				testSuite.forEach((myTest) => {
-					expect(instance.parseOptionsOther(instance.state, myTest!)).toStrictEqual(instance.state);
-					expect(instance.parseOptionsOther({...DEFAULT_STATE}, myTest!)).toStrictEqual(
-						DEFAULT_STATE
-					);
-
-					const expectedV = JSON.parse(VALID_SERIALIZED_STATE);
-					expect(instance.parseOptionsOther(expectedV as any, myTest!)).toStrictEqual(expectedV);
-				});
-			});
-
-			it('should return passed state with values changed to match other passed options', () => {
-				const expectedV: ADTPriorityQueueState<number> = {...DEFAULT_STATE};
-				expectedV.elements = [3, 4];
-
-				const result = instance.parseOptionsOther(
-					{...DEFAULT_STATE},
-					{
-						elements: expectedV.elements
-					}
-				);
-
-				expect(result).toStrictEqual(expectedV);
-			});
-
-			it('should return passed state with values changed to match other passed options if those are valid', () => {
-				const expectedV: ADTPriorityQueueState<number> = {...DEFAULT_STATE};
-
-				const result = instance.parseOptionsOther(
-					{...DEFAULT_STATE},
-					{
-						elements: {} as any
-					}
-				);
-
-				expect(result).toStrictEqual(expectedV);
-			});
-		});
-	});
-
-	describe('Helpers', () => {
-		describe('getDefaultState', () => {
-			it('should return the default state', () => {
-				expect(instance.getDefaultState()).toStrictEqual(DEFAULT_STATE);
-			});
-		});
-
-		describe('getStateErrors', () => {
-			it('should return an empty array if state is valid', () => {
-				expect(instance.getStateErrors(DEFAULT_STATE)).toStrictEqual([]);
-			});
-
-			const testSuite = [null, undefined, '', 0];
-			it.each(testSuite)('should return errors if state is %p', (myTest) => {
-				const expectedV = 'state is null or undefined';
-				const errors = instance.getStateErrors(myTest as any);
-
-				expect(Array.isArray(errors)).toBe(true);
-				expect(errors).toContain(expectedV);
-			});
-
-			const stateTestSuiteObj: Array<{
-				prop: string;
-				result: string;
-				testSuite: any[];
-				expectedV: string;
-			}> = [
-				{
-					prop: 'type',
-					result: 'should return array of errors if state.type is not "pqState"',
-					testSuite: ([] as any).concat([null, undefined, '', 'state']),
-					expectedV: 'state type must be pqState'
-				},
-				{
-					prop: 'elements',
-					result: 'should return array of errors if state.elements is not an array',
-					testSuite: ([] as any).concat([{}, null, undefined, '', 'teststring']),
-					expectedV: 'state elements must be an array'
-				}
-			];
-			const stateTestSuite: Array<any[]> = stateTestSuiteObj.map((elem) => {
-				return [elem.prop, elem.result, elem.testSuite, elem.expectedV];
-			});
-			describe.each(stateTestSuite)(
-				'should return errors, state.%s is %s',
-				(prop, result, myTests, expectedV) => {
-					it.each(myTests)(`state.${prop} is %p`, (myTest) => {
-						const state = {...DEFAULT_STATE};
-						state[prop] = myTest as any;
-						const errors = instance.getStateErrors(state);
-
-						expect(Array.isArray(errors)).toBe(true);
-						expect(errors).toContain(expectedV);
-					});
-				}
-			);
-		});
-
-		describe('isValidState', () => {
-			it('should return true if state is a valid ADTPriorityQueueState', () => {
-				expect(instance.isValidState(instance.state)).toBe(true);
-			});
-
-			it('should return false if state is null or undefined', () => {
-				const testSuite = [null, undefined];
-				testSuite.forEach((myTest) => {
-					expect(instance.isValidState(myTest!)).toBe(false);
-				});
-			});
-
-			it.each(STATE_PROPERTIES)('should return false if a state state.%s is not valid', (myTest) => {
-				const state = {...DEFAULT_STATE};
-				state[myTest] = null!;
-				expect(instance.isValidState(state)).toBe(false);
-			});
-		});
-
-		describe('queryDelete', () => {
-			let queryResult: ADTQueryResult<number>;
-
-			beforeEach(() => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-			});
-
-			afterEach(() => {
-				instance.clearElements();
-				queryResult = null as any;
-			});
-
-			it('should return null if arg does not have an index method', () => {
-				expect(instance.queryDelete({} as any)).toBeNull();
-			});
-
-			it('should return null if index is null', () => {
-				const expectedSize = ITEMS.length;
-				expect(instance.size()).toBe(expectedSize);
-
-				const queryResults = instance.query(queryFilter(10));
-				expect(queryResults.length).toBe(1);
-				queryResult = queryResults[0];
-
-				const spy = jest.spyOn(queryResult, 'index').mockImplementation(() => {
-					return null;
-				});
-
-				expect(instance.queryDelete(queryResult)).toBeNull();
-				expect(instance.size()).toBe(expectedSize);
-
-				spy.mockRestore();
-			});
-
-			it('should return element if it is in pq', () => {
-				const expectedSize = ITEMS.length;
-				expect(instance.size()).toBe(expectedSize);
-
-				const queryResults = instance.query(queryFilter(50));
-				expect(queryResults.length).toBe(1);
-				queryResult = queryResults[0];
-
-				expect(instance.queryDelete(queryResult)).toBe(queryResult.element);
-			});
-
-			it('should delete the element from pq', () => {
-				const expectedSize = ITEMS.length;
-				expect(instance.size()).toBe(expectedSize);
-
-				const queryResults = instance.query(queryFilter(40));
-				expect(queryResults.length).toBe(1);
-				queryResult = queryResults[0];
-
-				instance.queryDelete(queryResult);
-				expect(instance.size()).toBe(expectedSize - 1);
-			});
-
-			it('should restore the heap properties', () => {
-				const list: number[] = [];
-				for (let i = 1; i < 27; i++) {
-					list.push(Math.floor(Math.random() * 999));
-				}
-
-				list.slice(0, 5).forEach((myTest) => {
-					instance.clearElements();
-					list.forEach((v) => {
-						instance.push(v);
-					});
-
-					const expectedSize = list.length;
-					expect(instance.size()).toBe(expectedSize);
-
-					const queryResults = instance.query(queryFilter(myTest));
-					queryResult = queryResults[0];
-
-					instance.queryDelete(queryResult);
-					const result = instance.isHeapSorted();
-					expect(result).toBe(true);
-				});
-			});
-		});
-
-		describe('queryIndex', () => {
-			let queryResult: ADTQueryResult<number>;
-
-			beforeEach(() => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-			});
-
-			afterEach(() => {
-				instance.clearElements();
-				queryResult = null as any;
-			});
-
-			it('should return null if element is not in pq', () => {
-				const expectedSize = ITEMS.length;
-				expect(instance.size()).toBe(expectedSize);
-
-				const queryResults = instance.query(queryFilter(10));
-				queryResult = queryResults[0];
-
-				queryResult.delete();
-				expect(queryResult.index()).toBeNull();
-			});
-
-			it('should return the index of the queryResult even if it moves', () => {
-				const expectedV = 90;
-				const expectedSize = ITEMS.length;
-				expect(instance.size()).toBe(expectedSize);
-
-				const queryResults = instance.query(queryFilter(expectedV));
-				queryResult = queryResults[0];
-
-				for (let i = 0; i < ITEMS.length; i++) {
-					const index = queryResult.index();
-					if (index !== null) {
-						expect(instance.state.elements[index!]).toBe(expectedV);
-					} else {
-						expect(instance.query(queryFilter(expectedV)).length).toBe(0);
-					}
-					instance.pop();
-				}
-
-				expect(instance.size()).toBe(0);
-				expect(queryResult.index()).toBeNull();
-			});
-		});
-
-		describe('queryOptions', () => {
-			const DEFAULT_OPTS = {
-				limit: Infinity
-			};
-			it('should return ADTQueryOptions with all properties', () => {
-				const props = ['limit'];
-				const opts1 = instance.queryOptions();
-				const opts2 = instance.queryOptions({});
-				const opts3 = instance.queryOptions({limit: 99});
-				const opts4 = instance.queryOptions({limit: '99' as any});
-
-				props.forEach((prop) => {
-					expect(opts1[prop]).not.toBeUndefined();
-					expect(opts2[prop]).not.toBeUndefined();
-					expect(opts3[prop]).not.toBeUndefined();
-					expect(opts4[prop]).not.toBeUndefined();
-				});
-			});
-
-			it('should return default if opts is null or underfined', () => {
-				expect(instance.queryOptions()).toStrictEqual(DEFAULT_OPTS);
-				expect(instance.queryOptions(null!)).toStrictEqual(DEFAULT_OPTS);
-				expect(instance.queryOptions(undefined!)).toStrictEqual(DEFAULT_OPTS);
-			});
-
-			it('should return default with passed props overridden', () => {
-				const expectedV = {...DEFAULT_OPTS};
-				const opts: ADTQueryOptions = {};
-				expect(instance.queryOptions({})).toStrictEqual(expectedV);
-
-				const limit = 5;
-				opts.limit = limit;
-				expectedV.limit = limit;
-				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
-
-				const limitFloat = 5.7;
-				opts.limit = limitFloat;
-				expectedV.limit = Math.round(limitFloat);
-				expect(instance.queryOptions(opts)).toStrictEqual(expectedV);
-			});
-
-			const testSuite = ([0] as any).concat(NAN_VALUES, NEG_NUM_VALUES);
-			it.each(testSuite)('should ignore limit = %p, not a number >= 1', (myTest) => {
-				const opts = {limit: myTest as any};
-				expect(instance.queryOptions(opts)).toStrictEqual(DEFAULT_OPTS);
-			});
-		});
-	});
-
-	describe('Heap Maintenance', () => {
-		describe('areNodesValidHeap', () => {
-			it('should return true if either index is not a number', () => {
-				expect(instance.areNodesValidHeap(null, null)).toBe(true);
-				expect(instance.areNodesValidHeap(null, 0)).toBe(true);
-				expect(instance.areNodesValidHeap(0, null)).toBe(true);
-			});
-
-			describe('when a node value is null', () => {
-				const tests = [
-					{index1: 0, index2: 1, value1: ' 1', value2: null, expectedV: false},
-					{index1: 1, index2: 2, value1: null, value2: ' 1', expectedV: true},
-					{index1: 1, index2: 3, value1: null, value2: null, expectedV: true},
-					{index1: 4, index2: 3, value1: ' 1', value2: null, expectedV: true},
-					{index1: 3, index2: 2, value1: null, value2: ' 1', expectedV: false},
-					{index1: 3, index2: 1, value1: null, value2: null, expectedV: false}
-				];
-
-				tests.forEach((test) => {
-					let description = '';
-					description += `(index1:${test.index1}) (index2:${test.index2}) `;
-					description += `(value1:${test.value1}) (value2:${test.value2})`;
-					it(description, () => {
-						instance.state.elements = [1, null as any, 1, null as any, 1];
-						expect(instance.areNodesValidHeap(test.index1, test.index2)).toBe(test.expectedV);
-					});
-				});
-			});
-
-			it('should call comparator with parameters (larger index, smaller index)', () => {
-				instance.state.elements = [10, 1];
-				const spy = jest.spyOn(instance, 'comparator');
-				spy.mockClear();
-				instance.areNodesValidHeap(0, 1);
-				expect(spy).toBeCalledWith(10, 1);
-				spy.mockClear();
-				instance.areNodesValidHeap(1, 0);
-				expect(spy).toBeCalledWith(10, 1);
-				spy.mockRestore();
-			});
-		});
-
-		describe('fixHeap', () => {
-			let spy;
-
-			beforeAll(() => {
-				spy = jest.spyOn(instance, 'swapNodes');
-			});
-
-			beforeEach(() => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-
-				spy.mockClear();
-			});
-
-			afterEach(() => {
-				instance.clearElements();
-			});
-
-			afterAll(() => {
-				spy.mockRestore();
-			});
-
-			it('should do 0 swapNodes calls if size is 0 or 1', () => {
-				instance.clearElements();
-				expect(instance.size()).toBe(0);
-
-				instance.fixHeap(0);
-				instance.fixHeap(null);
-				instance.fixHeap(1);
-				instance.fixHeap(-1);
-
-				instance.push(1);
-				expect(instance.size()).toBe(1);
-
-				instance.fixHeap(0);
-				instance.fixHeap(null);
-				instance.fixHeap(1);
-				instance.fixHeap(-1);
-
-				expect(spy).not.toBeCalled();
-			});
-
-			describe('should do 0 swapNodes calls if an invalid type is passed', () => {
-				const tests = ([] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
-
-				tests.forEach((test) => {
-					it(typeof test + ': ' + test, () => {
-						expect(spy).not.toBeCalled();
-					});
-				});
-			});
-
-			it('should do # swapNodes calls and be in heap order after adding new lowest rank to end', () => {
-				expect(instance.size()).toBe(ITEMS.length);
-				instance.state.elements[instance.size()] = 1;
-				// [10, 20, 60, 30, 50, 80, 70, 90, 40, 1] --> [1, 10, 60, 30, 20, 80, 70, 90, 40, 50]
-				// 3 swapNode calls to fix
-				instance.fixHeap(instance.size() - 1);
-				expect(spy).toBeCalledTimes(3);
-				expect(instance.state.elements).toStrictEqual([1, 10, 60, 30, 20, 80, 70, 90, 40, 50]);
-			});
-
-			it('should do # swapNodes calls and be in heap order after adding middle value rank to end', () => {
-				expect(instance.size()).toBe(ITEMS.length);
-				instance.state.elements[instance.size()] = 45;
-				// [10, 20, 60, 30, 50, 80, 70, 90, 40, 45] --> [10, 20, 60, 30, 45, 80, 70, 90, 40, 50]
-				// 1 swapNode calls to fix
-				instance.fixHeap(instance.size() - 1);
-				expect(spy).toBeCalledTimes(1);
-				expect(instance.state.elements).toStrictEqual([10, 20, 60, 30, 45, 80, 70, 90, 40, 50]);
-			});
-
-			it('should do # swapNodes calls and be in heap order after adding new highest rank to end', () => {
-				expect(instance.size()).toBe(ITEMS.length);
-				instance.state.elements[instance.size()] = 100;
-				// [10, 20, 60, 30, 50, 80, 70, 90, 40, 100] --> [10, 20, 60, 30, 50, 80, 70, 90, 40, 100]
-				// 0 swapNode calls to fix
-				instance.fixHeap(instance.size() - 1);
-				expect(spy).toBeCalledTimes(0);
-				expect(instance.state.elements).toStrictEqual([10, 20, 60, 30, 50, 80, 70, 90, 40, 100]);
-			});
-
-			it('should do # swapNodes calls and be in heap order after adding new lowest rank to beginning', () => {
-				expect(instance.size()).toBe(ITEMS.length);
-				instance.state.elements[0] = 1;
-				// [1, 20, 60, 30, 50, 80, 70, 90, 40] --> [1, 20, 60, 30, 50, 80, 70, 90, 40]
-				// 0 swapNode calls to fix
-				instance.fixHeap(0);
-				expect(spy).toBeCalledTimes(0);
-				expect(instance.state.elements).toStrictEqual([1, 20, 60, 30, 50, 80, 70, 90, 40]);
-			});
-
-			it('should do # swapNodes calls and be in heap order after adding middle value rank to beginning', () => {
-				expect(instance.size()).toBe(ITEMS.length);
-				instance.state.elements[0] = 35;
-				// [55, 20, 60, 30, 50, 80, 70, 90, 40] --> [20, 30, 60, 40, 50, 80, 70, 90, 55]
-				// 2 swapNode calls to fix
-				instance.fixHeap(0);
-				expect(spy).toBeCalledTimes(2);
-				expect(instance.state.elements).toStrictEqual([20, 30, 60, 35, 50, 80, 70, 90, 40]);
-			});
-
-			it('should do # swapNodes calls and be in heap order after adding new highest rank to beginning', () => {
-				expect(instance.size()).toBe(ITEMS.length);
-				instance.state.elements[0] = 99;
-				// [99, 20, 60, 30, 50, 80, 70, 90, 40] --> [20, 30, 60, 40, 50, 80, 70, 90, 99]
-				// 3 swapNode calls to fix
-				instance.fixHeap(0);
-				expect(spy).toBeCalledTimes(3);
-				expect(instance.state.elements).toStrictEqual([20, 30, 60, 40, 50, 80, 70, 90, 99]);
-			});
-		});
-
-		describe('getChildNodesIndexes', () => {
-			beforeEach(() => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-			});
-
-			afterEach(() => {
-				instance.clearElements();
-			});
-
-			it('should return {left: null, right: null} if null is passed', () => {
-				expect(instance.getChildNodesIndexes(null)).toStrictEqual({left: null, right: null});
-				expect(instance.getChildNodesIndexes(undefined!)).toStrictEqual({left: null, right: null});
-			});
-
-			it('should return {left: null, right: null} if a negative number is passed', () => {
-				expect(instance.getChildNodesIndexes(-1)).toStrictEqual({left: null, right: null});
-				expect(instance.getChildNodesIndexes(-99)).toStrictEqual({left: null, right: null});
-			});
-
-			it('should return {left: null, right: null} if a float is paseed', () => {
-				expect(instance.getChildNodesIndexes(Math.PI)).toStrictEqual({left: null, right: null});
-			});
-
-			it('should return {left: null, right: null} if the index passed is outside the aray', () => {
-				expect(instance.getChildNodesIndexes(instance.size() * 2)).toStrictEqual({
-					left: null,
-					right: null
-				});
-			});
-
-			it('should return {left: null, right: null} if the result would be outside the array', () => {
-				expect(instance.getChildNodesIndexes(instance.size() - 1)).toStrictEqual({
-					left: null,
-					right: null
-				});
-			});
-
-			it('should return the children of a valid node in the form of {left: number | null, right: number | null}', () => {
-				expect(instance.getChildNodesIndexes(0)).toStrictEqual({left: 1, right: 2});
-				expect(instance.getChildNodesIndexes(1)).toStrictEqual({left: 3, right: 4});
-				expect(instance.getChildNodesIndexes(2)).toStrictEqual({left: 5, right: 6});
-				expect(instance.getChildNodesIndexes(3)).toStrictEqual({left: 7, right: 8});
-				expect(instance.getChildNodesIndexes(4)).toStrictEqual({left: null, right: null});
-				expect(instance.getChildNodesIndexes(5)).toStrictEqual({left: null, right: null});
-				expect(instance.getChildNodesIndexes(6)).toStrictEqual({left: null, right: null});
-				expect(instance.getChildNodesIndexes(7)).toStrictEqual({left: null, right: null});
-				expect(instance.getChildNodesIndexes(8)).toStrictEqual({left: null, right: null});
-			});
-
-			it('should return the children of a valid node before and after a push that moves node', () => {
-				expect(instance.state.elements[1]).toBe(20);
-				expect(instance.getChildNodesIndexes(1)).toStrictEqual({left: 3, right: 4});
-				instance.push(15);
-				expect(instance.state.elements[1]).toBe(15);
-				expect(instance.state.elements[4]).toBe(20);
-				expect(instance.getChildNodesIndexes(4)).toStrictEqual({left: 9, right: null});
-			});
-
-			it('should return the children of a valid node before and after a pop that moves node', () => {
-				expect(instance.state.elements[1]).toBe(20);
-				expect(instance.getChildNodesIndexes(1)).toStrictEqual({left: 3, right: 4});
-				instance.pop();
-				expect(instance.state.elements[1]).toBe(30);
-				expect(instance.state.elements[0]).toBe(20);
-				expect(instance.getChildNodesIndexes(0)).toStrictEqual({left: 1, right: 2});
-			});
-		});
-
-		describe('getNextIndex', () => {
-			let spyChildren;
-			let spyParent;
-
-			beforeAll(() => {
-				spyChildren = jest.spyOn(instance, 'getChildNodesIndexes');
-				spyParent = jest.spyOn(instance, 'getParentNodeIndex');
-			});
-
-			beforeEach(() => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-				spyChildren.mockClear();
-				spyParent.mockClear();
-			});
-
-			afterEach(() => {
-				instance.clearElements();
-			});
-
-			afterAll(() => {
-				spyChildren.mockRestore();
-				spyParent.mockRestore();
-			});
-
-			it('should call getParentNodeIndex and not call getChildNodesIndexes if startFromTop is false', () => {
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).not.toBeCalled();
-
-				instance.getNextIndex(false, 1);
-
-				expect(spyParent).toBeCalledTimes(1);
-				expect(spyChildren).toBeCalledTimes(0);
-			});
-
-			it('should call getChildNodesIndexes and not call getParentNodeIndex if startFromTop is true', () => {
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).not.toBeCalled();
-
-				instance.getNextIndex(true, 1);
-
-				expect(spyParent).toBeCalledTimes(0);
-				expect(spyChildren).toBeCalledTimes(1);
-			});
-
-			it('should return null if leftIndex is null', () => {
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).not.toBeCalled();
-
-				const expectedV = null;
-				spyChildren.mockReturnValueOnce({left: null, right: null});
-
-				expect(instance.getNextIndex(true, 8)).toBe(expectedV);
-				expect(spyChildren).toBeCalledTimes(1);
-			});
-
-			it('should return leftIndex if rightIndex is null', () => {
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).not.toBeCalled();
-
-				const expectedV = 12345;
-				spyChildren.mockReturnValueOnce({left: expectedV, right: null});
-				expect(instance.getNextIndex(true, 4)).toBe(expectedV);
-
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).toBeCalledTimes(1);
-			});
-
-			it('should return leftIndex if elements[rightIndex] is null', () => {
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).not.toBeCalled();
-
-				const expectedV = 23456;
-				instance.state.elements = [1, null!];
-				spyChildren.mockReturnValueOnce({left: expectedV, right: 1});
-				expect(instance.getNextIndex(true, 0)).toBe(expectedV);
-
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).toBeCalledTimes(1);
-			});
-
-			it('should return rightIndex if elements[leftIndex] is null', () => {
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).not.toBeCalled();
-
-				const expectedV = 34567;
-				instance.state.elements = [null!, 1];
-				spyChildren.mockReturnValueOnce({left: 0, right: expectedV});
-				expect(instance.getNextIndex(true, 0)).toBe(expectedV);
-
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).toBeCalledTimes(1);
-			});
-
-			it('should return leftIndex if elements[leftIndex] < elements[rightIndex]', () => {
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).not.toBeCalled();
-
-				const expectedV = 45678;
-				instance.state.elements[expectedV] = 1;
-				instance.state.elements[1] = 2;
-				spyChildren.mockReturnValueOnce({left: expectedV, right: 1});
-				expect(instance.getNextIndex(true, 0)).toBe(expectedV);
-
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).toBeCalledTimes(1);
-			});
-
-			it('should return rightIndex if elements[leftIndex] > elements[rightIndex]', () => {
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).not.toBeCalled();
-
-				const expectedV = 56789;
-				instance.state.elements[0] = 2;
-				instance.state.elements[expectedV] = 1;
-				spyChildren.mockReturnValueOnce({left: 0, right: expectedV});
-				expect(instance.getNextIndex(true, 0)).toBe(expectedV);
-
-				expect(spyParent).not.toBeCalled();
-				expect(spyChildren).toBeCalledTimes(1);
-			});
-		});
-
-		describe('getParentNodeIndex', () => {
-			beforeEach(() => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-			});
-
-			afterEach(() => {
-				instance.clearElements();
-			});
-
-			it('should return null if null or underfined is passed', () => {
-				expect(instance.getParentNodeIndex(null)).toBeNull();
-				expect(instance.getParentNodeIndex(undefined!)).toBeNull();
-			});
-
-			it('should return null if 0 or less is passed', () => {
-				expect(instance.getParentNodeIndex(0)).toBeNull();
-				expect(instance.getParentNodeIndex(-1)).toBeNull();
-				expect(instance.getParentNodeIndex(-99)).toBeNull();
-			});
-
-			it('should return null if a float is passed', () => {
-				expect(instance.getParentNodeIndex(Math.PI)).toBeNull();
-			});
-
-			it('should return null if the index passed is larger than the aray', () => {
-				expect(instance.getParentNodeIndex(instance.size() * 2)).toBeNull();
-			});
-
-			it('should return the parent of a valid node if the parent is valid', () => {
-				expect(instance.getParentNodeIndex(0)).toBeNull();
-				expect(instance.getParentNodeIndex(1)).toBe(0);
-				expect(instance.getParentNodeIndex(2)).toBe(0);
-				expect(instance.getParentNodeIndex(3)).toBe(1);
-				expect(instance.getParentNodeIndex(4)).toBe(1);
-				expect(instance.getParentNodeIndex(5)).toBe(2);
-				expect(instance.getParentNodeIndex(6)).toBe(2);
-				expect(instance.getParentNodeIndex(7)).toBe(3);
-			});
-
-			it('should return the parent of a valid node before and after a push that moves node', () => {
-				expect(instance.state.elements[4]).toBe(50);
-				expect(instance.getParentNodeIndex(4)).toBe(1);
-				instance.push(45);
-				expect(instance.state.elements[4]).toBe(45);
-				expect(instance.state.elements[9]).toBe(50);
-				expect(instance.getParentNodeIndex(9)).toBe(4);
-			});
-
-			it('should return the parent of a valid node before and after a pop that moves node', () => {
-				expect(instance.state.elements[3]).toBe(30);
-				expect(instance.getParentNodeIndex(3)).toBe(1);
-				instance.pop();
-				expect(instance.state.elements[3]).toBe(40);
-				expect(instance.state.elements[1]).toBe(30);
-				expect(instance.getParentNodeIndex(1)).toBe(0);
-			});
-		});
-
-		describe('isHeapSorted', () => {
-			it('should run areNodesValidHeap once per node that has a child', () => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-
-				let expectedV = 0;
-				instance.state.elements.forEach((e, index) => {
-					const children = instance.getChildNodesIndexes(index);
-					if (children.left !== null || children.right !== null) {
-						expectedV++;
-					}
-				});
-
-				const spy = jest.spyOn(instance, 'areNodesValidHeap');
-				expect(spy).not.toBeCalled();
-
-				instance.isHeapSorted();
-				expect(spy).toBeCalledTimes(expectedV);
-
-				spy.mockRestore();
-			});
-		});
-
-		describe('heapify', () => {
-			beforeEach(() => {
-				const list: number[] = [];
-				for (let i = 0; i < 50; i++) {
-					const random = Math.floor(Math.random() * 999);
-					list.push(random);
-				}
-				instance.state.elements = list;
-			});
-
-			it('should run fixHeap once per node that has a child', () => {
-				let expectedV = 0;
-				instance.state.elements.forEach((e, index) => {
-					const children = instance.getChildNodesIndexes(index);
-					if (children.left !== null || children.right !== null) {
-						expectedV++;
-					}
-				});
-
-				const spy = jest.spyOn(instance, 'fixHeap');
-				expect(spy).not.toBeCalled();
-
-				instance.heapify();
-				expect(spy).toBeCalledTimes(expectedV);
-
-				spy.mockRestore();
-			});
-
-			it('should sort the heap', () => {
-				instance.heapify();
-				expect(instance.isHeapSorted()).toBe(true);
-			});
-		});
-
-		describe('swapNodes', () => {
-			let unchanged: ADTPriorityQueue<number>;
-
-			beforeAll(() => {
-				unchanged = new ADTPriorityQueue<number>(comparator);
-			});
-
-			beforeEach(() => {
-				instance.reset();
-				unchanged.reset();
-			});
-
-			describe('should do nothing if', () => {
-				const tests = ([1] as any).concat(NAN_VALUES, FLOAT_VALUES, NEG_INT_VALUES);
-				tests.forEach((param1) => {
-					tests.forEach((param2) => {
-						if (param1 === 1 && param2 === 1) {
-							it('indexOne === indexTwo', () => {
-								ITEMS.forEach((item) => {
-									instance.push(item);
-									unchanged.push(item);
-								});
-								instance.swapNodes(param1, param2);
-								expect(instance.state.elements).toStrictEqual(unchanged.state.elements);
-							});
-						}
-						it(`${typeof param1}: ${param1} & ${typeof param2}: ${param2}`, () => {
-							ITEMS.forEach((item) => {
-								instance.push(item);
-								unchanged.push(item);
-							});
-							instance.swapNodes(param1, param2);
-							expect(instance.state.elements).toStrictEqual(unchanged.state.elements);
-						});
-					});
-				});
-			});
-
-			it('should swap the order of the items', () => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-
-				/**
-				 * start: 10, 20, 60, 30, 50, 80, 70, 90, 40
-				 * swap1: 10, 20, 60, 70, 50, 80, 30, 90, 40
-				 * swap2: 10, 70, 60, 20, 50, 80, 30, 90, 40
-				 */
-
-				expect(instance.state.elements).toStrictEqual([10, 20, 60, 30, 50, 80, 70, 90, 40]);
-				instance.swapNodes(3, 6);
-				expect(instance.state.elements).toStrictEqual([10, 20, 60, 70, 50, 80, 30, 90, 40]);
-				instance.swapNodes(1, 3);
-				expect(instance.state.elements).toStrictEqual([10, 70, 60, 20, 50, 80, 30, 90, 40]);
-			});
-
-			it('should move all properties of indexOne to indexTwo and vice-versa', () => {
-				const complexitems1 = [
-					{depth1: {depth2: 10}},
-					{depth1: {depth2: 20}},
-					{depth1: {depth2: 30}}
-				];
-				const complexitems2 = [
-					{depth1: {depth2: 10}},
-					{depth1: {depth2: 20}},
-					{depth1: {depth2: 30}}
-				];
-
-				const deepSwapped = new ADTPriorityQueue<any>((a, b) => false, {
-					elements: complexitems1
-				});
-				const deepUnchanged = new ADTPriorityQueue<any>((a, b) => false, {
-					elements: complexitems2
-				});
-
-				deepSwapped.swapNodes(0, 1);
-				expect(deepSwapped.state.elements[0]).toStrictEqual(deepUnchanged.state.elements[1]);
-				expect(deepSwapped.state.elements[1]).toStrictEqual(deepUnchanged.state.elements[0]);
-				expect(deepSwapped[0] === deepUnchanged[1]).toBeTruthy();
-				expect(deepSwapped[1] === deepUnchanged[0]).toBeTruthy();
-				deepSwapped.swapNodes(1, 2);
-				expect(deepSwapped.state.elements[2]).toStrictEqual(deepUnchanged.state.elements[0]);
-				expect(deepSwapped.state.elements[1]).toStrictEqual(deepUnchanged.state.elements[2]);
-				expect(deepSwapped[2] === deepUnchanged[0]).toBeTruthy();
-				expect(deepSwapped[1] === deepUnchanged[2]).toBeTruthy();
-			});
-		});
-	});
-
-	describe('Implementation', () => {
-		describe('clearElements', () => {
-			it('should not throw when priority queue is empty', () => {
-				expect(instance.size()).toBe(0);
-				expect(() => {
-					instance.clearElements();
-				}).not.toThrow();
-			});
-
-			it('should remove item from priority queue when size is 1', () => {
-				expect(instance.size()).toBe(0);
-
-				instance.push(Math.floor(Math.random() * 999));
-				expect(instance.size()).toBe(1);
-
-				instance.clearElements();
-				expect(instance.size()).toBe(0);
-			});
-
-			it('should remove all items from priority queue', () => {
-				expect(instance.size()).toBe(0);
-				const limit = 5;
-
-				for (let i = 0; i < limit; i++) {
-					instance.push(Math.floor(Math.random() * 999));
-				}
-				expect(instance.size()).toBe(limit);
-
-				instance.clearElements();
-				expect(instance.size()).toBe(0);
-			});
-		});
-
-		describe('forEach', () => {
-			const testSuite = [
-				[['push']],
-				[['push', 'push']],
-				[['push', 'push', 'pop']],
-				[['push', 'push', 'pop', 'push', 'push', 'push', 'push']]
-			];
-			it.each(testSuite)('should loop through all after %p', (myTest) => {
-				let pushCount = 0;
-				myTest.forEach((func) => {
-					if (func === 'push') {
-						pushCount++;
-						instance[func](pushCount);
-					} else {
-						instance[func]();
-					}
-				});
-
-				const expectedV = myTest.join('');
-				const expectedCount = instance.size();
-				let count = 0;
-				instance.forEach((elem, index) => {
-					count++;
-					instance.state.elements[index] = expectedV as any;
-				});
-				expect(count).toBe(expectedCount);
-				expect(instance.front()).toBe(expectedV);
-			});
-
-			it.each(['boundThis', 'unboundThis'])(
-				'should pass element, index, array to callback function (%p)',
-				(useThis) => {
-					instance.push(1).push(2).push(3);
-					let boundThis;
-					if (useThis === 'boundThis') {
-						boundThis = instance;
-					} else {
-						boundThis = {};
-					}
-
-					instance.forEach(function (element, index, arr) {
-						expect(this).toBe(boundThis);
-						expect(arr).toBeInstanceOf(Array);
-						expect(index).toBeGreaterThanOrEqual(0);
-						expect(element).toBe(arr[index]);
-					}, boundThis);
-				}
-			);
-		});
-
-		describe('front', () => {
-			it('should return null when priority queue size is 0', () => {
-				expect(instance.size()).toBe(0);
-				expect(instance.front()).toBeNull();
-			});
-
-			it('should return the only item when the size is 1', () => {
-				const expectedV = 13579;
-				instance.push(expectedV);
-				expect(instance.size()).toBe(1);
-				expect(instance.front()).toStrictEqual(expectedV);
-			});
-
-			it('should return the item with the lowest rank in priority queue', () => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-				const expectedV = ITEMS.slice().sort((a, b) => a - b)[0];
-				expect(instance.front()).toStrictEqual(expectedV);
-			});
-		});
-
-		describe('pop', () => {
-			it('should remove exactly 1 item from the priority queue when pop is called once', () => {
-				const limit = 12;
-				for (let i = 0; i < limit; i++) {
-					instance.push(Math.floor(Math.random() * 999));
-				}
-				expect(instance.size()).toBe(limit);
-				instance.pop();
-				expect(instance.size()).toBe(limit - 1);
-			});
-
-			it('should return null when called on a priority queue of size 0', () => {
-				expect(instance.size()).toBe(0);
-				expect(instance.pop()).toBeNull();
-			});
-
-			it('should return null when called repeatedly on a priority queue of size 0', () => {
-				expect(instance.size()).toBe(0);
-
-				for (let i = 0; i < 5; i++) {
-					expect(instance.pop()).toBeNull();
-				}
-			});
-
-			it('should return the only element and then null when called twice on a pq of size 1', () => {
-				instance.push(1);
-				expect(instance.size()).toBe(1);
-
-				expect(instance.pop()).toBe(1);
-				expect(instance.pop()).toBeNull();
-			});
-
-			it('should return first item in priority queue', () => {
-				const limit = 15;
-				let expectedV = 99999;
-
-				for (let i = 0; i < limit; i++) {
-					const random = Math.floor(Math.random() * 999);
-					if (random < expectedV) expectedV = random;
-					instance.push(random);
-				}
-
-				const result = instance.pop();
-				expect(result).not.toBeNull();
-				if (result) expect(result).toBe(expectedV);
-			});
-
-			it('should pop items in rank order from priority queue', () => {
-				const limit = 15;
-				const expectedV: Array<number> = [];
-
-				for (let i = 0; i < limit; i++) {
-					const random = Math.floor(Math.random() * 999);
-					expectedV.push(random);
-					instance.push(random);
-				}
-
-				expectedV.sort((a, b) => a - b);
-
-				for (let i = 0; i < limit; i++) {
-					const result = instance.pop();
-					expect(result).not.toBeNull();
-					if (result) expect(result).toBe(expectedV[i]);
-				}
-			});
-
-			it('should return all items from the list and then return null when called size + 1 times', () => {
-				const limit = 5;
-
-				for (let i = 0; i < limit; i++) {
-					instance.push(Math.floor(Math.random() * 999));
-				}
-
-				for (let i = 0; i < limit; i++) {
-					expect(instance.pop()).not.toBeNull();
-				}
-
-				expect(instance.pop()).toBeNull();
-			});
-		});
-
-		describe('push', () => {
-			it('should add exactly one item to priority queue when push is called once', () => {
-				expect(instance.size()).toBe(0);
-				instance.push(1);
-				expect(instance.size()).toBe(1);
-			});
-
-			it('should add exactly 15 items to priority queue when push is called 15 times', () => {
-				expect(instance.size()).toBe(0);
-
-				const limit = 15;
-				for (let i = 0; i < limit; i++) {
-					instance.push(Math.floor(Math.random() * 999));
-				}
-
-				expect(instance.size()).toBe(limit);
-			});
-
-			it('should return the pq', () => {
-				expect(instance.size()).toBe(0);
-
-				expect(instance.push(1)).toBe(instance);
-				expect(instance.size()).toBe(1);
-
-				expect(instance.push(2).push(3)).toBe(instance);
-				expect(instance.size()).toBe(3);
-			});
-		});
-
-		describe('query', () => {
-			let spyOpts: jest.SpyInstance;
-			let defOpts: Required<ADTQueryOptions>;
-
-			beforeAll(() => {
-				spyOpts = jest.spyOn(instance, 'queryOptions');
-				defOpts = instance.queryOptions();
-			});
-
-			beforeEach(() => {
-				ITEMS.forEach((item) => {
-					instance.push(item);
-				});
-				spyOpts.mockReset();
-				spyOpts.mockReturnValue(defOpts);
-			});
-
-			afterEach(() => {
-				instance.clearElements();
-			});
-
-			afterAll(() => {
-				spyOpts.mockRestore();
-			});
-
-			it('should call queryOptions once', () => {
-				let expectedCalls = 0;
-				expect(spyOpts).toBeCalledTimes(expectedCalls);
-
-				instance.query([]);
-				expectedCalls++;
-				expect(spyOpts).toBeCalledTimes(expectedCalls);
-
-				instance.query(queryFilter(10));
-				expectedCalls++;
-				expect(spyOpts).toBeCalledTimes(expectedCalls);
-
-				instance.query([queryFilter(10)]);
-				expectedCalls++;
-				expect(spyOpts).toBeCalledTimes(expectedCalls);
-			});
-
-			it('should return empty array if no filters are given', () => {
-				expect(instance.size()).toBe(ITEMS.length);
-				expect(instance.query([])).toEqual([]);
-			});
-
-			it('should return all elements matching filter', () => {
-				expect(instance.size()).toBe(ITEMS.length);
-				const query = 15;
-				expect(instance.query(queryFilter(query)).length).toBe(0);
-
-				const expectedV = 3;
-				for (let i = 0; i < expectedV; i++) {
-					instance.push(query);
-				}
-
-				expect(instance.query(queryFilter(query)).length).toBe(expectedV);
-			});
-
-			it('should return all elements matching filter up to limit', () => {
-				expect(instance.size()).toBe(ITEMS.length);
-				const query = 45;
-				expect(instance.query(queryFilter(query)).length).toBe(0);
-
-				const expectedV = 5;
-				for (let i = 0; i < expectedV * 2; i++) {
-					instance.push(query);
-				}
-
-				spyOpts.mockReturnValue({limit: expectedV});
-				expect(instance.query(queryFilter(query)).length).toBe(expectedV);
-			});
-
-			it('should return elements that match all filters', () => {
-				const customFilter = function (target: number, lessthan: boolean): ADTQueryFilter<number> {
-					const filter: ADTQueryFilter<number> = (element): boolean => {
-						if (lessthan) {
-							return element < target;
-						} else {
-							return element > target;
-						}
-					};
-
-					return filter;
-				};
-
-				const result = instance.query([customFilter(60, true), customFilter(30, false)]);
-				expect(result.length).toBe(2);
-				const resultValues: number[] = [];
-				result.forEach((res) => {
-					resultValues.push(res.element);
-				});
-				resultValues.sort((a, b) => a - b);
-				expect(resultValues).toEqual([40, 50]);
-			});
-		});
-
-		describe('reset', () => {
-			it('should not throw if state has errors', () => {
-				instance.state.elements = '' as any;
-				expect(() => {
-					instance.reset();
-				}).not.toThrow();
-			});
-
-			it('should return the pq', () => {
-				expect(instance.reset()).toBe(instance);
-			});
-
-			it('should call clearElements', () => {
-				const spy = jest.spyOn(instance, 'clearElements');
-				expect(spy).not.toBeCalled();
-
-				instance.reset();
-				expect(spy).toBeCalled();
-			});
-		});
-
-		describe('size', () => {
-			isValidStateRuns((obj) => {
-				obj.size();
-			});
-
-			it('should return null if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
-				expect(instance.size()).toBe(0);
-			});
-
-			it('should return 0 when priority queue is empty', () => {
-				expect(instance.size()).toBe(0);
-			});
-
-			it('should return 1 when pq has 1 item', () => {
-				instance.push(Math.floor(Math.random() * 99999));
-				expect(instance.size()).toBe(1);
-			});
-
-			it('should return the number of items in priority queue', () => {
-				const limit = 5;
-
-				for (let i = 0; i < limit; i++) {
-					instance.push(Math.floor(Math.random() * 99999));
-					expect(instance.size()).toBe(i + 1);
-				}
-
-				expect(instance.size()).toBe(limit);
-			});
-		});
-
-		describe('stringify', () => {
-			isValidStateRuns((obj) => {
-				obj.stringify();
-			});
-
-			it('should return null if isValidState returns false', () => {
-				const spy = jest.spyOn(instance, 'isValidState').mockReturnValueOnce(false);
-				expect(instance.stringify()).toBeNull();
-			});
-
-			it('should return the state as a string if it is validated', () => {
-				const custom = new ADTPriorityQueue<number>(comparator);
-				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'pqState',
-					elements: []
-				});
-
-				custom.push(30);
-				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'pqState',
-					elements: [30]
-				});
-
-				custom.push(20);
-				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'pqState',
-					elements: [20, 30]
-				});
-
-				custom.push(10);
-				expect(JSON.parse(custom.stringify()!)).toStrictEqual({
-					type: 'pqState',
-					elements: [10, 30, 20]
-				});
-			});
-		});
+	it('using queries', () => {
+		queue.push(null);
+		const queryLimit = 1;
+		const queries = queue.query([(v) => typeof v === 'number', (v) => !!v], {limit: queryLimit});
+		const queryLength = queries.length;
+		const queueSize = queue.size();
+		expect(queries.length).toBe(Math.min(queueSize, queryLimit));
+
+		const queryToDelete = queries[0];
+		expect(queryToDelete.key()).toBeNull();
+		expect(queryToDelete.index()).not.toBeNull();
+		queryToDelete.delete();
+		expect(queries.length).toBe(queryLength);
+		expect(queue.size()).toBe(queueSize - 1);
+		queryToDelete.delete();
+
+		queue.reset();
+		queue.push(30);
+		queue.query((v) => v === 30)[0].delete();
+		expect(queue.size()).toBe(0);
 	});
 });

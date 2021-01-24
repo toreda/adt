@@ -1,9 +1,9 @@
-export interface ADTObjectPoolOptions<T> {
-	serializedState?: string;
-
+export interface ADTObjectPoolOptions {
 	autoIncrease?: boolean;
-	startSize?: number;
-	maxSize?: number;
 	increaseBreakPoint?: number;
 	increaseFactor?: number;
+	instanceArgs?: unknown[];
+	maxSize?: number;
+	serializedState?: string;
+	startSize?: number;
 }

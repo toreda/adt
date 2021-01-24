@@ -21,7 +21,6 @@ export * from './object-pool/state';
 
 // Priority Queue
 export * from './priority-queue';
-export * from './priority-queue/children';
 export * from './priority-queue/comparator';
 export * from './priority-queue/options';
 export * from './priority-queue/state';

@@ -1,9 +1,9 @@
 export interface ADTCircularQueueState<T> {
-	type: 'cqState';
 	elements: T[];
-	overwrite: boolean;
-	size: number;
-	maxSize: number;
 	front: number;
+	maxSize: number;
+	overwrite: boolean;
 	rear: number;
+	size: number;
+	type: 'CircularQueue';
 }
