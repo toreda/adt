@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import {ADTQueue} from '../src/queue';
-import {ADTQueueOptions} from '../src/queue/options';
+import { ADTQueue } from '../src/queue';
+import { ADTQueueOptions } from '../src/queue/options';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -34,14 +34,14 @@ describe('INSTANTIATION', () => {
 
 	it('stringify queue', () => {
 		const stringified = queue.stringify();
-		expect(new ADTQueue({serializedState: stringified})).toEqual(queue);
+		expect(new ADTQueue({ serializedState: stringified })).toEqual(queue);
 	});
 
 	it('with serialized', () => {
-		expect(new ADTQueue({serializedState: ''})).toBeInstanceOf(ADTQueue);
-		const source = new ADTQueue({elements: [2, 3, 4]});
+		expect(new ADTQueue({ serializedState: '' })).toBeInstanceOf(ADTQueue);
+		const source = new ADTQueue({ elements: [2, 3, 4] });
 		const serialized = source.stringify();
-		const result = new ADTQueue({serializedState: serialized});
+		const result = new ADTQueue({ serializedState: serialized });
 		expect(result).toBeInstanceOf(ADTQueue);
 		expect(result).toEqual(source);
 		expect(result.size()).toBe(3);
@@ -49,22 +49,22 @@ describe('INSTANTIATION', () => {
 
 	it('invalid', () => {
 		expect(() => {
-			const result = new ADTQueue({elements: 'adsf' as any});
+			const result = new ADTQueue({ elements: 'adsf' as any });
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTQueue({serializedState: 'null'});
+			const result = new ADTQueue({ serializedState: 'null' });
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTQueue({serializedState: 'in{valid'});
+			const result = new ADTQueue({ serializedState: 'in{valid' });
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTQueue({serializedState: '{"elements": [4]}'});
+			const result = new ADTQueue({ serializedState: '{"elements": [4]}' });
 			console.log(result);
 		}).toThrow();
 	});
@@ -150,6 +150,16 @@ describe('ARRAY LIKE USAGE', () => {
 	});
 });
 
+describe('Iteration', () => {
+	it('should not throw when using for of', () => {
+		expect(() => {
+			for (const item of queue as any) {
+
+			}
+		}).not.toThrow();
+	});
+});
+
 describe('QUERY', () => {
 	beforeEach(add10Items);
 
@@ -178,7 +188,7 @@ describe('QUERY', () => {
 	it('using queries', () => {
 		queue.push(null);
 		const queryLimit = 1;
-		const queries = queue.query([(v) => typeof v === 'number', (v) => !!v], {limit: queryLimit});
+		const queries = queue.query([(v) => typeof v === 'number', (v) => !!v], { limit: queryLimit });
 		const queryLength = queries.length;
 		const queueSize = queue.size();
 		expect(queries.length).toBe(Math.min(queueSize, queryLimit));
