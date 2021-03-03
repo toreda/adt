@@ -1,8 +1,10 @@
 import {ADTBase} from './base';
+import { ADTBaseElement } from './base/element';
 import {ADTQueueOptions as Options} from './queue/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
+import { QueueIterator } from './queue/iterator';
 import {ADTQueueState as State} from './queue/state';
 import {isNumber} from './utility';
 
@@ -13,6 +15,9 @@ export class ADTQueue<T> implements ADTBase<T> {
 		// Shallow clone by default.
 		// TODO: Add deep copy option.
 		this.state = this.parseOptions(options);
+	}
+	[Symbol.iterator](): QueueIterator<T> {
+		return new QueueIterator<T>(this);
 	}
 
 	public peek(): T | null {
