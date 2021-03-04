@@ -1,15 +1,15 @@
 import {ADTBase} from './base';
-import { ADTBaseElement } from './base/element';
+import {ADTBaseElement} from './base/element';
 import {ADTQueueOptions as Options} from './queue/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
-import { QueueIterator } from './queue/iterator';
+import {QueueIterator} from './queue/iterator';
 import {ADTQueueState as State} from './queue/state';
 import {isNumber} from './utility';
 
 export class ADTQueue<T> implements ADTBase<T> {
-	private readonly state: State<T>;
+	public readonly state: State<T>;
 
 	constructor(options?: Options<T>) {
 		// Shallow clone by default.
