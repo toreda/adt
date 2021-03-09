@@ -206,6 +206,19 @@ describe('ARRAY LIKE USAGE', () => {
 	});
 });
 
+describe('Iteration', () => {
+	beforeEach(add10Items);
+	it('should not throw when using for of', () => {
+		const arr: any = [];
+		expect(() => {
+			for (const item of list) {
+				arr.push(item);
+			}
+		}).not.toThrow();
+		expect(arr.length).toBe(10);
+	});
+});
+
 describe('QUERY', () => {
 	beforeEach(add10Items);
 

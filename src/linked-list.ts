@@ -1,5 +1,6 @@
 import {ADTBase} from './base';
 import {ADTLinkedListElement as Element} from './linked-list/element';
+import {LinkedListIterator} from './linked-list/iterator';
 import {ADTLinkedListOptions as Options} from './linked-list/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
@@ -8,7 +9,7 @@ import {ADTLinkedListState as State} from './linked-list/state';
 import {isNumber} from './utility';
 
 export class ADTLinkedList<T> implements ADTBase<T> {
-	private readonly state: State<T>;
+	public readonly state: State<T>;
 
 	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
@@ -19,7 +20,9 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 
 		this.state.elements = [];
 	}
-
+	[Symbol.iterator](): LinkedListIterator<T> {
+		return new LinkedListIterator<T>(this);
+	}
 	public insertAtHead(element: T): Element<T> | null {
 		const node = new Element<T>(element);
 		const head = this.head();

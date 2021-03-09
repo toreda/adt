@@ -1,5 +1,4 @@
 import {ADTBase} from './base';
-import {ADTBaseElement} from './base/element';
 import {ADTQueueOptions as Options} from './queue/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
