@@ -1,4 +1,4 @@
-import {IterableType} from './queue/iterator';
+import {IterableType} from './iterable-type';
 
 export interface Iterator<ItemT> {
 	next: () => IterableType<ItemT>;

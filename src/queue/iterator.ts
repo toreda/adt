@@ -1,10 +1,6 @@
 import {ADTQueue} from '../queue';
+import {IterableType} from '../iterable-type';
 import {Iterator} from '../iterator';
-
-export interface IterableType<T> {
-	value: T;
-	done: boolean;
-}
 
 export class QueueIterator<ItemT> implements Iterator<ItemT | null> {
 	public curr: number;

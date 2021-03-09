@@ -1,9 +1,6 @@
 import {ADTLinkedList} from '../linked-list';
+import {IterableType} from '../iterable-type';
 
-export interface IterableType<T> {
-	value: T;
-	done: boolean;
-}
 export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
 	public curr: number;
 	public readonly linkedList: ADTLinkedList<ItemT>;
