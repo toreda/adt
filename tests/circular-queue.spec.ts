@@ -214,6 +214,18 @@ describe('ARRAY LIKE USAGE', () => {
 		});
 	});
 });
+describe('Iteration', () => {
+	beforeEach(add10ItemsCirc);
+	it('should not throw when using for of', () => {
+		const arr: any = [];
+		expect(() => {
+			for (const item of circ) {
+				arr.push(item);
+			}
+		}).not.toThrow();
+		expect(arr.length).toBe(optionsCirc.maxSize);
+	});
+});
 
 describe('QUERY', () => {
 	beforeEach(add10ItemsQueue);

@@ -1,6 +1,7 @@
 import {isInteger, isNumber} from './utility';
 
 import {ADTBase} from './base';
+import {CircularQueueIterator} from './circular-queue/iterator';
 import {ADTCircularQueueOptions as Options} from './circular-queue/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
@@ -8,12 +9,14 @@ import {ADTQueryResult as QueryResult} from './query/result';
 import {ADTCircularQueueState as State} from './circular-queue/state';
 
 export class ADTCircularQueue<T> implements ADTBase<T> {
-	private readonly state: State<T>;
+	public readonly state: State<T>;
 
 	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
 	}
-
+	[Symbol.iterator](): CircularQueueIterator<T> {
+		return new CircularQueueIterator<T>(this);
+	}
 	public peek(): T | null {
 		return this.front();
 	}
