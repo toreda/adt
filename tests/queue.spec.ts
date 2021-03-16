@@ -3,6 +3,7 @@
 
 import {ADTQueue} from '../src/queue';
 import {ADTQueueOptions} from '../src/queue/options';
+import {QueueIterator} from '../src/queue/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -151,8 +152,28 @@ describe('ARRAY LIKE USAGE', () => {
 });
 
 describe('Iteration', () => {
-	beforeEach(add10Items);
+	it('should work with empty queue', () => {
+		const iter = new QueueIterator(queue);
+		expect(() => {
+			const res = iter.next();
+			expect(res.value).toBe(null);
+			expect(res.done).toBe(true);
+		}).not.toThrow();
+	});
+
+	it('should work with one element', () => {
+		queue.push('string');
+		const iter = new QueueIterator(queue);
+		let res = iter.next();
+		expect(res.value).toBe('string');
+		expect(res.done).toBe(false);
+		res = iter.next();
+		expect(res.value).toBe(null);
+		expect(res.done).toBe(true);
+	});
+
 	it('should not throw when using for of', () => {
+		add10Items();
 		const arr: any = [];
 		expect(() => {
 			for (const item of queue) {
@@ -160,6 +181,8 @@ describe('Iteration', () => {
 			}
 		}).not.toThrow();
 		expect(arr.length).toBe(10);
+		expect(arr[0]).toBe(10);
+		expect(arr[9]).toBe(100);
 	});
 });
 

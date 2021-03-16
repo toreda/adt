@@ -3,6 +3,7 @@
 
 import {ADTLinkedList} from '../src/linked-list';
 import {ADTLinkedListOptions} from '../src/linked-list/options';
+import {LinkedListIterator} from '../src/linked-list/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f();
@@ -208,6 +209,24 @@ describe('ARRAY LIKE USAGE', () => {
 
 describe('Iteration', () => {
 	beforeEach(add10Items);
+	it('should not throw on empty list', () => {
+		const link = new LinkedListIterator(list);
+		expect(() => {
+			const res = link.next();
+			expect(res.value).toBe(null);
+			expect(res.done).toBe(true);
+		}).not.toThrow();
+	});
+	it('should work with one element', () => {
+		list.insert('string');
+		const link = new LinkedListIterator(list);
+		let res = link.next();
+		expect(res.value).toBe('string');
+		expect(res.done).toBe(false);
+		res = link.next();
+		expect(res.value).toBe(null);
+		expect(res.done).toBe(true);
+	});
 	it('should not throw when using for of', () => {
 		const arr: any = [];
 		expect(() => {
@@ -216,6 +235,8 @@ describe('Iteration', () => {
 			}
 		}).not.toThrow();
 		expect(arr.length).toBe(10);
+		expect(arr[0]).toBe(100);
+		expect(arr[9]).toBe(10);
 	});
 });
 

@@ -15,6 +15,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 		// TODO: Add deep copy option.
 		this.state = this.parseOptions(options);
 	}
+
 	[Symbol.iterator](): QueueIterator<T> {
 		return new QueueIterator<T>(this);
 	}

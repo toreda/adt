@@ -10,6 +10,7 @@ export class CircularQueueIterator<ItemT> implements Iterator<ItemT | null> {
 		this.circularQueue = cq;
 		this.curr = 0;
 	}
+
 	next(): IterableType<ItemT | null> {
 		if (!this.circularQueue.size() || this.curr >= this.circularQueue.size()) {
 			return {

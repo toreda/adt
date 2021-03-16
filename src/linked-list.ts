@@ -20,9 +20,11 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 
 		this.state.elements = [];
 	}
+
 	[Symbol.iterator](): LinkedListIterator<T> {
 		return new LinkedListIterator<T>(this);
 	}
+
 	public insertAtHead(element: T): Element<T> | null {
 		const node = new Element<T>(element);
 		const head = this.head();

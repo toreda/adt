@@ -10,6 +10,7 @@ export class QueueIterator<ItemT> implements Iterator<ItemT | null> {
 		this.queue = queue;
 		this.curr = 0;
 	}
+
 	next(): IterableType<ItemT | null> {
 		if (!this.queue.size() || this.curr >= this.queue.size()) {
 			return {
