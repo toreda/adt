@@ -152,71 +152,90 @@ describe('ARRAY LIKE USAGE', () => {
 });
 
 describe('Iterator', () => {
-	it('should not throw when calling iter.next on an empty queue', () => {
-		const iter = new QueueIterator(queue);
-		expect(() => {
-			iter.next();
-		}).not.toThrow();
-	});
+	describe('Iterator for empty queue', () => {
+		it('should not throw when calling iter.next', () => {
+			const iter = new QueueIterator(queue);
+			expect(() => {
+				iter.next();
+			}).not.toThrow();
+		});
 
-	it('should return true for done when queue is empty', () => {
-		const iter = new QueueIterator(queue);
-		expect(() => {
-			const res = iter.next();
-			expect(res.done).toBe(true);
-		}).not.toThrow();
-	});
+		it('should return true for done', () => {
+			const iter = new QueueIterator(queue);
+			expect(() => {
+				const res = iter.next();
+				expect(res.done).toBe(true);
+			}).not.toThrow();
+		});
 
-	it('should return null for value when queue is empty', () => {
-		const iter = new QueueIterator(queue);
-		expect(() => {
-			const res = iter.next();
+		it('should return null for value', () => {
+			const iter = new QueueIterator(queue);
+			expect(() => {
+				const res = iter.next();
+				expect(res.value).toBe(null);
+			}).not.toThrow();
+		});
+	});
+	describe('Iterator on singleton queue', () => {
+		it('should not throw when calling iter.next', () => {
+			queue.push('string');
+			const iter = new QueueIterator(queue);
+			let res = iter.next();
+			expect(res.value).toBe('string');
+			expect(res.done).toBe(false);
+			res = iter.next();
 			expect(res.value).toBe(null);
-		}).not.toThrow();
-	});
+			expect(res.done).toBe(true);
+		});
 
-	it('should not throw when calling iter.next on singleton', () => {
-		queue.push('string');
-		const iter = new QueueIterator(queue);
-		let res = iter.next();
-		expect(res.value).toBe('string');
-		expect(res.done).toBe(false);
-		res = iter.next();
-		expect(res.value).toBe(null);
-		expect(res.done).toBe(true);
-	});
+		it('should return true for done', () => {
+			queue.push('string');
+			const iter = new QueueIterator(queue);
+			let res = iter.next();
+			expect(res.value).toBe('string');
+			expect(res.done).toBe(false);
+			res = iter.next();
+			expect(res.done).toBe(true);
+		});
 
-	it('should return true for done when queue is singleton', () => {
-		queue.push('string');
-		const iter = new QueueIterator(queue);
-		let res = iter.next();
-		expect(res.value).toBe('string');
-		expect(res.done).toBe(false);
-		res = iter.next();
-		expect(res.done).toBe(true);
+		it('should return null for value', () => {
+			queue.push('string');
+			const iter = new QueueIterator(queue);
+			let res = iter.next();
+			expect(res.value).toBe('string');
+			expect(res.done).toBe(false);
+			res = iter.next();
+			expect(res.value).toBe(null);
+		});
 	});
+	describe('Iterator on queue', () => {
+		it('should not throw when using iterator', () => {
+			add10Items();
+			queue.push(110);
+			const arr: any = [];
+			expect(() => {
+				for (const item of queue) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(11);
+			expect(arr[0]).toBe(10);
+			expect(arr[11]).toBe(110);
+		});
 
-	it('should return null for value when queue is singleton', () => {
-		queue.push('string');
-		const iter = new QueueIterator(queue);
-		let res = iter.next();
-		expect(res.value).toBe('string');
-		expect(res.done).toBe(false);
-		res = iter.next();
-		expect(res.value).toBe(null);
-	});
-
-	it('should not throw when using for of', () => {
-		add10Items();
-		const arr: any = [];
-		expect(() => {
-			for (const item of queue) {
-				arr.push(item);
-			}
-		}).not.toThrow();
-		expect(arr.length).toBe(10);
-		expect(arr[0]).toBe(10);
-		expect(arr[9]).toBe(100);
+		it('should return value', () => {
+			add10Items();
+			queue.push(110);
+			const arr: any = [];
+			expect(() => {
+				for (const item of queue) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(11);
+			expect(arr[0]).toBe(10);
+			expect(arr[11]).toBe(110);
+		});
 	});
 });
 
