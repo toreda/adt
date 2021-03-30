@@ -1,23 +1,23 @@
 import {ADTLinkedList} from '../linked-list';
+import {ADTLinkedListElement as Element} from '../linked-list/element';
 import {IterableType} from '../iterable-type';
 
 export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
-	public curr: number;
-	public readonly linkedList: ADTLinkedList<ItemT>;
+	private item: Element<ItemT> | null;
 
 	constructor(linkedList: ADTLinkedList<ItemT>) {
-		this.linkedList = linkedList;
-		this.curr = 0;
+		this.item = linkedList.head();
 	}
+
 	next(): IterableType<ItemT | null> {
-		if (!this.linkedList.size() || this.curr >= this.linkedList.size()) {
+		if (this.item == null) {
 			return {
 				value: null,
 				done: true
 			};
 		}
-		const value = this.linkedList.state.elements[this.curr];
-		this.curr++;
+		const value = this.item.value();
+		this.item = this.item.next();
 		return {value: value, done: false};
 	}
 }

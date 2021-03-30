@@ -207,36 +207,88 @@ describe('ARRAY LIKE USAGE', () => {
 	});
 });
 
-describe('Iteration', () => {
-	beforeEach(add10Items);
-	it('should not throw on empty list', () => {
-		const link = new LinkedListIterator(list);
-		expect(() => {
-			const res = link.next();
+describe('Iterator', () => {
+	describe('Iterator on empty linked-list', () => {
+		it('should not throw when calling iter.next', () => {
+			const iter = new LinkedListIterator(list);
+			expect(() => {
+				iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			const iter = new LinkedListIterator(list);
+			expect(() => {
+				const res = iter.next();
+				expect(res.done).toBe(true);
+			}).not.toThrow();
+		});
+
+		it('should return null for value', () => {
+			const iter = new LinkedListIterator(list);
+			expect(() => {
+				const res = iter.next();
+				expect(res.value).toBe(null);
+			}).not.toThrow();
+		});
+	});
+
+	describe('Iterator on single element linked-list', () => {
+		it('should not throw calling iter.next()', () => {
+			list.insert('string');
+			const iter = new LinkedListIterator(list);
+			let res = iter.next();
+			expect(res.value).toBe('string');
+			expect(res.done).toBe(false);
+			res = iter.next();
+		});
+
+		it('should return null for value', () => {
+			list.insert('string');
+			const iter = new LinkedListIterator(list);
+			let res = iter.next();
+			expect(res.value).toBe('string');
+			expect(res.done).toBe(false);
+			res = iter.next();
 			expect(res.value).toBe(null);
+		});
+
+		it('should return true for done', () => {
+			list.insert('string');
+			const iter = new LinkedListIterator(list);
+			let res = iter.next();
+			expect(res.value).toBe('string');
+			expect(res.done).toBe(false);
+			res = iter.next();
 			expect(res.done).toBe(true);
-		}).not.toThrow();
+		});
 	});
-	it('should work with one element', () => {
-		list.insert('string');
-		const link = new LinkedListIterator(list);
-		let res = link.next();
-		expect(res.value).toBe('string');
-		expect(res.done).toBe(false);
-		res = link.next();
-		expect(res.value).toBe(null);
-		expect(res.done).toBe(true);
-	});
-	it('should not throw when using for of', () => {
-		const arr: any = [];
-		expect(() => {
-			for (const item of list) {
-				arr.push(item);
-			}
-		}).not.toThrow();
-		expect(arr.length).toBe(10);
-		expect(arr[0]).toBe(100);
-		expect(arr[9]).toBe(10);
+
+	describe('Iterator on linked-list', () => {
+		beforeEach(add10Items);
+		it('should not throw when using for of', () => {
+			const arr: any = [];
+			expect(() => {
+				for (const item of list) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(10);
+			expect(arr[0]).toBe(list.head()?.value());
+			expect(arr[9]).toBe(list.tail()?.value());
+		});
+		it('should not throw when adding to the linkedlist using for of', () => {
+			list.insert(20);
+			const arr: any = [];
+			expect(() => {
+				for (const item of list) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(11);
+			expect(arr[0]).toBe(list.head()?.value());
+			expect(arr[10]).toBe(list.tail()?.value());
+		});
 	});
 });
 

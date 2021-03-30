@@ -9,7 +9,7 @@ import {ADTLinkedListState as State} from './linked-list/state';
 import {isNumber} from './utility';
 
 export class ADTLinkedList<T> implements ADTBase<T> {
-	public readonly state: State<T>;
+	private readonly state: State<T>;
 
 	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);

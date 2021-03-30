@@ -220,7 +220,7 @@ describe('Iterator', () => {
 			}).not.toThrow();
 			expect(arr.length).toBe(11);
 			expect(arr[0]).toBe(10);
-			expect(arr[11]).toBe(110);
+			expect(arr[10]).toBe(110);
 		});
 
 		it('should return value', () => {
@@ -234,7 +234,7 @@ describe('Iterator', () => {
 			}).not.toThrow();
 			expect(arr.length).toBe(11);
 			expect(arr[0]).toBe(10);
-			expect(arr[11]).toBe(110);
+			expect(arr[10]).toBe(110);
 		});
 	});
 });
