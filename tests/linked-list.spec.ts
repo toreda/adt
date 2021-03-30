@@ -237,30 +237,36 @@ describe('Iterator', () => {
 		it('should not throw calling iter.next()', () => {
 			list.insert('string');
 			const iter = new LinkedListIterator(list);
-			let res = iter.next();
-			expect(res.value).toBe('string');
-			expect(res.done).toBe(false);
-			res = iter.next();
+			expect(() => {
+				let res = iter.next();
+				expect(res.value).toBe('string');
+				expect(res.done).toBe(false);
+				res = iter.next();
+			}).not.toThrow();
 		});
 
 		it('should return null for value', () => {
 			list.insert('string');
 			const iter = new LinkedListIterator(list);
-			let res = iter.next();
-			expect(res.value).toBe('string');
-			expect(res.done).toBe(false);
-			res = iter.next();
-			expect(res.value).toBe(null);
+			expect(() => {
+				let res = iter.next();
+				expect(res.value).toBe('string');
+				expect(res.done).toBe(false);
+				res = iter.next();
+				expect(res.value).toBe(null);
+			});
 		});
 
 		it('should return true for done', () => {
 			list.insert('string');
 			const iter = new LinkedListIterator(list);
-			let res = iter.next();
-			expect(res.value).toBe('string');
-			expect(res.done).toBe(false);
-			res = iter.next();
-			expect(res.done).toBe(true);
+			expect(() => {
+				let res = iter.next();
+				expect(res.value).toBe('string');
+				expect(res.done).toBe(false);
+				res = iter.next();
+				expect(res.done).toBe(true);
+			});
 		});
 	});
 
@@ -273,10 +279,11 @@ describe('Iterator', () => {
 					arr.push(item);
 				}
 			}).not.toThrow();
-			expect(arr.length).toBe(10);
+			expect(arr.length).toBe(list.size());
 			expect(arr[0]).toBe(list.head()?.value());
-			expect(arr[9]).toBe(list.tail()?.value());
+			expect(arr[arr.length - 1]).toBe(list.tail()?.value());
 		});
+
 		it('should not throw when adding to the linkedlist using for of', () => {
 			list.insert(20);
 			const arr: any = [];
@@ -285,9 +292,9 @@ describe('Iterator', () => {
 					arr.push(item);
 				}
 			}).not.toThrow();
-			expect(arr.length).toBe(11);
+			expect(arr.length).toBe(list.size());
 			expect(arr[0]).toBe(list.head()?.value());
-			expect(arr[10]).toBe(list.tail()?.value());
+			expect(arr[arr.length - 1]).toBe(list.tail()?.value());
 		});
 	});
 });

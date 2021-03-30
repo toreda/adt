@@ -180,32 +180,38 @@ describe('Iterator', () => {
 		it('should not throw when calling iter.next', () => {
 			queue.push('string');
 			const iter = new QueueIterator(queue);
-			let res = iter.next();
-			expect(res.value).toBe('string');
-			expect(res.done).toBe(false);
-			res = iter.next();
-			expect(res.value).toBe(null);
-			expect(res.done).toBe(true);
+			expect(() => {
+				let res = iter.next();
+				expect(res.value).toBe('string');
+				expect(res.done).toBe(false);
+				res = iter.next();
+				expect(res.value).toBe(null);
+				expect(res.done).toBe(true);
+			}).not.toThrow();
 		});
 
 		it('should return true for done', () => {
 			queue.push('string');
 			const iter = new QueueIterator(queue);
-			let res = iter.next();
-			expect(res.value).toBe('string');
-			expect(res.done).toBe(false);
-			res = iter.next();
-			expect(res.done).toBe(true);
+			expect(() => {
+				let res = iter.next();
+				expect(res.value).toBe('string');
+				expect(res.done).toBe(false);
+				res = iter.next();
+				expect(res.done).toBe(true);
+			}).not.toThrow();
 		});
 
 		it('should return null for value', () => {
 			queue.push('string');
 			const iter = new QueueIterator(queue);
-			let res = iter.next();
-			expect(res.value).toBe('string');
-			expect(res.done).toBe(false);
-			res = iter.next();
-			expect(res.value).toBe(null);
+			expect(() => {
+				let res = iter.next();
+				expect(res.value).toBe('string');
+				expect(res.done).toBe(false);
+				res = iter.next();
+				expect(res.value).toBe(null);
+			}).not.toThrow();
 		});
 	});
 	describe('Iterator on queue', () => {
@@ -218,9 +224,9 @@ describe('Iterator', () => {
 					arr.push(item);
 				}
 			}).not.toThrow();
-			expect(arr.length).toBe(11);
+			expect(arr.length).toBe(queue.size());
 			expect(arr[0]).toBe(10);
-			expect(arr[10]).toBe(110);
+			expect(arr[arr.length - 1]).toBe(110);
 		});
 
 		it('should return value', () => {
@@ -232,9 +238,9 @@ describe('Iterator', () => {
 					arr.push(item);
 				}
 			}).not.toThrow();
-			expect(arr.length).toBe(11);
+			expect(arr.length).toBe(queue.size());
 			expect(arr[0]).toBe(10);
-			expect(arr[10]).toBe(110);
+			expect(arr[arr.length - 1]).toBe(110);
 		});
 	});
 });

@@ -9,7 +9,7 @@ import {ADTQueryResult as QueryResult} from './query/result';
 import {ADTCircularQueueState as State} from './circular-queue/state';
 
 export class ADTCircularQueue<T> implements ADTBase<T> {
-	public readonly state: State<T>;
+	private readonly state: State<T>;
 
 	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
