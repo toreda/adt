@@ -1,6 +1,7 @@
 import {ADTCircularQueue} from '../circular-queue';
 import {IterableType} from '../iterable-type';
 import {Iterator} from '../iterator';
+import {makeIterableType} from '../makeIterableType';
 
 export class CircularQueueIterator<ItemT> implements Iterator<ItemT | null> {
 	private curr: number;
@@ -13,13 +14,10 @@ export class CircularQueueIterator<ItemT> implements Iterator<ItemT | null> {
 
 	next(): IterableType<ItemT | null> {
 		if (this.circularQueue.isEmpty() || this.curr >= this.circularQueue.size()) {
-			return {
-				value: null,
-				done: true
-			};
+			return makeIterableType<ItemT | null>(null, true);
 		}
 		const value = this.circularQueue.getIndex(this.curr);
 		this.curr++;
-		return {value: value, done: false};
+		return makeIterableType<ItemT | null>(value, false);
 	}
 }

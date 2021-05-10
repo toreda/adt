@@ -1,6 +1,7 @@
 import {ADTQueue} from '../queue';
 import {IterableType} from '../iterable-type';
 import {Iterator} from '../iterator';
+import {makeIterableType} from '../makeIterableType';
 
 export class QueueIterator<ItemT> implements Iterator<ItemT | null> {
 	public curr: number;
@@ -13,13 +14,10 @@ export class QueueIterator<ItemT> implements Iterator<ItemT | null> {
 
 	next(): IterableType<ItemT | null> {
 		if (!this.queue.size() || this.curr >= this.queue.size()) {
-			return {
-				value: null,
-				done: true
-			};
+			return makeIterableType<ItemT | null>(null, true);
 		}
 		const value = this.queue.state.elements[this.curr];
 		this.curr++;
-		return {value: value, done: false};
+		return makeIterableType<ItemT | null>(value, false);
 	}
 }

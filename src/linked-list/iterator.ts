@@ -1,6 +1,7 @@
 import {ADTLinkedList} from '../linked-list';
 import {ADTLinkedListElement as Element} from '../linked-list/element';
 import {IterableType} from '../iterable-type';
+import {makeIterableType} from '../makeIterableType';
 
 export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
 	private item: Element<ItemT> | null;
@@ -10,14 +11,11 @@ export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
 	}
 
 	next(): IterableType<ItemT | null> {
-		if (this.item == null) {
-			return {
-				value: null,
-				done: true
-			};
+		if (!this.item) {
+			return makeIterableType<ItemT | null>(null, true);
 		}
 		const value = this.item.value();
 		this.item = this.item.next();
-		return {value: value, done: false};
+		return makeIterableType<ItemT | null>(value, false);
 	}
 }

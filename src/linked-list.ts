@@ -79,7 +79,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	}
 
 	public removeNode(node: Element<T> | null): T | null {
-		if (node == null) {
+		if (!node) {
 			return null;
 		}
 
