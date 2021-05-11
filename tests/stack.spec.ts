@@ -3,6 +3,7 @@
 
 import {ADTStack} from '../src/stack';
 import {ADTStackOptions} from '../src/stack/options';
+import {StackIterator} from '../src/stack/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -147,6 +148,100 @@ describe('ARRAY LIKE USAGE', () => {
 		stack.push(Math.random());
 		const singleItem = stack.peek();
 		expect(stack.reverse().peek()).toBe(singleItem);
+	});
+});
+
+describe('Iterator', () => {
+	describe('Iterator for empty stack', () => {
+		it('should not throw when calling iter.next', () => {
+			const iter = new StackIterator(stack);
+			expect(() => {
+				iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			const iter = new StackIterator(stack);
+			expect(() => {
+				const res = iter.next();
+				expect(res.done).toBe(true);
+			}).not.toThrow();
+		});
+
+		it('should return null for value', () => {
+			const iter = new StackIterator(stack);
+			expect(() => {
+				const res = iter.next();
+				expect(res.value).toBe(null);
+			}).not.toThrow();
+		});
+	});
+	describe('Iterator on singleton stack', () => {
+		it('should not throw when calling iter.next', () => {
+			stack.push('string');
+			const iter = new StackIterator(stack);
+			expect(() => {
+				let res = iter.next();
+				expect(res.value).toBe('string');
+				expect(res.done).toBe(false);
+				res = iter.next();
+				expect(res.value).toBe(null);
+				expect(res.done).toBe(true);
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			stack.push('string');
+			const iter = new StackIterator(stack);
+			expect(() => {
+				let res = iter.next();
+				expect(res.value).toBe('string');
+				expect(res.done).toBe(false);
+				res = iter.next();
+				expect(res.done).toBe(true);
+			}).not.toThrow();
+		});
+
+		it('should return null for value', () => {
+			stack.push('string');
+			const iter = new StackIterator(stack);
+			expect(() => {
+				let res = iter.next();
+				expect(res.value).toBe('string');
+				expect(res.done).toBe(false);
+				res = iter.next();
+				expect(res.value).toBe(null);
+			}).not.toThrow();
+		});
+	});
+	describe('Iterator on stack', () => {
+		it('should not throw when using iterator', () => {
+			add10Items();
+			stack.push(110);
+			const arr: any = [];
+			expect(() => {
+				for (const item of stack) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(stack.size());
+			expect(arr[0]).toBe(10);
+			expect(arr[arr.length - 1]).toBe(110);
+		});
+
+		it('should return value', () => {
+			add10Items();
+			stack.push(110);
+			const arr: any = [];
+			expect(() => {
+				for (const item of stack) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(stack.size());
+			expect(arr[0]).toBe(10);
+			expect(arr[arr.length - 1]).toBe(110);
+		});
 	});
 });
 

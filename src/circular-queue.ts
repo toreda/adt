@@ -14,9 +14,11 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
 	}
+
 	[Symbol.iterator](): CircularQueueIterator<T> {
 		return new CircularQueueIterator<T>(this);
 	}
+
 	public peek(): T | null {
 		return this.front();
 	}
