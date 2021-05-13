@@ -16,8 +16,11 @@ export class CircularQueueIterator<ItemT> implements Iterator<ItemT | null> {
 		if (this.circularQueue.isEmpty() || this.curr >= this.circularQueue.size()) {
 			return makeIterableType<ItemT | null>(null, true);
 		}
+
 		const value = this.circularQueue.getIndex(this.curr);
+		const done = this.curr === this.circularQueue.size() - 1 ? true : false;
 		this.curr++;
-		return makeIterableType<ItemT | null>(value, false);
+
+		return makeIterableType<ItemT | null>(value, done);
 	}
 }

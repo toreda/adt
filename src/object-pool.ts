@@ -3,6 +3,7 @@ import {isInteger, isNumber} from './utility';
 import {ADTBase} from './base';
 import {ADTObjectPoolConstructor as Constructor} from './object-pool/constructor';
 import {ADTObjectPoolInstance as Instance} from './object-pool/instance';
+import {ObjectPoolIterator} from './object-pool/iterator';
 import {ADTObjectPoolOptions as Options} from './object-pool/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
@@ -10,7 +11,7 @@ import {ADTQueryResult as QueryResult} from './query/result';
 import {ADTObjectPoolState as State} from './object-pool/state';
 
 export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
-	private readonly state: State<T>;
+	public readonly state: State<T>;
 	private readonly objectClass: Constructor<T>;
 	private wastedSpace: number = 0;
 
@@ -24,6 +25,10 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		this.state = this.parseOptions(options);
 
 		this.increaseCapacity(this.state.startSize);
+	}
+
+	[Symbol.iterator](): ObjectPoolIterator<T> {
+		return new ObjectPoolIterator<T>(this);
 	}
 
 	public allocate(): T | null {

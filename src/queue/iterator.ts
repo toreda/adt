@@ -16,8 +16,11 @@ export class QueueIterator<ItemT> implements Iterator<ItemT | null> {
 		if (!this.queue.size() || this.curr >= this.queue.size()) {
 			return makeIterableType<ItemT | null>(null, true);
 		}
+
 		const value = this.queue.state.elements[this.curr];
+		const done = this.curr === this.queue.size() - 1 ? true : false;
 		this.curr++;
-		return makeIterableType<ItemT | null>(value, false);
+
+		return makeIterableType<ItemT | null>(value, done);
 	}
 }

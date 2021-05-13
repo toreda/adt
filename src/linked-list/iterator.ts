@@ -14,8 +14,10 @@ export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
 		if (!this.item) {
 			return makeIterableType<ItemT | null>(null, true);
 		}
+
 		const value = this.item.value();
 		this.item = this.item.next();
+
 		return makeIterableType<ItemT | null>(value, false);
 	}
 }
