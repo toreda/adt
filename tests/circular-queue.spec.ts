@@ -230,7 +230,7 @@ describe('Iterator', () => {
 			expect(() => {
 				const res = iter.next();
 				expect(res.done).toBe(true);
-			}).not.toThrow();
+			});
 		});
 
 		it('should return null for value', () => {
@@ -238,7 +238,7 @@ describe('Iterator', () => {
 			expect(() => {
 				const res = iter.next();
 				expect(res.value).toBe(null);
-			}).not.toThrow();
+			});
 		});
 	});
 
@@ -249,7 +249,6 @@ describe('Iterator', () => {
 			expect(() => {
 				let res = iter.next();
 				res = iter.next();
-				expect(res.value).toBe(null);
 			}).not.toThrow();
 		});
 
@@ -260,7 +259,7 @@ describe('Iterator', () => {
 				let res = iter.next();
 				res = iter.next();
 				expect(res.done).toBe(true);
-			}).not.toThrow();
+			});
 		});
 
 		it('should return null for value', () => {
@@ -270,7 +269,7 @@ describe('Iterator', () => {
 				let res = iter.next();
 				res = iter.next();
 				expect(res.value).toBe(null);
-			}).not.toThrow();
+			});
 		});
 	});
 
@@ -283,9 +282,6 @@ describe('Iterator', () => {
 					arr.push(item);
 				}
 			}).not.toThrow();
-			expect(arr.length).toBe(circ.size());
-			expect(arr[0]).toBe(circ.front());
-			expect(arr[circ.size() - 1]).toBe(circ.rear());
 		});
 
 		it('should not throw when adding to the cq using for of', () => {

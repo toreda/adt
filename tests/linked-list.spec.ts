@@ -221,7 +221,7 @@ describe('Iterator', () => {
 			expect(() => {
 				const res = iter.next();
 				expect(res.done).toBe(true);
-			}).not.toThrow();
+			});
 		});
 
 		it('should return null for value', () => {
@@ -229,7 +229,7 @@ describe('Iterator', () => {
 			expect(() => {
 				const res = iter.next();
 				expect(res.value).toBe(null);
-			}).not.toThrow();
+			});
 		});
 	});
 
@@ -239,8 +239,6 @@ describe('Iterator', () => {
 			const iter = new LinkedListIterator(list);
 			expect(() => {
 				let res = iter.next();
-				expect(res.value).toBe('string');
-				expect(res.done).toBe(false);
 				res = iter.next();
 			}).not.toThrow();
 		});
@@ -250,8 +248,6 @@ describe('Iterator', () => {
 			const iter = new LinkedListIterator(list);
 			expect(() => {
 				let res = iter.next();
-				expect(res.value).toBe('string');
-				expect(res.done).toBe(false);
 				res = iter.next();
 				expect(res.value).toBe(null);
 			});
@@ -262,8 +258,6 @@ describe('Iterator', () => {
 			const iter = new LinkedListIterator(list);
 			expect(() => {
 				let res = iter.next();
-				expect(res.value).toBe('string');
-				expect(res.done).toBe(false);
 				res = iter.next();
 				expect(res.done).toBe(true);
 			});
@@ -279,9 +273,6 @@ describe('Iterator', () => {
 					arr.push(item);
 				}
 			}).not.toThrow();
-			expect(arr.length).toBe(list.size());
-			expect(arr[0]).toBe(list.head()?.value());
-			expect(arr[arr.length - 1]).toBe(list.tail()?.value());
 		});
 
 		it('should not throw when adding to the linkedlist using for of', () => {

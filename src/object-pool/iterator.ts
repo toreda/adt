@@ -15,13 +15,13 @@ export class ObjectPoolIterator<ItemT extends ADTObjectPoolInstance> implements 
 
 	public next(): IterableType<ItemT | null> {
 		if (!this.op.size() || this.curr >= this.op.size()) {
-			return makeIterableType<ItemT | null>(null, true);
+			return makeIterableType(null, true);
 		}
 
 		const value = this.op.state.pool[this.curr];
-		const done = this.curr === this.op.size() - 1 ? true : false;
+		const done = this.curr === this.op.size() ? true : false;
 		this.curr++;
 
-		return makeIterableType<ItemT | null>(value, done);
+		return makeIterableType(value, done);
 	}
 }

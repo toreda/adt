@@ -4,10 +4,12 @@
 import {ADTObjectPool} from '../src/object-pool';
 import {ADTObjectPoolInstance} from '../src/object-pool/instance';
 import {ADTObjectPoolOptions} from '../src/object-pool/options';
+import {ObjectPoolIterator} from '../src/object-pool/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
 };
+const add10Items = (p) => p.allocateMultiple(10);
 
 class objectClass implements ADTObjectPoolInstance {
 	public state: any;
@@ -316,6 +318,86 @@ describe('ARRAY LIKE USAGE', () => {
 
 		pool.map((e) => e.state.atr2, pool).forEach((e) => {
 			expect(e).toBe('red');
+		});
+	});
+});
+
+describe('Iterator', () => {
+	describe('Iterator for empty pool', () => {
+		it('should not throw when calling iter.next', () => {
+			const iter = new ObjectPoolIterator(pool);
+			expect(() => {
+				iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			const iter = new ObjectPoolIterator(pool);
+			expect(() => {
+				const res = iter.next();
+				expect(res.done).toBe(true);
+			});
+		});
+
+		it('should return null for value', () => {
+			const iter = new ObjectPoolIterator(pool);
+			expect(() => {
+				const res = iter.next();
+				expect(res.value).toBe(null);
+			});
+		});
+	});
+	describe('Iterator on singleton pool', () => {
+		it('should not throw when calling iter.next', () => {
+			pool.allocate();
+			const iter = new ObjectPoolIterator(pool);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			pool.allocate();
+			const iter = new ObjectPoolIterator(pool);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+				expect(res.done).toBe(true);
+			});
+		});
+
+		it('should return null for value', () => {
+			pool.allocate();
+			const iter = new ObjectPoolIterator(pool);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+				expect(res.value).toBe(null);
+			});
+		});
+	});
+	describe('Iterator on objectpool', () => {
+		it('should not throw when using iterator', () => {
+			add10Items(pool);
+			const arr: any = [];
+			expect(() => {
+				for (const item of pool) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+		});
+
+		it('should not throw adding element to the object pool using for of', () => {
+			add10Items(pool);
+			const arr: any = [];
+			expect(() => {
+				for (const item of pool) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(pool.size());
+			expect(arr[0]).toBeInstanceOf(objectClass);
 		});
 	});
 });

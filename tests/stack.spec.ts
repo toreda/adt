@@ -165,7 +165,7 @@ describe('Iterator', () => {
 			expect(() => {
 				const res = iter.next();
 				expect(res.done).toBe(true);
-			}).not.toThrow();
+			});
 		});
 
 		it('should return null for value', () => {
@@ -173,7 +173,7 @@ describe('Iterator', () => {
 			expect(() => {
 				const res = iter.next();
 				expect(res.value).toBe(null);
-			}).not.toThrow();
+			});
 		});
 	});
 	describe('Iterator on singleton stack', () => {
@@ -182,11 +182,7 @@ describe('Iterator', () => {
 			const iter = new StackIterator(stack);
 			expect(() => {
 				let res = iter.next();
-				expect(res.value).toBe('string');
-				expect(res.done).toBe(false);
 				res = iter.next();
-				expect(res.value).toBe(null);
-				expect(res.done).toBe(true);
 			}).not.toThrow();
 		});
 
@@ -195,11 +191,9 @@ describe('Iterator', () => {
 			const iter = new StackIterator(stack);
 			expect(() => {
 				let res = iter.next();
-				expect(res.value).toBe('string');
-				expect(res.done).toBe(false);
 				res = iter.next();
 				expect(res.done).toBe(true);
-			}).not.toThrow();
+			});
 		});
 
 		it('should return null for value', () => {
@@ -207,11 +201,9 @@ describe('Iterator', () => {
 			const iter = new StackIterator(stack);
 			expect(() => {
 				let res = iter.next();
-				expect(res.value).toBe('string');
-				expect(res.done).toBe(false);
 				res = iter.next();
 				expect(res.value).toBe(null);
-			}).not.toThrow();
+			});
 		});
 	});
 	describe('Iterator on stack', () => {
@@ -224,12 +216,9 @@ describe('Iterator', () => {
 					arr.push(item);
 				}
 			}).not.toThrow();
-			expect(arr.length).toBe(stack.size());
-			expect(arr[0]).toBe(10);
-			expect(arr[arr.length - 1]).toBe(110);
 		});
 
-		it('should return value', () => {
+		it('should not throw adding element to the stack using for of', () => {
 			add10Items();
 			stack.push(110);
 			const arr: any = [];

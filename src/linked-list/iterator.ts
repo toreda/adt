@@ -12,12 +12,12 @@ export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
 
 	next(): IterableType<ItemT | null> {
 		if (!this.item) {
-			return makeIterableType<ItemT | null>(null, true);
+			return makeIterableType(null, true);
 		}
 
 		const value = this.item.value();
 		this.item = this.item.next();
 
-		return makeIterableType<ItemT | null>(value, false);
+		return makeIterableType(value, false);
 	}
 }
