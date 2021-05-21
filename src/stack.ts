@@ -3,14 +3,19 @@ import {ADTStackOptions as Options} from './stack/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
 import {ADTQueryResult as QueryResult} from './query/result';
+import {StackIterator} from './stack/iterator';
 import {ADTStackState as State} from './stack/state';
 import {isNumber} from './utility';
 
 export class ADTStack<T> implements ADTBase<T> {
-	private readonly state: State<T>;
+	public readonly state: State<T>;
 
 	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
+	}
+
+	[Symbol.iterator](): StackIterator<T> {
+		return new StackIterator<T>(this);
 	}
 
 	public peek(): T | null {

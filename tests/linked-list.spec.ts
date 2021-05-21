@@ -3,6 +3,7 @@
 
 import {ADTLinkedList} from '../src/linked-list';
 import {ADTLinkedListOptions} from '../src/linked-list/options';
+import {LinkedListIterator} from '../src/linked-list/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f();
@@ -203,6 +204,89 @@ describe('ARRAY LIKE USAGE', () => {
 		list.insert(Math.random());
 		const singleItem = list.getAsArray();
 		expect(list.reverse().getAsArray()).toEqual(singleItem.reverse());
+	});
+});
+
+describe('Iterator', () => {
+	describe('Iterator on empty linked-list', () => {
+		it('should not throw when calling iter.next', () => {
+			const iter = new LinkedListIterator(list);
+			expect(() => {
+				iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			const iter = new LinkedListIterator(list);
+			expect(() => {
+				const res = iter.next();
+				expect(res.done).toBe(true);
+			});
+		});
+
+		it('should return null for value', () => {
+			const iter = new LinkedListIterator(list);
+			expect(() => {
+				const res = iter.next();
+				expect(res.value).toBe(null);
+			});
+		});
+	});
+
+	describe('Iterator on single element linked-list', () => {
+		it('should not throw calling iter.next()', () => {
+			list.insert('string');
+			const iter = new LinkedListIterator(list);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return null for value', () => {
+			list.insert('string');
+			const iter = new LinkedListIterator(list);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+				expect(res.value).toBe(null);
+			});
+		});
+
+		it('should return true for done', () => {
+			list.insert('string');
+			const iter = new LinkedListIterator(list);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+				expect(res.done).toBe(true);
+			});
+		});
+	});
+
+	describe('Iterator on linked-list', () => {
+		beforeEach(add10Items);
+		it('should not throw when using for of', () => {
+			const arr: any = [];
+			expect(() => {
+				for (const item of list) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+		});
+
+		it('should not throw when adding to the linkedlist using for of', () => {
+			list.insert(20);
+			const arr: any = [];
+			expect(() => {
+				for (const item of list) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(list.size());
+			expect(arr[0]).toBe(list.head()?.value());
+			expect(arr[arr.length - 1]).toBe(list.tail()?.value());
+		});
 	});
 });
 

@@ -3,6 +3,7 @@
 
 import {ADTQueue} from '../src/queue';
 import {ADTQueueOptions} from '../src/queue/options';
+import {QueueIterator} from '../src/queue/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -147,6 +148,89 @@ describe('ARRAY LIKE USAGE', () => {
 		queue.push(Math.random());
 		const singleItem = queue.peek();
 		expect(queue.reverse().peek()).toBe(singleItem);
+	});
+});
+
+describe('Iterator', () => {
+	describe('Iterator for empty queue', () => {
+		it('should not throw when calling iter.next', () => {
+			const iter = new QueueIterator(queue);
+			expect(() => {
+				iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			const iter = new QueueIterator(queue);
+			expect(() => {
+				const res = iter.next();
+				expect(res.done).toBe(true);
+			});
+		});
+
+		it('should return null for value', () => {
+			const iter = new QueueIterator(queue);
+			expect(() => {
+				const res = iter.next();
+				expect(res.value).toBe(null);
+			});
+		});
+	});
+	describe('Iterator on singleton queue', () => {
+		it('should not throw when calling iter.next', () => {
+			queue.push('string');
+			const iter = new QueueIterator(queue);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			queue.push('string');
+			const iter = new QueueIterator(queue);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+				expect(res.done).toBe(true);
+			});
+		});
+
+		it('should return null for value', () => {
+			queue.push('string');
+			const iter = new QueueIterator(queue);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+				expect(res.value).toBe(null);
+			});
+		});
+	});
+	describe('Iterator on queue', () => {
+		it('should not throw when using iterator', () => {
+			add10Items();
+			queue.push(110);
+			const arr: any = [];
+			expect(() => {
+				for (const item of queue) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+		});
+
+		it('should not throw adding new value to queue using for of', () => {
+			add10Items();
+			queue.push(110);
+			const arr: any = [];
+			expect(() => {
+				for (const item of queue) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(queue.size());
+			expect(arr[0]).toBe(10);
+			expect(arr[arr.length - 1]).toBe(110);
+		});
 	});
 });
 

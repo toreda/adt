@@ -1,5 +1,6 @@
 import {ADTBase} from './base';
 import {ADTLinkedListElement as Element} from './linked-list/element';
+import {LinkedListIterator} from './linked-list/iterator';
 import {ADTLinkedListOptions as Options} from './linked-list/options';
 import {ADTQueryFilter as QueryFilter} from './query/filter';
 import {ADTQueryOptions as QueryOptions} from './query/options';
@@ -18,6 +19,10 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		});
 
 		this.state.elements = [];
+	}
+
+	[Symbol.iterator](): LinkedListIterator<T> {
+		return new LinkedListIterator<T>(this);
 	}
 
 	public insertAtHead(element: T): Element<T> | null {
@@ -74,7 +79,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	}
 
 	public removeNode(node: Element<T> | null): T | null {
-		if (node == null) {
+		if (!node) {
 			return null;
 		}
 

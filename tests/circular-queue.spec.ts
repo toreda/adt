@@ -3,6 +3,7 @@
 
 import {ADTCircularQueue} from '../src/circular-queue';
 import {ADTCircularQueueOptions} from '../src/circular-queue/options';
+import {CircularQueueIterator} from '../src/circular-queue/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -211,6 +212,89 @@ describe('ARRAY LIKE USAGE', () => {
 
 		strings.forEach((e) => {
 			expect(e).toContain('random string - ');
+		});
+	});
+});
+
+describe('Iterator', () => {
+	describe('iterator on empty Cirqular queue', () => {
+		it('should not throw on empty cirqular queue', () => {
+			const iter = new CircularQueueIterator(circ);
+			expect(() => {
+				iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			const iter = new CircularQueueIterator(circ);
+			expect(() => {
+				const res = iter.next();
+				expect(res.done).toBe(true);
+			});
+		});
+
+		it('should return null for value', () => {
+			const iter = new CircularQueueIterator(circ);
+			expect(() => {
+				const res = iter.next();
+				expect(res.value).toBe(null);
+			});
+		});
+	});
+
+	describe('iterator on single element Cirqular queue', () => {
+		it('should not throw calling iter.next', () => {
+			circ.push(10);
+			const iter = new CircularQueueIterator(circ);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+			}).not.toThrow();
+		});
+
+		it('should return true for done', () => {
+			circ.push(10);
+			const iter = new CircularQueueIterator(circ);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+				expect(res.done).toBe(true);
+			});
+		});
+
+		it('should return null for value', () => {
+			circ.push(10);
+			const iter = new CircularQueueIterator(circ);
+			expect(() => {
+				let res = iter.next();
+				res = iter.next();
+				expect(res.value).toBe(null);
+			});
+		});
+	});
+
+	describe('iterator for elements of circular queue', () => {
+		beforeEach(add10ItemsCirc);
+		it('should not throw when using for of', () => {
+			const arr: any = [];
+			expect(() => {
+				for (const item of circ) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+		});
+
+		it('should not throw when adding to the cq using for of', () => {
+			circ.push(11);
+			const arr: any = [];
+			expect(() => {
+				for (const item of circ) {
+					arr.push(item);
+				}
+			}).not.toThrow();
+			expect(arr.length).toBe(circ.size());
+			expect(arr[0]).toBe(circ.front());
+			expect(arr[circ.size() - 1]).toBe(circ.rear());
 		});
 	});
 });
