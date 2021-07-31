@@ -7,6 +7,11 @@ import {StackIterator} from './stack/iterator';
 import {StackState as State} from './stack/state';
 import {isNumber} from './utility';
 
+/**
+ * Stack ADT with standard FILO functionality.
+ *
+ * @category Stack
+ */
 export class Stack<T> implements ADT<T> {
 	public readonly state: State<T>;
 

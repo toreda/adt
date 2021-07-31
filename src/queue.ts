@@ -7,6 +7,11 @@ import {QueueIterator} from './queue/iterator';
 import {QueueState as State} from './queue/state';
 import {isNumber} from './utility';
 
+/**
+ * Queue ADT with standard FIFO functionality.
+ *
+ * @category Queue
+ */
 export class Queue<T> implements ADT<T> {
 	public readonly state: State<T>;
 

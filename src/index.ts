@@ -41,5 +41,5 @@ export {QueryOptions} from './query/options';
 export {QueryResult} from './query/result';
 
 // Callable
-export {QueueCallableSync} from './callable/sync';
-export {QueueCallable} from './callable';
+export {QueueCallableSync} from './queue/callable/sync';
+export {QueueCallable} from './queue/callable';

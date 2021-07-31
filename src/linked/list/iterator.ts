@@ -1,7 +1,7 @@
 import {LinkedList} from '../list';
 import {LinkedListElement as Element} from './element';
-import {IterableType} from '../../iterable-type';
-import {makeIterableType} from '../../makeIterableType';
+import {IterableType} from '../../iterable/type';
+import {iterableMakeType} from '../../iterable/helpers';
 
 /**
  * @category LinkedList
@@ -15,12 +15,12 @@ export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
 
 	next(): IterableType<ItemT | null> {
 		if (!this.item) {
-			return makeIterableType(null, true);
+			return iterableMakeType(null, true);
 		}
 
 		const value = this.item.value();
 		this.item = this.item.next();
 
-		return makeIterableType(value, false);
+		return iterableMakeType(value, false);
 	}
 }

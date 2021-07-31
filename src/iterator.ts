@@ -1,5 +1,8 @@
-import {IterableType} from './iterable-type';
+import {IterableType} from './iterable/type';
 
+/**
+ * @category Base
+ */
 export interface Iterator<ItemT> {
 	next: () => IterableType<ItemT>;
 }

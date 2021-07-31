@@ -1,7 +1,7 @@
 import {Queue} from '../queue';
-import {IterableType} from '../iterable-type';
+import {IterableType} from '../iterable/type';
 import {Iterator} from '../iterator';
-import {makeIterableType} from '../makeIterableType';
+import {iterableMakeType} from '../iterable/helpers';
 
 /**
  * @category Queue
@@ -17,13 +17,13 @@ export class QueueIterator<ItemT> implements Iterator<ItemT | null> {
 
 	next(): IterableType<ItemT | null> {
 		if (!this.queue.size() || this.curr >= this.queue.size()) {
-			return makeIterableType(null, true);
+			return iterableMakeType(null, true);
 		}
 
 		const value = this.queue.state.elements[this.curr];
 		const done = this.curr === this.queue.size() ? true : false;
 		this.curr++;
 
-		return makeIterableType(value, done);
+		return iterableMakeType(value, done);
 	}
 }

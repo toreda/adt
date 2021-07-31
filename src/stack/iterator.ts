@@ -1,7 +1,7 @@
 import {Stack} from '../stack';
-import {IterableType} from '../iterable-type';
+import {IterableType} from '../iterable/type';
 import {Iterator} from '../iterator';
-import {makeIterableType} from '../makeIterableType';
+import {iterableMakeType} from '../iterable/helpers';
 
 /**
  * @category Stack
@@ -17,13 +17,13 @@ export class StackIterator<ItemT> implements Iterator<ItemT | null> {
 
 	next(): IterableType<ItemT | null> {
 		if (this.stack.isEmpty() || this.curr >= this.stack.size()) {
-			return makeIterableType(null, true);
+			return iterableMakeType(null, true);
 		}
 
 		const value = this.stack.state.elements[this.curr];
 		const done = this.curr === this.stack.size() ? true : false;
 		this.curr++;
 
-		return makeIterableType(value, done);
+		return iterableMakeType(value, done);
 	}
 }
