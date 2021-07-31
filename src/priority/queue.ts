@@ -1,13 +1,13 @@
-import {ADTBase} from './base';
-import {ADTPriorityQueueComparator as Comparator} from './priority-queue/comparator';
-import {ADTPriorityQueueOptions as Options} from './priority-queue/options';
-import {ADTQueryFilter as QueryFilter} from './query/filter';
-import {ADTQueryOptions as QueryOptions} from './query/options';
-import {ADTQueryResult as QueryResult} from './query/result';
-import {ADTPriorityQueueState as State} from './priority-queue/state';
-import {isNumber} from './utility';
+import {ADT} from '../adt';
+import {PriorityQueueComparator as Comparator} from './queue/comparator';
+import {PriorityQueueOptions as Options} from './queue/options';
+import {QueryFilter} from '../query/filter';
+import {QueryOptions} from '../query/options';
+import {QueryResult} from '../query/result';
+import {PriorityQueueState as State} from './queue/state';
+import {isNumber} from '../utility';
 
-export class ADTPriorityQueue<T> implements ADTBase<T> {
+export class PriorityQueue<T> implements ADT<T> {
 	private readonly state: State<T>;
 	private readonly comparator: Comparator<T>;
 
@@ -44,7 +44,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return highestPriority;
 	}
 
-	public push(element: T): ADTPriorityQueue<T> {
+	public push(element: T): PriorityQueue<T> {
 		this.state.elements.push(element);
 		this.fixHeap(this.size() - 1);
 
@@ -72,7 +72,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return this.state.elements.length === 0;
 	}
 
-	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): ADTPriorityQueue<T> {
+	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): PriorityQueue<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -89,10 +89,10 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 			}
 		}, boundThis);
 
-		return new ADTPriorityQueue(this.comparator, {...this.state, elements});
+		return new PriorityQueue(this.comparator, {...this.state, elements});
 	}
 
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): ADTPriorityQueue<T> {
+	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): PriorityQueue<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -147,13 +147,13 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 		return resultsArray;
 	}
 
-	public clearElements(): ADTPriorityQueue<T> {
+	public clearElements(): PriorityQueue<T> {
 		this.state.elements = [];
 
 		return this;
 	}
 
-	public reset(): ADTPriorityQueue<T> {
+	public reset(): PriorityQueue<T> {
 		this.clearElements();
 
 		this.state.type = 'PriorityQueue';
@@ -340,7 +340,7 @@ export class ADTPriorityQueue<T> implements ADTBase<T> {
 			}
 
 			if (errors.length || !parsed) {
-				throw new Error('state is not a valid ADTPriorityQueueState');
+				throw new Error('state is not a valid PriorityQueueState');
 			}
 
 			result = parsed;

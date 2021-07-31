@@ -6,12 +6,12 @@ Collection of TypeScript generic data structures with consistent APIs for search
 
 # Contents
 * [**Data Structures**](#data-structures)
-	* [`ADTCircularQueue`](#ADTCircularQueueT)
-	* [`ADTLinkedList`](#ADTLinkedListT)
-	* [`ADTPriorityQueue`](#ADTPriorityQueueT)
-	* [`ADTObjectPool`](#ADTObjectPoolT)
-	* [`ADTQueue`](#ADTQueueT)
-	* [`ADTStack`](#ADTStackT)
+	* [`CircularQueue`](#CircularQueueT)
+	* [`LinkedList`](#LinkedListT)
+	* [`PriorityQueue`](#PriorityQueueT)
+	* [`ObjectPool`](#ObjectPoolT)
+	* [`Queue`](#QueueT)
+	* [`Stack`](#StackT)
 * [**Package**](#Package)
 	* [Build](#Build)
 	* [Testing](#testing)
@@ -31,23 +31,23 @@ Each ADT uses TypeScript generics of type<T> and implements `ADTBase` and `ADTBa
 
 # Data Structures
 
-* [`ADTStack`](#ADTStackT)
-* [`ADTQueue`](#ADTQueueT)
-* [`ADTLinkedList`](#ADTLinkedListT)
-* [`ADTCircularQueue`](#ADTCircularQueueT)
-* [`ADTPriorityQueue`](#ADTPriorityQueueT)
-* [`ADTObjectPool`](#ADTObjectPoolT)
+* [`Stack`](#StackT)
+* [`Queue`](#QueueT)
+* [`LinkedList`](#LinkedListT)
+* [`CircularQueue`](#CircularQueueT)
+* [`PriorityQueue`](#PriorityQueueT)
+* [`ObjectPool`](#ObjectPoolT)
 
-## `ADTStack<T>`
+## `Stack<T>`
 
 Typescript
 
 ```typescript
 // Import
-import {ADTStack} from '@toreda/adt';
+import {Stack} from '@toreda/adt';
 // Instantiate
-const myStack = new ADTStack<string>();
-const myStackWithOption = new ADTStack<string>({
+const myStack = new Stack<string>();
+const myStackWithOption = new Stack<string>({
 	elements: ['a', 'b', 'c']
 });
 
@@ -84,20 +84,20 @@ myStack.reverse();
 const serialized = myStack.stringify();
 
 // Instantiate a queue using serialized state
-const serialStack = new ADTStack({serializedState: serialized});
+const serialStack = new Stack({serializedState: serialized});
 ```
 
 
-## `ADTQueue<T>`
+## `Queue<T>`
 
 Typescript
 
 ```typescript
 // Import
-import {ADTQueue} from '@toreda/adt';
+import {Queue} from '@toreda/adt';
 // Instantiate
-const myQueue = new ADTQueue<string>();
-const myQueueWithOption = new ADTQueue<string>({
+const myQueue = new Queue<string>();
+const myQueueWithOption = new Queue<string>({
 	elements: ['a', 'b', 'c']
 });
 
@@ -134,29 +134,29 @@ myQueue.reverse();
 const serialized = myQueue.stringify();
 
 // Instantiate a queue using serialized state
-const serialQueue = new ADTQueue({serializedState: serialized});
+const serialQueue = new Queue({serializedState: serialized});
 ```
 
-## `ADTLinkedList<T>`
+## `LinkedList<T>`
 
 Typescript
 
 ```typescript
 // Import
-import {ADTLinkedList} from '@toreda/adt';
+import {LinkedList} from '@toreda/adt';
 // Instantiate
-const myLinkedList = new ADTLinkedList<string>();
-const myStackWithOption = new ADTStack<string>({
+const myLinkedList = new LinkedList<string>();
+const myStackWithOption = new Stack<string>({
 	elements: ['a', 'b', 'c']
 });
 
 // Add elements to the tail of linked list
-myLinkedList.insert("my string 1"); // returns arg converted to ADTLinkedListElement
-myLinkedList.insert("my string 2"); // returns arg converted to ADTLinkedListElement
-myLinkedList.insertAtTail("my string 3"); // returns arg converted to ADTLinkedListElement
+myLinkedList.insert("my string 1"); // returns arg converted to LinkedListElement
+myLinkedList.insert("my string 2"); // returns arg converted to LinkedListElement
+myLinkedList.insertAtTail("my string 3"); // returns arg converted to LinkedListElement
 
 // Add elements to the head of linked list
-myLinkedList.insertAtHead("my string 0"); // returns arg converted to ADTLinkedListElement
+myLinkedList.insertAtHead("my string 0"); // returns arg converted to LinkedListElement
 
 // Get linked list size
 const size = myLinkedList.size(); // returns 4
@@ -213,21 +213,21 @@ myLinkedList.reverse();
 const serialized = myLinkedList.stringify();
 
 // Instantiate a queue using serialized state
-const serialLinkedList = new ADTLinkedList({serializedState: serialized});
+const serialLinkedList = new LinkedList({serializedState: serialized});
 ```
 
 
-## **`ADTCircularQueue<T>`**
+## **`CircularQueue<T>`**
 
 Typescript
 
 ```typescript
 // Import
-import {ADTCircularQueue} from '@toreda/adt';
+import {CircularQueue} from '@toreda/adt';
 
 // Instantiate
-const circularQueueDefault = new ADTCircularQueue<number>();
-const circularQueueWithOptions = new ADTCircularQueue<number>({
+const circularQueueDefault = new CircularQueue<number>();
+const circularQueueWithOptions = new CircularQueue<number>({
 	maxSize: 999,
 	size: 3,
 	elements[,,,1,2,3,],
@@ -237,7 +237,7 @@ const circularQueueWithOptions = new ADTCircularQueue<number>({
 });
 
 // Use as Queue
-const circularQueue = new ADTCircularQueue<number>({
+const circularQueue = new CircularQueue<number>({
 	maxSize: 4,
 });
 
@@ -275,7 +275,7 @@ circularQueue.size(); // returns 0
 circularQueue.pop(); // returns null
 
 // Use as Buffer
-const circularBuffer = new ADTCircularQueue<number>({
+const circularBuffer = new CircularQueue<number>({
 	maxSize: 4,
 	overwrite: true
 });
@@ -352,22 +352,22 @@ circularQueue.forEach((elem, index, arr) => {
 const serialized = circularQueue.stringify();
 
 // Instantiate a Priority Queue using serialized state
-const circularQueueFromSerialized = new ADTCircularQueue({serializedState: serialized});
+const circularQueueFromSerialized = new CircularQueue({serializedState: serialized});
 ```
 
 
-## **`ADTPriorityQueue<T>`**
+## **`PriorityQueue<T>`**
 
 Typescript
 
 ```typescript
 // Import
-import {ADTPriorityQueue, ADTPriorityQueueComparator} from '@toreda/adt';
+import {PriorityQueue, PriorityQueueComparator} from '@toreda/adt';
 
 // Instantiate
-const priorityQueueComparator: ADTPriorityQueueComparator<number> = function(a, b) => a < b;
-const priorityQueue = new ADTPriorityQueue<number>(priorityQueueComparator);
-const priorityQueueWithOptions = new ADTPriorityQueue<number>(priorityQueueComparator, {
+const priorityQueueComparator: PriorityQueueComparator<number> = function(a, b) => a < b;
+const priorityQueue = new PriorityQueue<number>(priorityQueueComparator);
+const priorityQueueWithOptions = new PriorityQueue<number>(priorityQueueComparator, {
 	elements: [1,2,3,4,5,6,7]
 });
 
@@ -403,19 +403,19 @@ priorityQueue.push(30).push(10).push(20);
 const serialized = priorityQueue.stringify();
 
 // Instantiate a Priority Queue using serialized state
-const priorityQueueFromSerialized = new ADTPriorityQueue(priorityQueueComparator, {serializedState: serialized});
+const priorityQueueFromSerialized = new PriorityQueue(priorityQueueComparator, {serializedState: serialized});
 ```
 
-## **`ADTObjectPool<T>`**
+## **`ObjectPool<T>`**
 
 Typescript
 
 ```typescript
 // Import
-import {ADTObjectPool, ADTObjectPoolInstance} from '@toreda/adt';
+import {ObjectPool, ObjectPoolInstance} from '@toreda/adt';
 
 // Instantiate
-class objectClass implements ADTObjectPoolInstance {
+class objectClass implements ObjectPoolInstance {
 	public name!: string;
 	public amount!: number;
 
@@ -429,8 +429,8 @@ class objectClass implements ADTObjectPoolInstance {
 	}
 }
 
-const objectPool = new ADTObjectPool<objectClass>(objectClass);
-const objectPoolWithOptions = new ADTObjectPool<objectClass>(objectClass, {
+const objectPool = new ObjectPool<objectClass>(objectClass);
+const objectPoolWithOptions = new ObjectPool<objectClass>(objectClass, {
 	maxSize: 10000,
 	startSize: 100,
 	autoIncrease: true,
@@ -463,7 +463,7 @@ objectPool.clearElements();
 const serialized = objectPool.stringify();
 
 // Instantiate an Object Pool using serialized state
-const objectPoolFromSerialized = new ADTPriorityQueue<objectClass>(objectClass, {serializedState: serialized});
+const objectPoolFromSerialized = new PriorityQueue<objectClass>(objectClass, {serializedState: serialized});
 ```
 
 # Query Selectors
@@ -471,24 +471,24 @@ const objectPoolFromSerialized = new ADTPriorityQueue<objectClass>(objectClass, 
 Typescript
 
 ```typescript
-import {ADTQueryFilter, ADTQueryResult, ADTQueryOptions} from '@toreda/adt';
-import {ADTQueue, ADTStack, ADTLinkedList, ADTCircularQueue, ADTPriorityQueue, ADTObjectPool} from '@toreda/adt';
+import {QueryFilter, QueryResult, QueryOptions} from '@toreda/adt';
+import {Queue, Stack, LinkedList, CircularQueue, PriorityQueue, ObjectPool} from '@toreda/adt';
 
-const myQueue = new ADTQueue<number>();
-const myStack = new ADTStack<number>();
-const myLinkedList = new ADTLinkedList<number>();
-const myCircularQueue = new ADTCircularQueue<number>();
-const myPriorityQueue = new ADTPriorityQueue<number>((a, b) => a < b);
-const myObjectPool = new ADTObjectPool<custom>(custom);
+const myQueue = new Queue<number>();
+const myStack = new Stack<number>();
+const myLinkedList = new LinkedList<number>();
+const myCircularQueue = new CircularQueue<number>();
+const myPriorityQueue = new PriorityQueue<number>((a, b) => a < b);
+const myObjectPool = new ObjectPool<custom>(custom);
 
 // Create a query filter function
-const basicQueryFilter: ADTQueryFilter<number> = (value) => {
+const basicQueryFilter: QueryFilter<number> = (value) => {
 	return value === 30
 }
 
 // Create a query filter function generator
-const genQueryFilter = function (target: number, lessthan: boolean) = ADTQueryFilter<number> {
-	const filter: ADTQueryFilter<number> = (value) => {
+const genQueryFilter = function (target: number, lessthan: boolean) = QueryFilter<number> {
+	const filter: QueryFilter<number> = (value) => {
 		if (lessthan) {
 			return value < target;
 		} else {

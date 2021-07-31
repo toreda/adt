@@ -1,1 +1,1 @@
-export type ADTQueueCallable = (element: any, ndx: number) => Promise<void>;
+export type QueueCallable = (element: any, ndx: number) => Promise<void>;

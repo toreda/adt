@@ -1,4 +1,4 @@
-export interface ADTQueryResult<T> {
+export interface QueryResult<T> {
 	element: T;
 	delete: () => void;
 	index: () => number | null;

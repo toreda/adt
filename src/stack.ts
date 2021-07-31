@@ -1,13 +1,13 @@
-import {ADTBase} from './base';
-import {ADTStackOptions as Options} from './stack/options';
-import {ADTQueryFilter as QueryFilter} from './query/filter';
-import {ADTQueryOptions as QueryOptions} from './query/options';
-import {ADTQueryResult as QueryResult} from './query/result';
+import {ADT} from './adt';
+import {StackOptions as Options} from './stack/options';
+import {QueryFilter} from './query/filter';
+import {QueryOptions} from './query/options';
+import {QueryResult} from './query/result';
 import {StackIterator} from './stack/iterator';
-import {ADTStackState as State} from './stack/state';
+import {StackState as State} from './stack/state';
 import {isNumber} from './utility';
 
-export class ADTStack<T> implements ADTBase<T> {
+export class Stack<T> implements ADT<T> {
 	public readonly state: State<T>;
 
 	constructor(options?: Options<T>) {
@@ -22,13 +22,13 @@ export class ADTStack<T> implements ADTBase<T> {
 		return this.top();
 	}
 
-	public pop(): ADTStack<T> {
+	public pop(): Stack<T> {
 		this.state.elements.pop();
 
 		return this;
 	}
 
-	public push(element: T): ADTStack<T> {
+	public push(element: T): Stack<T> {
 		this.state.elements.push(element);
 
 		return this;
@@ -58,7 +58,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		return this.state.elements.length === 0;
 	}
 
-	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): ADTStack<T> {
+	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): Stack<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -75,10 +75,10 @@ export class ADTStack<T> implements ADTBase<T> {
 			}
 		}, boundThis);
 
-		return new ADTStack({...this.state, elements});
+		return new Stack({...this.state, elements});
 	}
 
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): ADTStack<T> {
+	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): Stack<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -94,7 +94,7 @@ export class ADTStack<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public reverse(): ADTStack<T> {
+	public reverse(): Stack<T> {
 		if (this.size() <= 1) {
 			return this;
 		}
@@ -143,13 +143,13 @@ export class ADTStack<T> implements ADTBase<T> {
 		return resultsArray;
 	}
 
-	public clearElements(): ADTStack<T> {
+	public clearElements(): Stack<T> {
 		this.state.elements = [];
 
 		return this;
 	}
 
-	public reset(): ADTStack<T> {
+	public reset(): Stack<T> {
 		this.clearElements();
 
 		this.state.type = 'Stack';
@@ -206,7 +206,7 @@ export class ADTStack<T> implements ADTBase<T> {
 			}
 
 			if (errors.length || !parsed) {
-				throw new Error('state is not a valid ADTStackState');
+				throw new Error('state is not a valid StackState');
 			}
 
 			result = parsed;

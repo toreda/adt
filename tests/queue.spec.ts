@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import {ADTQueue} from '../src/queue';
-import {ADTQueueOptions} from '../src/queue/options';
+import {Queue} from '../src/queue';
+import {QueueOptions} from '../src/queue/options';
 import {QueueIterator} from '../src/queue/iterator';
 
 const repeat = (n, f) => {
@@ -10,7 +10,7 @@ const repeat = (n, f) => {
 };
 const add10Items = () => repeat(10, (n) => queue.push((10 - n) * 10));
 
-const queue = new ADTQueue();
+const queue = new Queue();
 
 beforeEach(() => {
 	queue.reset();
@@ -19,53 +19,53 @@ beforeEach(() => {
 
 describe('INSTANTIATION', () => {
 	it('default params', () => {
-		const result = new ADTQueue();
-		expect(result).toBeInstanceOf(ADTQueue);
+		const result = new Queue();
+		expect(result).toBeInstanceOf(Queue);
 		expect(result.size()).toBe(0);
 	});
 
 	it('with options', () => {
-		const options: Required<Omit<ADTQueueOptions<any>, 'serializedState'>> = {
+		const options: Required<Omit<QueueOptions<any>, 'serializedState'>> = {
 			elements: [1, 2, 3]
 		};
-		const result = new ADTQueue(options);
-		expect(result).toBeInstanceOf(ADTQueue);
+		const result = new Queue(options);
+		expect(result).toBeInstanceOf(Queue);
 		expect(result.size()).toBe(3);
 	});
 
 	it('stringify queue', () => {
 		const stringified = queue.stringify();
-		expect(new ADTQueue({serializedState: stringified})).toEqual(queue);
+		expect(new Queue({serializedState: stringified})).toEqual(queue);
 	});
 
 	it('with serialized', () => {
-		expect(new ADTQueue({serializedState: ''})).toBeInstanceOf(ADTQueue);
-		const source = new ADTQueue({elements: [2, 3, 4]});
+		expect(new Queue({serializedState: ''})).toBeInstanceOf(Queue);
+		const source = new Queue({elements: [2, 3, 4]});
 		const serialized = source.stringify();
-		const result = new ADTQueue({serializedState: serialized});
-		expect(result).toBeInstanceOf(ADTQueue);
+		const result = new Queue({serializedState: serialized});
+		expect(result).toBeInstanceOf(Queue);
 		expect(result).toEqual(source);
 		expect(result.size()).toBe(3);
 	});
 
 	it('invalid', () => {
 		expect(() => {
-			const result = new ADTQueue({elements: 'adsf' as any});
+			const result = new Queue({elements: 'adsf' as any});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTQueue({serializedState: 'null'});
+			const result = new Queue({serializedState: 'null'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTQueue({serializedState: 'in{valid'});
+			const result = new Queue({serializedState: 'in{valid'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTQueue({serializedState: '{"elements": [4]}'});
+			const result = new Queue({serializedState: '{"elements": [4]}'});
 			console.log(result);
 		}).toThrow();
 	});

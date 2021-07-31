@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import {ADTCircularQueue} from '../src/circular-queue';
-import {ADTCircularQueueOptions} from '../src/circular-queue/options';
-import {CircularQueueIterator} from '../src/circular-queue/iterator';
+import {CircularQueue} from '../src/circular/queue';
+import {CircularQueueOptions} from '../src/circular/queue/options';
+import {CircularQueueIterator} from '../src/circular/queue/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
@@ -11,10 +11,10 @@ const repeat = (n, f) => {
 const add10ItemsQueue = () => repeat(10, (n) => queue.push((10 - n) * 10));
 const add10ItemsCirc = () => repeat(10, (n) => circ.push(10 - n));
 
-const queue = new ADTCircularQueue({maxSize: 15});
+const queue = new CircularQueue({maxSize: 15});
 
 const optionsCirc = {maxSize: 7, overwrite: true};
-const circ = new ADTCircularQueue(optionsCirc);
+const circ = new CircularQueue(optionsCirc);
 
 beforeEach(() => {
 	queue.reset();
@@ -26,13 +26,13 @@ beforeEach(() => {
 
 describe('INSTANTIATION', () => {
 	it('default params', () => {
-		const result = new ADTCircularQueue();
-		expect(result).toBeInstanceOf(ADTCircularQueue);
+		const result = new CircularQueue();
+		expect(result).toBeInstanceOf(CircularQueue);
 		expect(result.size()).toBe(0);
 	});
 
 	it('with options', () => {
-		const options: Required<Omit<ADTCircularQueueOptions<any>, 'serializedState'>> = {
+		const options: Required<Omit<CircularQueueOptions<any>, 'serializedState'>> = {
 			elements: [1, 2, 3, 4, 5, 6, 7],
 			front: 5,
 			rear: 0,
@@ -40,29 +40,29 @@ describe('INSTANTIATION', () => {
 			maxSize: 7,
 			overwrite: true
 		};
-		const result = new ADTCircularQueue(options);
-		expect(result).toBeInstanceOf(ADTCircularQueue);
+		const result = new CircularQueue(options);
+		expect(result).toBeInstanceOf(CircularQueue);
 		expect(result.size()).toBe(2);
 	});
 
 	it('stringify queue', () => {
 		const stringified = queue.stringify();
-		expect(new ADTCircularQueue({serializedState: stringified})).toEqual(queue);
+		expect(new CircularQueue({serializedState: stringified})).toEqual(queue);
 	});
 
 	it('with serialized', () => {
-		expect(new ADTCircularQueue({serializedState: ''})).toBeInstanceOf(ADTCircularQueue);
-		const source = new ADTCircularQueue({elements: [2, 3, 4], front: 1, rear: 3});
+		expect(new CircularQueue({serializedState: ''})).toBeInstanceOf(CircularQueue);
+		const source = new CircularQueue({elements: [2, 3, 4], front: 1, rear: 3});
 		const serialized = source.stringify();
-		const result = new ADTCircularQueue({serializedState: serialized});
-		expect(result).toBeInstanceOf(ADTCircularQueue);
+		const result = new CircularQueue({serializedState: serialized});
+		expect(result).toBeInstanceOf(CircularQueue);
 		expect(result).toEqual(source);
 		expect(result.size()).toBe(2);
 	});
 
 	it('invalid', () => {
 		expect(() => {
-			const result = new ADTCircularQueue({
+			const result = new CircularQueue({
 				elements: 'adsf' as any,
 				front: '7' as any,
 				maxSize: -1 as any,
@@ -74,17 +74,17 @@ describe('INSTANTIATION', () => {
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTCircularQueue({serializedState: 'null'});
+			const result = new CircularQueue({serializedState: 'null'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTCircularQueue({serializedState: 'in{valid'});
+			const result = new CircularQueue({serializedState: 'in{valid'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTCircularQueue({serializedState: '{"elements": [4]}'});
+			const result = new CircularQueue({serializedState: '{"elements": [4]}'});
 			console.log(result);
 		}).toThrow();
 	});

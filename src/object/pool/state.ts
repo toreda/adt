@@ -1,4 +1,7 @@
-export interface ADTObjectPoolState<T> {
+/**
+ * @category ObjectPool
+ */
+export interface ObjectPoolState<T> {
 	autoIncrease: boolean;
 	increaseBreakPoint: number;
 	increaseFactor: number;

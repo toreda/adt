@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import {ADTLinkedList} from '../src/linked-list';
-import {ADTLinkedListOptions} from '../src/linked-list/options';
-import {LinkedListIterator} from '../src/linked-list/iterator';
+import {LinkedList} from '../src/linked/list';
+import {LinkedListOptions} from '../src/linked/list/options';
+import {LinkedListIterator} from '../src/linked/list/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f();
 };
 const add10Items = () => repeat(10, () => list.insert(Math.random()));
 
-const list = new ADTLinkedList();
+const list = new LinkedList();
 
 beforeEach(() => {
 	list.reset();
@@ -19,20 +19,20 @@ beforeEach(() => {
 
 describe('INSTANTIATION', () => {
 	it('default params', () => {
-		const result = new ADTLinkedList();
-		expect(result).toBeInstanceOf(ADTLinkedList);
+		const result = new LinkedList();
+		expect(result).toBeInstanceOf(LinkedList);
 		expect(result.size()).toBe(0);
 	});
 
 	it('with options', () => {
 		const head = 789;
 		const tail = 456;
-		const options: Required<Omit<ADTLinkedListOptions<any>, 'serializedState'>> = {
+		const options: Required<Omit<LinkedListOptions<any>, 'serializedState'>> = {
 			elements: [head, tail]
 		};
-		const result = new ADTLinkedList(options);
+		const result = new LinkedList(options);
 
-		expect(result).toBeInstanceOf(ADTLinkedList);
+		expect(result).toBeInstanceOf(LinkedList);
 		expect(result.size()).toBe(2);
 		expect(result.head()?.value()).toBe(head);
 		expect(result.tail()?.value()).toBe(tail);
@@ -41,21 +41,21 @@ describe('INSTANTIATION', () => {
 	it('stringify list', () => {
 		const stringified = list.stringify();
 
-		expect(new ADTLinkedList({serializedState: stringified})).toEqual(list);
+		expect(new LinkedList({serializedState: stringified})).toEqual(list);
 	});
 
 	it('with serialized', () => {
-		expect(new ADTLinkedList({serializedState: ''})).toBeInstanceOf(ADTLinkedList);
+		expect(new LinkedList({serializedState: ''})).toBeInstanceOf(LinkedList);
 
 		const head = 741;
 		const tail = 852;
-		const source = new ADTLinkedList({elements: [head, null, tail]});
+		const source = new LinkedList({elements: [head, tail]});
 		const serialized = source.stringify();
 
-		const result = new ADTLinkedList({serializedState: serialized});
+		const result = new LinkedList({serializedState: serialized});
 
-		expect(result).toBeInstanceOf(ADTLinkedList);
-		expect(result.size()).toBe(3);
+		expect(result).toBeInstanceOf(LinkedList);
+		expect(result.size()).toBe(2);
 		expect(result.head()?.value()).toBe(head);
 		expect(result.tail()?.value()).toBe(tail);
 		expect(result).toEqual(source);
@@ -63,22 +63,22 @@ describe('INSTANTIATION', () => {
 
 	it('invalid', () => {
 		expect(() => {
-			const result = new ADTLinkedList({elements: 'adsf' as any});
+			const result = new LinkedList({elements: 'adsf' as any});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTLinkedList({serializedState: 'null'});
+			const result = new LinkedList({serializedState: 'null'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTLinkedList({serializedState: 'in{valid'});
+			const result = new LinkedList({serializedState: 'in{valid'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTLinkedList({serializedState: '{"elements": [4]}'});
+			const result = new LinkedList({serializedState: '{"elements": [4]}'});
 			console.log(result);
 		}).toThrow();
 	});
@@ -161,7 +161,7 @@ describe('ARRAY LIKE USAGE', () => {
 	beforeEach(add10Items);
 
 	it('convert to array', () => {
-		const result = list.getAsArray();
+		const result = list.toArray();
 
 		let node = list.head();
 		let index = 0;
@@ -174,7 +174,7 @@ describe('ARRAY LIKE USAGE', () => {
 	});
 
 	it('forEach', () => {
-		const asArray = list.getAsArray();
+		const asArray = list.toArray();
 
 		list.forEach((e, i) => {
 			expect(e).toBe(asArray[i]);
@@ -196,19 +196,19 @@ describe('ARRAY LIKE USAGE', () => {
 	});
 
 	it('reverse', () => {
-		const asArray = list.getAsArray();
+		const asArray = list.toArray();
 
-		expect(list.reverse().getAsArray()).toEqual(asArray.reverse());
+		expect(list.reverse().toArray()).toEqual(asArray.reverse());
 
 		list.clearElements();
 		list.insert(Math.random());
-		const singleItem = list.getAsArray();
-		expect(list.reverse().getAsArray()).toEqual(singleItem.reverse());
+		const singleItem = list.toArray();
+		expect(list.reverse().toArray()).toEqual(singleItem.reverse());
 	});
 });
 
 describe('Iterator', () => {
-	describe('Iterator on empty linked-list', () => {
+	describe('Iterator on empty linked list', () => {
 		it('should not throw when calling iter.next', () => {
 			const iter = new LinkedListIterator(list);
 			expect(() => {

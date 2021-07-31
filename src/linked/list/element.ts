@@ -1,9 +1,12 @@
-import {ADTBaseElement} from '../base/element';
+import {Element} from '../../element';
 
-export class ADTLinkedListElement<T> implements ADTBaseElement<T> {
+/**
+ * @category LinkedList
+ */
+export class LinkedListElement<T> implements Element<T> {
 	private _value: T | null;
-	public _next: ADTLinkedListElement<T> | null;
-	public _prev: ADTLinkedListElement<T> | null;
+	public _next: LinkedListElement<T> | null;
+	public _prev: LinkedListElement<T> | null;
 
 	constructor(element: T) {
 		this._next = null;
@@ -20,7 +23,7 @@ export class ADTLinkedListElement<T> implements ADTBaseElement<T> {
 		return null;
 	}
 
-	public prev(element?: ADTLinkedListElement<T> | null): ADTLinkedListElement<T> | null {
+	public prev(element?: LinkedListElement<T> | null): LinkedListElement<T> | null {
 		if (typeof element === 'undefined') {
 			return this._prev;
 		}
@@ -29,7 +32,7 @@ export class ADTLinkedListElement<T> implements ADTBaseElement<T> {
 		return null;
 	}
 
-	public next(element?: ADTLinkedListElement<T> | null): ADTLinkedListElement<T> | null {
+	public next(element?: LinkedListElement<T> | null): LinkedListElement<T> | null {
 		if (typeof element === 'undefined') {
 			return this._next;
 		}

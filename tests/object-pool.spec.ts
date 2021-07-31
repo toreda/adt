@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import {ADTObjectPool} from '../src/object-pool';
-import {ADTObjectPoolInstance} from '../src/object-pool/instance';
-import {ADTObjectPoolOptions} from '../src/object-pool/options';
-import {ObjectPoolIterator} from '../src/object-pool/iterator';
+import {ObjectPool} from '../src/object/pool';
+import {ObjectPoolInstance} from '../src/object/pool/instance';
+import {ObjectPoolOptions} from '../src/object/pool/options';
+import {ObjectPoolIterator} from '../src/object/pool/iterator';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
 };
 const add10Items = (p) => p.allocateMultiple(10);
 
-class objectClass implements ADTObjectPoolInstance {
+class objectClass implements ObjectPoolInstance {
 	public state: any;
 
 	constructor() {
@@ -27,7 +27,7 @@ class objectClass implements ADTObjectPoolInstance {
 	}
 }
 
-const pool = new ADTObjectPool(objectClass, {
+const pool = new ObjectPool(objectClass, {
 	startSize: 1,
 	increaseFactor: 2,
 	increaseBreakPoint: 1,
@@ -41,12 +41,12 @@ beforeEach(() => {
 
 describe('INSTANTIATION', () => {
 	it('default params', () => {
-		const result = new ADTObjectPool(objectClass);
-		expect(result).toBeInstanceOf(ADTObjectPool);
+		const result = new ObjectPool(objectClass);
+		expect(result).toBeInstanceOf(ObjectPool);
 	});
 
 	it('with options', () => {
-		const options: Required<Omit<ADTObjectPoolOptions, 'serializedState'>> = {
+		const options: Required<Omit<ObjectPoolOptions, 'serializedState'>> = {
 			autoIncrease: true,
 			increaseFactor: 10,
 			increaseBreakPoint: 0.9,
@@ -54,32 +54,32 @@ describe('INSTANTIATION', () => {
 			startSize: 100,
 			instanceArgs: []
 		};
-		const result = new ADTObjectPool(objectClass, options);
-		expect(result).toBeInstanceOf(ADTObjectPool);
+		const result = new ObjectPool(objectClass, options);
+		expect(result).toBeInstanceOf(ObjectPool);
 	});
 
 	it('stringify pool', () => {
 		const stringified = pool.stringify();
-		expect(new ADTObjectPool(objectClass, {serializedState: stringified})).toEqual(pool);
+		expect(new ObjectPool(objectClass, {serializedState: stringified})).toEqual(pool);
 	});
 
 	it('with serialized', () => {
-		expect(new ADTObjectPool(objectClass, {serializedState: ''})).toBeInstanceOf(ADTObjectPool);
-		const source = new ADTObjectPool(objectClass, {increaseFactor: 99});
+		expect(new ObjectPool(objectClass, {serializedState: ''})).toBeInstanceOf(ObjectPool);
+		const source = new ObjectPool(objectClass, {increaseFactor: 99});
 		const serialized = source.stringify();
-		const result = new ADTObjectPool(objectClass, {serializedState: serialized});
-		expect(result).toBeInstanceOf(ADTObjectPool);
+		const result = new ObjectPool(objectClass, {serializedState: serialized});
+		expect(result).toBeInstanceOf(ObjectPool);
 		expect(result).toEqual(source);
 	});
 
 	it('invalid', () => {
 		expect(() => {
-			const result = new ADTObjectPool(null as any);
+			const result = new ObjectPool(null as any);
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const options: Required<Omit<ADTObjectPoolOptions, 'serializedState'>> = {
+			const options: Required<Omit<ObjectPoolOptions, 'serializedState'>> = {
 				autoIncrease: 2 as any,
 				increaseFactor: 0.7 as any,
 				increaseBreakPoint: 1.5,
@@ -87,22 +87,22 @@ describe('INSTANTIATION', () => {
 				startSize: '100' as any,
 				instanceArgs: {} as any
 			};
-			const result = new ADTObjectPool(objectClass, options);
+			const result = new ObjectPool(objectClass, options);
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTObjectPool(objectClass, {serializedState: 'null'});
+			const result = new ObjectPool(objectClass, {serializedState: 'null'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTObjectPool(objectClass, {serializedState: 'in{valid'});
+			const result = new ObjectPool(objectClass, {serializedState: 'in{valid'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTObjectPool(objectClass, {serializedState: '{"elements": [4]}'});
+			const result = new ObjectPool(objectClass, {serializedState: '{"elements": [4]}'});
 			console.log(result);
 		}).toThrow();
 	});
@@ -183,7 +183,7 @@ describe('ALLOC / RELEASE', () => {
 	});
 
 	it('with zero starting size', () => {
-		const zeroStart = new ADTObjectPool(objectClass, {autoIncrease: true, startSize: 0});
+		const zeroStart = new ObjectPool(objectClass, {autoIncrease: true, startSize: 0});
 		const result = zeroStart.allocate();
 		expect(result).not.toBeNull();
 	});
@@ -191,7 +191,7 @@ describe('ALLOC / RELEASE', () => {
 	it('without autoincrease', () => {
 		let expectedCount = 0;
 		let expectedTotal = 0;
-		const manual = new ADTObjectPool(objectClass, {
+		const manual = new ObjectPool(objectClass, {
 			startSize: 0,
 			maxSize: 10,
 			autoIncrease: false

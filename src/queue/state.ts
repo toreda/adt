@@ -1,4 +1,4 @@
-export interface ADTQueueState<T> {
+export interface QueueState<T> {
 	elements: Array<T>;
 	type: 'Queue';
 }

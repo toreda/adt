@@ -1,15 +1,18 @@
-import {isInteger, isNumber} from './utility';
+import {isInteger, isNumber} from '../utility';
 
-import {ADTBase} from './base';
-import {CircularQueueIterator} from './circular-queue/iterator';
-import {ADTCircularQueueOptions as Options} from './circular-queue/options';
-import {ADTQueryFilter as QueryFilter} from './query/filter';
-import {ADTQueryOptions as QueryOptions} from './query/options';
-import {ADTQueryResult as QueryResult} from './query/result';
-import {ADTCircularQueueState as State} from './circular-queue/state';
+import {ADT} from '../adt';
+import {CircularQueueIterator} from './queue/iterator';
+import {CircularQueueOptions as Options} from './queue/options';
+import {QueryFilter} from '../query/filter';
+import {QueryOptions} from '../query/options';
+import {QueryResult} from '../query/result';
+import {CircularQueueState} from './queue/state';
 
-export class ADTCircularQueue<T> implements ADTBase<T> {
-	private readonly state: State<T>;
+/**
+ * @category CircularQueue
+ */
+export class CircularQueue<T> implements ADT<T> {
+	private readonly state: CircularQueueState<T>;
 
 	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
@@ -19,10 +22,19 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return new CircularQueueIterator<T>(this);
 	}
 
+	/**
+	 * Get the first element without removing it, if one exists.
+	 * @returns
+	 */
 	public peek(): T | null {
 		return this.front();
 	}
 
+	/**
+	 * Get the first element and remove it from queue. Returns null and has
+	 * no effect when queue is empty.
+	 * @returns
+	 */
 	public pop(): T | null {
 		if (this.isEmpty()) {
 			return null;
@@ -36,6 +48,11 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return front;
 	}
 
+	/**
+	 * Push element onto the end of queue.
+	 * @param element
+	 * @returns
+	 */
 	public push(element: T): boolean {
 		if (!this.state.overwrite && this.isFull()) {
 			return false;
@@ -99,7 +116,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return this.state.elements[this.wrapIndex(index)];
 	}
 
-	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): ADTCircularQueue<T> {
+	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): CircularQueue<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -107,7 +124,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			boundThis = thisArg as this;
 		}
 
-		const queue = new ADTCircularQueue<T>({
+		const queue = new CircularQueue<T>({
 			overwrite: this.state.overwrite,
 			maxSize: this.state.maxSize
 		});
@@ -122,7 +139,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return queue;
 	}
 
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): ADTCircularQueue<T> {
+	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): CircularQueue<T> {
 		const front = this.wrapIndex(this.state.front);
 		let rear = this.wrapIndex(this.state.rear);
 
@@ -181,7 +198,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return resultsArray;
 	}
 
-	public clearElements(): ADTCircularQueue<T> {
+	public clearElements(): CircularQueue<T> {
 		this.state.elements = [];
 		this.state.front = 0;
 		this.state.rear = 0;
@@ -190,7 +207,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public reset(): ADTCircularQueue<T> {
+	public reset(): CircularQueue<T> {
 		this.clearElements();
 
 		this.state.type = 'CircularQueue';
@@ -221,21 +238,21 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return index % this.state.maxSize;
 	}
 
-	private parseOptions(options?: Options<T>): State<T> {
+	private parseOptions(options?: Options<T>): CircularQueueState<T> {
 		const fromSerial = this.parseOptionsSerialized(options);
 		const finalState = this.parseOptionsOverrides(fromSerial, options);
 
 		return finalState;
 	}
 
-	private parseOptionsSerialized(options?: Options<T>): State<T> {
-		const state: State<T> = this.getDefaultState();
+	private parseOptionsSerialized(options?: Options<T>): CircularQueueState<T> {
+		const state: CircularQueueState<T> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let result: State<T> | null = null;
+		let result: CircularQueueState<T> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			const parsed = this.parseSerializedString(options.serializedState);
@@ -259,12 +276,12 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	private parseSerializedString(state: string): State<T> | Error[] | null {
+	private parseSerializedString(state: string): CircularQueueState<T> | Error[] | null {
 		if (typeof state !== 'string' || state === '') {
 			return null;
 		}
 
-		let result: State<T> | Error[] | null = null;
+		let result: CircularQueueState<T> | Error[] | null = null;
 		let errors: Error[] = [];
 
 		try {
@@ -275,7 +292,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 			}
 
 			if (errors.length || !parsed) {
-				throw new Error('state is not a valid ADTCircularQueueState');
+				throw new Error('state is not a valid CircularQueueState');
 			}
 
 			result = parsed;
@@ -286,8 +303,11 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return result;
 	}
 
-	private parseOptionsOverrides(stateArg: State<T>, options?: Options<T>): State<T> {
-		const state: State<T> = stateArg;
+	private parseOptionsOverrides(
+		stateArg: CircularQueueState<T>,
+		options?: Options<T>
+	): CircularQueueState<T> {
+		const state: CircularQueueState<T> = stateArg;
 
 		if (!options) {
 			return state;
@@ -359,8 +379,8 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	private getDefaultState(): State<T> {
-		const state: State<T> = {
+	private getDefaultState(): CircularQueueState<T> {
+		const state: CircularQueueState<T> = {
 			type: 'CircularQueue',
 			elements: [],
 			overwrite: false,
@@ -373,7 +393,7 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 		return state;
 	}
 
-	private getStateErrors(state: State<T>): Error[] {
+	private getStateErrors(state: CircularQueueState<T>): Error[] {
 		const errors: Error[] = [];
 
 		errors.push(...this.getStateErrorsElements(state.elements));
@@ -514,4 +534,4 @@ export class ADTCircularQueue<T> implements ADTBase<T> {
 	}
 }
 
-type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;
+export type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;

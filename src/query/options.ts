@@ -1,3 +1,3 @@
-export interface ADTQueryOptions {
+export interface QueryOptions {
 	limit?: number;
 }

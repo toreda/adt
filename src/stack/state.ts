@@ -1,4 +1,7 @@
-export interface ADTStackState<T> {
+/**
+ * @category Stack
+ */
+export interface StackState<T> {
 	elements: Array<T>;
 	type: 'Stack';
 }

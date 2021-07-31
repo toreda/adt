@@ -4,7 +4,19 @@
 			"path": "."
 		}
 	],
+
 	"settings": {
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"test-report.xml": true,
+			"yarn.lock": true,
+			"node_modules": true,
+			"coverage": true
+		},
 		"javascript.suggest.completeFunctionCalls": true,
 		"typescript.suggest.completeFunctionCalls": true
 	}

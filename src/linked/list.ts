@@ -1,23 +1,23 @@
-import {ADTBase} from './base';
-import {ADTLinkedListElement as Element} from './linked-list/element';
-import {LinkedListIterator} from './linked-list/iterator';
-import {ADTLinkedListOptions as Options} from './linked-list/options';
-import {ADTQueryFilter as QueryFilter} from './query/filter';
-import {ADTQueryOptions as QueryOptions} from './query/options';
-import {ADTQueryResult as QueryResult} from './query/result';
-import {ADTLinkedListState as State} from './linked-list/state';
-import {isNumber} from './utility';
+import {ADT} from '../adt';
+import {LinkedListElement as Element} from './list/element';
+import {LinkedListIterator} from './list/iterator';
+import {LinkedListOptions as Options} from './list/options';
+import {QueryFilter} from '../query/filter';
+import {QueryOptions} from '../query/options';
+import {QueryResult} from '../query/result';
+import {LinkedListState as State} from './list/state';
+import {isNumber} from '../utility';
 
-export class ADTLinkedList<T> implements ADTBase<T> {
+/**
+ * @category LinkedList
+ */
+export class LinkedList<T> implements ADT<T> {
 	private readonly state: State<T>;
 
 	constructor(options?: Options<T>) {
 		this.state = this.parseOptions(options);
 
-		this.state.elements.forEach((element: T) => {
-			this.insert(element);
-		});
-
+		this.insertArray(this.state.elements);
 		this.state.elements = [];
 	}
 
@@ -25,6 +25,13 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return new LinkedListIterator<T>(this);
 	}
 
+	/**
+	 * Insert element at head of list, making provided element
+	 * the new Linked List head.
+	 *
+	 * @param element
+	 * @returns
+	 */
 	public insertAtHead(element: T): Element<T> | null {
 		const node = new Element<T>(element);
 		const head = this.head();
@@ -78,6 +85,22 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return this.insertAtTail(element);
 	}
 
+	/**
+	 * Insert each provided element at tail.
+	 *
+	 * @param elements
+	 * @returns
+	 */
+	public insertArray(elements?: T[] | null): void {
+		if (!Array.isArray(elements)) {
+			return;
+		}
+
+		for (const element of elements) {
+			this.insertAtTail(element);
+		}
+	}
+
 	public removeNode(node: Element<T> | null): T | null {
 		if (!node) {
 			return null;
@@ -124,23 +147,43 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return deleted;
 	}
 
+	/**
+	 * Get first element in Linked List if one exists.
+	 *
+	 * @returns				Returns first element when list length is >= 1.
+	 *						Returns null when list is empty.
+	 */
 	public head(): Element<T> | null {
 		return this.state.head;
 	}
 
+	/**
+	 * Get last element in Linked List if one exists.
+	 *
+	 * @returns 			Returns last element when list length is >= 1.
+	 * 						Returns null when list is empty.
+	 */
 	public tail(): Element<T> | null {
 		return this.state.tail;
 	}
 
+	/**
+	 * Get number of elements in Linked List.
+	 * @returns				List size as a positive integer, or 0 if empty.
+	 */
 	public size(): number {
 		return this.state.size;
 	}
 
+	/**
+	 * Quickly check whether list has elements.
+	 * @returns
+	 */
 	public isEmpty(): boolean {
 		return this.state.size === 0;
 	}
 
-	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): ADTLinkedList<T> {
+	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): LinkedList<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -158,18 +201,16 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 			}
 		}, boundThis);
 
-		return new ADTLinkedList({...this.state, elements});
+		return new LinkedList<T>({
+			elements: elements
+		});
 	}
 
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): ADTLinkedList<T> {
-		const arr = this.getAsArray();
+	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): LinkedList<T> {
+		const arr = this.toArray();
 
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
-
-		if (thisArg) {
-			boundThis = thisArg as this;
-		}
+		const boundThis = (thisArg ? thisArg : this) as this;
 
 		arr.forEach((elem, idx, thisArr) => {
 			func.call(boundThis, elem, idx, thisArr);
@@ -178,7 +219,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public reverse(): ADTLinkedList<T> {
+	public reverse(): LinkedList<T> {
 		let curr = this.state.head;
 
 		if (!curr || this.size() <= 1) {
@@ -205,15 +246,17 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	}
 
 	public stringify(): string {
-		const list: Array<T | null> = [];
+		const list: T[] = [];
 
 		if (!this.head() || !this.tail() || this.size() === 0) {
 			return JSON.stringify(this.state);
 		}
 
-		this.forEach((element) => {
+		this.forEach((element: Element<T>) => {
 			const value = element.value();
-			list.push(value);
+			if (value !== null) {
+				list.push(value);
+			}
 		});
 
 		const state: State<T> = {...this.state};
@@ -228,7 +271,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return result;
 	}
 
-	public getAsArray(): Element<T>[] {
+	public toArray(): Element<T>[] {
 		const result: Element<T>[] = [];
 
 		let node = this.head();
@@ -284,7 +327,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return resultsArray;
 	}
 
-	public clearElements(): ADTLinkedList<T> {
+	public clearElements(): LinkedList<T> {
 		this.forEach((element) => {
 			element.prev(null);
 			element.next(null);
@@ -297,7 +340,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public reset(): ADTLinkedList<T> {
+	public reset(): LinkedList<T> {
 		this.clearElements();
 
 		this.state.type = 'LinkedList';
@@ -355,7 +398,7 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 			}
 
 			if (errors.length || !parsed) {
-				throw new Error('state is not a valid ADTLinkedListState');
+				throw new Error('state is not a valid LinkedListState');
 			}
 
 			result = parsed;
@@ -475,4 +518,4 @@ export class ADTLinkedList<T> implements ADTBase<T> {
 	}
 }
 
-type ArrayMethod<T, U> = (element: Element<T>, index: number, arr: Element<T>[]) => U;
+export type ArrayMethod<T, U> = (element: Element<T>, index: number, arr: Element<T>[]) => U;

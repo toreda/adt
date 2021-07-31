@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import {ADTPriorityQueue} from '../src/priority-queue';
-import {ADTPriorityQueueOptions} from '../src/priority-queue/options';
+import {PriorityQueue} from '../src/priority/queue';
+import {PriorityQueueOptions} from '../src/priority/queue/options';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);
 };
 
-const printHeap = function (obj: ADTPriorityQueue<number>): any {
+const printHeap = function (obj: PriorityQueue<number>): any {
 	let longest = 0;
 	let count = 1;
 	obj.forEach((v) => {
@@ -59,7 +59,7 @@ const comparator = function (a, b) {
 
 	return a <= b;
 };
-const queue = new ADTPriorityQueue(comparator);
+const queue = new PriorityQueue(comparator);
 
 beforeEach(() => {
 	queue.reset();
@@ -68,58 +68,58 @@ beforeEach(() => {
 
 describe('INSTANTIATION', () => {
 	it('default params', () => {
-		const result = new ADTPriorityQueue(comparator);
-		expect(result).toBeInstanceOf(ADTPriorityQueue);
+		const result = new PriorityQueue(comparator);
+		expect(result).toBeInstanceOf(PriorityQueue);
 		expect(result.size()).toBe(0);
 	});
 
 	it('with options', () => {
-		const options: Required<Omit<ADTPriorityQueueOptions<any>, 'serializedState'>> = {
+		const options: Required<Omit<PriorityQueueOptions<any>, 'serializedState'>> = {
 			elements: [1, 2, 3]
 		};
-		const result = new ADTPriorityQueue(comparator, options);
-		expect(result).toBeInstanceOf(ADTPriorityQueue);
+		const result = new PriorityQueue(comparator, options);
+		expect(result).toBeInstanceOf(PriorityQueue);
 		expect(result.size()).toBe(3);
 	});
 
 	it('stringify queue', () => {
 		const stringified = queue.stringify();
-		expect(new ADTPriorityQueue(comparator, {serializedState: stringified})).toEqual(queue);
+		expect(new PriorityQueue(comparator, {serializedState: stringified})).toEqual(queue);
 	});
 
 	it('with serialized', () => {
-		expect(new ADTPriorityQueue(comparator, {serializedState: ''})).toBeInstanceOf(ADTPriorityQueue);
-		const source = new ADTPriorityQueue(comparator, {elements: [2, 3, 4]});
+		expect(new PriorityQueue(comparator, {serializedState: ''})).toBeInstanceOf(PriorityQueue);
+		const source = new PriorityQueue(comparator, {elements: [2, 3, 4]});
 		const serialized = source.stringify();
-		const result = new ADTPriorityQueue(comparator, {serializedState: serialized});
-		expect(result).toBeInstanceOf(ADTPriorityQueue);
+		const result = new PriorityQueue(comparator, {serializedState: serialized});
+		expect(result).toBeInstanceOf(PriorityQueue);
 		expect(result).toEqual(source);
 		expect(result.size()).toBe(3);
 	});
 
 	it('invalid', () => {
 		expect(() => {
-			const result = new ADTPriorityQueue(null as any);
+			const result = new PriorityQueue(null as any);
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTPriorityQueue(comparator, {elements: 'adsf' as any});
+			const result = new PriorityQueue(comparator, {elements: 'adsf' as any});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTPriorityQueue(comparator, {serializedState: 'null'});
+			const result = new PriorityQueue(comparator, {serializedState: 'null'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTPriorityQueue(comparator, {serializedState: 'in{valid'});
+			const result = new PriorityQueue(comparator, {serializedState: 'in{valid'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTPriorityQueue(comparator, {serializedState: '{"elements": [4]}'});
+			const result = new PriorityQueue(comparator, {serializedState: '{"elements": [4]}'});
 			console.log(result);
 		}).toThrow();
 	});

@@ -1,13 +1,16 @@
-import {ADTQueue} from '../queue';
+import {Queue} from '../queue';
 import {IterableType} from '../iterable-type';
 import {Iterator} from '../iterator';
 import {makeIterableType} from '../makeIterableType';
 
+/**
+ * @category Queue
+ */
 export class QueueIterator<ItemT> implements Iterator<ItemT | null> {
 	public curr: number;
-	public readonly queue: ADTQueue<ItemT>;
+	public readonly queue: Queue<ItemT>;
 
-	constructor(queue: ADTQueue<ItemT>) {
+	constructor(queue: Queue<ItemT>) {
 		this.queue = queue;
 		this.curr = 0;
 	}

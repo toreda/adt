@@ -1,4 +1,7 @@
-export interface ADTCircularQueueOptions<T> {
+/**
+ * @category Circular Queue
+ */
+export interface CircularQueueOptions<T> {
 	elements?: T[];
 	front?: number;
 	maxSize?: number;

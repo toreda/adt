@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import {ADTStack} from '../src/stack';
-import {ADTStackOptions} from '../src/stack/options';
+import {Stack} from '../src/stack';
+import {StackOptions} from '../src/stack/options';
 import {StackIterator} from '../src/stack/iterator';
 
 const repeat = (n, f) => {
@@ -10,7 +10,7 @@ const repeat = (n, f) => {
 };
 const add10Items = () => repeat(10, (n) => stack.push((10 - n) * 10));
 
-const stack = new ADTStack();
+const stack = new Stack();
 
 beforeEach(() => {
 	stack.reset();
@@ -19,53 +19,53 @@ beforeEach(() => {
 
 describe('INSTANTIATION', () => {
 	it('default params', () => {
-		const result = new ADTStack();
-		expect(result).toBeInstanceOf(ADTStack);
+		const result = new Stack();
+		expect(result).toBeInstanceOf(Stack);
 		expect(result.size()).toBe(0);
 	});
 
 	it('with options', () => {
-		const options: Required<Omit<ADTStackOptions<any>, 'serializedState'>> = {
+		const options: Required<Omit<StackOptions<any>, 'serializedState'>> = {
 			elements: [1, 2, 3]
 		};
-		const result = new ADTStack(options);
-		expect(result).toBeInstanceOf(ADTStack);
+		const result = new Stack(options);
+		expect(result).toBeInstanceOf(Stack);
 		expect(result.size()).toBe(3);
 	});
 
 	it('stringify stack', () => {
 		const stringified = stack.stringify();
-		expect(new ADTStack({serializedState: stringified})).toEqual(stack);
+		expect(new Stack({serializedState: stringified})).toEqual(stack);
 	});
 
 	it('with serialized', () => {
-		expect(new ADTStack({serializedState: ''})).toBeInstanceOf(ADTStack);
-		const source = new ADTStack({elements: [2, 3, 4]});
+		expect(new Stack({serializedState: ''})).toBeInstanceOf(Stack);
+		const source = new Stack({elements: [2, 3, 4]});
 		const serialized = source.stringify();
-		const result = new ADTStack({serializedState: serialized});
-		expect(result).toBeInstanceOf(ADTStack);
+		const result = new Stack({serializedState: serialized});
+		expect(result).toBeInstanceOf(Stack);
 		expect(result.size()).toBe(3);
 		expect(result).toEqual(source);
 	});
 
 	it('invalid', () => {
 		expect(() => {
-			const result = new ADTStack({elements: 'adsf' as any});
+			const result = new Stack({elements: 'adsf' as any});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTStack({serializedState: 'null'});
+			const result = new Stack({serializedState: 'null'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTStack({serializedState: 'in{valid'});
+			const result = new Stack({serializedState: 'in{valid'});
 			console.log(result);
 		}).toThrow();
 
 		expect(() => {
-			const result = new ADTStack({serializedState: '{"elements": [4]}'});
+			const result = new Stack({serializedState: '{"elements": [4]}'});
 			console.log(result);
 		}).toThrow();
 	});

@@ -1,45 +1,45 @@
 // Base
-export {ADTBase} from './base';
-export {ADTBaseElement} from './base/element';
+export {ADT} from './adt';
+export {Element} from './element';
 
 // Circular Queue
-export {ADTCircularQueue} from './circular-queue';
-export {ADTCircularQueueOptions} from './circular-queue/options';
-export {ADTCircularQueueState} from './circular-queue/state';
+export {CircularQueue} from './circular/queue';
+export {CircularQueueOptions} from './circular/queue/options';
+export {CircularQueueState} from './circular/queue/state';
 
 // Linked List
-export {ADTLinkedList} from './linked-list';
-export {ADTLinkedListElement} from './linked-list/element';
-export {ADTLinkedListOptions} from './linked-list/options';
-export {ADTLinkedListState} from './linked-list/state';
+export {LinkedList} from './linked/list';
+export {LinkedListElement} from './linked/list/element';
+export {LinkedListOptions} from './linked/list/options';
+export {LinkedListState} from './linked/list/state';
 
 // Object Pool
-export {ADTObjectPool} from './object-pool';
-export {ADTObjectPoolInstance} from './object-pool/instance';
-export {ADTObjectPoolOptions} from './object-pool/options';
-export {ADTObjectPoolState} from './object-pool/state';
+export {ObjectPool} from './object/pool';
+export {ObjectPoolInstance} from './object/pool/instance';
+export {ObjectPoolOptions} from './object/pool/options';
+export {ObjectPoolState} from './object/pool/state';
 
 // Priority Queue
-export {ADTPriorityQueue} from './priority-queue';
-export {ADTPriorityQueueComparator} from './priority-queue/comparator';
-export {ADTPriorityQueueOptions} from './priority-queue/options';
-export {ADTPriorityQueueState} from './priority-queue/state';
+export {PriorityQueue} from './priority/queue';
+export {PriorityQueueComparator} from './priority/queue/comparator';
+export {PriorityQueueOptions} from './priority/queue/options';
+export {PriorityQueueState} from './priority/queue/state';
 
 // Queue
-export {ADTQueue} from './queue';
-export {ADTQueueOptions} from './queue/options';
-export {ADTQueueState} from './queue/state';
+export {Queue} from './queue';
+export {QueueOptions} from './queue/options';
+export {QueueState} from './queue/state';
 
 // Stack
-export {ADTStack} from './stack';
-export {ADTStackOptions} from './stack/options';
-export {ADTStackState} from './stack/state';
+export {Stack} from './stack';
+export {StackOptions} from './stack/options';
+export {StackState} from './stack/state';
 
 // Query
-export {ADTQueryFilter} from './query/filter';
-export {ADTQueryOptions} from './query/options';
-export {ADTQueryResult} from './query/result';
+export {QueryFilter} from './query/filter';
+export {QueryOptions} from './query/options';
+export {QueryResult} from './query/result';
 
 // Callable
-export {ADTQueueCallableSync} from './callable/sync';
-export {ADTQueueCallable} from './callable';
+export {QueueCallableSync} from './callable/sync';
+export {QueueCallable} from './callable';

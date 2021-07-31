@@ -1,4 +1,7 @@
-export interface ADTQueueOptions<T> {
+/**
+ * @category Queue
+ */
+export interface QueueOptions<T> {
 	elements?: Array<T>;
 	serializedState?: string;
 }

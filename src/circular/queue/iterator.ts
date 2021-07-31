@@ -1,13 +1,16 @@
-import {ADTCircularQueue} from '../circular-queue';
-import {IterableType} from '../iterable-type';
-import {Iterator} from '../iterator';
-import {makeIterableType} from '../makeIterableType';
+import {CircularQueue} from '../queue';
+import {IterableType} from '../../iterable-type';
+import {Iterator} from '../../iterator';
+import {makeIterableType} from '../../makeIterableType';
 
+/**
+ * @category Circular Queue
+ */
 export class CircularQueueIterator<ItemT> implements Iterator<ItemT | null> {
 	private curr: number;
-	private circularQueue: ADTCircularQueue<ItemT>;
+	private circularQueue: CircularQueue<ItemT>;
 
-	constructor(cq: ADTCircularQueue<ItemT>) {
+	constructor(cq: CircularQueue<ItemT>) {
 		this.circularQueue = cq;
 		this.curr = 0;
 	}

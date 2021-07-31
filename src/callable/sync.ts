@@ -1,1 +1,4 @@
-export type ADTQueueCallableSync = (element: any, ndx: number) => void;
+/**
+ * @category Queue
+ */
+export type QueueCallableSync = (element: unknown, ndx: number) => void;

@@ -1,12 +1,15 @@
-import {ADTLinkedList} from '../linked-list';
-import {ADTLinkedListElement as Element} from '../linked-list/element';
-import {IterableType} from '../iterable-type';
-import {makeIterableType} from '../makeIterableType';
+import {LinkedList} from '../list';
+import {LinkedListElement as Element} from './element';
+import {IterableType} from '../../iterable-type';
+import {makeIterableType} from '../../makeIterableType';
 
+/**
+ * @category LinkedList
+ */
 export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
 	private item: Element<ItemT> | null;
 
-	constructor(linkedList: ADTLinkedList<ItemT>) {
+	constructor(linkedList: LinkedList<ItemT>) {
 		this.item = linkedList.head();
 	}
 

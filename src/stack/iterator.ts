@@ -1,13 +1,16 @@
-import {ADTStack} from '../stack';
+import {Stack} from '../stack';
 import {IterableType} from '../iterable-type';
 import {Iterator} from '../iterator';
 import {makeIterableType} from '../makeIterableType';
 
+/**
+ * @category Stack
+ */
 export class StackIterator<ItemT> implements Iterator<ItemT | null> {
 	private curr: number;
-	private stack: ADTStack<ItemT>;
+	private stack: Stack<ItemT>;
 
-	constructor(stack: ADTStack<ItemT>) {
+	constructor(stack: Stack<ItemT>) {
 		this.stack = stack;
 		this.curr = 0;
 	}

@@ -1,16 +1,16 @@
-import {ADTBase} from './base';
-import {ADTQueueOptions as Options} from './queue/options';
-import {ADTQueryFilter as QueryFilter} from './query/filter';
-import {ADTQueryOptions as QueryOptions} from './query/options';
-import {ADTQueryResult as QueryResult} from './query/result';
+import {ADT} from './adt';
+import {QueueOptions} from './queue/options';
+import {QueryFilter} from './query/filter';
+import {QueryOptions} from './query/options';
+import {QueryResult} from './query/result';
 import {QueueIterator} from './queue/iterator';
-import {ADTQueueState as State} from './queue/state';
+import {QueueState as State} from './queue/state';
 import {isNumber} from './utility';
 
-export class ADTQueue<T> implements ADTBase<T> {
+export class Queue<T> implements ADT<T> {
 	public readonly state: State<T>;
 
-	constructor(options?: Options<T>) {
+	constructor(options?: QueueOptions<T>) {
 		// Shallow clone by default.
 		// TODO: Add deep copy option.
 		this.state = this.parseOptions(options);
@@ -24,13 +24,13 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return this.front();
 	}
 
-	public pop(): ADTQueue<T> {
+	public pop(): Queue<T> {
 		this.state.elements.shift();
 
 		return this;
 	}
 
-	public push(element: T): ADTQueue<T> {
+	public push(element: T): Queue<T> {
 		this.state.elements.push(element);
 
 		return this;
@@ -60,7 +60,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return this.state.elements.length === 0;
 	}
 
-	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): ADTQueue<T> {
+	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): Queue<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -77,10 +77,10 @@ export class ADTQueue<T> implements ADTBase<T> {
 			}
 		}, boundThis);
 
-		return new ADTQueue({...this.state, elements});
+		return new Queue({...this.state, elements});
 	}
 
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): ADTQueue<T> {
+	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): Queue<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -95,7 +95,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	public reverse(): ADTQueue<T> {
+	public reverse(): Queue<T> {
 		this.state.elements.reverse();
 
 		return this;
@@ -141,13 +141,13 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return resultsArray;
 	}
 
-	public clearElements(): ADTQueue<T> {
+	public clearElements(): Queue<T> {
 		this.state.elements = [];
 
 		return this;
 	}
 
-	public reset(): ADTQueue<T> {
+	public reset(): Queue<T> {
 		this.clearElements();
 
 		this.state.type = 'Queue';
@@ -155,14 +155,14 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return this;
 	}
 
-	private parseOptions(options?: Options<T>): State<T> {
+	private parseOptions(options?: QueueOptions<T>): State<T> {
 		const fromSerial = this.parseOptionsSerialized(options);
 		const finalState = this.parseOptionsOverrides(fromSerial, options);
 
 		return finalState;
 	}
 
-	private parseOptionsSerialized(options?: Options<T>): State<T> {
+	private parseOptionsSerialized(options?: QueueOptions<T>): State<T> {
 		const state: State<T> = this.getDefaultState();
 
 		if (!options) {
@@ -204,7 +204,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 			}
 
 			if (errors.length || !parsed) {
-				throw new Error('state is not a valid ADTQueueState');
+				throw new Error('state is not a valid QueueState');
 			}
 
 			result = parsed;
@@ -215,7 +215,7 @@ export class ADTQueue<T> implements ADTBase<T> {
 		return result;
 	}
 
-	private parseOptionsOverrides(stateArg: State<T>, options?: Options<T>): State<T> {
+	private parseOptionsOverrides(stateArg: State<T>, options?: QueueOptions<T>): State<T> {
 		const state: State<T> = stateArg;
 
 		if (!options) {
@@ -316,4 +316,4 @@ export class ADTQueue<T> implements ADTBase<T> {
 	}
 }
 
-type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;
+export type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;

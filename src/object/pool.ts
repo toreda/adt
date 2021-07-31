@@ -1,16 +1,20 @@
-import {isInteger, isNumber} from './utility';
+import {isInteger, isNumber} from '../utility';
 
-import {ADTBase} from './base';
-import {ADTObjectPoolConstructor as Constructor} from './object-pool/constructor';
-import {ADTObjectPoolInstance as Instance} from './object-pool/instance';
-import {ObjectPoolIterator} from './object-pool/iterator';
-import {ADTObjectPoolOptions as Options} from './object-pool/options';
-import {ADTQueryFilter as QueryFilter} from './query/filter';
-import {ADTQueryOptions as QueryOptions} from './query/options';
-import {ADTQueryResult as QueryResult} from './query/result';
-import {ADTObjectPoolState as State} from './object-pool/state';
+import {ADT} from '../adt';
+import {ObjectPoolConstructor as Constructor} from './pool/constructor';
+import {ObjectPoolInstance as Instance} from './pool/instance';
+import {ObjectPoolIterator} from './pool/iterator';
+import {ObjectPoolOptions as Options} from './pool/options';
+import {QueryFilter} from '../query/filter';
+import {QueryOptions} from '../query/options';
+import {QueryResult} from '../query/result';
+import {ObjectPoolState as State} from './pool/state';
 
-export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
+/**
+ *
+ * @category ObjectPool
+ */
+export class ObjectPool<T extends Instance> implements ADT<T> {
 	public readonly state: State<T>;
 	private readonly objectClass: Constructor<T>;
 	private wastedSpace: number = 0;
@@ -31,6 +35,13 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return new ObjectPoolIterator<T>(this);
 	}
 
+	/**
+	 * Allocate a single object instance. Pool size will increase when
+	 * no instances are available for allocation, unless the pool is
+	 * already at it's maximum size defined by ObjectPool's config.
+	 * @returns				Object instance of type T if available.
+	 *						null when an instance can't be allocated.
+	 */
 	public allocate(): T | null {
 		if (this.state.autoIncrease && this.isAboveThreshold(1)) {
 			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor) || 1;
@@ -48,6 +59,14 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return result;
 	}
 
+	/**
+	 * Allocate multiple object instances from pool in a single call. Pool
+	 * size will increase to add more instances if no object instances are
+	 * available, unless pool has reached it's maximum size as defined by
+	 * the ObjectPool config.
+	 * @param n				Number of object instances to allocate.
+	 * @returns				Array of allocated object instances.
+	 */
 	public allocateMultiple(n: number = 1): Array<T> {
 		let num: number;
 		if (!isInteger(n) || n < 1) {
@@ -72,6 +91,12 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return result;
 	}
 
+	/**
+	 * Release object instance back to the pool for reuse later.
+	 *
+	 * @param object			Target pool object to be released.
+	 * @returns					void
+	 */
 	public release(object: T): void {
 		if (typeof object.cleanObj !== 'function') {
 			return;
@@ -121,6 +146,13 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return (this.state.objectCount - freeObj) / this.state.objectCount;
 	}
 
+	/**
+	 * Increase ObjectPool capacity by n slots. Pool creates and store object
+	 * instances for each slot. Increasing capacity frequently or by a very large
+	 * n will result in many memory allocations at once.
+	 * @param n				Object Capacity to be added to pool.
+	 * @returns
+	 */
 	public increaseCapacity(n: number): void {
 		if (!isInteger(n)) {
 			return;
@@ -132,7 +164,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		}
 	}
 
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): ADTObjectPool<T> {
+	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): ObjectPool<T> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 		if (thisArg) {
@@ -217,7 +249,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return resultsArray;
 	}
 
-	public clearElements(): ADTObjectPool<T> {
+	public clearElements(): ObjectPool<T> {
 		const used = this.map();
 		this.state.used = [];
 
@@ -226,7 +258,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 		return this;
 	}
 
-	public reset(): ADTObjectPool<T> {
+	public reset(): ObjectPool<T> {
 		this.state.pool = [];
 		this.state.used = [];
 		this.state.objectCount = 0;
@@ -314,7 +346,7 @@ export class ADTObjectPool<T extends Instance> implements ADTBase<T> {
 			}
 
 			if (errors.length || !parsed) {
-				throw new Error('state is not a valid ADTPriorityQueueState');
+				throw new Error('state is not a valid PriorityQueueState');
 			}
 
 			result = parsed;
