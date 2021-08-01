@@ -1,5 +1,5 @@
 /**
- * @category ObjectPool
+ * @category Object Pool
  */
 export interface ObjectPoolState<T> {
 	autoIncrease: boolean;

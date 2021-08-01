@@ -4,7 +4,7 @@ import {IterableType} from '../../iterable/type';
 import {iterableMakeType} from '../../iterable/helpers';
 
 /**
- * @category LinkedList
+ * @category Linked List
  */
 export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
 	private item: Element<ItemT> | null;
@@ -13,7 +13,7 @@ export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
 		this.item = linkedList.head();
 	}
 
-	next(): IterableType<ItemT | null> {
+	public next(): IterableType<ItemT | null> {
 		if (!this.item) {
 			return iterableMakeType(null, true);
 		}

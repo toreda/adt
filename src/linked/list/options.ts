@@ -3,7 +3,7 @@
  * on creation to populate the list's internal starting state.
  * State is populated with default values for any options not provided.
  *
- * @category LinkedList
+ * @category Linked List
  */
 export interface LinkedListOptions<T> {
 	/** Elements to be inserted into list on creation. */

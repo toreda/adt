@@ -4,6 +4,7 @@ import {Iterator} from '../iterator';
 import {iterableMakeType} from '../iterable/helpers';
 
 /**
+ *
  * @category Stack
  */
 export class StackIterator<ItemT> implements Iterator<ItemT | null> {

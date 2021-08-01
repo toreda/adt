@@ -9,7 +9,7 @@ import {QueryResult} from '../query/result';
 import {CircularQueueState} from './queue/state';
 
 /**
- * @category CircularQueue
+ * @category Circular Queue
  */
 export class CircularQueue<T> implements ADT<T> {
 	private readonly state: CircularQueueState<T>;

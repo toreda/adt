@@ -1,7 +1,7 @@
 import {Element} from '../../element';
 
 /**
- * @category LinkedList
+ * @category Linked List
  */
 export class LinkedListElement<T> implements Element<T> {
 	private _value: T | null;

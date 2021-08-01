@@ -1,7 +1,7 @@
 import {LinkedListElement} from './element';
 
 /**
- * @category LinkedList
+ * @category Linked List
  */
 export interface LinkedListState<T> {
 	/** Elements stored in Linked List. */

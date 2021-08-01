@@ -1,5 +1,7 @@
 # `@toreda/adt` Abstract Data Types
 
+![Toreda](https://content.toreda.com/logo/toreda-logo.png)
+
 ![CI](https://github.com/toreda/adt/workflows/CI/badge.svg?branch=master) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=coverage)](https://sonarcloud.io/dashboard?id=toreda_adt) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=alert_status)](https://sonarcloud.io/dashboard?id=toreda_adt)
 
 Collection of TypeScript generic data structures with consistent APIs for search, insertion, and deletion.
@@ -17,17 +19,17 @@ Collection of TypeScript generic data structures with consistent APIs for search
 	* [Testing](#testing)
 	* [License](#license)
 
-# **`ADTBase` Interface**
-Each ADT uses TypeScript generics of type<T> and implements `ADTBase` and `ADTBaseElement` interfaces.
+# **`ADT` Interface**
+Each ADT uses TypeScript generics of type<T> and implements `ADT` and `Element` interfaces.
 
-`ADTBase` requires these functions:
+`ADT` requires these functions:
 * `clearElements(): void`
 * `reset(): void`
 * `stringify(): string | null`
 * `query(`<br>
 	 `query: ADTQueryFilter<T> | ADTQueryFilter<T>[],`<br>
 	 `options?: ADTQueryOptions`<br>
-	 `): ADTQueryResult<T>[] | ADTQueryResult<ADTBaseElement<T>>[];`
+	 `): ADTQueryResult<T>[] | ADTQueryResult<ADTElement<T>>[];`
 
 # Data Structures
 

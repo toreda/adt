@@ -9,7 +9,7 @@ import {LinkedListState as State} from './list/state';
 import {isNumber} from '../utility';
 
 /**
- * @category LinkedList
+ * @category Linked List
  */
 export class LinkedList<T> implements ADT<T> {
 	private readonly state: State<T>;

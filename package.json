@@ -1,6 +1,6 @@
 {
 	"name": "@toreda/adt",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "",
 	"public": true,
 	"main": "./dist/index.js",
@@ -9,6 +9,7 @@
 		"lint": "yarn eslint ./src/** --quiet",
 		"lint:nofix": "yarn lint",
 		"lint:fix": "yarn eslint src/**/*.{js,ts,tsx} --quiet --fix",
+		"make:docs": "yarn typedoc docs --categorizeByGroup false --entryPoints ./src/index.ts",
 		"build": "yarn gulp",
 		"test": "yarn jest --coverage"
 	},
@@ -64,6 +65,7 @@
 		"ts-jest": "^26.4.1",
 		"ts-loader": "^8.0.4",
 		"ts-node": "^9.0.0",
+		"typedoc": "^0.21.5",
 		"typescript": "^4.3.5"
 	},
 	"dependencies": {}

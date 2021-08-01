@@ -12,7 +12,7 @@ import {ObjectPoolState as State} from './pool/state';
 
 /**
  *
- * @category ObjectPool
+ * @category Object Pool
  */
 export class ObjectPool<T extends Instance> implements ADT<T> {
 	public readonly state: State<T>;

@@ -55,6 +55,20 @@ export class Stack<T> implements ADT<T> {
 		return this.state.elements[0];
 	}
 
+	/**
+	 * Get Nth element in stack if one exists at location.
+	 * @param n
+	 * @returns
+	 */
+	public at(n: number): T | null {
+		const sz = this.size();
+		if (!sz || n > sz - 1 || n < 0) {
+			return null;
+		}
+
+		return this.state.elements[n];
+	}
+
 	public size(): number {
 		return this.state.elements.length;
 	}

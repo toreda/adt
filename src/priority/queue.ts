@@ -7,6 +7,12 @@ import {QueryResult} from '../query/result';
 import {PriorityQueueState as State} from './queue/state';
 import {isNumber} from '../utility';
 
+/**
+ * Heap data structure which operates as a Min Heap or Max Heap
+ * depending on user provided Comparator Function provided.
+ *
+ * @category Priority Queue
+ */
 export class PriorityQueue<T> implements ADT<T> {
 	private readonly state: State<T>;
 	private readonly comparator: Comparator<T>;
@@ -64,10 +70,18 @@ export class PriorityQueue<T> implements ADT<T> {
 		}
 	}
 
+	/**
+	 * Get number of elements currently in Priority Queue.
+	 * @returns
+	 */
 	public size(): number {
 		return this.state.elements.length;
 	}
 
+	/**
+	 * Check if priority queue has elements.
+	 * @returns
+	 */
 	public isEmpty(): boolean {
 		return this.state.elements.length === 0;
 	}

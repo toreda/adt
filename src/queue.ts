@@ -8,7 +8,7 @@ import {QueueState as State} from './queue/state';
 import {isNumber} from './utility';
 
 /**
- * Queue ADT with standard FIFO functionality.
+ * Generic Queue data structure with FIFO element ordering.
  *
  * @category Queue
  */
@@ -25,10 +25,19 @@ export class Queue<T> implements ADT<T> {
 		return new QueueIterator<T>(this);
 	}
 
+	/**
+	 * Alias of front(). Get the first element without removing it,
+	 * if queue has elements.
+	 * @returns
+	 */
 	public peek(): T | null {
 		return this.front();
 	}
 
+	/**
+	 * Remove first element in queue if one exists. Does nothing when queue is empty.
+	 * @returns
+	 */
 	public pop(): Queue<T> {
 		this.state.elements.shift();
 
@@ -41,6 +50,10 @@ export class Queue<T> implements ADT<T> {
 		return this;
 	}
 
+	/**
+	 * Get reference to first element without removing it.
+	 * @returns		Returns element T or null if queue is empty.
+	 */
 	public front(): T | null {
 		if (this.isEmpty()) {
 			return null;
@@ -49,12 +62,37 @@ export class Queue<T> implements ADT<T> {
 		return this.state.elements[0];
 	}
 
+	/**
+	 * Get Nth element from queue.
+	 * @param n		Position to
+	 * @returns		null when queue is empty or when queue does not have n items.
+	 */
+	public at(n: number): T | null {
+		if (typeof n !== 'number') {
+			return null;
+		}
+
+		if (n < 0 || n > this.size() - 1) {
+			return null;
+		}
+
+		return this.state.elements[n];
+	}
+
+	/**
+	 * Get the last element in queue or null when queue is empty.
+	 * @returns
+	 */
 	public rear(): T | null {
 		if (this.isEmpty()) {
 			return null;
 		}
 
 		return this.state.elements[this.size() - 1];
+	}
+
+	public back(): T | null {
+		return this.rear();
 	}
 
 	public size(): number {

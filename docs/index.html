@@ -1,0 +1,811 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>@toreda/adt</title>
+	<meta name="description" content="Documentation for @toreda/adt">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">@toreda/adt</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>@toreda/adt</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#toredaadt-abstract-data-types" id="toredaadt-abstract-data-types" style="color: inherit; text-decoration: none;">
+					<h1><code>@toreda/adt</code> Abstract Data Types</h1>
+				</a>
+				<p><img src="https://content.toreda.com/logo/toreda-logo.png" alt="Toreda"></p>
+				<p><img src="https://github.com/toreda/adt/workflows/CI/badge.svg?branch=master" alt="CI"> <a href="https://sonarcloud.io/dashboard?id=toreda_adt"><img src="https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=coverage" alt="Coverage"></a> <a href="https://sonarcloud.io/dashboard?id=toreda_adt"><img src="https://sonarcloud.io/api/project_badges/measure?project=toreda_adt&metric=alert_status" alt="Quality Gate Status"></a></p>
+				<p>Collection of TypeScript generic data structures with consistent APIs for search, insertion, and deletion.</p>
+				<a href="#contents" id="contents" style="color: inherit; text-decoration: none;">
+					<h1>Contents</h1>
+				</a>
+				<ul>
+					<li><a href="#data-structures"><strong>Data Structures</strong></a><ul>
+							<li><a href="#CircularQueueT"><code>CircularQueue</code></a></li>
+							<li><a href="#LinkedListT"><code>LinkedList</code></a></li>
+							<li><a href="#PriorityQueueT"><code>PriorityQueue</code></a></li>
+							<li><a href="#ObjectPoolT"><code>ObjectPool</code></a></li>
+							<li><a href="#QueueT"><code>Queue</code></a></li>
+							<li><a href="#StackT"><code>Stack</code></a></li>
+						</ul>
+					</li>
+					<li><a href="#Package"><strong>Package</strong></a><ul>
+							<li><a href="#Build">Build</a></li>
+							<li><a href="#testing">Testing</a></li>
+							<li><a href="#license">License</a></li>
+						</ul>
+					</li>
+				</ul>
+				<a href="#adt-interface" id="adt-interface" style="color: inherit; text-decoration: none;">
+					<h1><strong><code>ADT</code> Interface</strong></h1>
+				</a>
+				<p>Each ADT uses TypeScript generics of type<T> and implements <code>ADT</code> and <code>Element</code> interfaces.</p>
+				<p><code>ADT</code> requires these functions:</p>
+				<ul>
+					<li><code>clearElements(): void</code></li>
+					<li><code>reset(): void</code></li>
+					<li><code>stringify(): string | null</code></li>
+					<li><code>query(</code><br>
+						<code>query: ADTQueryFilter&lt;T&gt; | ADTQueryFilter&lt;T&gt;[],</code><br>
+						<code>options?: ADTQueryOptions</code><br>
+					<code>): ADTQueryResult&lt;T&gt;[] | ADTQueryResult&lt;ADTElement&lt;T&gt;&gt;[];</code></li>
+				</ul>
+				<a href="#data-structures" id="data-structures" style="color: inherit; text-decoration: none;">
+					<h1>Data Structures</h1>
+				</a>
+				<ul>
+					<li><a href="#StackT"><code>Stack</code></a></li>
+					<li><a href="#QueueT"><code>Queue</code></a></li>
+					<li><a href="#LinkedListT"><code>LinkedList</code></a></li>
+					<li><a href="#CircularQueueT"><code>CircularQueue</code></a></li>
+					<li><a href="#PriorityQueueT"><code>PriorityQueue</code></a></li>
+					<li><a href="#ObjectPoolT"><code>ObjectPool</code></a></li>
+				</ul>
+				<a href="#stacklttgt" id="stacklttgt" style="color: inherit; text-decoration: none;">
+					<h2><code>Stack&lt;T&gt;</code></h2>
+				</a>
+				<p>Typescript</p>
+				<pre><code class="language-typescript"><span style="color: #008000">// Import</span>
+<span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">Stack</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;@toreda/adt&#039;</span><span style="color: #000000">;</span>
+<span style="color: #008000">// Instantiate</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myStack</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Stack</span><span style="color: #000000">&lt;</span><span style="color: #267F99">string</span><span style="color: #000000">&gt;();</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myStackWithOption</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Stack</span><span style="color: #000000">&lt;</span><span style="color: #267F99">string</span><span style="color: #000000">&gt;({</span>
+<span style="color: #000000">    </span><span style="color: #001080">elements:</span><span style="color: #000000"> [</span><span style="color: #A31515">&#039;a&#039;</span><span style="color: #000000">, </span><span style="color: #A31515">&#039;b&#039;</span><span style="color: #000000">, </span><span style="color: #A31515">&#039;c&#039;</span><span style="color: #000000">]</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Add elements to stack</span>
+<span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;my string 1&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// return myStack</span>
+<span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;my string 2&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// return myStack</span>
+
+<span style="color: #008000">// Get stack size</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">size</span><span style="color: #000000"> = </span><span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+
+<span style="color: #008000">// Iterate through elements</span>
+<span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">forEach</span><span style="color: #000000">((</span><span style="color: #001080">elem</span><span style="color: #000000">, </span><span style="color: #001080">index</span><span style="color: #000000">, </span><span style="color: #001080">arr</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">elem</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; is at index &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">index</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; in array &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">arr</span><span style="color: #000000">)</span>
+<span style="color: #000000">}); </span><span style="color: #008000">// returns myStack</span>
+<span style="color: #008000">// outputs &#039;my string 2 is at index 0 in array [&quot;my string 2&quot;, &quot;my string 1&quot;]&#039;</span>
+<span style="color: #008000">// outputs &#039;my string 1 is at index 1 in array [&quot;my string 2&quot;, &quot;my string 1&quot;]&#039;</span>
+
+<span style="color: #008000">// Remove first element from stack</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result1</span><span style="color: #000000"> = </span><span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns &quot;my string 2&quot;</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result2</span><span style="color: #000000"> = </span><span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns &quot;my string 1&quot;</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result3</span><span style="color: #000000"> = </span><span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns null because myStack is already empty.</span>
+
+<span style="color: #008000">// Reset stack and remove all elements.</span>
+<span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">reset</span><span style="color: #000000">(); </span><span style="color: #008000">// returns myStack</span>
+
+<span style="color: #008000">// Queue 3 items via chained push calls.</span>
+<span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;one&quot;</span><span style="color: #000000">).</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;two&quot;</span><span style="color: #000000">).</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;three&quot;</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">// Reverse the order of stack elements.</span>
+<span style="color: #008000">// &quot;one&quot;, &quot;two&quot;, &quot;three&quot; becomes &quot;three&quot;, &quot;two&quot;, &quot;one&quot;</span>
+<span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">reverse</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Returns the current state of stack as string</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">serialized</span><span style="color: #000000"> = </span><span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">stringify</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Instantiate a queue using serialized state</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">serialStack</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Stack</span><span style="color: #000000">({</span><span style="color: #001080">serializedState:</span><span style="color: #000000"> </span><span style="color: #001080">serialized</span><span style="color: #000000">});</span>
+</code></pre>
+				<a href="#queuelttgt" id="queuelttgt" style="color: inherit; text-decoration: none;">
+					<h2><code>Queue&lt;T&gt;</code></h2>
+				</a>
+				<p>Typescript</p>
+				<pre><code class="language-typescript"><span style="color: #008000">// Import</span>
+<span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">Queue</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;@toreda/adt&#039;</span><span style="color: #000000">;</span>
+<span style="color: #008000">// Instantiate</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myQueue</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Queue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">string</span><span style="color: #000000">&gt;();</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myQueueWithOption</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Queue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">string</span><span style="color: #000000">&gt;({</span>
+<span style="color: #000000">    </span><span style="color: #001080">elements:</span><span style="color: #000000"> [</span><span style="color: #A31515">&#039;a&#039;</span><span style="color: #000000">, </span><span style="color: #A31515">&#039;b&#039;</span><span style="color: #000000">, </span><span style="color: #A31515">&#039;c&#039;</span><span style="color: #000000">]</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Add elements to queue</span>
+<span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;my string 1&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// return myQueue</span>
+<span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;my string 2&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// return myQueue</span>
+
+<span style="color: #008000">// Get queue size</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">size</span><span style="color: #000000"> = </span><span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+
+<span style="color: #008000">// Iterate through elements</span>
+<span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">forEach</span><span style="color: #000000">((</span><span style="color: #001080">elem</span><span style="color: #000000">, </span><span style="color: #001080">index</span><span style="color: #000000">, </span><span style="color: #001080">arr</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">elem</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; is at index &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">index</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; in array &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">arr</span><span style="color: #000000">)</span>
+<span style="color: #000000">}); </span><span style="color: #008000">// returns myQueue</span>
+<span style="color: #008000">// outputs &#039;my string 1 is at index 0 in array [&quot;my string 1&quot;, &quot;my string 2&quot;]&#039;</span>
+<span style="color: #008000">// outputs &#039;my string 2 is at index 1 in array [&quot;my string 1&quot;, &quot;my string 2&quot;]&#039;</span>
+
+<span style="color: #008000">// Remove first element from queue</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result1</span><span style="color: #000000"> = </span><span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns &quot;my string 1&quot;</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result2</span><span style="color: #000000"> = </span><span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns &quot;my string 2&quot;</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">result3</span><span style="color: #000000"> = </span><span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns null because myQueue is already empty.</span>
+
+<span style="color: #008000">// Reset queue and remove all elements.</span>
+<span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">reset</span><span style="color: #000000">(); </span><span style="color: #008000">// returns myQueue</span>
+
+<span style="color: #008000">// Queue 3 items via chained push calls.</span>
+<span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;one&quot;</span><span style="color: #000000">).</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;two&quot;</span><span style="color: #000000">).</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;three&quot;</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">// Reverse the order of queued elements.</span>
+<span style="color: #008000">// &quot;one&quot;, &quot;two&quot;, &quot;three&quot; becomes &quot;three&quot;, &quot;two&quot;, &quot;one&quot;</span>
+<span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">reverse</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Returns the current state of queue as string</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">serialized</span><span style="color: #000000"> = </span><span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">stringify</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Instantiate a queue using serialized state</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">serialQueue</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Queue</span><span style="color: #000000">({</span><span style="color: #001080">serializedState:</span><span style="color: #000000"> </span><span style="color: #001080">serialized</span><span style="color: #000000">});</span>
+</code></pre>
+				<a href="#linkedlistlttgt" id="linkedlistlttgt" style="color: inherit; text-decoration: none;">
+					<h2><code>LinkedList&lt;T&gt;</code></h2>
+				</a>
+				<p>Typescript</p>
+				<pre><code class="language-typescript"><span style="color: #008000">// Import</span>
+<span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">LinkedList</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;@toreda/adt&#039;</span><span style="color: #000000">;</span>
+<span style="color: #008000">// Instantiate</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myLinkedList</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">LinkedList</span><span style="color: #000000">&lt;</span><span style="color: #267F99">string</span><span style="color: #000000">&gt;();</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myStackWithOption</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Stack</span><span style="color: #000000">&lt;</span><span style="color: #267F99">string</span><span style="color: #000000">&gt;({</span>
+<span style="color: #000000">    </span><span style="color: #001080">elements:</span><span style="color: #000000"> [</span><span style="color: #A31515">&#039;a&#039;</span><span style="color: #000000">, </span><span style="color: #A31515">&#039;b&#039;</span><span style="color: #000000">, </span><span style="color: #A31515">&#039;c&#039;</span><span style="color: #000000">]</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Add elements to the tail of linked list</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">insert</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;my string 1&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// returns arg converted to LinkedListElement</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">insert</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;my string 2&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// returns arg converted to LinkedListElement</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">insertAtTail</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;my string 3&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// returns arg converted to LinkedListElement</span>
+
+<span style="color: #008000">// Add elements to the head of linked list</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">insertAtHead</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;my string 0&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// returns arg converted to LinkedListElement</span>
+
+<span style="color: #008000">// Get linked list size</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">size</span><span style="color: #000000"> = </span><span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 4</span>
+
+<span style="color: #008000">// Get head of linked list</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">head</span><span style="color: #000000"> = </span><span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">head</span><span style="color: #000000">();</span><span style="color: #008000">// returns object holding &quot;my string 0&quot; as value</span>
+
+<span style="color: #008000">// Get tail of linked list</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">tail</span><span style="color: #000000"> = </span><span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">tail</span><span style="color: #000000">();</span><span style="color: #008000">// returns object holding &quot;my string 3&quot; as value</span>
+
+<span style="color: #008000">// Get value of linked list element</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">headValue</span><span style="color: #000000"> = </span><span style="color: #001080">head</span><span style="color: #000000">.</span><span style="color: #795E26">value</span><span style="color: #000000">(); </span><span style="color: #008000">// returns &quot;my string 0&quot;</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">tailValue</span><span style="color: #000000"> = </span><span style="color: #001080">tail</span><span style="color: #000000">.</span><span style="color: #795E26">value</span><span style="color: #000000">(); </span><span style="color: #008000">// returns &quot;my string 3&quot;</span>
+
+<span style="color: #008000">// Set value of linked list element</span>
+<span style="color: #001080">head</span><span style="color: #000000">.</span><span style="color: #795E26">value</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;MY STRING 0&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// returns null</span>
+<span style="color: #001080">tail</span><span style="color: #000000">.</span><span style="color: #795E26">value</span><span style="color: #000000">(</span><span style="color: #A31515">&quot;MY STRING 3&quot;</span><span style="color: #000000">); </span><span style="color: #008000">// returns null</span>
+
+<span style="color: #008000">// Move to next linked node</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">next</span><span style="color: #000000"> = </span><span style="color: #001080">head</span><span style="color: #000000">.</span><span style="color: #795E26">next</span><span style="color: #000000">() </span><span style="color: #008000">// returns object holding &quot;my string 1&quot; as value</span>
+<span style="color: #001080">next</span><span style="color: #000000"> = </span><span style="color: #001080">next</span><span style="color: #000000">.</span><span style="color: #795E26">next</span><span style="color: #000000">() </span><span style="color: #008000">// returns object holding &quot;my string 2&quot; as value</span>
+<span style="color: #001080">next</span><span style="color: #000000"> = </span><span style="color: #001080">next</span><span style="color: #000000">.</span><span style="color: #795E26">next</span><span style="color: #000000">() </span><span style="color: #008000">// returns object holding &quot;MY STRING 3&quot; as value</span>
+<span style="color: #001080">next</span><span style="color: #000000"> = </span><span style="color: #001080">next</span><span style="color: #000000">.</span><span style="color: #795E26">next</span><span style="color: #000000">() </span><span style="color: #008000">// returns null</span>
+
+<span style="color: #008000">// Move to previous linked node</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">prev</span><span style="color: #000000"> = </span><span style="color: #001080">head</span><span style="color: #000000">.</span><span style="color: #795E26">prev</span><span style="color: #000000">() </span><span style="color: #008000">// returns object holding &quot;my string 2&quot; as value</span>
+<span style="color: #001080">prev</span><span style="color: #000000"> = </span><span style="color: #001080">prev</span><span style="color: #000000">.</span><span style="color: #795E26">prev</span><span style="color: #000000">() </span><span style="color: #008000">// returns object holding &quot;my string 1&quot; as value</span>
+<span style="color: #001080">prev</span><span style="color: #000000"> = </span><span style="color: #001080">prev</span><span style="color: #000000">.</span><span style="color: #795E26">prev</span><span style="color: #000000">() </span><span style="color: #008000">// returns object holding &quot;MY STRING 0&quot; as value</span>
+<span style="color: #001080">prev</span><span style="color: #000000"> = </span><span style="color: #001080">prev</span><span style="color: #000000">.</span><span style="color: #795E26">prev</span><span style="color: #000000">() </span><span style="color: #008000">// returns null</span>
+
+<span style="color: #008000">// Iterate through elements</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">forEach</span><span style="color: #000000">((</span><span style="color: #001080">elem</span><span style="color: #000000">, </span><span style="color: #001080">index</span><span style="color: #000000">, </span><span style="color: #001080">arr</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">elem</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; is at index &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">index</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; in array &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">arr</span><span style="color: #000000">)</span>
+<span style="color: #000000">}); </span><span style="color: #008000">// returns myLinkedList</span>
+<span style="color: #008000">// outputs &#039;MY STRING 0 is at index 0 in array [&quot;MY STRING 0&quot;, &quot;my string 1&quot;, &quot;my string 2&quot;, &quot;MY STRING 3]&#039;</span>
+<span style="color: #008000">// outputs &#039;my string 1 is at index 1 in array [&quot;MY STRING 0&quot;, &quot;my string 1&quot;, &quot;my string 2&quot;, &quot;MY STRING 3]&#039;</span>
+<span style="color: #008000">// outputs &#039;my string 2 is at index 2 in array [&quot;MY STRING 0&quot;, &quot;my string 1&quot;, &quot;my string 2&quot;, &quot;MY STRING 3]&#039;</span>
+<span style="color: #008000">// outputs &#039;MY STRING 3 is at index 3 in array [&quot;MY STRING 0&quot;, &quot;my string 1&quot;, &quot;my string 2&quot;, &quot;MY STRING 3]&#039;</span>
+
+<span style="color: #008000">// Remove node from linked list</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">deleteNode</span><span style="color: #000000">(</span><span style="color: #001080">head</span><span style="color: #000000">); </span><span style="color: #008000">// returns &quot;MY STRING 0&quot;</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">deleteNode</span><span style="color: #000000">(</span><span style="color: #001080">tail</span><span style="color: #000000">); </span><span style="color: #008000">// returns &quot;MY STRING 3&quot;</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">head</span><span style="color: #000000">(); </span><span style="color: #008000">// returns &quot;my string 1&quot;</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">tail</span><span style="color: #000000">(); </span><span style="color: #008000">// returns &quot;my string 2&quot;</span>
+
+<span style="color: #008000">// Reset linked list and remove all elements.</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">reset</span><span style="color: #000000">(); </span><span style="color: #008000">// returns myLinkedList</span>
+
+<span style="color: #008000">// Reverse the order of queued elements.</span>
+<span style="color: #008000">// &quot;one&quot;, &quot;two&quot;, &quot;three&quot; becomes &quot;three&quot;, &quot;two&quot;, &quot;one&quot;</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">reverse</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Returns the current state of queue as string</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">serialized</span><span style="color: #000000"> = </span><span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">stringify</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Instantiate a queue using serialized state</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">serialLinkedList</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">LinkedList</span><span style="color: #000000">({</span><span style="color: #001080">serializedState:</span><span style="color: #000000"> </span><span style="color: #001080">serialized</span><span style="color: #000000">});</span>
+</code></pre>
+				<a href="#circularqueuelttgt" id="circularqueuelttgt" style="color: inherit; text-decoration: none;">
+					<h2><strong><code>CircularQueue&lt;T&gt;</code></strong></h2>
+				</a>
+				<p>Typescript</p>
+				<pre><code class="language-typescript"><span style="color: #008000">// Import</span>
+<span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">CircularQueue</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;@toreda/adt&#039;</span><span style="color: #000000">;</span>
+
+<span style="color: #008000">// Instantiate</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">circularQueueDefault</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">CircularQueue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;();</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">circularQueueWithOptions</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">CircularQueue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;({</span>
+<span style="color: #000000">    </span><span style="color: #001080">maxSize:</span><span style="color: #000000"> </span><span style="color: #098658">999</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">size:</span><span style="color: #000000"> </span><span style="color: #098658">3</span><span style="color: #000000">,</span>
+<span style="color: #000000">    elements</span><span style="color: #001080">[,,,</span><span style="color: #098658">1</span><span style="color: #001080">,</span><span style="color: #098658">2</span><span style="color: #001080">,</span><span style="color: #098658">3</span><span style="color: #001080">,],</span>
+<span style="color: #001080">    front:</span><span style="color: #000000"> </span><span style="color: #098658">3</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">rear:</span><span style="color: #000000"> </span><span style="color: #098658">5</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">overwrite:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Use as Queue</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">circularQueue</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">CircularQueue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;({</span>
+<span style="color: #000000">    </span><span style="color: #001080">maxSize:</span><span style="color: #000000"> </span><span style="color: #098658">4</span><span style="color: #000000">,</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Add element to the queue</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">10</span><span style="color: #000000">) </span><span style="color: #008000">// returns true;</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">20</span><span style="color: #000000">) </span><span style="color: #008000">// returns true;</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">30</span><span style="color: #000000">) </span><span style="color: #008000">// returns true;</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">40</span><span style="color: #000000">) </span><span style="color: #008000">// returns true;</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">50</span><span style="color: #000000">) </span><span style="color: #008000">// returns false;</span>
+
+<span style="color: #008000">// Get queue size</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 4</span>
+
+<span style="color: #008000">// Get first element added to queue</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">front</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 10</span>
+
+<span style="color: #008000">// Get last element added to queue</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">rear</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 40</span>
+
+<span style="color: #008000">// Get nth-after-first element added to queue</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">getIndex</span><span style="color: #000000">(</span><span style="color: #098658">1</span><span style="color: #000000">); </span><span style="color: #008000">// returns 20</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">getIndex</span><span style="color: #000000">(</span><span style="color: #098658">2</span><span style="color: #000000">); </span><span style="color: #008000">// returns 30</span>
+
+<span style="color: #008000">// Get nth-to-last element added to queue</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">getIndex</span><span style="color: #000000">(-</span><span style="color: #098658">1</span><span style="color: #000000">); </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">getIndex</span><span style="color: #000000">(-</span><span style="color: #098658">2</span><span style="color: #000000">); </span><span style="color: #008000">// returns 20</span>
+
+<span style="color: #008000">// Remove element from the queue</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 10</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 20</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 40</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 0</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns null</span>
+
+<span style="color: #008000">// Use as Buffer</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">circularBuffer</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">CircularQueue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;({</span>
+<span style="color: #000000">    </span><span style="color: #001080">maxSize:</span><span style="color: #000000"> </span><span style="color: #098658">4</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">overwrite:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Add element to the buffer</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">10</span><span style="color: #000000">) </span><span style="color: #008000">// returns true;</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">20</span><span style="color: #000000">) </span><span style="color: #008000">// returns true;</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">30</span><span style="color: #000000">) </span><span style="color: #008000">// returns true;</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">40</span><span style="color: #000000">) </span><span style="color: #008000">// returns true;</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">50</span><span style="color: #000000">) </span><span style="color: #008000">// returns true;</span>
+
+<span style="color: #008000">// Get queue size</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 4</span>
+
+<span style="color: #008000">// Get first element added to buffer</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">front</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 20</span>
+
+<span style="color: #008000">// Get last element added to buffer</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">rear</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 50</span>
+
+<span style="color: #008000">// Get nth-after-first element added to buffer</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">getIndex</span><span style="color: #000000">(</span><span style="color: #098658">1</span><span style="color: #000000">); </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">getIndex</span><span style="color: #000000">(</span><span style="color: #098658">2</span><span style="color: #000000">); </span><span style="color: #008000">// returns 40</span>
+
+<span style="color: #008000">// Get nth-to-last element added to buffer</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">getIndex</span><span style="color: #000000">(-</span><span style="color: #098658">1</span><span style="color: #000000">); </span><span style="color: #008000">// returns 40</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">getIndex</span><span style="color: #000000">(-</span><span style="color: #098658">2</span><span style="color: #000000">); </span><span style="color: #008000">// returns 30</span>
+
+<span style="color: #008000">// Remove element from the buffer</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 20</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 40</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 50</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 0</span>
+<span style="color: #001080">circularBuffer</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns null</span>
+
+<span style="color: #008000">// Remove all elements from buffer</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">clearElements</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Iterate through queue</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">10</span><span style="color: #000000">); </span><span style="color: #008000">// returns true</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">20</span><span style="color: #000000">); </span><span style="color: #008000">// returns true</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">30</span><span style="color: #000000">); </span><span style="color: #008000">// returns true</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 10</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">() </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">forEach</span><span style="color: #000000">((</span><span style="color: #001080">elem</span><span style="color: #000000">, </span><span style="color: #001080">index</span><span style="color: #000000">, </span><span style="color: #001080">arr</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">elem</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; is at index &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">index</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; in array &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">arr</span><span style="color: #000000">)</span>
+<span style="color: #000000">}); </span><span style="color: #008000">// returns circularQueue</span>
+<span style="color: #008000">// outputs &#039;20 is at index 1 in array [10, 20, 30]&#039;</span>
+<span style="color: #008000">// outputs &#039;30 is at index 2 in array [10, 20, 30]&#039;</span>
+
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">40</span><span style="color: #000000">); </span><span style="color: #008000">// returns true</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">50</span><span style="color: #000000">); </span><span style="color: #008000">// returns true</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">() </span><span style="color: #008000">// returns 4</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">forEach</span><span style="color: #000000">((</span><span style="color: #001080">elem</span><span style="color: #000000">, </span><span style="color: #001080">index</span><span style="color: #000000">, </span><span style="color: #001080">arr</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">elem</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; is at index &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">index</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; in array &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">arr</span><span style="color: #000000">)</span>
+<span style="color: #000000">}); </span><span style="color: #008000">// returns circularQueue</span>
+<span style="color: #008000">// outputs &#039;20 is at index 1 in array [50, 20, 30, 40]&#039;</span>
+<span style="color: #008000">// outputs &#039;30 is at index 2 in array [50, 20, 30, 40]&#039;</span>
+<span style="color: #008000">// outputs &#039;40 is at index 3 in array [50, 20, 30, 40]&#039;</span>
+<span style="color: #008000">// outputs &#039;50 is at index 0 in array [50, 20, 30, 40]&#039;</span>
+
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 20</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">size</span><span style="color: #000000">() </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">forEach</span><span style="color: #000000">((</span><span style="color: #001080">elem</span><span style="color: #000000">, </span><span style="color: #001080">index</span><span style="color: #000000">, </span><span style="color: #001080">arr</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">elem</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; is at index &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">index</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; in array &#039;</span><span style="color: #000000"> + </span><span style="color: #001080">arr</span><span style="color: #000000">)</span>
+<span style="color: #000000">}); </span><span style="color: #008000">// returns circularQueue</span>
+<span style="color: #008000">// outputs &#039;40 is at index 3 in array [50, 20, 30, 40]&#039;</span>
+<span style="color: #008000">// outputs &#039;50 is at index 0 in array [50, 20, 30, 40]&#039;</span>
+
+<span style="color: #008000">// Returns the current state of priorityQueue as string</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">serialized</span><span style="color: #000000"> = </span><span style="color: #001080">circularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">stringify</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Instantiate a Priority Queue using serialized state</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">circularQueueFromSerialized</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">CircularQueue</span><span style="color: #000000">({</span><span style="color: #001080">serializedState:</span><span style="color: #000000"> </span><span style="color: #001080">serialized</span><span style="color: #000000">});</span>
+</code></pre>
+				<a href="#priorityqueuelttgt" id="priorityqueuelttgt" style="color: inherit; text-decoration: none;">
+					<h2><strong><code>PriorityQueue&lt;T&gt;</code></strong></h2>
+				</a>
+				<p>Typescript</p>
+				<pre><code class="language-typescript"><span style="color: #008000">// Import</span>
+<span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">PriorityQueue</span><span style="color: #000000">, </span><span style="color: #001080">PriorityQueueComparator</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;@toreda/adt&#039;</span><span style="color: #000000">;</span>
+
+<span style="color: #008000">// Instantiate</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #795E26">priorityQueueComparator</span><span style="color: #000000">: </span><span style="color: #267F99">PriorityQueueComparator</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt; = </span><span style="color: #0000FF">function</span><span style="color: #000000">(</span><span style="color: #001080">a</span><span style="color: #000000">, </span><span style="color: #001080">b</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #267F99">a</span><span style="color: #000000"> &lt; </span><span style="color: #267F99">b</span><span style="color: #000000">;</span>
+<span style="color: #267F99">const</span><span style="color: #000000"> </span><span style="color: #267F99">priorityQueue</span><span style="color: #000000"> = </span><span style="color: #267F99">new</span><span style="color: #000000"> </span><span style="color: #267F99">PriorityQueue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;(</span><span style="color: #267F99">priorityQueueComparator</span><span style="color: #000000">);</span>
+<span style="color: #267F99">const</span><span style="color: #000000"> </span><span style="color: #267F99">priorityQueueWithOptions</span><span style="color: #000000"> = </span><span style="color: #267F99">new</span><span style="color: #000000"> </span><span style="color: #267F99">PriorityQueue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;(</span><span style="color: #001080">priorityQueueComparator</span><span style="color: #000000">, {</span>
+<span style="color: #000000">    </span><span style="color: #001080">elements</span><span style="color: #000000">: [</span><span style="color: #098658">1</span><span style="color: #000000">,</span><span style="color: #098658">2</span><span style="color: #000000">,</span><span style="color: #098658">3</span><span style="color: #000000">,</span><span style="color: #098658">4</span><span style="color: #000000">,</span><span style="color: #098658">5</span><span style="color: #000000">,</span><span style="color: #098658">6</span><span style="color: #000000">,</span><span style="color: #098658">7</span><span style="color: #000000">]</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Add elements to the queue</span>
+<span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">push</span><span style="color: #000000">(</span><span style="color: #098658">20</span><span style="color: #000000">); </span><span style="color: #008000">// returns priorityQueue</span>
+<span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">push</span><span style="color: #000000">(</span><span style="color: #098658">10</span><span style="color: #000000">); </span><span style="color: #008000">// returns priorityQueue</span>
+
+<span style="color: #008000">// Get number of elements in queue</span>
+<span style="color: #267F99">const</span><span style="color: #000000"> </span><span style="color: #267F99">size</span><span style="color: #000000"> = </span><span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">size</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+
+<span style="color: #008000">// Get the root element of the queue</span>
+<span style="color: #267F99">const</span><span style="color: #000000"> </span><span style="color: #267F99">result</span><span style="color: #000000"> = </span><span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">front</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 10</span>
+
+<span style="color: #008000">// Iterate through queue</span>
+<span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">forEach</span><span style="color: #000000">((</span><span style="color: #001080">elem</span><span style="color: #000000">, </span><span style="color: #001080">index</span><span style="color: #000000">, </span><span style="color: #001080">arr</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #267F99">console</span><span style="color: #000000">.</span><span style="color: #267F99">log</span><span style="color: #000000">(</span><span style="color: #267F99">elem</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; is at index &#039;</span><span style="color: #000000"> + </span><span style="color: #267F99">index</span><span style="color: #000000"> + </span><span style="color: #A31515">&#039; in array &#039;</span><span style="color: #000000"> + </span><span style="color: #267F99">arr</span><span style="color: #000000">)</span>
+<span style="color: #000000">}); </span><span style="color: #008000">// returns priorityQueue</span>
+<span style="color: #008000">// outputs &#039;10 is at index 0 in array [10, 20]&#039;</span>
+<span style="color: #008000">// outputs &#039;20 is at index 1 in array [10, 20]&#039;</span>
+
+<span style="color: #008000">// Get the root element of the queue and remove it</span>
+<span style="color: #267F99">const</span><span style="color: #000000"> </span><span style="color: #267F99">result1</span><span style="color: #000000"> = </span><span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 10</span>
+<span style="color: #267F99">const</span><span style="color: #000000"> </span><span style="color: #267F99">result2</span><span style="color: #000000"> = </span><span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 20</span>
+<span style="color: #267F99">const</span><span style="color: #000000"> </span><span style="color: #267F99">result3</span><span style="color: #000000"> = </span><span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns null</span>
+
+<span style="color: #008000">// Reset priority queue and remove all elements</span>
+<span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">reset</span><span style="color: #000000">(); </span><span style="color: #008000">// returns priorityQueue</span>
+
+<span style="color: #008000">// Add 3 elements via chained push calls</span>
+<span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">push</span><span style="color: #000000">(</span><span style="color: #098658">30</span><span style="color: #000000">).</span><span style="color: #267F99">push</span><span style="color: #000000">(</span><span style="color: #098658">10</span><span style="color: #000000">).</span><span style="color: #267F99">push</span><span style="color: #000000">(</span><span style="color: #098658">20</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">// Returns the current state of priorityQueue as string</span>
+<span style="color: #267F99">const</span><span style="color: #000000"> </span><span style="color: #267F99">serialized</span><span style="color: #000000"> = </span><span style="color: #267F99">priorityQueue</span><span style="color: #000000">.</span><span style="color: #267F99">stringify</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Instantiate a Priority Queue using serialized state</span>
+<span style="color: #267F99">const</span><span style="color: #000000"> </span><span style="color: #267F99">priorityQueueFromSerialized</span><span style="color: #000000"> = </span><span style="color: #267F99">new</span><span style="color: #000000"> </span><span style="color: #267F99">PriorityQueue</span><span style="color: #000000">(</span><span style="color: #001080">priorityQueueComparator</span><span style="color: #000000">, {</span><span style="color: #001080">serializedState</span><span style="color: #000000">: </span><span style="color: #001080">serialized</span><span style="color: #000000">});</span>
+</code></pre>
+				<a href="#objectpoollttgt" id="objectpoollttgt" style="color: inherit; text-decoration: none;">
+					<h2><strong><code>ObjectPool&lt;T&gt;</code></strong></h2>
+				</a>
+				<p>Typescript</p>
+				<pre><code class="language-typescript"><span style="color: #008000">// Import</span>
+<span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">ObjectPool</span><span style="color: #000000">, </span><span style="color: #001080">ObjectPoolInstance</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;@toreda/adt&#039;</span><span style="color: #000000">;</span>
+
+<span style="color: #008000">// Instantiate</span>
+<span style="color: #0000FF">class</span><span style="color: #000000"> </span><span style="color: #267F99">objectClass</span><span style="color: #000000"> </span><span style="color: #0000FF">implements</span><span style="color: #000000"> </span><span style="color: #267F99">ObjectPoolInstance</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #0000FF">public</span><span style="color: #000000"> </span><span style="color: #001080">name</span><span style="color: #000000">!: </span><span style="color: #267F99">string</span><span style="color: #000000">;</span>
+<span style="color: #000000">    </span><span style="color: #0000FF">public</span><span style="color: #000000"> </span><span style="color: #001080">amount</span><span style="color: #000000">!: </span><span style="color: #267F99">number</span><span style="color: #000000">;</span>
+
+<span style="color: #000000">    </span><span style="color: #0000FF">constructor</span><span style="color: #000000">() {</span>
+<span style="color: #000000">        </span><span style="color: #0000FF">this</span><span style="color: #000000">.</span><span style="color: #795E26">cleanObj</span><span style="color: #000000">();</span>
+<span style="color: #000000">    }</span>
+
+<span style="color: #000000">    </span><span style="color: #795E26">cleanObj</span><span style="color: #000000">(): </span><span style="color: #267F99">void</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #0000FF">this</span><span style="color: #000000">.</span><span style="color: #001080">name</span><span style="color: #000000"> = </span><span style="color: #A31515">&#039;cleaned&#039;</span><span style="color: #000000">;</span>
+<span style="color: #000000">        </span><span style="color: #0000FF">this</span><span style="color: #000000">.</span><span style="color: #001080">amount</span><span style="color: #000000"> = </span><span style="color: #098658">0</span><span style="color: #000000">;</span>
+<span style="color: #000000">    }</span>
+<span style="color: #000000">}</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">objectPool</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">ObjectPool</span><span style="color: #000000">&lt;</span><span style="color: #267F99">objectClass</span><span style="color: #000000">&gt;(</span><span style="color: #001080">objectClass</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">objectPoolWithOptions</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">ObjectPool</span><span style="color: #000000">&lt;</span><span style="color: #267F99">objectClass</span><span style="color: #000000">&gt;(</span><span style="color: #001080">objectClass</span><span style="color: #000000">, {</span>
+<span style="color: #000000">    </span><span style="color: #001080">maxSize:</span><span style="color: #000000"> </span><span style="color: #098658">10000</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">startSize:</span><span style="color: #000000"> </span><span style="color: #098658">100</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">autoIncrease:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">increaseBreakPoint:</span><span style="color: #000000"> </span><span style="color: #098658">.9</span><span style="color: #000000">,</span>
+<span style="color: #000000">    </span><span style="color: #001080">increaseFactor:</span><span style="color: #000000"> </span><span style="color: #098658">10</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Get 1 object from the pool</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">obj1</span><span style="color: #000000"> = </span><span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">allocate</span><span style="color: #000000">(); </span><span style="color: #008000">// returns object&lt;objectClass&gt;</span>
+
+<span style="color: #008000">// Get array of n objects from the pool;</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">objs</span><span style="color: #000000"> = </span><span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">allocateMultiple</span><span style="color: #000000">(</span><span style="color: #098658">10</span><span style="color: #000000">); </span><span style="color: #008000">// returns array of 10 object&lt;objectClass&gt;</span>
+
+<span style="color: #008000">// Get % of pool being used</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">usage</span><span style="color: #000000"> = </span><span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">utilization</span><span style="color: #000000">(); </span><span style="color: #008000">// returns .11</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">usage</span><span style="color: #000000"> = </span><span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">utilization</span><span style="color: #000000">(</span><span style="color: #098658">39</span><span style="color: #000000">); </span><span style="color: #008000">// returns .5</span>
+
+<span style="color: #008000">// Manually increase pool capacity</span>
+<span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">increaseCapacity</span><span style="color: #000000">(</span><span style="color: #098658">100</span><span style="color: #000000">); </span><span style="color: #008000">// objectPool.state.size === 200;</span>
+<span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">increaseCapacity</span><span style="color: #000000">(</span><span style="color: #098658">20000</span><span style="color: #000000">); </span><span style="color: #008000">// objectPool.state.size === 10000;</span>
+
+<span style="color: #008000">// Release objects back into pool</span>
+<span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">release</span><span style="color: #000000">(</span><span style="color: #001080">obj1</span><span style="color: #000000">);</span>
+<span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">releaseMultiple</span><span style="color: #000000">(</span><span style="color: #001080">objs</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">// Remove all elements from pool</span>
+<span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">clearElements</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Returns the current state of pool as string</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">serialized</span><span style="color: #000000"> = </span><span style="color: #001080">objectPool</span><span style="color: #000000">.</span><span style="color: #795E26">stringify</span><span style="color: #000000">();</span>
+
+<span style="color: #008000">// Instantiate an Object Pool using serialized state</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">objectPoolFromSerialized</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">PriorityQueue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">objectClass</span><span style="color: #000000">&gt;(</span><span style="color: #001080">objectClass</span><span style="color: #000000">, {</span><span style="color: #001080">serializedState:</span><span style="color: #000000"> </span><span style="color: #001080">serialized</span><span style="color: #000000">});</span>
+</code></pre>
+				<a href="#query-selectors" id="query-selectors" style="color: inherit; text-decoration: none;">
+					<h1>Query Selectors</h1>
+				</a>
+				<p>Typescript</p>
+				<pre><code class="language-typescript"><span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">QueryFilter</span><span style="color: #000000">, </span><span style="color: #001080">QueryResult</span><span style="color: #000000">, </span><span style="color: #001080">QueryOptions</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;@toreda/adt&#039;</span><span style="color: #000000">;</span>
+<span style="color: #AF00DB">import</span><span style="color: #000000"> {</span><span style="color: #001080">Queue</span><span style="color: #000000">, </span><span style="color: #001080">Stack</span><span style="color: #000000">, </span><span style="color: #001080">LinkedList</span><span style="color: #000000">, </span><span style="color: #001080">CircularQueue</span><span style="color: #000000">, </span><span style="color: #001080">PriorityQueue</span><span style="color: #000000">, </span><span style="color: #001080">ObjectPool</span><span style="color: #000000">} </span><span style="color: #AF00DB">from</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;@toreda/adt&#039;</span><span style="color: #000000">;</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myQueue</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Queue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;();</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myStack</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">Stack</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;();</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myLinkedList</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">LinkedList</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;();</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myCircularQueue</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">CircularQueue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;();</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myPriorityQueue</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">PriorityQueue</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt;((</span><span style="color: #001080">a</span><span style="color: #000000">, </span><span style="color: #001080">b</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">a</span><span style="color: #000000"> &lt; </span><span style="color: #001080">b</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">myObjectPool</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">ObjectPool</span><span style="color: #000000">&lt;</span><span style="color: #267F99">custom</span><span style="color: #000000">&gt;(</span><span style="color: #001080">custom</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">// Create a query filter function</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #795E26">basicQueryFilter</span><span style="color: #000000">: </span><span style="color: #267F99">QueryFilter</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt; = (</span><span style="color: #001080">value</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #AF00DB">return</span><span style="color: #000000"> </span><span style="color: #001080">value</span><span style="color: #000000"> === </span><span style="color: #098658">30</span>
+<span style="color: #000000">}</span>
+
+<span style="color: #008000">// Create a query filter function generator</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #795E26">genQueryFilter</span><span style="color: #000000"> = </span><span style="color: #0000FF">function</span><span style="color: #000000"> (</span><span style="color: #001080">target</span><span style="color: #000000">: </span><span style="color: #267F99">number</span><span style="color: #000000">, </span><span style="color: #001080">lessthan</span><span style="color: #000000">: </span><span style="color: #267F99">boolean</span><span style="color: #000000">) = </span><span style="color: #795E26">QueryFilter</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt; {</span>
+<span style="color: #000000">    </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #795E26">filter</span><span style="color: #000000">: </span><span style="color: #267F99">QueryFilter</span><span style="color: #000000">&lt;</span><span style="color: #267F99">number</span><span style="color: #000000">&gt; = (</span><span style="color: #001080">value</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #AF00DB">if</span><span style="color: #000000"> (</span><span style="color: #001080">lessthan</span><span style="color: #000000">) {</span>
+<span style="color: #000000">            </span><span style="color: #AF00DB">return</span><span style="color: #000000"> </span><span style="color: #001080">value</span><span style="color: #000000"> &lt; </span><span style="color: #001080">target</span><span style="color: #000000">;</span>
+<span style="color: #000000">        } </span><span style="color: #AF00DB">else</span><span style="color: #000000"> {</span>
+<span style="color: #000000">            </span><span style="color: #AF00DB">return</span><span style="color: #000000"> </span><span style="color: #001080">value</span><span style="color: #000000"> &gt; </span><span style="color: #001080">target</span><span style="color: #000000">;</span>
+<span style="color: #000000">        }</span>
+<span style="color: #000000">    }</span>
+<span style="color: #000000">}</span>
+
+<span style="color: #008000">// Add elements to all ADTs</span>
+<span style="color: #001080">myObjectPool</span><span style="color: #000000">.</span><span style="color: #795E26">allocateMultiple</span><span style="color: #000000">(</span><span style="color: #098658">5</span><span style="color: #000000">);</span>
+<span style="color: #000000">[</span><span style="color: #098658">10</span><span style="color: #000000">, </span><span style="color: #098658">20</span><span style="color: #000000">, </span><span style="color: #098658">30</span><span style="color: #000000">, </span><span style="color: #098658">40</span><span style="color: #000000">, </span><span style="color: #098658">50</span><span style="color: #000000">].</span><span style="color: #795E26">forEach</span><span style="color: #000000">((</span><span style="color: #001080">value</span><span style="color: #000000">, </span><span style="color: #001080">index</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #001080">value</span><span style="color: #000000">);</span>
+<span style="color: #000000">    </span><span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #001080">value</span><span style="color: #000000">);</span>
+<span style="color: #000000">    </span><span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">insert</span><span style="color: #000000">(</span><span style="color: #001080">value</span><span style="color: #000000">);</span>
+<span style="color: #000000">    </span><span style="color: #001080">myCircularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #001080">value</span><span style="color: #000000">);</span>
+<span style="color: #000000">    </span><span style="color: #001080">myPriorityQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #001080">value</span><span style="color: #000000">);</span>
+<span style="color: #000000">    </span><span style="color: #001080">myObjectPool</span><span style="color: #000000">.</span><span style="color: #001080">state</span><span style="color: #000000">.</span><span style="color: #001080">used</span><span style="color: #000000">[</span><span style="color: #001080">index</span><span style="color: #000000">] = </span><span style="color: #001080">value</span>
+<span style="color: #000000">});</span>
+
+
+<span style="color: #008000">// Use a query filter to get a query result</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">resultsQueue</span><span style="color: #000000"> = </span><span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">query</span><span style="color: #000000">(</span><span style="color: #001080">basicQueryFilter</span><span style="color: #000000">); </span><span style="color: #008000">// return array of query result objects</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">resultsStack</span><span style="color: #000000"> = </span><span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">query</span><span style="color: #000000">(</span><span style="color: #001080">basicQueryFilter</span><span style="color: #000000">); </span><span style="color: #008000">// return array of query result objects</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">resultsLinkedList</span><span style="color: #000000"> = </span><span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">query</span><span style="color: #000000">(</span><span style="color: #001080">basicQueryFilter</span><span style="color: #000000">); </span><span style="color: #008000">// return array of query result objects</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">resultsCircularQueue</span><span style="color: #000000"> = </span><span style="color: #001080">myCircularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">query</span><span style="color: #000000">(</span><span style="color: #001080">basicQueryFilter</span><span style="color: #000000">); </span><span style="color: #008000">// return array of query result objects</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">resultsPriorityQueue</span><span style="color: #000000"> = </span><span style="color: #001080">myPriorityQueue</span><span style="color: #000000">.</span><span style="color: #795E26">query</span><span style="color: #000000">(</span><span style="color: #001080">basicQueryFilter</span><span style="color: #000000">); </span><span style="color: #008000">// return array of query result objects</span>
+<span style="color: #0000FF">let</span><span style="color: #000000"> </span><span style="color: #001080">resultsObjectPool</span><span style="color: #000000"> = </span><span style="color: #001080">myObjectPool</span><span style="color: #000000">.</span><span style="color: #795E26">query</span><span style="color: #000000">(</span><span style="color: #001080">basicQueryFilter</span><span style="color: #000000">); </span><span style="color: #008000">// return array of query result objects</span>
+
+<span style="color: #008000">// Get the element in query result</span>
+<span style="color: #001080">resultQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #001080">element</span><span style="color: #000000">; </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">resultStack</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #001080">element</span><span style="color: #000000">; </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">resultLinkedList</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #001080">element</span><span style="color: #000000">; </span><span style="color: #008000">// returns linked list element with value 30</span>
+<span style="color: #001080">resultCircularQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #001080">element</span><span style="color: #000000">; </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">resultPriorityQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #001080">element</span><span style="color: #000000">; </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">resultObjectPool</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #001080">element</span><span style="color: #000000">; </span><span style="color: #008000">// returns 30</span>
+
+<span style="color: #008000">// Get the current index of the query result</span>
+<span style="color: #001080">resultQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">resultStack</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">resultLinkedList</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns null</span>
+<span style="color: #001080">resultCircularQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">resultPriorityQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">resultObjectPool</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+
+<span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 10</span>
+<span style="color: #001080">myStack</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 50</span>
+<span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">deleteNode</span><span style="color: #000000">(</span><span style="color: #001080">myLinkedList</span><span style="color: #000000">.</span><span style="color: #795E26">head</span><span style="color: #000000">()); </span><span style="color: #008000">// returns 10</span>
+<span style="color: #001080">myCircularQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 10</span>
+<span style="color: #001080">myPriorityQueue</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 10</span>
+<span style="color: #001080">myObjectPool</span><span style="color: #000000">.</span><span style="color: #795E26">pop</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 10</span>
+
+<span style="color: #001080">resultQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 1</span>
+<span style="color: #001080">resultStack</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">resultLinkedList</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns null</span>
+<span style="color: #001080">resultCircularQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">resultPriorityQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+<span style="color: #001080">resultObjectPool</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">index</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 2</span>
+
+<span style="color: #008000">// Delete query result from original ADT</span>
+<span style="color: #001080">resultQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">delete</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">resultStack</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">delete</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">resultLinkedList</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">delete</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">resultCircularQueue</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">delete</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 30</span>
+<span style="color: #001080">resultObjectPool</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #795E26">delete</span><span style="color: #000000">(); </span><span style="color: #008000">// returns 30</span>
+
+<span style="color: #008000">// Use multiple query filters and query options</span>
+<span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">reset</span><span style="color: #000000">();</span>
+<span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">10</span><span style="color: #000000">).</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">20</span><span style="color: #000000">).</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">30</span><span style="color: #000000">).</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">40</span><span style="color: #000000">).</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #098658">50</span><span style="color: #000000">)</span>
+
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">filters</span><span style="color: #000000">: </span><span style="color: #267F99">ADTQueryFilter</span><span style="color: #000000">[] = [];</span>
+<span style="color: #001080">filters</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #795E26">genQueryFilter</span><span style="color: #000000">(</span><span style="color: #098658">10</span><span style="color: #000000">, </span><span style="color: #0000FF">false</span><span style="color: #000000">));</span>
+<span style="color: #001080">filters</span><span style="color: #000000">.</span><span style="color: #795E26">push</span><span style="color: #000000">(</span><span style="color: #795E26">genQueryFilter</span><span style="color: #000000">(</span><span style="color: #098658">50</span><span style="color: #000000">, </span><span style="color: #0000FF">true</span><span style="color: #000000">));</span>
+
+<span style="color: #001080">queryResults</span><span style="color: #000000"> = </span><span style="color: #001080">myQueue</span><span style="color: #000000">.</span><span style="color: #795E26">query</span><span style="color: #000000">(</span><span style="color: #001080">filters</span><span style="color: #000000">, {</span><span style="color: #001080">limit:</span><span style="color: #000000"> </span><span style="color: #098658">2</span><span style="color: #000000">}) </span><span style="color: #008000">// returns array of query result objects;</span>
+<span style="color: #001080">queryResults</span><span style="color: #000000">[</span><span style="color: #098658">0</span><span style="color: #000000">].</span><span style="color: #001080">element</span><span style="color: #000000">; </span><span style="color: #008000">// returns 20</span>
+<span style="color: #001080">queryResults</span><span style="color: #000000">[</span><span style="color: #098658">1</span><span style="color: #000000">].</span><span style="color: #001080">element</span><span style="color: #000000">; </span><span style="color: #008000">// returns 30</span>
+</code></pre>
+				<a href="#install" id="install" style="color: inherit; text-decoration: none;">
+					<h1>Install</h1>
+				</a>
+				<p>Install <code>@toreda/adt</code> directly from NPM or <a href="https://github.com/toreda/adt">clone the Github repo</a>.</p>
+				<a href="#install-using-yarn-preferred" id="install-using-yarn-preferred" style="color: inherit; text-decoration: none;">
+					<h3>Install using Yarn (preferred)</h3>
+				</a>
+				<ol>
+					<li>Open a shell (or console).</li>
+					<li>Navigate to the the adt project root folder.</li>
+					<li>Enter the following commands in order. Wait for each to complete before typing the next.<pre><code class="language-bash"><span style="color: #000000">yarn</span>
+</code></pre>
+					</li>
+				</ol>
+				<a href="#install-using-npm" id="install-using-npm" style="color: inherit; text-decoration: none;">
+					<h3>Install using NPM</h3>
+				</a>
+				<ol>
+					<li>Open a shell (or console).</li>
+					<li>Navigate to the the <code>@toreda/adt</code> project root folder.</li>
+					<li>Enter the following commands in order. Wait for each to complete before typing the next.<pre><code class="language-bash"><span style="color: #000000">npm install</span>
+</code></pre>
+					</li>
+				</ol>
+				<a href="#run-unit-tests" id="run-unit-tests" style="color: inherit; text-decoration: none;">
+					<h1>Run Unit Tests</h1>
+				</a>
+				<p>Install or clone <code>@toreda/adt</code> <a href="#install">(see above)</a>.</p>
+				<p>ADT unit tests use <a href="https://jestjs.io/">Jest</a>.</p>
+				<p>Installing jest is not required after project dependencies are installed (<a href="#install">see above</a>).</p>
+				<pre><code class="language-bash"><span style="color: #000000">yarn </span><span style="color: #795E26">test</span>
+</code></pre>
+				<a href="#build-from-source" id="build-from-source" style="color: inherit; text-decoration: none;">
+					<h1>Build from source</h1>
+				</a>
+				<p>The next steps are the same whether you installed the package using NPM or cloned the repo from Github.</p>
+				<a href="#build-with-yarn" id="build-with-yarn" style="color: inherit; text-decoration: none;">
+					<h3>Build with Yarn</h3>
+				</a>
+				<p> Enter the following commands in order from the adt project root.</p>
+				<pre><code class="language-bash"><span style="color: #000000">yarn build</span>
+</code></pre>
+				<a href="#build-with-npm" id="build-with-npm" style="color: inherit; text-decoration: none;">
+					<h3>Build with NPM</h3>
+				</a>
+				<p> Enter the following commands in order from the adt project root.</p>
+				<pre><code class="language-bash"><span style="color: #000000">npm run-script build</span>
+</code></pre>
+				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
+					<h1>License</h1>
+				</a>
+				<p><a href="LICENSE">MIT</a> &copy; Toreda, Inc.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/CircularQueue.html" class="tsd-kind-icon">Circular<wbr>Queue</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/LinkedList.html" class="tsd-kind-icon">Linked<wbr>List</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/LinkedListElement.html" class="tsd-kind-icon">Linked<wbr>List<wbr>Element</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/ObjectPool.html" class="tsd-kind-icon">Object<wbr>Pool</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/PriorityQueue.html" class="tsd-kind-icon">Priority<wbr>Queue</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/Queue.html" class="tsd-kind-icon">Queue</a>
+					</li>
+					<li class=" tsd-kind-class tsd-has-type-parameter">
+						<a href="classes/Stack.html" class="tsd-kind-icon">Stack</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/ADT.html" class="tsd-kind-icon">ADT</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/CircularQueueOptions.html" class="tsd-kind-icon">Circular<wbr>Queue<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/CircularQueueState.html" class="tsd-kind-icon">Circular<wbr>Queue<wbr>State</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/Element.html" class="tsd-kind-icon">Element</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/IterableType.html" class="tsd-kind-icon">Iterable<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/Iterator.html" class="tsd-kind-icon">Iterator</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/LinkedListOptions.html" class="tsd-kind-icon">Linked<wbr>List<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/LinkedListState.html" class="tsd-kind-icon">Linked<wbr>List<wbr>State</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/ObjectPoolInstance.html" class="tsd-kind-icon">Object<wbr>Pool<wbr>Instance</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/ObjectPoolOptions.html" class="tsd-kind-icon">Object<wbr>Pool<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/ObjectPoolState.html" class="tsd-kind-icon">Object<wbr>Pool<wbr>State</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/PriorityQueueComparator.html" class="tsd-kind-icon">Priority<wbr>Queue<wbr>Comparator</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/PriorityQueueOptions.html" class="tsd-kind-icon">Priority<wbr>Queue<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/PriorityQueueState.html" class="tsd-kind-icon">Priority<wbr>Queue<wbr>State</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/QueryFilter.html" class="tsd-kind-icon">Query<wbr>Filter</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/QueryOptions.html" class="tsd-kind-icon">Query<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/QueryResult.html" class="tsd-kind-icon">Query<wbr>Result</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/QueueOptions.html" class="tsd-kind-icon">Queue<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/QueueState.html" class="tsd-kind-icon">Queue<wbr>State</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/StackOptions.html" class="tsd-kind-icon">Stack<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/StackState.html" class="tsd-kind-icon">Stack<wbr>State</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#QueueCallable" class="tsd-kind-icon">Queue<wbr>Callable</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="modules.html#QueueCallableSync" class="tsd-kind-icon">Queue<wbr>Callable<wbr>Sync</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="modules.html#iterableMakeType" class="tsd-kind-icon">iterable<wbr>Make<wbr>Type</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

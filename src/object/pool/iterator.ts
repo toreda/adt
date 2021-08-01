@@ -5,7 +5,7 @@ import {Iterator} from '../../iterator';
 import {iterableMakeType} from '../../iterable/helpers';
 
 /**
- * @category ObjectPool
+ * @category Object Pool
  */
 export class ObjectPoolIterator<ItemT extends ObjectPoolInstance> implements Iterator<ItemT | null> {
 	private curr: number;

@@ -13,6 +13,10 @@ export {LinkedListElement} from './linked/list/element';
 export {LinkedListOptions} from './linked/list/options';
 export {LinkedListState} from './linked/list/state';
 
+export {Iterator} from './iterator';
+export {IterableType} from './iterable/type';
+export {iterableMakeType} from './iterable/helpers';
+
 // Object Pool
 export {ObjectPool} from './object/pool';
 export {ObjectPoolInstance} from './object/pool/instance';

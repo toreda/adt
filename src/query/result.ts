@@ -1,3 +1,6 @@
+/**
+ * @category Query
+ */
 export interface QueryResult<T> {
 	element: T;
 	delete: () => void;
