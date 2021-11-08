@@ -2,11 +2,11 @@ import {isInteger, isNumber} from '../utility';
 
 import {ADT} from '../adt';
 import {CircularQueueIterator} from './queue/iterator';
+import {CircularQueueState} from './queue/state';
 import {CircularQueueOptions as Options} from './queue/options';
 import {QueryFilter} from '../query/filter';
 import {QueryOptions} from '../query/options';
 import {QueryResult} from '../query/result';
-import {CircularQueueState} from './queue/state';
 
 /**
  * @category Circular Queue
@@ -296,8 +296,10 @@ export class CircularQueue<T> implements ADT<T> {
 			}
 
 			result = parsed;
-		} catch (error) {
-			result = [error, ...errors];
+		} catch (e: unknown) {
+			if (e instanceof Error && Array.isArray(result)) {
+				result.push(e);
+			}
 		}
 
 		return result;

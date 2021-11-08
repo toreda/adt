@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-
 import {Stack} from '../src/stack';
-import {StackOptions} from '../src/stack/options';
 import {StackIterator} from '../src/stack/iterator';
+import {StackOptions} from '../src/stack/options';
 
 const repeat = (n, f) => {
 	while (n-- > 0) f(n);

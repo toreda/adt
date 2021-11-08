@@ -174,6 +174,10 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 		this.state.used
 			.filter((elem) => elem != null)
 			.forEach((elem, idx) => {
+				if (elem === undefined || elem === null) {
+					return;
+				}
+
 				func.call(boundThis, elem, idx, this.state.pool);
 			}, boundThis);
 
@@ -217,7 +221,7 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 		const resultsArray: QueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
 
-		this.forEach((element) => {
+		this.forEach((element: T) => {
 			let take = false;
 
 			if (resultsArray.length >= options.limit) {
@@ -350,8 +354,10 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 			}
 
 			result = parsed;
-		} catch (error) {
-			result = [error, ...errors];
+		} catch (e: unknown) {
+			if (e instanceof Error && Array.isArray(result)) {
+				result.push(e);
+			}
 		}
 
 		return result;

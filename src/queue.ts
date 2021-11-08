@@ -1,9 +1,9 @@
 import {ADT} from './adt';
-import {QueueOptions} from './queue/options';
 import {QueryFilter} from './query/filter';
 import {QueryOptions} from './query/options';
 import {QueryResult} from './query/result';
 import {QueueIterator} from './queue/iterator';
+import {QueueOptions} from './queue/options';
 import {QueueState as State} from './queue/state';
 import {isNumber} from './utility';
 
@@ -251,8 +251,10 @@ export class Queue<T> implements ADT<T> {
 			}
 
 			result = parsed;
-		} catch (error) {
-			result = [error, ...errors];
+		} catch (e: unknown) {
+			if (e instanceof Error && Array.isArray(result)) {
+				result.push(e);
+			}
 		}
 
 		return result;

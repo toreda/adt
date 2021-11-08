@@ -229,8 +229,10 @@ export class Stack<T> implements ADT<T> {
 			}
 
 			result = parsed;
-		} catch (error) {
-			result = [error, ...errors];
+		} catch (e: unknown) {
+			if (e instanceof Error && Array.isArray(result)) {
+				result.push(e);
+			}
 		}
 
 		return result;
