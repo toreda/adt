@@ -1,9 +1,9 @@
-import {ADT} from '../adt';
-import {PriorityQueueComparator as Comparator} from './queue/comparator';
-import {PriorityQueueOptions as Options} from './queue/options';
-import {QueryFilter} from '../query/filter';
-import {QueryOptions} from '../query/options';
-import {QueryResult} from '../query/result';
+import {type ADT} from '../adt';
+import {type PriorityQueueComparator as Comparator} from './queue/comparator';
+import {type PriorityQueueOptions as Options} from './queue/options';
+import {type QueryFilter} from '../query/filter';
+import {type QueryOptions} from '../query/options';
+import {type QueryResult} from '../query/result';
 import {PriorityQueueState as State} from './queue/state';
 import {isNumber} from '../utility';
 
@@ -13,11 +13,11 @@ import {isNumber} from '../utility';
  *
  * @category Priority Queue
  */
-export class PriorityQueue<T> implements ADT<T> {
-	private readonly state: State<T>;
-	private readonly comparator: Comparator<T>;
+export class PriorityQueue<ItemT> implements ADT<ItemT> {
+	private readonly state: State<ItemT>;
+	private readonly comparator: Comparator<ItemT>;
 
-	constructor(comparator: Comparator<T>, options?: Options<T>) {
+	constructor(comparator: Comparator<ItemT>, options?: Options<ItemT>) {
 		if (typeof comparator !== 'function') {
 			throw new Error('Must have a comparator function for priority queue to operate properly');
 		}
@@ -28,7 +28,7 @@ export class PriorityQueue<T> implements ADT<T> {
 		this.heapify();
 	}
 
-	public peek(): T | null {
+	public peek(): ItemT | null {
 		if (this.isEmpty()) {
 			return null;
 		}
@@ -36,7 +36,7 @@ export class PriorityQueue<T> implements ADT<T> {
 		return this.state.elements[0];
 	}
 
-	public pop(): T | null {
+	public pop(): ItemT | null {
 		if (this.isEmpty()) {
 			return null;
 		}
@@ -50,7 +50,7 @@ export class PriorityQueue<T> implements ADT<T> {
 		return highestPriority;
 	}
 
-	public push(element: T): PriorityQueue<T> {
+	public push(element: ItemT): PriorityQueue<ItemT> {
 		this.state.elements.push(element);
 		this.fixHeap(this.size() - 1);
 
@@ -72,7 +72,6 @@ export class PriorityQueue<T> implements ADT<T> {
 
 	/**
 	 * Get number of elements currently in Priority Queue.
-	 * @returns
 	 */
 	public size(): number {
 		return this.state.elements.length;
@@ -80,13 +79,12 @@ export class PriorityQueue<T> implements ADT<T> {
 
 	/**
 	 * Check if priority queue has elements.
-	 * @returns
 	 */
 	public isEmpty(): boolean {
 		return this.state.elements.length === 0;
 	}
 
-	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): PriorityQueue<T> {
+	public filter(func: ArrayMethod<ItemT, boolean>, thisArg?: unknown): PriorityQueue<ItemT> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -94,7 +92,7 @@ export class PriorityQueue<T> implements ADT<T> {
 			boundThis = thisArg as this;
 		}
 
-		const elements: T[] = [];
+		const elements: ItemT[] = [];
 
 		this.forEach((elem, idx, arr) => {
 			const result = func.call(boundThis, elem, idx, arr);
@@ -106,7 +104,7 @@ export class PriorityQueue<T> implements ADT<T> {
 		return new PriorityQueue(this.comparator, {...this.state, elements});
 	}
 
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): PriorityQueue<T> {
+	public forEach(func: ArrayMethod<ItemT, void>, thisArg?: unknown): PriorityQueue<ItemT> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -125,8 +123,11 @@ export class PriorityQueue<T> implements ADT<T> {
 		return JSON.stringify(this.state);
 	}
 
-	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
-		const resultsArray: QueryResult<T>[] = [];
+	public query(
+		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
+		opts?: QueryOptions
+	): QueryResult<ItemT>[] {
+		const resultsArray: QueryResult<ItemT>[] = [];
 		const options = this.queryOptions(opts);
 
 		this.forEach((element) => {
@@ -150,7 +151,7 @@ export class PriorityQueue<T> implements ADT<T> {
 				return false;
 			}
 
-			const result: QueryResult<T> = {} as QueryResult<T>;
+			const result: QueryResult<ItemT> = {} as QueryResult<ItemT>;
 			result.element = element;
 			result.key = (): string | null => null;
 			result.index = this.queryIndex.bind(this, element);
@@ -161,13 +162,13 @@ export class PriorityQueue<T> implements ADT<T> {
 		return resultsArray;
 	}
 
-	public clearElements(): PriorityQueue<T> {
+	public clearElements(): PriorityQueue<ItemT> {
 		this.state.elements = [];
 
 		return this;
 	}
 
-	public reset(): PriorityQueue<T> {
+	public reset(): PriorityQueue<ItemT> {
 		this.clearElements();
 
 		this.state.type = 'PriorityQueue';
@@ -185,12 +186,12 @@ export class PriorityQueue<T> implements ADT<T> {
 		this.state.elements[nodeTwo] = copyNode;
 	}
 
-	private fixHeap(node: number): void {
+	private fixHeap(node: number, startFromRootArg?: boolean): void {
 		if (this.size() <= 1) {
 			return;
 		}
 
-		const startFromRoot = node < Math.floor(this.size() / 2);
+		const startFromRoot = startFromRootArg ?? node < Math.floor(this.size() / 2);
 		let next = this.getNext(startFromRoot, node);
 
 		while (this.compareNodes(node, next) === false) {
@@ -291,13 +292,13 @@ export class PriorityQueue<T> implements ADT<T> {
 	private isHeap(): boolean {
 		let result = true;
 
-		const size = this.getParent(this.size() - 1);
+		const lastInternalNode = this.getParent(this.size() - 1);
 
-		if (size === 0) {
+		if (lastInternalNode < 0) {
 			return true;
 		}
 
-		for (let node = 0; node < size; node++) {
+		for (let node = 0; node <= lastInternalNode; node++) {
 			const child = this.getNext(true, node);
 			result = result && this.compareNodes(node, child);
 		}
@@ -305,21 +306,21 @@ export class PriorityQueue<T> implements ADT<T> {
 		return result;
 	}
 
-	private parseOptions(options?: Options<T>): State<T> {
+	private parseOptions(options?: Options<ItemT>): State<ItemT> {
 		const fromSerial = this.parseOptionsSerialized(options);
 		const finalState = this.parseOptionsOverrides(fromSerial, options);
 
 		return finalState;
 	}
 
-	private parseOptionsSerialized(options?: Options<T>): State<T> {
-		const state: State<T> = this.getDefaultState();
+	private parseOptionsSerialized(options?: Options<ItemT>): State<ItemT> {
+		const state: State<ItemT> = this.getDefaultState();
 
 		if (!options) {
 			return state;
 		}
 
-		let result: State<T> | null = null;
+		let result: State<ItemT> | null = null;
 
 		if (typeof options.serializedState === 'string') {
 			const parsed = this.parseSerializedString(options.serializedState);
@@ -338,12 +339,12 @@ export class PriorityQueue<T> implements ADT<T> {
 		return state;
 	}
 
-	private parseSerializedString(data: string): State<T> | Error[] | null {
+	private parseSerializedString(data: string): State<ItemT> | Error[] | null {
 		if (typeof data !== 'string' || data === '') {
 			return null;
 		}
 
-		let result: State<T> | Error[] | null = null;
+		let result: State<ItemT> | Error[] | null = null;
 		let errors: Error[] = [];
 
 		try {
@@ -359,16 +360,18 @@ export class PriorityQueue<T> implements ADT<T> {
 
 			result = parsed;
 		} catch (e: unknown) {
-			if (e instanceof Error && Array.isArray(result)) {
-				result.push(e);
+			if (e instanceof Error) {
+				errors.push(e);
 			}
+
+			result = errors;
 		}
 
 		return result;
 	}
 
-	private parseOptionsOverrides(stateArg: State<T>, options?: Options<T>): State<T> {
-		const state: State<T> = stateArg;
+	private parseOptionsOverrides(stateArg: State<ItemT>, options?: Options<ItemT>): State<ItemT> {
+		const state: State<ItemT> = stateArg;
 
 		if (!options) {
 			return state;
@@ -393,8 +396,8 @@ export class PriorityQueue<T> implements ADT<T> {
 		return state;
 	}
 
-	private getDefaultState(): State<T> {
-		const state: State<T> = {
+	private getDefaultState(): State<ItemT> {
+		const state: State<ItemT> = {
 			type: 'PriorityQueue',
 			elements: []
 		};
@@ -402,7 +405,7 @@ export class PriorityQueue<T> implements ADT<T> {
 		return state;
 	}
 
-	private getStateErrors(state: State<T>): Error[] {
+	private getStateErrors(state: State<ItemT>): Error[] {
 		const errors: Error[] = [];
 
 		errors.push(...this.getStateErrorsElements(state.elements));
@@ -429,7 +432,7 @@ export class PriorityQueue<T> implements ADT<T> {
 		return errors;
 	}
 
-	private queryDelete(query: QueryResult<T>): T | null {
+	private queryDelete(query: QueryResult<ItemT>): ItemT | null {
 		const index = query.index();
 
 		if (index === null) {
@@ -439,14 +442,19 @@ export class PriorityQueue<T> implements ADT<T> {
 		this.swapNodes(index, this.size() - 1);
 		this.state.elements.pop();
 
-		if (this.size() > 1) {
-			this.fixHeap(index);
+		if (this.isInHeap(index)) {
+			// The element swapped in from the end may belong above or below
+			// its new position, so pick the sift direction by checking the
+			// parent instead of relying on fixHeap's positional default.
+			const parent = this.getParent(index);
+			const siftUp = parent >= 0 && !this.compareNodes(parent, index);
+			this.fixHeap(index, !siftUp);
 		}
 
 		return query.element;
 	}
 
-	private queryIndex(query: T): number | null {
+	private queryIndex(query: ItemT): number | null {
 		const index = this.state.elements.findIndex((element) => {
 			return element === query;
 		});
@@ -468,6 +476,10 @@ export class PriorityQueue<T> implements ADT<T> {
 		}
 
 		return options;
+	}
+
+	public toBinary(): Uint32Array | null {
+		return null;
 	}
 }
 

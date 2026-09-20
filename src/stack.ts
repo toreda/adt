@@ -1,8 +1,8 @@
-import {ADT} from './adt';
+import type {ADT} from './adt';
 import {StackOptions as Options} from './stack/options';
-import {QueryFilter} from './query/filter';
-import {QueryOptions} from './query/options';
-import {QueryResult} from './query/result';
+import type {QueryFilter} from './query/filter';
+import {type QueryOptions} from './query/options';
+import type {QueryResult} from './query/result';
 import {StackIterator} from './stack/iterator';
 import {StackState as State} from './stack/state';
 import {isNumber} from './utility';
@@ -230,9 +230,11 @@ export class Stack<T> implements ADT<T> {
 
 			result = parsed;
 		} catch (e: unknown) {
-			if (e instanceof Error && Array.isArray(result)) {
-				result.push(e);
+			if (e instanceof Error) {
+				errors.push(e);
 			}
+
+			result = errors;
 		}
 
 		return result;
@@ -336,6 +338,10 @@ export class Stack<T> implements ADT<T> {
 		}
 
 		return options;
+	}
+
+	public toBinary(): Uint32Array | null {
+		return null;
 	}
 }
 

@@ -1,17 +1,17 @@
-import {ADTObjectPool} from '../src/object-pool';
-import {ADTObjectPoolInstance} from '../src/object-pool/instance';
-import {ADTObjectPoolOptions} from '../src/object-pool/options';
+import {ObjectPool} from '../src/object/pool';
+import {ObjectPoolInstance} from '../src/object/pool/instance';
+import {ObjectPoolOptions} from '../src/object/pool/options';
 
 const repeat = (n, f): void => {
 	while (n-- > 0) f();
 };
 
-class objectClass implements ADTObjectPoolInstance {
+class DemoPool implements ObjectPoolInstance {
 	public atr1: any;
 	public atr2: any;
 	public atr3 = '';
 
-	constructor(arg1, arg2) {
+	constructor(arg1: any, arg2: any) {
 		this.atr1 = arg1;
 		this.atr2 = arg2;
 	}
@@ -23,7 +23,7 @@ class objectClass implements ADTObjectPoolInstance {
 	}
 }
 
-const options: Required<Omit<ADTObjectPoolOptions, 'serializedState'>> = {
+const options: Required<Omit<ObjectPoolOptions, 'serializedState'>> = {
 	autoIncrease: false,
 	increaseBreakPoint: 0.8,
 	increaseFactor: 2,
@@ -32,7 +32,7 @@ const options: Required<Omit<ADTObjectPoolOptions, 'serializedState'>> = {
 	startSize: 100
 };
 
-const pool = new ADTObjectPool(objectClass, options);
+const pool = new ObjectPool(DemoPool, options);
 
 const checkArgs = (): void => {
 	let correct = true;

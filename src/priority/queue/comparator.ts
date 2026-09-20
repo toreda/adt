@@ -1,6 +1,6 @@
-/**
+/** 
  * @category Priority Queue
  */
-export interface PriorityQueueComparator<T> {
-	(a: T, b: T): boolean;
+export interface PriorityQueueComparator<ItemT> {
+	(a: ItemT, b: ItemT): boolean;
 }

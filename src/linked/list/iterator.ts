@@ -1,6 +1,6 @@
 import {LinkedList} from '../list';
 import {LinkedListElement as Element} from './element';
-import {IterableType} from '../../iterable/type';
+import {type IterableType} from '../../iterable/type';
 import {iterableMakeType} from '../../iterable/helpers';
 
 /**

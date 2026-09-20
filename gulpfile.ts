@@ -10,7 +10,6 @@ const log = new Log({
 });
 
 const build: Build = new Build({
-	log: log,
 	events: new EventEmitter()
 });
 
@@ -25,7 +24,6 @@ async function runLint(): Promise<NodeJS.ReadWriteStream> {
 		read: false
 	});
 }
-
 
 function createDist(): any {
 	return build.create.dir('./dist', true);

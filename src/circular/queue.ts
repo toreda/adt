@@ -1,32 +1,37 @@
 import {isInteger, isNumber} from '../utility';
 
-import {ADT} from '../adt';
+import type {ADT} from '../adt';
 import {CircularQueueIterator} from './queue/iterator';
 import {CircularQueueState} from './queue/state';
-import {CircularQueueOptions as Options} from './queue/options';
-import {QueryFilter} from '../query/filter';
-import {QueryOptions} from '../query/options';
-import {QueryResult} from '../query/result';
+import {type CircularQueueOptions as Options} from './queue/options';
+import {type QueryFilter} from '../query/filter';
+import {type QueryOptions} from '../query/options';
+import {type QueryResult} from '../query/result';
+import {circularQueueSize} from './queue/size';
 
 /**
+ * Circular Queue data with user defined element types via generics. Implements
+ * `ADT` the standard set of interface methods
+ *
  * @category Circular Queue
  */
-export class CircularQueue<T> implements ADT<T> {
-	private readonly state: CircularQueueState<T>;
+export class CircularQueue<ItemT> implements ADT<ItemT> {
+	public readonly state: CircularQueueState<ItemT>;
 
-	constructor(options?: Options<T>) {
-		this.state = this.parseOptions(options);
+	constructor(options?: Options<ItemT>) {
+		//this.state = this.parseOptions(options);
+		this.state = new CircularQueueState(options);
 	}
 
-	[Symbol.iterator](): CircularQueueIterator<T> {
-		return new CircularQueueIterator<T>(this);
+	[Symbol.iterator](): CircularQueueIterator<ItemT> {
+		return new CircularQueueIterator<ItemT>(this);
 	}
 
 	/**
 	 * Get the first element without removing it, if one exists.
 	 * @returns
 	 */
-	public peek(): T | null {
+	public peek(): ItemT | null {
 		return this.front();
 	}
 
@@ -35,14 +40,14 @@ export class CircularQueue<T> implements ADT<T> {
 	 * no effect when queue is empty.
 	 * @returns
 	 */
-	public pop(): T | null {
+	public pop(): ItemT | null {
 		if (this.isEmpty()) {
 			return null;
 		}
 
 		const front = this.front();
 
-		this.state.front = this.wrapIndex(this.state.front + 1);
+		this.state.frontNdx = this.wrapIndex(this.state.frontNdx + 1);
 		this.state.size--;
 
 		return front;
@@ -53,37 +58,66 @@ export class CircularQueue<T> implements ADT<T> {
 	 * @param element
 	 * @returns
 	 */
-	public push(element: T): boolean {
-		if (!this.state.overwrite && this.isFull()) {
-			return false;
-		}
+	public push(...elements: ItemT[]): boolean {
+		for (const element of elements) {
+			if (!this.state.overwrite && this.isFull()) {
+				return false;
+			}
 
-		this.state.elements[this.state.rear] = element;
-		this.state.rear = this.wrapIndex(this.state.rear + 1);
+			this.state.elements[this.state.rearNdx] = element;
+			this.state.rearNdx = this.wrapIndex(this.state.rearNdx + 1);
 
-		if (this.state.overwrite && this.isFull()) {
-			this.state.front = this.wrapIndex(this.state.front + 1);
-		} else {
-			this.state.size++;
+			if (this.state.overwrite && this.isFull()) {
+				this.state.frontNdx = this.wrapIndex(this.state.frontNdx + 1);
+			} else {
+				this.state.size++;
+			}
 		}
 
 		return true;
 	}
 
-	public front(): T | null {
-		if (this.isEmpty()) {
-			return null;
-		}
+	/**
+	 * Insert element at the front of the queue.
+	 * @param element
+	 * @returns
+	 */
+	public insertFront(...elements: ItemT[]): boolean {
+		for (const element of elements) {
+			if (!this.state.overwrite && this.isFull()) {
+				return false;
+			}
 
-		return this.state.elements[this.state.front];
+			this.state.frontNdx = this.wrapIndex(this.state.frontNdx - 1);
+			this.state.elements[this.state.frontNdx] = element;
+
+			if (this.state.overwrite && this.isFull()) {
+				this.state.rearNdx = this.wrapIndex(this.state.rearNdx - 1);
+			} else {
+				this.state.size++;
+			}
+		}
+		return true;
 	}
 
-	public rear(): T | null {
+	/**
+	 * Get element currently at the front of the queue, or `null`
+	 * if the queue is empty.
+	 */
+	public front(): ItemT | null {
 		if (this.isEmpty()) {
 			return null;
 		}
 
-		return this.state.elements[this.wrapIndex(this.state.rear - 1)];
+		return this.state.elements[this.state.frontNdx];
+	}
+
+	public rear(): ItemT | null {
+		if (this.isEmpty()) {
+			return null;
+		}
+
+		return this.state.elements[this.wrapIndex(this.state.rearNdx - 1)];
 	}
 
 	public size(): number {
@@ -98,7 +132,7 @@ export class CircularQueue<T> implements ADT<T> {
 		return this.state.size >= this.state.maxSize;
 	}
 
-	public getIndex(n: number): T | null {
+	public getIndex(n: number): ItemT | null {
 		if (!isInteger(n)) {
 			return null;
 		}
@@ -108,15 +142,15 @@ export class CircularQueue<T> implements ADT<T> {
 
 		let index = n;
 		if (index >= 0) {
-			index = this.state.front + index;
+			index = this.state.frontNdx + index;
 		} else {
-			index = this.state.rear + index;
+			index = this.state.rearNdx + index;
 		}
 
 		return this.state.elements[this.wrapIndex(index)];
 	}
 
-	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): CircularQueue<T> {
+	public filter(func: ArrayMethod<ItemT, boolean>, thisArg?: unknown): CircularQueue<ItemT> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -124,7 +158,7 @@ export class CircularQueue<T> implements ADT<T> {
 			boundThis = thisArg as this;
 		}
 
-		const queue = new CircularQueue<T>({
+		const queue = new CircularQueue<ItemT>({
 			overwrite: this.state.overwrite,
 			maxSize: this.state.maxSize
 		});
@@ -139,9 +173,9 @@ export class CircularQueue<T> implements ADT<T> {
 		return queue;
 	}
 
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): CircularQueue<T> {
-		const front = this.wrapIndex(this.state.front);
-		let rear = this.wrapIndex(this.state.rear);
+	public forEach(func: ArrayMethod<ItemT, void>, thisArg?: unknown): CircularQueue<ItemT> {
+		const front = this.wrapIndex(this.state.frontNdx);
+		let rear = this.wrapIndex(this.state.rearNdx);
 
 		if (this.size() && rear <= front) {
 			rear = rear + this.state.maxSize;
@@ -162,8 +196,11 @@ export class CircularQueue<T> implements ADT<T> {
 		return this;
 	}
 
-	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
-		const resultsArray: QueryResult<T>[] = [];
+	public query(
+		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
+		opts?: QueryOptions
+	): QueryResult<ItemT>[] {
+		const resultsArray: QueryResult<ItemT>[] = [];
 		const options = this.queryOptions(opts);
 
 		this.forEach((element) => {
@@ -187,7 +224,7 @@ export class CircularQueue<T> implements ADT<T> {
 				return false;
 			}
 
-			const result: QueryResult<T> = {} as QueryResult<T>;
+			const result: QueryResult<ItemT> = {} as QueryResult<ItemT>;
 			result.element = element;
 			result.key = (): null => null;
 			result.index = this.queryIndex.bind(this, element);
@@ -198,35 +235,23 @@ export class CircularQueue<T> implements ADT<T> {
 		return resultsArray;
 	}
 
-	public clearElements(): CircularQueue<T> {
-		this.state.elements = [];
-		this.state.front = 0;
-		this.state.rear = 0;
+	public clearElements(): CircularQueue<ItemT> {
+		this.state.elements.length = 0;
+		this.state.frontNdx = 0;
+		this.state.rearNdx = 0;
 		this.state.size = 0;
 
 		return this;
 	}
 
-	public reset(): CircularQueue<T> {
+	public reset(): CircularQueue<ItemT> {
 		this.clearElements();
-
-		this.state.type = 'CircularQueue';
 
 		return this;
 	}
 
 	public stringify(): string {
 		return JSON.stringify(this.state);
-	}
-
-	private calculateSize(front: number, rear: number, maxSize: number): number {
-		if (front === rear) {
-			return 0;
-		} else if (front < rear) {
-			return rear - front;
-		} else {
-			return maxSize - (front - rear);
-		}
 	}
 
 	private wrapIndex(n: number): number {
@@ -238,78 +263,11 @@ export class CircularQueue<T> implements ADT<T> {
 		return index % this.state.maxSize;
 	}
 
-	private parseOptions(options?: Options<T>): CircularQueueState<T> {
-		const fromSerial = this.parseOptionsSerialized(options);
-		const finalState = this.parseOptionsOverrides(fromSerial, options);
-
-		return finalState;
-	}
-
-	private parseOptionsSerialized(options?: Options<T>): CircularQueueState<T> {
-		const state: CircularQueueState<T> = this.getDefaultState();
-
-		if (!options) {
-			return state;
-		}
-
-		let result: CircularQueueState<T> | null = null;
-
-		if (typeof options.serializedState === 'string') {
-			const parsed = this.parseSerializedString(options.serializedState);
-
-			if (Array.isArray(parsed)) {
-				throw parsed;
-			}
-
-			result = parsed;
-		}
-
-		if (result) {
-			state.elements = result.elements;
-			state.overwrite = result.overwrite;
-			state.maxSize = result.maxSize;
-			state.size = result.size;
-			state.front = result.front;
-			state.rear = result.rear;
-		}
-
-		return state;
-	}
-
-	private parseSerializedString(state: string): CircularQueueState<T> | Error[] | null {
-		if (typeof state !== 'string' || state === '') {
-			return null;
-		}
-
-		let result: CircularQueueState<T> | Error[] | null = null;
-		let errors: Error[] = [];
-
-		try {
-			const parsed = JSON.parse(state);
-
-			if (parsed) {
-				errors = this.getStateErrors(parsed);
-			}
-
-			if (errors.length || !parsed) {
-				throw new Error('state is not a valid CircularQueueState');
-			}
-
-			result = parsed;
-		} catch (e: unknown) {
-			if (e instanceof Error && Array.isArray(result)) {
-				result.push(e);
-			}
-		}
-
-		return result;
-	}
-
 	private parseOptionsOverrides(
-		stateArg: CircularQueueState<T>,
-		options?: Options<T>
-	): CircularQueueState<T> {
-		const state: CircularQueueState<T> = stateArg;
+		stateArg: CircularQueueState<ItemT>,
+		options?: Options<ItemT>
+	): CircularQueueState<ItemT> {
+		const state: CircularQueueState<ItemT> = stateArg;
 
 		if (!options) {
 			return state;
@@ -332,7 +290,7 @@ export class CircularQueue<T> implements ADT<T> {
 			if (e.length) {
 				errors.push(...e);
 			} else {
-				state.front = options.front;
+				state.frontNdx = options.front;
 			}
 		}
 		if (options.maxSize != null) {
@@ -376,26 +334,12 @@ export class CircularQueue<T> implements ADT<T> {
 			throw errors;
 		}
 
-		state.size = this.calculateSize(state.front, state.rear, state.maxSize);
+		state.size = circularQueueSize(state.frontNdx, state.rearNdx, state.maxSize);
 
 		return state;
 	}
 
-	private getDefaultState(): CircularQueueState<T> {
-		const state: CircularQueueState<T> = {
-			type: 'CircularQueue',
-			elements: [],
-			overwrite: false,
-			size: 0,
-			maxSize: 100,
-			front: 0,
-			rear: 0
-		};
-
-		return state;
-	}
-
-	private getStateErrors(state: CircularQueueState<T>): Error[] {
+	private getStateErrors(state: CircularQueueState<ItemT>): Error[] {
 		const errors: Error[] = [];
 
 		errors.push(...this.getStateErrorsElements(state.elements));
@@ -479,32 +423,34 @@ export class CircularQueue<T> implements ADT<T> {
 		return errors;
 	}
 
-	private queryDelete(query: QueryResult<T>): T | null {
-		let index = query.index();
+	private queryDelete(query: QueryResult<ItemT>): ItemT | null {
+		const index = query.index();
 
 		if (index === null) {
 			return null;
 		}
 
-		const front = this.wrapIndex(this.state.front);
-		let rear = this.wrapIndex(this.state.rear);
+		// Splice cannot be used here: it renumbers the physical slots of every
+		// element after the removal point while frontNdx/rearNdx stay absolute,
+		// which corrupts the queue once it has wrapped. Close the gap by shifting
+		// each later element one slot toward the front, following the ring.
+		let curr = this.wrapIndex(index);
+		let next = this.wrapIndex(curr + 1);
+		const rear = this.wrapIndex(this.state.rearNdx);
 
-		if (this.size() && rear <= front) {
-			rear = rear + this.state.maxSize;
+		while (next !== rear) {
+			this.state.elements[curr] = this.state.elements[next];
+			curr = next;
+			next = this.wrapIndex(next + 1);
 		}
 
-		if (this.size() && index < front) {
-			index = index + this.state.maxSize;
-		}
-
-		this.state.elements.splice(this.wrapIndex(index), 1);
+		this.state.rearNdx = this.wrapIndex(this.state.rearNdx - 1);
 		this.state.size--;
-		this.state.rear = this.wrapIndex(this.state.rear - 1);
 
 		return query.element;
 	}
 
-	private queryIndex(query: T): number | null {
+	private queryIndex(query: ItemT): number | null {
 		let position = -1;
 
 		this.forEach((element, index) => {
@@ -533,6 +479,10 @@ export class CircularQueue<T> implements ADT<T> {
 		}
 
 		return options;
+	}
+
+	public toBinary(): Uint32Array | null {
+		return null;
 	}
 }
 

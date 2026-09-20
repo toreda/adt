@@ -1,13 +1,13 @@
 import {isInteger, isNumber} from '../utility';
 
 import {ADT} from '../adt';
-import {ObjectPoolConstructor as Constructor} from './pool/constructor';
-import {ObjectPoolInstance as Instance} from './pool/instance';
+import {type ObjectPoolConstructor as Constructor} from './pool/constructor';
+import {type ObjectPoolInstance as Instance} from './pool/instance';
 import {ObjectPoolIterator} from './pool/iterator';
-import {ObjectPoolOptions as Options} from './pool/options';
-import {QueryFilter} from '../query/filter';
-import {QueryOptions} from '../query/options';
-import {QueryResult} from '../query/result';
+import {type ObjectPoolOptions as Options} from './pool/options';
+import {type QueryFilter} from '../query/filter';
+import {type QueryOptions} from '../query/options';
+import {type QueryResult} from '../query/result';
 import {ObjectPoolState as State} from './pool/state';
 
 /**
@@ -350,14 +350,16 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 			}
 
 			if (errors.length || !parsed) {
-				throw new Error('state is not a valid PriorityQueueState');
+				throw new Error('state is not a valid ObjectPoolState');
 			}
 
 			result = parsed;
 		} catch (e: unknown) {
-			if (e instanceof Error && Array.isArray(result)) {
-				result.push(e);
+			if (e instanceof Error) {
+				errors.push(e);
 			}
+
+			result = errors;
 		}
 
 		return result;

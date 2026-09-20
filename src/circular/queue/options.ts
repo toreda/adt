@@ -9,4 +9,5 @@ export interface CircularQueueOptions<T> {
 	rear?: number;
 	serializedState?: string;
 	size?: number;
+	reverseInsert?: boolean;
 }

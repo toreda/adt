@@ -403,9 +403,11 @@ export class LinkedList<T> implements ADT<T> {
 
 			result = parsed;
 		} catch (e: unknown) {
-			if (e instanceof Error && Array.isArray(result)) {
-				result.push(e);
+			if (e instanceof Error) {
+				errors.push(e);
 			}
+
+			result = errors;
 		}
 
 		return result;

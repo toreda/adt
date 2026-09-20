@@ -1,6 +1,17 @@
 import {isInteger, isNumber} from '../src/utility';
 
-const VALUES = {
+type TestKey =
+	| 'negativeFloat'
+	| 'positiveFloat'
+	| 'negativeInteger'
+	| 'positiveInteger'
+	| 'zero'
+	| 'nan'
+	| 'string';
+
+type TestTable = Record<TestKey, number | string | undefined | null>;
+
+const VALUES: TestTable = {
 	negativeFloat: -1.5,
 	positiveFloat: 1.5,
 	negativeInteger: -1,

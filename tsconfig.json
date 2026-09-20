@@ -6,13 +6,12 @@
 	"compilerOptions": {
 		"allowUnreachableCode": false,
 		"alwaysStrict": true,
-		"baseUrl": ".",
 		"declaration": true,
 		"esModuleInterop": true,
 		"isolatedModules": false,
 		"lib": ["es6", "ES2015", "ES2017", "ES2017.TypedArrays"],
 		"module": "commonjs",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"noImplicitUseStrict": false,
 		"outDir": "./dist",
 		"preserveConstEnums": true,
@@ -26,11 +25,12 @@
 		"target": "es2015",
 		"traceResolution": false
 	},
-	"ts-jest": {
-		"module": "commonjs",
+	"ts-node": {
+		"swc": true,
 		"target": "esnext",
 		"compilerOptions": {
 			"declaration": false,
+			"allowImportingTsExtensions": true,
 			"isolatedModules": true,
 			"sourceMap": false
 		}

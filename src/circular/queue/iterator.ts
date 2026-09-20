@@ -1,6 +1,6 @@
 import {CircularQueue} from '../queue';
-import {IterableType} from '../../iterable/type';
-import {Iterator} from '../../iterator';
+import {type IterableType} from '../../iterable/type';
+import {type Iterator} from '../../iterator';
 import {iterableMakeType} from '../../iterable/helpers';
 
 /**

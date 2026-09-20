@@ -1,10 +1,11 @@
 import {Stack} from '../stack';
-import {IterableType} from '../iterable/type';
-import {Iterator} from '../iterator';
+import {type IterableType} from '../iterable/type';
+import {type Iterator} from '../iterator';
 import {iterableMakeType} from '../iterable/helpers';
 
 /**
- *
+ * Iterator object used to iterate over Stack elements. 
+ * 
  * @category Stack
  */
 export class StackIterator<ItemT> implements Iterator<ItemT | null> {
