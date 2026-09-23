@@ -1,13 +1,13 @@
 import {isInteger, isNumber} from '../utility';
 
 import type {ADT} from '../adt';
+import type {ArrayMethod} from '../array/method';
 import {CircularQueueIterator} from './queue/iterator';
 import {CircularQueueState} from './queue/state';
 import {type CircularQueueOptions as Options} from './queue/options';
 import {type QueryFilter} from '../query/filter';
 import {type QueryOptions} from '../query/options';
 import {type QueryResult} from '../query/result';
-import {circularQueueSize} from './queue/size';
 
 /**
  * Circular Queue data with user defined element types via generics. Implements
@@ -19,7 +19,6 @@ export class CircularQueue<ItemT> implements ADT<ItemT> {
 	public readonly state: CircularQueueState<ItemT>;
 
 	constructor(options?: Options<ItemT>) {
-		//this.state = this.parseOptions(options);
 		this.state = new CircularQueueState(options);
 	}
 
@@ -263,166 +262,6 @@ export class CircularQueue<ItemT> implements ADT<ItemT> {
 		return index % this.state.maxSize;
 	}
 
-	private parseOptionsOverrides(
-		stateArg: CircularQueueState<ItemT>,
-		options?: Options<ItemT>
-	): CircularQueueState<ItemT> {
-		const state: CircularQueueState<ItemT> = stateArg;
-
-		if (!options) {
-			return state;
-		}
-
-		const errors: Error[] = [];
-
-		if (options.elements != null) {
-			const e = this.getStateErrorsElements(options.elements);
-
-			if (e.length) {
-				errors.push(...e);
-			} else {
-				state.elements = options.elements.slice();
-			}
-		}
-		if (options.front != null) {
-			const e = this.getStateErrorsFront(options.front);
-
-			if (e.length) {
-				errors.push(...e);
-			} else {
-				state.frontNdx = options.front;
-			}
-		}
-		if (options.maxSize != null) {
-			const e = this.getStateErrorsMaxSize(options.maxSize);
-
-			if (e.length) {
-				errors.push(...e);
-			} else {
-				state.maxSize = options.maxSize;
-			}
-		}
-		if (options.overwrite != null) {
-			const e = this.getStateErrorsOverwrite(options.overwrite);
-
-			if (e.length) {
-				errors.push(...e);
-			} else {
-				state.overwrite = options.overwrite;
-			}
-		}
-		if (options.rear != null) {
-			const e = this.getStateErrorsRear(options.rear);
-
-			if (e.length) {
-				errors.push(...e);
-			} else {
-				state.rear = options.rear;
-			}
-		}
-		if (options.size != null) {
-			const e = this.getStateErrorsSize(options.size);
-
-			if (e.length) {
-				errors.push(...e);
-			} else {
-				state.size = options.size;
-			}
-		}
-
-		if (errors.length) {
-			throw errors;
-		}
-
-		state.size = circularQueueSize(state.frontNdx, state.rearNdx, state.maxSize);
-
-		return state;
-	}
-
-	private getStateErrors(state: CircularQueueState<ItemT>): Error[] {
-		const errors: Error[] = [];
-
-		errors.push(...this.getStateErrorsElements(state.elements));
-		errors.push(...this.getStateErrorsFront(state.front));
-		errors.push(...this.getStateErrorsMaxSize(state.maxSize));
-		errors.push(...this.getStateErrorsOverwrite(state.overwrite));
-		errors.push(...this.getStateErrorsRear(state.rear));
-		errors.push(...this.getStateErrorsSize(state.size));
-		errors.push(...this.getStateErrorsType(state.type));
-
-		return errors;
-	}
-
-	private getStateErrorsElements(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !Array.isArray(data)) {
-			errors.push(Error('state elements must be an array'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsFront(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !isInteger(data)) {
-			errors.push(Error('state front must be an integer'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsMaxSize(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !isInteger(data) || data < 1) {
-			errors.push(Error('state maxSize must be an integer >= 1'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsOverwrite(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || typeof data !== 'boolean') {
-			errors.push(Error('state overwrite must be a boolean'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsRear(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !isInteger(data)) {
-			errors.push(Error('state rear must be an integer'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsSize(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !isInteger(data) || data < 0) {
-			errors.push(Error('state size must be an integer >= 0'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsType(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || data !== 'CircularQueue') {
-			errors.push(Error('state type must be CircularQueue'));
-		}
-
-		return errors;
-	}
-
 	private queryDelete(query: QueryResult<ItemT>): ItemT | null {
 		const index = query.index();
 
@@ -481,9 +320,7 @@ export class CircularQueue<ItemT> implements ADT<ItemT> {
 		return options;
 	}
 
-	public toBinary(): Uint32Array | null {
+	public toBinary(): Uint8Array | null {
 		return null;
 	}
 }
-
-export type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;

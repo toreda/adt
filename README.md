@@ -67,7 +67,7 @@ myStack.forEach((elem, index, arr) => {
 // outputs 'my string 2 is at index 0 in array ["my string 2", "my string 1"]'
 // outputs 'my string 1 is at index 1 in array ["my string 2", "my string 1"]'
 
-// Remove first element from stack
+// Remove and return the top element from stack
 const result1 = myStack.pop(); // returns "my string 2"
 const result2 = myStack.pop(); // returns "my string 1"
 const result3 = myStack.pop(); // returns null because myStack is already empty.
@@ -148,9 +148,8 @@ Typescript
 import {LinkedList} from '@toreda/adt';
 // Instantiate
 const myLinkedList = new LinkedList<string>();
-const myStackWithOption = new Stack<string>({
-	elements: ['a', 'b', 'c']
-});
+// Instantiate with starting elements, inserted head to tail
+const myLinkedListWithElements = new LinkedList<string>(['a', 'b', 'c']);
 
 // Add elements to the tail of linked list
 myLinkedList.insert("my string 1"); // returns arg converted to LinkedListElement
@@ -211,11 +210,24 @@ myLinkedList.reset(); // returns myLinkedList
 // "one", "two", "three" becomes "three", "two", "one"
 myLinkedList.reverse();
 
-// Returns the current state of queue as string
+// Returns list values as a JSON string: {"type":"LinkedList","elements":[...]}
 const serialized = myLinkedList.stringify();
 
-// Instantiate a queue using serialized state
-const serialLinkedList = new LinkedList({serializedState: serialized});
+// Byte form of the whole list is provided by ByteLinkedList, a superset of
+// LinkedList. Items are generic, so it requires an ItemCodec at construction.
+import {ByteLinkedList} from '@toreda/adt';
+
+const codec = {
+	encode: (item: string): Uint8Array => new TextEncoder().encode(item),
+	decode: (bytes: Uint8Array): string => new TextDecoder().decode(bytes)
+};
+
+const source = new ByteLinkedList<string>(codec, ['a', 'b']);
+const envelope = source.toByteEnvelope(); // ByteEnvelope: directory header + item bytes
+const bytes = source.toBytes(); // Uint8Array, same as envelope.toBytes()
+
+// Rebuild a list from envelope bytes. Throws when bytes are not a valid envelope.
+const fromBytes = new ByteLinkedList<string>(codec, bytes); // head "a", tail "b"
 ```
 
 
@@ -543,7 +555,7 @@ myPriorityQueue.pop(); // returns 10
 myObjectPool.pop(); // returns 10
 
 resultQueue[0].index(); // returns 1
-resultStack[0].index(); // returns 2
+resultStack[0].index(); // returns 1 (index is measured down from the top)
 resultLinkedList[0].index(); // returns null
 resultCircularQueue[0].index(); // returns 2
 resultPriorityQueue[0].index(); // returns 2
@@ -586,33 +598,6 @@ yarn
  3. Enter the following commands in order. Wait for each to complete before typing the next.
 ```bash
 npm install
-```
-
-
-# Run Unit Tests
-Install or clone `@toreda/adt` [(see above)](#install).
-
-ADT unit tests use [Jest](https://jestjs.io/).
-
-Installing jest is not required after project dependencies are installed ([see above](#install)).
-```bash
-yarn test
-```
-
-# Build from source
-
-The next steps are the same whether you installed the package using NPM or cloned the repo from Github.
-
-### Build with Yarn
- Enter the following commands in order from the adt project root.
-```bash
-yarn build
-```
-
-### Build with NPM
- Enter the following commands in order from the adt project root.
-```bash
-npm run-script build
 ```
 
 # License

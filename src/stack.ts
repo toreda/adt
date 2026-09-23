@@ -1,5 +1,6 @@
 import type {ADT} from './adt';
-import {StackOptions as Options} from './stack/options';
+import type {ArrayMethod} from './array/method';
+import type {StackOptions as Options} from './stack/options';
 import type {QueryFilter} from './query/filter';
 import {type QueryOptions} from './query/options';
 import type {QueryResult} from './query/result';
@@ -23,14 +24,24 @@ export class Stack<T> implements ADT<T> {
 		return new StackIterator<T>(this);
 	}
 
+	/**
+	 * Alias of top(). Get the top element without removing it.
+	 * @returns		Top element or null when stack is empty.
+	 */
 	public peek(): T | null {
 		return this.top();
 	}
 
-	public pop(): Stack<T> {
-		this.state.elements.pop();
+	/**
+	 * Remove and return the top element.
+	 * @returns		Removed element or null when stack is empty.
+	 */
+	public pop(): T | null {
+		if (this.isEmpty()) {
+			return null;
+		}
 
-		return this;
+		return this.state.elements.pop() as T;
 	}
 
 	public push(element: T): Stack<T> {
@@ -56,17 +67,19 @@ export class Stack<T> implements ADT<T> {
 	}
 
 	/**
-	 * Get Nth element in stack if one exists at location.
-	 * @param n
-	 * @returns
+	 * Get the Nth element down from the top of the stack. Position 0 is the top,
+	 * matching forEach's index and the index reported by query results.
+	 * @param n		Position to retrieve. Must be a non-negative integer.
+	 * @returns		Element at position n, or null when n is not a valid position.
 	 */
 	public at(n: number): T | null {
-		const sz = this.size();
-		if (!sz || n > sz - 1 || n < 0) {
+		const size = this.size();
+
+		if (!Number.isInteger(n) || n < 0 || n >= size) {
 			return null;
 		}
 
-		return this.state.elements[n];
+		return this.state.elements[size - 1 - n];
 	}
 
 	public size(): number {
@@ -77,37 +90,43 @@ export class Stack<T> implements ADT<T> {
 		return this.state.elements.length === 0;
 	}
 
+	/**
+	 * Create a new stack containing only elements for which func returns true.
+	 * Elements are visited top to bottom and keep their relative order in the new stack.
+	 * @param func		Called with (element, index, arr) where index 0 is the top of the stack.
+	 * @param thisArg	Value used as `this` when calling func. Defaults to this stack.
+	 * @returns			New stack containing the matching elements.
+	 */
 	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): Stack<T> {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
-
-		if (thisArg) {
-			boundThis = thisArg as this;
-		}
-
+		const boundThis = thisArg === undefined ? this : thisArg;
 		const elements: T[] = [];
 
 		this.forEach((elem, idx, arr) => {
-			const result = func.call(boundThis, elem, idx, arr);
-			if (result) {
-				elements.unshift(elem);
+			if (func.call(boundThis, elem, idx, arr)) {
+				elements.push(elem);
 			}
-		}, boundThis);
+		});
+
+		// Elements were collected top-first. Reverse once so the new
+		// stack's array is bottom-first like this stack's.
+		elements.reverse();
 
 		return new Stack({...this.state, elements});
 	}
 
+	/**
+	 * Call func once for each element, visiting elements from top to bottom.
+	 * @param func		Called with (element, index, arr) where index 0 is the top of the stack
+	 * 					and arr is a top-first copy of the stack's elements.
+	 * @param thisArg	Value used as `this` when calling func. Defaults to this stack.
+	 * @returns			This stack.
+	 */
 	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): Stack<T> {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
+		const boundThis = thisArg === undefined ? this : thisArg;
+		const topFirst = this.state.elements.slice().reverse();
 
-		if (thisArg) {
-			boundThis = thisArg as this;
-		}
-
-		const top = this.state.elements.length - 1;
-		for (let i = top; i >= 0; i--) {
-			func.call(boundThis, this.state.elements[i], top - i, this.state.elements.slice().reverse());
+		for (let i = 0; i < topFirst.length; i++) {
+			func.call(boundThis, topFirst[i], i, topFirst);
 		}
 
 		return this;
@@ -122,20 +141,28 @@ export class Stack<T> implements ADT<T> {
 		return this;
 	}
 
-	public stringify(): string {
-		return JSON.stringify(this.state);
+	/**
+	 * Serialize the stack state to a JSON string.
+	 * @returns		JSON string, or null when the state cannot be serialized
+	 * 				(e.g. elements contain circular references or BigInt values).
+	 */
+	public stringify(): string | null {
+		try {
+			return JSON.stringify(this.state);
+		} catch {
+			return null;
+		}
 	}
 
 	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
 		const resultsArray: QueryResult<T>[] = [];
 		const options = this.queryOptions(opts);
+		const elements = this.state.elements;
 
-		this.forEach((element) => {
+		// Visit top to bottom, stopping once the limit is reached.
+		for (let i = elements.length - 1; i >= 0 && resultsArray.length < options.limit; i--) {
+			const element = elements[i];
 			let take = false;
-
-			if (resultsArray.length >= options.limit) {
-				return false;
-			}
 
 			if (Array.isArray(filters)) {
 				take =
@@ -148,16 +175,20 @@ export class Stack<T> implements ADT<T> {
 			}
 
 			if (!take) {
-				return false;
+				continue;
 			}
+
+			// Track the array position of this specific match so results for
+			// duplicate values each refer to their own element.
+			const tracker: QueryTracker<T> = {element, index: i, deleted: false};
 
 			const result: QueryResult<T> = {} as QueryResult<T>;
 			result.element = element;
 			result.key = (): string | null => null;
-			result.index = this.queryIndex.bind(this, element);
-			result.delete = this.queryDelete.bind(this, result);
+			result.index = this.queryIndex.bind(this, tracker);
+			result.delete = this.queryDelete.bind(this, tracker);
 			resultsArray.push(result);
-		});
+		}
 
 		return resultsArray;
 	}
@@ -304,26 +335,52 @@ export class Stack<T> implements ADT<T> {
 		return errors;
 	}
 
-	private queryDelete(query: QueryResult<T>): T | null {
-		const index = query.index();
+	private queryDelete(tracker: QueryTracker<T>): T | null {
+		const index = this.queryArrayIndex(tracker);
 
 		if (index === null) {
 			return null;
 		}
 
+		tracker.deleted = true;
 		const result = this.state.elements.splice(index, 1);
 
 		return result[0];
 	}
 
-	private queryIndex(query: T): number | null {
-		const index = this.state.elements.findIndex((element) => {
-			return element === query;
-		});
+	/**
+	 * Position of a query result's element counted down from the top of the
+	 * stack, matching at() and forEach. Null once the element is gone.
+	 */
+	private queryIndex(tracker: QueryTracker<T>): number | null {
+		const index = this.queryArrayIndex(tracker);
+
+		if (index === null) {
+			return null;
+		}
+
+		return this.size() - 1 - index;
+	}
+
+	/**
+	 * Current position of a query result's element in the backing array.
+	 */
+	private queryArrayIndex(tracker: QueryTracker<T>): number | null {
+		if (tracker.deleted) {
+			return null;
+		}
+
+		// Elements only ever move toward the bottom (deletes below shift them
+		// down) or leave the stack (pops, deletes at that position). Search
+		// from the last known position downward so a duplicate value higher
+		// in the stack is never mistaken for this element.
+		const index = this.state.elements.lastIndexOf(tracker.element, tracker.index);
 
 		if (index < 0) {
 			return null;
 		}
+
+		tracker.index = index;
 
 		return index;
 	}
@@ -340,9 +397,16 @@ export class Stack<T> implements ADT<T> {
 		return options;
 	}
 
-	public toBinary(): Uint32Array | null {
+	public toBinary(): Uint8Array | null {
 		return null;
 	}
 }
 
-type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;
+/** Mutable record shared by a query result's index() and delete() closures. */
+interface QueryTracker<T> {
+	element: T;
+	/** Last known array position of element. */
+	index: number;
+	/** True once delete() has removed element from the stack. */
+	deleted: boolean;
+}

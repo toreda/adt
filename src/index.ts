@@ -1,6 +1,16 @@
 // Base
 export {ADT} from './adt';
+export {ArrayMethod} from './array/method';
 export {Element} from './element';
+
+// Bytes
+export {ByteADT} from './byte/adt';
+export {ByteEnvelope} from './byte/envelope';
+export {byteEnvelopeDecode} from './byte/envelope/decode';
+export {ItemCodec} from './item/codec';
+export {itemCodecValid} from './item/codec/valid';
+export {ItemDecoder} from './item/decoder';
+export {ItemEncoder} from './item/encoder';
 
 // Circular Queue
 export {CircularQueue} from './circular/queue';
@@ -8,10 +18,10 @@ export {CircularQueueOptions} from './circular/queue/options';
 export {CircularQueueState} from './circular/queue/state';
 
 // Linked List
+export {ByteLinkedList} from './byte/linked/list';
 export {LinkedList} from './linked/list';
 export {LinkedListElement} from './linked/list/element';
 export {LinkedListOptions} from './linked/list/options';
-export {LinkedListState} from './linked/list/state';
 
 export {Iterator} from './iterator';
 export {IterableType} from './iterable/type';
@@ -47,3 +57,6 @@ export {QueryResult} from './query/result';
 // Callable
 export {QueueCallableSync} from './queue/callable/sync';
 export {QueueCallable} from './queue/callable';
+
+export {intValue} from './int/value';
+export {intNullValue} from './int/null/value';

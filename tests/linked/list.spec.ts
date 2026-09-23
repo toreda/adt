@@ -1,10 +1,10 @@
 import {LinkedList} from '../../src/linked/list';
 import {LinkedListIterator} from '../../src/linked/list/iterator';
-import {type LinkedListOptions} from '../../src/linked/list/options';
 
 const repeat = (n: number, f: Function) => {
 	while (n-- > 0) f();
 };
+
 const add10Items = () => repeat(10, () => list.insert(Math.random()));
 
 const list = new LinkedList();
@@ -22,13 +22,10 @@ describe('LinkedList', () => {
 			expect(result.size()).toBe(0);
 		});
 
-		it('with options', () => {
+		it('with elements', () => {
 			const head = 789;
 			const tail = 456;
-			const options: Required<Omit<LinkedListOptions<any>, 'serializedState'>> = {
-				elements: [head, tail]
-			};
-			const result = new LinkedList(options);
+			const result = new LinkedList([head, tail]);
 
 			expect(result).toBeInstanceOf(LinkedList);
 			expect(result.size()).toBe(2);
@@ -36,49 +33,71 @@ describe('LinkedList', () => {
 			expect(result.tail()?.value()).toBe(tail);
 		});
 
-		it('stringify list', () => {
-			const stringified = list.stringify();
+		it('does not keep a reference to the provided array', () => {
+			const elements = [1, 2, 3];
+			const result = new LinkedList(elements);
+			elements.push(4);
 
-			expect(new LinkedList({serializedState: stringified})).toEqual(list);
+			expect(result.size()).toBe(3);
 		});
 
-		it('with serialized', () => {
-			expect(new LinkedList({serializedState: ''})).toBeInstanceOf(LinkedList);
-
-			const head = 741;
-			const tail = 852;
-			const source = new LinkedList({elements: [head, tail]});
-			const serialized = source.stringify();
-
-			const result = new LinkedList({serializedState: serialized});
+		it('with options', () => {
+			const result = new LinkedList<number>([1, 2], {});
 
 			expect(result).toBeInstanceOf(LinkedList);
 			expect(result.size()).toBe(2);
-			expect(result.head()?.value()).toBe(head);
-			expect(result.tail()?.value()).toBe(tail);
-			expect(result).toEqual(source);
 		});
 
-		it('invalid', () => {
-			expect(() => {
-				const result = new LinkedList({elements: 'adsf' as any});
-				console.log(result);
-			}).toThrow();
+		it('ignores invalid data and options instead of throwing', () => {
+			expect(new LinkedList('adsf' as any).size()).toBe(0);
+			expect(new LinkedList(null).size()).toBe(0);
+			expect(new LinkedList({elements: [4]} as any).size()).toBe(0);
+			expect(new LinkedList(new Uint8Array([1, 2, 3]) as any).size()).toBe(0);
+			expect(new LinkedList([1], null).size()).toBe(1);
+			expect(new LinkedList([1], 'nope' as any).size()).toBe(1);
+		});
 
-			expect(() => {
-				const result = new LinkedList({serializedState: 'null'});
-				console.log(result);
-			}).toThrow();
+		it('has no byte methods; those belong to ByteLinkedList', () => {
+			const result = new LinkedList([1]) as any;
 
-			expect(() => {
-				const result = new LinkedList({serializedState: 'in{valid'});
-				console.log(result);
-			}).toThrow();
+			expect(result.toBytes).toBeUndefined();
+			expect(result.toByteEnvelope).toBeUndefined();
+		});
+	});
 
-			expect(() => {
-				const result = new LinkedList({serializedState: '{"elements": [4]}'});
-				console.log(result);
-			}).toThrow();
+	describe('SERIALIZATION', () => {
+		it('stringify empty list', () => {
+			expect(JSON.parse(list.stringify() as string)).toEqual({type: 'LinkedList', elements: []});
+		});
+
+		it('stringify list values head to tail', () => {
+			const source = new LinkedList([741, 852]);
+			source.insertAtHead(963);
+
+			expect(JSON.parse(source.stringify() as string)).toEqual({
+				type: 'LinkedList',
+				elements: [963, 741, 852]
+			});
+		});
+
+		it('stringify returns null for unserializable values', () => {
+			const circular: any = {};
+			circular.self = circular;
+			list.insert(circular);
+			expect(list.stringify()).toBeNull();
+
+			list.clearElements();
+			list.insert(BigInt(1));
+			expect(list.stringify()).toBeNull();
+		});
+
+		it('values returns element values head to tail, skipping null', () => {
+			const source = new LinkedList([2, 3]);
+			source.insertAtHead(1);
+			source.tail()?.value(null as any);
+
+			expect(source.values()).toEqual([1, 2]);
+			expect(new LinkedList().values()).toEqual([]);
 		});
 	});
 

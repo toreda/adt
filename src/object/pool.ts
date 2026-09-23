@@ -1,6 +1,7 @@
 import {isInteger, isNumber} from '../utility';
 
 import {ADT} from '../adt';
+import {type ArrayMethod} from '../array/method';
 import {type ObjectPoolConstructor as Constructor} from './pool/constructor';
 import {type ObjectPoolInstance as Instance} from './pool/instance';
 import {ObjectPoolIterator} from './pool/iterator';
@@ -609,5 +610,3 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 		return options;
 	}
 }
-
-type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;

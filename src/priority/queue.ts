@@ -1,4 +1,5 @@
 import {type ADT} from '../adt';
+import {type ArrayMethod} from '../array/method';
 import {type PriorityQueueComparator as Comparator} from './queue/comparator';
 import {type PriorityQueueOptions as Options} from './queue/options';
 import {type QueryFilter} from '../query/filter';
@@ -478,9 +479,7 @@ export class PriorityQueue<ItemT> implements ADT<ItemT> {
 		return options;
 	}
 
-	public toBinary(): Uint32Array | null {
+	public toBinary(): Uint8Array | null {
 		return null;
 	}
 }
-
-type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;

@@ -4,11 +4,12 @@ import {type Iterator} from '../iterator';
 import {iterableMakeType} from '../iterable/helpers';
 
 /**
- * Iterator object used to iterate over Stack elements. 
- * 
+ * Iterator object used to iterate over Stack elements from top to bottom.
+ *
  * @category Stack
  */
 export class StackIterator<ItemT> implements Iterator<ItemT | null> {
+	/** Number of elements visited so far, counted from the top. */
 	private curr: number;
 	private stack: Stack<ItemT>;
 
@@ -18,14 +19,15 @@ export class StackIterator<ItemT> implements Iterator<ItemT | null> {
 	}
 
 	next(): IterableType<ItemT | null> {
-		if (this.stack.isEmpty() || this.curr >= this.stack.size()) {
+		const size = this.stack.size();
+
+		if (this.curr >= size) {
 			return iterableMakeType(null, true);
 		}
 
-		const value = this.stack.state.elements[this.curr];
-		const done = this.curr === this.stack.size() ? true : false;
+		const value = this.stack.state.elements[size - 1 - this.curr];
 		this.curr++;
 
-		return iterableMakeType(value, done);
+		return iterableMakeType(value, false);
 	}
 }

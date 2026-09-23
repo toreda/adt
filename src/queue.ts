@@ -1,4 +1,5 @@
 import {type ADT} from './adt';
+import {type ArrayMethod} from './array/method';
 import {type QueryFilter} from './query/filter';
 import {type QueryOptions} from './query/options';
 import {type QueryResult} from './query/result';
@@ -362,5 +363,3 @@ export class Queue<T> implements ADT<T> {
 		return options;
 	}
 }
-
-export type ArrayMethod<T, U> = (element: T, index: number, arr: T[]) => U;

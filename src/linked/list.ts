@@ -1,28 +1,45 @@
-import {ADT} from '../adt';
-import {LinkedListElement as Element} from './list/element';
+import type {ADT} from '../adt';
+import type {ArrayMethod} from '../array/method';
+import {LinkedListElement} from './list/element';
 import {LinkedListIterator} from './list/iterator';
-import {LinkedListOptions as Options} from './list/options';
-import {QueryFilter} from '../query/filter';
-import {QueryOptions} from '../query/options';
-import {QueryResult} from '../query/result';
-import {LinkedListState as State} from './list/state';
+import type {LinkedListOptions} from './list/options';
+import type {QueryFilter} from '../query/filter';
+import type {QueryOptions} from '../query/options';
+import type {QueryResult} from '../query/result';
 import {isNumber} from '../utility';
 
 /**
+ * Doubly linked list. Elements wrap each item and expose `prev()` / `next()`
+ * links so callers can walk the list in either direction.
+ *
+ * Byte encoding is provided by the `ByteLinkedList` subclass, which requires
+ * an `ItemCodec` at construction.
+ *
  * @category Linked List
  */
-export class LinkedList<T> implements ADT<T> {
-	private readonly state: State<T>;
+export class LinkedList<ItemT> implements ADT<ItemT> {
+	private _head: LinkedListElement<ItemT> | null;
+	private _tail: LinkedListElement<ItemT> | null;
+	private _size: number;
 
-	constructor(options?: Options<T>) {
-		this.state = this.parseOptions(options);
+	/**
+	 * @param data		Items inserted head to tail on creation. Any other input is ignored.
+	 * @param options	Optional config. Each option falls back to its default when
+	 * 					missing or invalid.
+	 */
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	constructor(data?: ItemT[] | null, options?: LinkedListOptions<ItemT> | null) {
+		this._head = null;
+		this._tail = null;
+		this._size = 0;
 
-		this.insertArray(this.state.elements);
-		this.state.elements = [];
+		if (Array.isArray(data)) {
+			this.insertArray(data);
+		}
 	}
 
-	[Symbol.iterator](): LinkedListIterator<T> {
-		return new LinkedListIterator<T>(this);
+	[Symbol.iterator](): LinkedListIterator<ItemT> {
+		return new LinkedListIterator<ItemT>(this);
 	}
 
 	/**
@@ -32,56 +49,56 @@ export class LinkedList<T> implements ADT<T> {
 	 * @param element
 	 * @returns
 	 */
-	public insertAtHead(element: T): Element<T> | null {
-		const node = new Element<T>(element);
+	public insertAtHead(element: ItemT): LinkedListElement<ItemT> | null {
+		const node = new LinkedListElement<ItemT>(element);
 		const head = this.head();
 
 		if (!head) {
-			this.state.head = node;
-			this.state.tail = node;
+			this._head = node;
+			this._tail = node;
 
-			this.state.head.prev(null);
-			this.state.head.next(null);
+			node.prev(null);
+			node.next(null);
 		} else {
 			head.prev(node);
 
 			node.prev(null);
 			node.next(head);
 
-			this.state.head = node;
+			this._head = node;
 		}
 
-		++this.state.size;
+		++this._size;
 		return node;
 	}
 
-	public insertAtTail(element: T): Element<T> {
-		const node = new Element<T>(element);
+	public insertAtTail(element: ItemT): LinkedListElement<ItemT> {
+		const node = new LinkedListElement<ItemT>(element);
 		const tail = this.tail();
 
 		if (!tail) {
-			this.state.head = node;
-			this.state.tail = node;
+			this._head = node;
+			this._tail = node;
 
-			this.state.tail.prev(null);
-			this.state.tail.next(null);
+			node.prev(null);
+			node.next(null);
 		} else {
 			tail.next(node);
 
 			node.prev(tail);
 			node.next(null);
 
-			this.state.tail = node;
+			this._tail = node;
 		}
 
-		++this.state.size;
+		++this._size;
 		return node;
 	}
 
 	/**
 	 * Alias of insertAtTail.
 	 */
-	public insert(element: T): Element<T> | null {
+	public insert(element: ItemT): LinkedListElement<ItemT> | null {
 		return this.insertAtTail(element);
 	}
 
@@ -91,7 +108,7 @@ export class LinkedList<T> implements ADT<T> {
 	 * @param elements
 	 * @returns
 	 */
-	public insertArray(elements?: T[] | null): void {
+	public insertArray(elements?: ItemT[] | null): void {
 		if (!Array.isArray(elements)) {
 			return;
 		}
@@ -101,7 +118,7 @@ export class LinkedList<T> implements ADT<T> {
 		}
 	}
 
-	public removeNode(node: Element<T> | null): T | null {
+	public removeNode(node: LinkedListElement<ItemT> | null): ItemT | null {
 		if (!node) {
 			return null;
 		}
@@ -121,21 +138,21 @@ export class LinkedList<T> implements ADT<T> {
 		}
 
 		if (node === this.head()) {
-			this.state.head = next;
+			this._head = next;
 		}
 		if (node === this.tail()) {
-			this.state.tail = prev;
+			this._tail = prev;
 		}
 
-		this.state.size--;
+		this._size--;
 		node.next(null);
 		node.prev(null);
 
 		return node.value();
 	}
 
-	public removeNodes(nodes: Array<Element<T> | null>): T[] {
-		const deleted: T[] = [];
+	public removeNodes(nodes: Array<LinkedListElement<ItemT> | null>): ItemT[] {
+		const deleted: ItemT[] = [];
 
 		nodes.forEach((node) => {
 			const result = this.removeNode(node);
@@ -153,8 +170,8 @@ export class LinkedList<T> implements ADT<T> {
 	 * @returns				Returns first element when list length is >= 1.
 	 *						Returns null when list is empty.
 	 */
-	public head(): Element<T> | null {
-		return this.state.head;
+	public head(): LinkedListElement<ItemT> | null {
+		return this._head;
 	}
 
 	/**
@@ -163,8 +180,8 @@ export class LinkedList<T> implements ADT<T> {
 	 * @returns 			Returns last element when list length is >= 1.
 	 * 						Returns null when list is empty.
 	 */
-	public tail(): Element<T> | null {
-		return this.state.tail;
+	public tail(): LinkedListElement<ItemT> | null {
+		return this._tail;
 	}
 
 	/**
@@ -172,7 +189,7 @@ export class LinkedList<T> implements ADT<T> {
 	 * @returns				List size as a positive integer, or 0 if empty.
 	 */
 	public size(): number {
-		return this.state.size;
+		return this._size;
 	}
 
 	/**
@@ -180,10 +197,28 @@ export class LinkedList<T> implements ADT<T> {
 	 * @returns
 	 */
 	public isEmpty(): boolean {
-		return this.state.size === 0;
+		return this._size === 0;
 	}
 
-	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): LinkedList<T> {
+	/**
+	 * Create a new list containing only the values of elements for which func
+	 * returns true, in list order.
+	 * @param func		Called with (element, index, arr) walking head to tail.
+	 * @param thisArg	Value used as `this` when calling func. Defaults to this list.
+	 */
+	public filter(
+		func: ArrayMethod<LinkedListElement<ItemT>, boolean>,
+		thisArg?: unknown
+	): LinkedList<ItemT> {
+		return new LinkedList<ItemT>(this.filterValues(func, thisArg));
+	}
+
+	/**
+	 * Values of elements for which func returns true, in list order. Elements
+	 * whose value is null are never included. Subclasses build their own
+	 * `filter()` result from this.
+	 */
+	protected filterValues(func: ArrayMethod<LinkedListElement<ItemT>, boolean>, thisArg?: unknown): ItemT[] {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let boundThis = this;
 
@@ -191,22 +226,20 @@ export class LinkedList<T> implements ADT<T> {
 			boundThis = thisArg as this;
 		}
 
-		const elements: T[] = [];
+		const values: ItemT[] = [];
 
 		this.forEach((elem, idx, arr) => {
 			const result = func.call(boundThis, elem, idx, arr);
-			const e = elem.value();
-			if (result && e != null) {
-				elements.push(e);
+			const value = elem.value();
+			if (result && value != null) {
+				values.push(value);
 			}
 		}, boundThis);
 
-		return new LinkedList<T>({
-			elements: elements
-		});
+		return values;
 	}
 
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): LinkedList<T> {
+	public forEach(func: ArrayMethod<LinkedListElement<ItemT>, void>, thisArg?: unknown): LinkedList<ItemT> {
 		const arr = this.toArray();
 
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -219,15 +252,15 @@ export class LinkedList<T> implements ADT<T> {
 		return this;
 	}
 
-	public reverse(): LinkedList<T> {
-		let curr = this.state.head;
+	public reverse(): LinkedList<ItemT> {
+		let curr = this._head;
 
 		if (!curr || this.size() <= 1) {
 			return this;
 		}
 
 		let prev = curr.prev();
-		this.state.tail = curr;
+		this._tail = curr;
 
 		while (curr !== null) {
 			const next = curr.next();
@@ -235,7 +268,7 @@ export class LinkedList<T> implements ADT<T> {
 			curr.prev(next);
 
 			if (next === null) {
-				this.state.head = curr;
+				this._head = curr;
 			}
 
 			prev = curr;
@@ -245,34 +278,38 @@ export class LinkedList<T> implements ADT<T> {
 		return this;
 	}
 
-	public stringify(): string {
-		const list: T[] = [];
+	/**
+	 * Values of every element, head to tail. Elements whose value is null are
+	 * skipped.
+	 */
+	public values(): ItemT[] {
+		const values: ItemT[] = [];
 
-		if (!this.head() || !this.tail() || this.size() === 0) {
-			return JSON.stringify(this.state);
-		}
-
-		this.forEach((element: Element<T>) => {
+		this.forEach((element) => {
 			const value = element.value();
 			if (value !== null) {
-				list.push(value);
+				values.push(value);
 			}
 		});
 
-		const state: State<T> = {...this.state};
-		state.elements = list;
-		state.head = null;
-		state.tail = null;
-
-		const result = JSON.stringify(state);
-
-		state.elements = [];
-
-		return result;
+		return values;
 	}
 
-	public toArray(): Element<T>[] {
-		const result: Element<T>[] = [];
+	/**
+	 * Serialize list values, head to tail, to a JSON string.
+	 * @returns		JSON string, or null when a value cannot be serialized
+	 * 				(e.g. values contain circular references or BigInt values).
+	 */
+	public stringify(): string | null {
+		try {
+			return JSON.stringify({type: 'LinkedList', elements: this.values()});
+		} catch {
+			return null;
+		}
+	}
+
+	public toArray(): LinkedListElement<ItemT>[] {
+		const result: LinkedListElement<ItemT>[] = [];
 
 		let node = this.head();
 
@@ -284,8 +321,11 @@ export class LinkedList<T> implements ADT<T> {
 		return result;
 	}
 
-	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<Element<T>>[] {
-		const resultsArray: QueryResult<Element<T>>[] = [];
+	public query(
+		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
+		opts?: QueryOptions
+	): QueryResult<LinkedListElement<ItemT>, ItemT>[] {
+		const resultsArray: QueryResult<LinkedListElement<ItemT>, ItemT>[] = [];
 		const options = this.queryOptions(opts);
 
 		this.forEach((element) => {
@@ -316,7 +356,10 @@ export class LinkedList<T> implements ADT<T> {
 				return false;
 			}
 
-			const result: QueryResult<Element<T>> = {} as QueryResult<Element<T>>;
+			const result: QueryResult<LinkedListElement<ItemT>, ItemT> = {} as QueryResult<
+				LinkedListElement<ItemT>,
+				ItemT
+			>;
 			result.element = element;
 			result.key = (): string | null => null;
 			result.index = (): number | null => null;
@@ -327,171 +370,34 @@ export class LinkedList<T> implements ADT<T> {
 		return resultsArray;
 	}
 
-	public clearElements(): LinkedList<T> {
+	/**
+	 * Unlink and drop every element. Elements removed this way have their
+	 * `prev()` / `next()` links cleared.
+	 */
+	public clearElements(): LinkedList<ItemT> {
 		this.forEach((element) => {
 			element.prev(null);
 			element.next(null);
 		});
 
-		this.state.head = null;
-		this.state.tail = null;
-		this.state.size = 0;
+		this._head = null;
+		this._tail = null;
+		this._size = 0;
 
 		return this;
 	}
 
-	public reset(): LinkedList<T> {
+	/**
+	 * Restore the list to its freshly constructed state. Constructor options
+	 * are kept.
+	 */
+	public reset(): LinkedList<ItemT> {
 		this.clearElements();
 
-		this.state.type = 'LinkedList';
-		this.state.elements = [];
-
 		return this;
 	}
 
-	private parseOptions(options?: Options<T>): State<T> {
-		const fromSerial = this.parseOptionsSerialized(options);
-		const finalState = this.parseOptionsOverrides(fromSerial, options);
-
-		return finalState;
-	}
-
-	private parseOptionsSerialized(options?: Options<T>): State<T> {
-		const state: State<T> = this.getDefaultState();
-
-		if (!options) {
-			return state;
-		}
-
-		let result: State<T> | null = null;
-
-		if (typeof options.serializedState === 'string') {
-			const parsed = this.parseSerializedString(options.serializedState);
-
-			if (Array.isArray(parsed)) {
-				throw parsed;
-			}
-
-			result = parsed;
-		}
-
-		if (result) {
-			state.elements = result.elements;
-		}
-
-		return state;
-	}
-
-	private parseSerializedString(data: string): State<T> | Error[] | null {
-		if (typeof data !== 'string' || data === '') {
-			return null;
-		}
-
-		let result: State<T> | Error[] | null = null;
-		let errors: Error[] = [];
-
-		try {
-			const parsed = JSON.parse(data);
-
-			if (parsed) {
-				errors = this.getStateErrors(parsed);
-			}
-
-			if (errors.length || !parsed) {
-				throw new Error('state is not a valid LinkedListState');
-			}
-
-			result = parsed;
-		} catch (e: unknown) {
-			if (e instanceof Error) {
-				errors.push(e);
-			}
-
-			result = errors;
-		}
-
-		return result;
-	}
-
-	private parseOptionsOverrides(stateArg: State<T>, options?: Options<T>): State<T> {
-		const state: State<T> = stateArg;
-
-		if (!options) {
-			return state;
-		}
-
-		const errors: Error[] = [];
-
-		if (options.elements != null) {
-			const e = this.getStateErrorsElements(options.elements);
-
-			if (e.length) {
-				errors.push(...e);
-			} else {
-				state.elements = options.elements.slice();
-			}
-		}
-
-		if (errors.length) {
-			throw errors;
-		}
-
-		return state;
-	}
-
-	private getDefaultState(): State<T> {
-		const state: State<T> = {
-			type: 'LinkedList',
-			elements: [],
-			size: 0,
-			head: null,
-			tail: null
-		};
-
-		return state;
-	}
-
-	private getStateErrors(state: State<T>): Error[] {
-		const errors: Error[] = [];
-
-		errors.push(...this.getStateErrorsElements(state.elements));
-		errors.push(...this.getStateErrorsSize(state.size));
-		errors.push(...this.getStateErrorsType(state.type));
-
-		return errors;
-	}
-
-	private getStateErrorsElements(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !Array.isArray(data)) {
-			errors.push(Error('state elements must be an array'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsSize(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || typeof data !== 'number') {
-			errors.push(Error('state size must a number'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsType(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || data !== 'LinkedList') {
-			errors.push(Error('state type must be LinkedList'));
-		}
-
-		return errors;
-	}
-
-	private isPartOfList(node: Element<T>): boolean {
+	private isPartOfList(node: LinkedListElement<ItemT>): boolean {
 		let result = false;
 
 		this.forEach((elem) => {
@@ -503,7 +409,7 @@ export class LinkedList<T> implements ADT<T> {
 		return result;
 	}
 
-	private queryDelete(query: QueryResult<Element<T>>): T | null {
+	private queryDelete(query: QueryResult<LinkedListElement<ItemT>, ItemT>): ItemT | null {
 		this.removeNode(query.element);
 
 		return query.element.value();
@@ -521,5 +427,3 @@ export class LinkedList<T> implements ADT<T> {
 		return options;
 	}
 }
-
-export type ArrayMethod<T, U> = (element: Element<T>, index: number, arr: Element<T>[]) => U;

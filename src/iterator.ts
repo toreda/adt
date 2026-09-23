@@ -1,4 +1,4 @@
-import {IterableType} from './iterable/type';
+import type {IterableType} from './iterable/type';
 
 /**
  * Base contract for ADTs which return Iterators. ADTs may also

@@ -1,12 +1,13 @@
 /**
- * Optional list config options provided to LinkedList constructor
- * on creation to populate the list's internal starting state.
- * State is populated with default values for any options not provided.
+ * Optional config provided to the LinkedList constructor. Options are always
+ * optional, so nothing here is ever required: every entry falls back to a
+ * default when missing or invalid.
+ *
+ * @remarks
+ * Currently empty. LinkedList has no tunable behavior yet; the interface is
+ * the extension point for when it does.
  *
  * @category Linked List
  */
-export interface LinkedListOptions<T> {
-	/** Elements to be inserted into list on creation. */
-	elements?: T[];
-	serializedState?: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-unused-vars
+export interface LinkedListOptions<ItemT> {}
