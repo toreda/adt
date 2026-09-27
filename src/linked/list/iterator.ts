@@ -1,5 +1,5 @@
 import {LinkedList} from '../list';
-import {LinkedListElement as Element} from './element';
+import {LinkedListElement} from './element';
 import {type IterableType} from '../../iterable/type';
 import {iterableMakeType} from '../../iterable/helpers';
 
@@ -7,7 +7,7 @@ import {iterableMakeType} from '../../iterable/helpers';
  * @category Linked List
  */
 export class LinkedListIterator<ItemT> implements Iterator<ItemT | null> {
-	private item: Element<ItemT> | null;
+	private item: LinkedListElement<ItemT> | null;
 
 	constructor(linkedList: LinkedList<ItemT>) {
 		this.item = linkedList.head();

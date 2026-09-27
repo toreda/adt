@@ -1,8 +1,10 @@
 import type {ADT} from '../adt';
-import type {ArrayMethod} from '../array/method';
+import type {LinkedListMethod} from './list/method';
+import {ElementPool} from '../element/pool';
 import {LinkedListElement} from './list/element';
 import {LinkedListIterator} from './list/iterator';
 import type {LinkedListOptions} from './list/options';
+import type {ObjectPoolConstructor} from '../object/pool/constructor';
 import type {QueryFilter} from '../query/filter';
 import type {QueryOptions} from '../query/options';
 import type {QueryResult} from '../query/result';
@@ -12,8 +14,9 @@ import {isNumber} from '../utility';
  * Doubly linked list. Elements wrap each item and expose `prev()` / `next()`
  * links so callers can walk the list in either direction.
  *
- * Byte encoding is provided by the `ByteLinkedList` subclass, which requires
- * an `ItemCodec` at construction.
+ * Node wrappers are pooled by default (see `ADTOptions`). Byte encoding is
+ * provided by the `ByteLinkedList` subclass, which requires an `ItemCodec`
+ * at construction.
  *
  * @category Linked List
  */
@@ -21,17 +24,27 @@ export class LinkedList<ItemT> implements ADT<ItemT> {
 	private _head: LinkedListElement<ItemT> | null;
 	private _tail: LinkedListElement<ItemT> | null;
 	private _size: number;
+	/** Last id handed to a linked node. Only increases, so ids never repeat. */
+	private lastLinkId: number;
+	/** Source of node wrappers, pooled or freshly allocated per options. */
+	private readonly elements: ElementPool<LinkedListElement<ItemT>>;
 
 	/**
 	 * @param data		Items inserted head to tail on creation. Any other input is ignored.
 	 * @param options	Optional config. Each option falls back to its default when
 	 * 					missing or invalid.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	constructor(data?: ItemT[] | null, options?: LinkedListOptions<ItemT> | null) {
 		this._head = null;
 		this._tail = null;
 		this._size = 0;
+		this.lastLinkId = 0;
+		// The element class is generic and the pool builds blank nodes with no
+		// value, so any ItemT instantiation is valid here.
+		this.elements = new ElementPool(
+			LinkedListElement as ObjectPoolConstructor<LinkedListElement<ItemT>>,
+			options
+		);
 
 		if (Array.isArray(data)) {
 			this.insertArray(data);
@@ -50,7 +63,7 @@ export class LinkedList<ItemT> implements ADT<ItemT> {
 	 * @returns
 	 */
 	public insertAtHead(element: ItemT): LinkedListElement<ItemT> | null {
-		const node = new LinkedListElement<ItemT>(element);
+		const node = this.createElement(element);
 		const head = this.head();
 
 		if (!head) {
@@ -73,7 +86,7 @@ export class LinkedList<ItemT> implements ADT<ItemT> {
 	}
 
 	public insertAtTail(element: ItemT): LinkedListElement<ItemT> {
-		const node = new LinkedListElement<ItemT>(element);
+		const node = this.createElement(element);
 		const tail = this.tail();
 
 		if (!tail) {
@@ -118,15 +131,18 @@ export class LinkedList<ItemT> implements ADT<ItemT> {
 		}
 	}
 
+	/**
+	 * Unlink node from the list and return its value in O(1). With pooling on,
+	 * the node is recycled and must not be used afterwards.
+	 * @returns		The removed value, or null when node is null or not part of
+	 * 				this list (including a node that was already removed).
+	 */
 	public removeNode(node: LinkedListElement<ItemT> | null): ItemT | null {
-		if (!node) {
+		if (!node || !this.isPartOfList(node)) {
 			return null;
 		}
 
-		if (!this.isPartOfList(node)) {
-			return node.value();
-		}
-
+		const value = node.value();
 		const next = node.next();
 		const prev = node.prev();
 
@@ -145,10 +161,10 @@ export class LinkedList<ItemT> implements ADT<ItemT> {
 		}
 
 		this._size--;
-		node.next(null);
-		node.prev(null);
+		this.unlink(node);
+		this.elements.release(node);
 
-		return node.value();
+		return value;
 	}
 
 	public removeNodes(nodes: Array<LinkedListElement<ItemT> | null>): ItemT[] {
@@ -202,15 +218,13 @@ export class LinkedList<ItemT> implements ADT<ItemT> {
 
 	/**
 	 * Create a new list containing only the values of elements for which func
-	 * returns true, in list order.
-	 * @param func		Called with (element, index, arr) walking head to tail.
-	 * @param thisArg	Value used as `this` when calling func. Defaults to this list.
+	 * returns true, in list order. The new list uses this list's options.
+	 * @param func		Called with (element, index, list) walking head to tail.
+	 * @param thisArg	Value used as `this` when calling func, as passed. Like
+	 * 					`Array.prototype.filter`, `this` is undefined when omitted.
 	 */
-	public filter(
-		func: ArrayMethod<LinkedListElement<ItemT>, boolean>,
-		thisArg?: unknown
-	): LinkedList<ItemT> {
-		return new LinkedList<ItemT>(this.filterValues(func, thisArg));
+	public filter(func: LinkedListMethod<ItemT, boolean>, thisArg?: unknown): LinkedList<ItemT> {
+		return new LinkedList<ItemT>(this.filterValues(func, thisArg), this.options());
 	}
 
 	/**
@@ -218,36 +232,52 @@ export class LinkedList<ItemT> implements ADT<ItemT> {
 	 * whose value is null are never included. Subclasses build their own
 	 * `filter()` result from this.
 	 */
-	protected filterValues(func: ArrayMethod<LinkedListElement<ItemT>, boolean>, thisArg?: unknown): ItemT[] {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
-
-		if (thisArg) {
-			boundThis = thisArg as this;
-		}
-
+	protected filterValues(func: LinkedListMethod<ItemT, boolean>, thisArg?: unknown): ItemT[] {
 		const values: ItemT[] = [];
 
-		this.forEach((elem, idx, arr) => {
-			const result = func.call(boundThis, elem, idx, arr);
+		this.forEach((elem, idx, list) => {
+			const result = func.call(thisArg, elem, idx, list);
 			const value = elem.value();
 			if (result && value != null) {
 				values.push(value);
 			}
-		}, boundThis);
+		});
 
 		return values;
 	}
 
-	public forEach(func: ArrayMethod<LinkedListElement<ItemT>, void>, thisArg?: unknown): LinkedList<ItemT> {
-		const arr = this.toArray();
+	/**
+	 * Options equivalent to the ones this list was built with, for creating
+	 * derived lists that behave the same way.
+	 */
+	protected options(): LinkedListOptions<ItemT> {
+		return this.elements.options();
+	}
 
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const boundThis = (thisArg ? thisArg : this) as this;
+	/**
+	 * Call func for each element, head to tail, by walking node links directly.
+	 * No array of elements is built, so the traversal itself allocates nothing.
+	 *
+	 * @remarks
+	 * Like `Map` / `Set`, func receives the list itself as its third argument,
+	 * not an array. Each element's successor is read before func runs, so func
+	 * may remove the current element. Elements inserted during the walk may or
+	 * may not be visited.
+	 *
+	 * @param func		Called with (element, index, list) walking head to tail.
+	 * @param thisArg	Value used as `this` when calling func, as passed. Like
+	 * 					`Array.prototype.forEach`, `this` is undefined when omitted.
+	 */
+	public forEach(func: LinkedListMethod<ItemT, void>, thisArg?: unknown): LinkedList<ItemT> {
+		let node = this._head;
+		let index = 0;
 
-		arr.forEach((elem, idx, thisArr) => {
-			func.call(boundThis, elem, idx, thisArr);
-		});
+		while (node) {
+			const next = node.next();
+			func.call(thisArg, node, index, this);
+			node = next;
+			index++;
+		}
 
 		return this;
 	}
@@ -327,62 +357,50 @@ export class LinkedList<ItemT> implements ADT<ItemT> {
 	): QueryResult<LinkedListElement<ItemT>, ItemT>[] {
 		const resultsArray: QueryResult<LinkedListElement<ItemT>, ItemT>[] = [];
 		const options = this.queryOptions(opts);
+		let node = this._head;
 
-		this.forEach((element) => {
-			let take = false;
+		// Stops walking as soon as the limit is reached.
+		while (node && resultsArray.length < options.limit) {
+			const element = node;
+			const value = element.value();
+			node = element.next();
 
-			if (resultsArray.length >= options.limit) {
-				return false;
-			}
-
-			if (Array.isArray(filters)) {
-				take =
-					!!filters.length &&
-					filters.every((filter) => {
-						const value = element.value();
-						if (value == null) {
-							return false;
-						}
-						return filter(value);
-					});
-			} else {
-				const value = element.value();
-				if (value != null) {
-					take = filters(value);
-				}
-			}
+			const take =
+				value != null &&
+				(Array.isArray(filters)
+					? filters.length > 0 && filters.every((filter) => filter(value))
+					: filters(value));
 
 			if (!take) {
-				return false;
+				continue;
 			}
 
-			const result: QueryResult<LinkedListElement<ItemT>, ItemT> = {} as QueryResult<
-				LinkedListElement<ItemT>,
-				ItemT
-			>;
-			result.element = element;
-			result.key = (): string | null => null;
-			result.index = (): number | null => null;
-			result.delete = this.queryDelete.bind(this, result);
-			resultsArray.push(result);
-		});
+			resultsArray.push({
+				element: element,
+				key: (): string | null => null,
+				index: (): number | null => null,
+				delete: this.queryDelete.bind(this, element, element._linkId)
+			});
+		}
 
 		return resultsArray;
 	}
 
 	/**
 	 * Unlink and drop every element. Elements removed this way have their
-	 * `prev()` / `next()` links cleared.
+	 * `prev()` / `next()` links cleared, and are recycled when pooling is on.
 	 */
 	public clearElements(): LinkedList<ItemT> {
-		this.forEach((element) => {
-			element.prev(null);
-			element.next(null);
-		});
+		const nodes = this.toArray();
+
+		for (const node of nodes) {
+			this.unlink(node);
+		}
 
 		this._head = null;
 		this._tail = null;
 		this._size = 0;
+		this.elements.releaseAll(nodes);
 
 		return this;
 	}
@@ -397,22 +415,45 @@ export class LinkedList<ItemT> implements ADT<ItemT> {
 		return this;
 	}
 
-	private isPartOfList(node: LinkedListElement<ItemT>): boolean {
-		let result = false;
+	/**
+	 * Blank node from the element pool, filled with value and claimed by this
+	 * list under a fresh link id. The caller links it into place.
+	 */
+	private createElement(value: ItemT): LinkedListElement<ItemT> {
+		const node = this.elements.allocate();
+		node.value(value);
+		node._list = this;
+		node._linkId = ++this.lastLinkId;
 
-		this.forEach((elem) => {
-			if (elem === node) {
-				result = true;
-			}
-		});
-
-		return result;
+		return node;
 	}
 
-	private queryDelete(query: QueryResult<LinkedListElement<ItemT>, ItemT>): ItemT | null {
-		this.removeNode(query.element);
+	/**
+	 * Clear node's links and ownership. Needed even when pooling is off, where
+	 * release does not blank the node.
+	 */
+	private unlink(node: LinkedListElement<ItemT>): void {
+		node.prev(null);
+		node.next(null);
+		node._list = null;
+		node._linkId = 0;
+	}
 
-		return query.element.value();
+	private isPartOfList(node: LinkedListElement<ItemT>): boolean {
+		return node._list === this;
+	}
+
+	/**
+	 * Remove a query match, but only while element still holds the item it
+	 * matched. A recycled element reissued to a later insert carries a new
+	 * link id, so a stale result deletes nothing instead of the new item.
+	 */
+	private queryDelete(element: LinkedListElement<ItemT>, linkId: number): ItemT | null {
+		if (element._linkId !== linkId) {
+			return null;
+		}
+
+		return this.removeNode(element);
 	}
 
 	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {

@@ -184,10 +184,53 @@ describe('ObjectPool', () => {
 			expect(instance.size()).toBe(expectedCount);
 		});
 
+		it('tracks used slots across release order and compaction', () => {
+			const pool = new ObjectPool(objectClass, {startSize: 0, autoIncrease: true});
+			const objects = pool.allocateMultiple(200);
+			const kept = objects.filter((_obj, i) => i % 5 === 0);
+
+			// Release from the back and front alternately, forcing compactions.
+			const released = objects.filter((_obj, i) => i % 5 !== 0);
+			for (let lo = 0, hi = released.length - 1; lo <= hi; lo++, hi--) {
+				pool.release(released[hi]);
+				if (lo !== hi) {
+					pool.release(released[lo]);
+				}
+			}
+
+			expect(pool.size()).toBe(kept.length);
+			expect(pool.map().every((obj, i) => obj === kept[i])).toBe(true);
+
+			for (const obj of kept) {
+				const [match] = pool.query((o) => o === obj);
+				expect(pool.state.used[match.index() as number]).toBe(obj);
+				pool.release(obj);
+			}
+
+			expect(pool.size()).toBe(0);
+			expect(pool.map()).toEqual([]);
+		});
+
+		it('double release does not corrupt used tracking', () => {
+			const pool = new ObjectPool(objectClass, {startSize: 0, autoIncrease: true});
+			const [a, b] = pool.allocateMultiple(2);
+
+			pool.release(a);
+			pool.release(a);
+
+			expect(pool.size()).toBe(1);
+			expect(pool.map()[0]).toBe(b);
+		});
+
 		it('with zero starting size', () => {
 			const zeroStart = new ObjectPool(objectClass, {autoIncrease: true, startSize: 0});
 			const result = zeroStart.allocate();
 			expect(result).not.toBeNull();
+		});
+
+		it('allocateMultiple grows a pool with zero starting size', () => {
+			const zeroStart = new ObjectPool(objectClass, {autoIncrease: true, startSize: 0});
+			expect(zeroStart.allocateMultiple(3)).toHaveLength(3);
 		});
 
 		it('without autoincrease', () => {

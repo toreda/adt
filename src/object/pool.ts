@@ -19,6 +19,8 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 	public readonly state: State<T>;
 	private readonly objectClass: Constructor<T>;
 	private wastedSpace: number = 0;
+	/** Slot of each in-use object in `state.used`, so release is O(1). */
+	private readonly usedIndex: Map<T, number> = new Map();
 
 	constructor(objectClass: Constructor<T>, options?: Options) {
 		if (typeof objectClass !== 'function') {
@@ -56,6 +58,7 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 		}
 
 		this.state.used.push(result);
+		this.usedIndex.set(result, this.state.used.length - 1);
 
 		return result;
 	}
@@ -77,7 +80,8 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 		}
 
 		while (this.state.autoIncrease && this.isAboveThreshold(num)) {
-			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor);
+			// `|| 1` as in allocate(): an empty pool would otherwise never grow.
+			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor) || 1;
 			this.increaseCapacity(maxSize - this.state.objectCount);
 		}
 
@@ -103,10 +107,14 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 			return;
 		}
 
-		const index = this.state.used.findIndex((obj) => obj === object);
-		if (index >= 0) {
-			this.state.used[index] = null;
-			this.wastedSpace++;
+		const index = this.usedIndex.get(object);
+		if (index !== undefined) {
+			this.usedIndex.delete(object);
+
+			if (this.state.used[index] === object) {
+				this.state.used[index] = null;
+				this.wastedSpace++;
+			}
 		}
 
 		if (this.shouldCleanUsed()) {
@@ -257,6 +265,7 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 	public clearElements(): ObjectPool<T> {
 		const used = this.map();
 		this.state.used = [];
+		this.usedIndex.clear();
 
 		this.releaseMultiple(used);
 
@@ -266,6 +275,7 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 	public reset(): ObjectPool<T> {
 		this.state.pool = [];
 		this.state.used = [];
+		this.usedIndex.clear();
 		this.state.objectCount = 0;
 		this.wastedSpace = 0;
 
@@ -282,17 +292,25 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 		this.state.pool.push(object);
 	}
 
+	/**
+	 * Compact once at least half of `used` is released slots. Each compaction
+	 * costs O(used) but frees at least that many slots, so release stays
+	 * amortized O(1) and `used` never exceeds twice the in-use count.
+	 */
 	private shouldCleanUsed(): boolean {
-		const empty = this.wastedSpace || 1;
-		const total = this.state.used.length;
-
-		return total / empty < Math.log(total);
+		return this.wastedSpace * 2 >= this.state.used.length;
 	}
 
 	private cleanUsed(): void {
 		this.state.used = this.state.used.filter((obj) => {
 			return obj != null;
 		});
+
+		// Compaction moves objects, so their slots are rebuilt.
+		this.usedIndex.clear();
+		for (let i = 0; i < this.state.used.length; i++) {
+			this.usedIndex.set(this.state.used[i] as T, i);
+		}
 
 		this.wastedSpace = 0;
 	}
@@ -587,11 +605,9 @@ export class ObjectPool<T extends Instance> implements ADT<T> {
 	}
 
 	private queryIndex(query: T): number | null {
-		const index = this.state.used.findIndex((element) => {
-			return element === query;
-		});
+		const index = this.usedIndex.get(query);
 
-		if (index < 0) {
+		if (index === undefined || this.state.used[index] !== query) {
 			return null;
 		}
 

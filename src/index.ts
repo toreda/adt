@@ -1,7 +1,9 @@
 // Base
 export {ADT} from './adt';
+export {ADTOptions} from './adt/options';
 export {ArrayMethod} from './array/method';
 export {Element} from './element';
+export {ElementPool} from './element/pool';
 
 // Bytes
 export {ByteADT} from './byte/adt';
@@ -21,6 +23,7 @@ export {CircularQueueState} from './circular/queue/state';
 export {ByteLinkedList} from './byte/linked/list';
 export {LinkedList} from './linked/list';
 export {LinkedListElement} from './linked/list/element';
+export {LinkedListMethod} from './linked/list/method';
 export {LinkedListOptions} from './linked/list/options';
 
 export {Iterator} from './iterator';

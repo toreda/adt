@@ -118,6 +118,22 @@ describe('ByteLinkedList', () => {
 			expect(filtered.toByteEnvelope().size()).toBe(2);
 		});
 
+		it('filter carries options as well as the codec', () => {
+			const plain = new ByteLinkedList(codec, [1, 2], {disableElementPooling: true});
+			const pooled = new ByteLinkedList(codec, [1, 2]);
+
+			expect((plain.filter(() => true) as any).elements.objectPool).toBeNull();
+			expect((pooled.filter(() => true) as any).elements.objectPool).not.toBeNull();
+		});
+
+		it('round trips with pooling disabled', () => {
+			const source = new ByteLinkedList(codec, [10, 20, 30], {disableElementPooling: true});
+			const result = new ByteLinkedList(codec, source.toBytes(), {disableElementPooling: true});
+
+			expect(values(result)).toEqual([10, 20, 30]);
+			expect((result as any).elements.objectPool).toBeNull();
+		});
+
 		it('filter honors thisArg', () => {
 			const source = new ByteLinkedList(codec, [1, 2, 3]);
 			const ctx = {min: 2};

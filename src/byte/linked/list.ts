@@ -1,11 +1,10 @@
-import type {ArrayMethod} from '../../array/method';
+import type {LinkedListMethod} from '../../linked/list/method';
 import type {ByteADT} from '../adt';
 import {ByteEnvelope} from '../envelope';
 import {byteEnvelopeDecode} from '../envelope/decode';
 import type {ItemCodec} from '../../item/codec';
 import {itemCodecValid} from '../../item/codec/valid';
 import {LinkedList} from '../../linked/list';
-import type {LinkedListElement} from '../../linked/list/element';
 import type {LinkedListOptions} from '../../linked/list/options';
 
 /**
@@ -47,13 +46,14 @@ export class ByteLinkedList<ItemT> extends LinkedList<ItemT> implements ByteADT<
 	}
 
 	/**
-	 * Same as `LinkedList.filter()`, but the new list keeps this list's codec.
+	 * Same as `LinkedList.filter()`, but the new list keeps this list's codec
+	 * as well as its options.
 	 */
 	public filter(
-		func: ArrayMethod<LinkedListElement<ItemT>, boolean>,
+		func: LinkedListMethod<ItemT, boolean>,
 		thisArg?: unknown
 	): ByteLinkedList<ItemT> {
-		return new ByteLinkedList<ItemT>(this.codec, this.filterValues(func, thisArg));
+		return new ByteLinkedList<ItemT>(this.codec, this.filterValues(func, thisArg), this.options());
 	}
 
 	/**

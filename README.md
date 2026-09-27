@@ -150,6 +150,11 @@ import {LinkedList} from '@toreda/adt';
 const myLinkedList = new LinkedList<string>();
 // Instantiate with starting elements, inserted head to tail
 const myLinkedListWithElements = new LinkedList<string>(['a', 'b', 'c']);
+// Node wrappers are pooled and recycled by default. Only strict `true` turns it off.
+// With pooling on, a node is invalid once removed from the list; use removeNode's return value.
+const myUnpooledLinkedList = new LinkedList<string>([], {disableElementPooling: true});
+// Tune the internal pool with ObjectPool options. Omitted entries keep the list's defaults.
+const myTunedLinkedList = new LinkedList<string>([], {pool: {startSize: 64, maxSize: 4096}});
 
 // Add elements to the tail of linked list
 myLinkedList.insert("my string 1"); // returns arg converted to LinkedListElement
@@ -188,14 +193,15 @@ prev = prev.prev() // returns object holding "my string 1" as value
 prev = prev.prev() // returns object holding "MY STRING 0" as value
 prev = prev.prev() // returns null
 
-// Iterate through elements
-myLinkedList.forEach((elem, index, arr) => {
-	console.log(elem + ' is at index ' + index + ' in array ' + arr)
+// Iterate through elements. Walks node links directly without building an array;
+// the third argument is the list itself (like Map/Set.forEach).
+myLinkedList.forEach((elem, index, list) => {
+	console.log(elem.value() + ' is at index ' + index + ' of ' + list.size())
 }); // returns myLinkedList
-// outputs 'MY STRING 0 is at index 0 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
-// outputs 'my string 1 is at index 1 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
-// outputs 'my string 2 is at index 2 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
-// outputs 'MY STRING 3 is at index 3 in array ["MY STRING 0", "my string 1", "my string 2", "MY STRING 3]'
+// outputs 'MY STRING 0 is at index 0 of 4'
+// outputs 'my string 1 is at index 1 of 4'
+// outputs 'my string 2 is at index 2 of 4'
+// outputs 'MY STRING 3 is at index 3 of 4'
 
 // Remove node from linked list
 myLinkedList.deleteNode(head); // returns "MY STRING 0"
