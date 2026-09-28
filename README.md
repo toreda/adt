@@ -2,26 +2,35 @@
 
 [![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/toreda/adt/master?style=for-the-badge)](https://github.com/toreda/adt/releases/latest) [![GitHub Release Date](https://img.shields.io/github/release-date/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/releases/latest) [![GitHub issues](https://img.shields.io/github/issues/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/issues)
 
-[![GitHub](https://img.shields.io/github/stars/toreda/adt?style=for-the-badge&logo=github&label=GitHub)](https://github.com/toreda/adt) [![NPM Downloads](https://img.shields.io/npm/dm/adt?style=for-the-badge&logo=npm&label=NPM)](https://www.npmjs.com/package/adt) [![license](https://img.shields.io/github/license/toreda/adt?style=for-the-badge&t=11)](https://github.com/toreda/adt/blob/master/LICENSE?t=13)
+[![GitHub](https://img.shields.io/github/stars/toreda/adt?style=for-the-badge&logo=github&label=GitHub)](https://github.com/toreda/adt) [![NPM Downloads](https://img.shields.io/npm/dm/@toreda/adt?style=for-the-badge&logo=npm&label=NPM)](https://www.npmjs.com/package/@toreda/adt) [![license](https://img.shields.io/github/license/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/blob/master/LICENSE.md)
 
 # `@toreda/adt` Abstract Data Types
-
 
 Collection of TypeScript generic data structures with consistent APIs for search, insertion, and deletion.
 
 # Contents
-* [**`ADT` Interface**](#adt-interface)
-* [**Data Structures**](#data-structures)
-	* [`BinarySearchTree`](#binarysearchtreet)
-	* [`CircularQueue`](#circularqueuet)
-	* [`LinkedList`](#linkedlistt)
-	* [`ObjectPool`](#objectpoolt)
-	* [`PriorityQueue`](#priorityqueuet)
-	* [`Queue`](#queuet)
-	* [`Stack`](#stackt)
-* [**Query Selectors**](#query-selectors)
-* [**Install**](#install)
-* [**License**](#license)
+- [`@toreda/adt` Abstract Data Types](#toredaadt-abstract-data-types)
+- [Contents](#contents)
+- [**`ADT` Interface**](#adt-interface)
+- [Data Structures](#data-structures)
+	- [`Stack<T>`](#stackt)
+	- [`Queue<T>`](#queuet)
+	- [`LinkedList<T>`](#linkedlistt)
+	- [**`CircularQueue<T>`**](#circularqueuet)
+	- [**`PriorityQueue<T>`**](#priorityqueuet)
+	- [**`ObjectPool<T>`**](#objectpoolt)
+	- [**`BinarySearchTree<T>`**](#binarysearchtreet)
+		- [Basics](#basics)
+		- [Traversal and iteration](#traversal-and-iteration)
+		- [Objects ordered by key](#objects-ordered-by-key)
+		- [Updating items after insertion](#updating-items-after-insertion)
+		- [Duplicates](#duplicates)
+		- [Filter, query, and serialize](#filter-query-and-serialize)
+		- [Node pooling](#node-pooling)
+- [Query Selectors](#query-selectors)
+- [Install](#install)
+		- [Install using pnpm](#install-using-pnpm)
+- [License](#license)
 
 # **`ADT` Interface**
 Every collection is generic over its item type and implements the `ADT` interface:
@@ -923,4 +932,4 @@ pnpm install
 
 # License
 
-[MIT](LICENSE) &copy; Toreda, Inc.
+[MIT](LICENSE.md) &copy; Toreda, Inc.
