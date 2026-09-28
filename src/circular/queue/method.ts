@@ -1,4 +1,4 @@
-import type {CircularQueue} from '../queue';
+import type {CircularQueue} from '../queue.js';
 
 /**
  * Callback signature for CircularQueue `forEach` and `filter`. Mirrors the

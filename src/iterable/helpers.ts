@@ -1,4 +1,4 @@
-import type {IterableType} from './type';
+import type {IterableType} from './type.js';
 
 /**
  *

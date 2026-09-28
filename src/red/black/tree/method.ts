@@ -1,5 +1,5 @@
-import type {RedBlackTree} from '../tree';
-import type {RedBlackTreeElement} from './element';
+import type {RedBlackTree} from '../tree.js';
+import type {RedBlackTreeElement} from './element.js';
 
 /**
  * Callback signature for RedBlackTree `forEach` and `filter`. Mirrors the

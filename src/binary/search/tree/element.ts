@@ -1,6 +1,6 @@
-import type {BinarySearchTree} from '../tree';
-import {type ObjectPoolInstance} from '../../../object/pool/instance';
-import {type TreeElement} from '../../../tree/element';
+import type {BinarySearchTree} from '../tree.js';
+import {type ObjectPoolInstance} from '../../../object/pool/instance.js';
+import {type TreeElement} from '../../../tree/element.js';
 
 /**
  * Node wrapping one item in a `BinarySearchTree`. Implements

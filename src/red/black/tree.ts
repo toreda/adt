@@ -1,17 +1,17 @@
-import type {RedBlackTreeComparator} from './tree/comparator';
-import {RedBlackTreeElement} from './tree/element';
-import type {RedBlackTreeError} from './tree/error';
-import {RedBlackTreeIterator} from './tree/iterator';
-import type {RedBlackTreeMethod} from './tree/method';
-import type {RedBlackTreeOptions} from './tree/options';
-import {ElementPool} from '../../element/pool';
-import type {ObjectPoolConstructor} from '../../object/pool/constructor';
-import type {QueryFilter} from '../../query/filter';
-import type {QueryOptions} from '../../query/options';
-import type {QueryResult} from '../../query/result';
-import type {Tree} from '../../tree';
-import {booleanValue} from '../../boolean/value';
-import {isNumber} from '../../utility';
+import type {RedBlackTreeComparator} from './tree/comparator.js';
+import {RedBlackTreeElement} from './tree/element.js';
+import type {RedBlackTreeError} from './tree/error.js';
+import {RedBlackTreeIterator} from './tree/iterator.js';
+import type {RedBlackTreeMethod} from './tree/method.js';
+import type {RedBlackTreeOptions} from './tree/options.js';
+import {ElementPool} from '../../element/pool.js';
+import type {ObjectPoolConstructor} from '../../object/pool/constructor.js';
+import type {QueryFilter} from '../../query/filter.js';
+import type {QueryOptions} from '../../query/options.js';
+import type {QueryResult} from '../../query/result.js';
+import type {Tree} from '../../tree.js';
+import {booleanValue} from '../../boolean/value.js';
+import {isNumber} from '../../utility.js';
 
 /**
  * Self-balancing binary search tree ordered by a caller supplied comparator.

@@ -1,5 +1,5 @@
-import type {LinkedList} from '../list';
-import type {LinkedListElement} from './element';
+import type {LinkedList} from '../list.js';
+import type {LinkedListElement} from './element.js';
 
 /**
  * Callback signature for LinkedList `forEach` and `filter`. Mirrors the

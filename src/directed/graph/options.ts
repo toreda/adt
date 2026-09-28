@@ -1,4 +1,4 @@
-import {type DataStructureOptions} from '../../data/structure/options';
+import {type DataStructureOptions} from '../../data/structure/options.js';
 
 /**
  * Optional config provided to the DirectedGraph constructor. Options are

@@ -1,11 +1,11 @@
-import type {LinkedListMethod} from '../../linked/list/method';
-import type {ByteDataStructure} from '../data/structure';
-import {ByteEnvelope} from '../envelope';
-import {byteEnvelopeDecode} from '../envelope/decode';
-import type {ItemCodec} from '../../item/codec';
-import {itemCodecValid} from '../../item/codec/valid';
-import {LinkedList} from '../../linked/list';
-import type {LinkedListOptions} from '../../linked/list/options';
+import type {LinkedListMethod} from '../../linked/list/method.js';
+import type {ByteDataStructure} from '../data/structure.js';
+import {ByteEnvelope} from '../envelope.js';
+import {byteEnvelopeDecode} from '../envelope/decode.js';
+import type {ItemCodec} from '../../item/codec.js';
+import {itemCodecValid} from '../../item/codec/valid.js';
+import {LinkedList} from '../../linked/list.js';
+import type {LinkedListOptions} from '../../linked/list/options.js';
 
 /**
  * `LinkedList` that can always be converted to and from bytes. The item codec

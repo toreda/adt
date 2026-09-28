@@ -1,5 +1,5 @@
-import type {DirectedGraphEdge} from './edge';
-import type {DirectedGraphVertex} from './vertex';
+import type {DirectedGraphEdge} from './edge.js';
+import type {DirectedGraphVertex} from './vertex.js';
 
 /**
  * Path returned by DirectedGraph `findPath`.

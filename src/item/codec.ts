@@ -1,5 +1,5 @@
-import {type ItemDecoder} from './decoder';
-import {type ItemEncoder} from './encoder';
+import {type ItemDecoder} from './decoder.js';
+import {type ItemEncoder} from './encoder.js';
 
 /**
  * Caller supplied pair converting a single item to and from its byte form.

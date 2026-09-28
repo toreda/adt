@@ -1,7 +1,7 @@
-import type {DirectedGraph} from '../graph';
-import type {DirectedGraphEdge} from './edge';
-import {type GraphVertex} from '../../graph/vertex';
-import {type ObjectPoolInstance} from '../../object/pool/instance';
+import type {DirectedGraph} from '../graph.js';
+import type {DirectedGraphEdge} from './edge.js';
+import {type GraphVertex} from '../../graph/vertex.js';
+import {type ObjectPoolInstance} from '../../object/pool/instance.js';
 
 /**
  * Vertex wrapping one item in a `DirectedGraph`. Implements

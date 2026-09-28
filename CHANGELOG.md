@@ -23,8 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `CircularQueue.getIndex()` returns `null` for positions outside the queue instead of wrapping around.
 * `CircularQueue.stringify()` now returns `{"type":"CircularQueue","elements":[...]}` with items front to rear, or `null` when an item cannot be serialized.
 * Removed `CircularQueue.state`, the `CircularQueueState` class, and the `toBinary()` stub. Use `ByteCircularQueue` for byte encoding.
+* Build output moved from `dist/` to `dist/cjs/` and `dist/esm/`, and `package.json` now declares `exports`. Deep imports such as `@toreda/data-structures/dist/...` are no longer allowed; import from the package root.
 
 ### Added
+* Dual CommonJS and ES module builds. `require` and `import` each load their own build with matching type declarations.
 * `Tree` base interface shared by all tree data structures, with `TreeElement` as the base node contract.
 * `Graph` base interface shared by all graph data structures, with `GraphVertex` and `GraphEdge` as the base vertex and edge contracts.
 * `ByteCircularQueue`: `CircularQueue` superset that requires an `ItemCodec` and converts to and from `ByteEnvelope` bytes.

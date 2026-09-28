@@ -1,7 +1,7 @@
-import type {RedBlackTree} from '../tree';
-import type {RedBlackTreeElement} from './element';
-import {type IterableType} from '../../../iterable/type';
-import {iterableMakeType} from '../../../iterable/helpers';
+import type {RedBlackTree} from '../tree.js';
+import type {RedBlackTreeElement} from './element.js';
+import {type IterableType} from '../../../iterable/type.js';
+import {iterableMakeType} from '../../../iterable/helpers.js';
 
 /**
  * Iterates RedBlackTree items in sorted (in-order) order, smallest first, by

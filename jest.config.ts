@@ -15,7 +15,11 @@ const config: Config = {
 	],
 	moduleDirectories: ['node_modules'],
 	moduleFileExtensions: ['ts', 'js', 'json'],
-	moduleNameMapper: {'^src/(.*)': '<rootDir>/src/$1'},
+	moduleNameMapper: {
+		'^src/(.*)': '<rootDir>/src/$1',
+		// Source imports use .js extensions for ESM output; resolve them to the .ts files.
+		'^(\\.{1,2}/.*)\\.js$': '$1'
+	},
 	testEnvironment: 'jest-environment-jsdom',
 	testPathIgnorePatterns: ['node_modules'],
 	testRegex: '(/__tests__/.*|(\\.|/)(spec))\\.ts$',

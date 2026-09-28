@@ -1,4 +1,4 @@
-import {type GraphVertex} from './vertex';
+import {type GraphVertex} from './vertex.js';
 
 /**
  * Base contract for the edges of every graph data structure. An edge joins two

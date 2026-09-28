@@ -1,5 +1,5 @@
-import {type ItemDecoder} from '../item/decoder';
-import {type ItemEncoder} from '../item/encoder';
+import {type ItemDecoder} from '../item/decoder.js';
+import {type ItemEncoder} from '../item/encoder.js';
 
 /**
  * Byte representation of a whole collection. A directory header records where

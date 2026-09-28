@@ -1,4 +1,4 @@
-import type {IterableType} from './iterable/type';
+import type {IterableType} from './iterable/type.js';
 
 /**
  * Base contract for data structures which return Iterators. Data structures may also

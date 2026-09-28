@@ -3,8 +3,22 @@
 	"version": "1.0.0",
 	"description": "Type-safe, generic data structures for TypeScript and JavaScript: Stack, Queue, Circular Queue (ring buffer), Priority Queue, Doubly Linked List, Object Pool, Hash Table, Trie, Binary Tree, Red-Black Tree, Quadtree, Octree, and Directed Graph. Iterable with for...of, queryable with filters, serializable to JSON, and encodable to bytes with a caller-supplied item codec.",
 	"public": true,
-	"main": "./dist/index.js",
-	"typings": "./dist/index.d.ts",
+	"main": "./dist/cjs/index.js",
+	"module": "./dist/esm/index.js",
+	"types": "./dist/cjs/index.d.ts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/esm/index.d.ts",
+				"default": "./dist/esm/index.js"
+			},
+			"require": {
+				"types": "./dist/cjs/index.d.ts",
+				"default": "./dist/cjs/index.js"
+			}
+		},
+		"./package.json": "./package.json"
+	},
 	"scripts": {
 		"lint": "pnpm eslint ./src/** --quiet",
 		"lint:nofix": "pnpm lint",

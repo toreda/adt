@@ -1,19 +1,19 @@
-import {DirectedGraphEdge} from './graph/edge';
-import type {DirectedGraphError} from './graph/error';
-import type {DirectedGraphHeuristic} from './graph/heuristic';
-import {DirectedGraphIterator} from './graph/iterator';
-import type {DirectedGraphMethod} from './graph/method';
-import type {DirectedGraphOptions} from './graph/options';
-import type {DirectedGraphPath} from './graph/path';
-import {DirectedGraphVertex} from './graph/vertex';
-import {ElementPool} from '../element/pool';
-import type {Graph} from '../graph';
-import type {ObjectPoolConstructor} from '../object/pool/constructor';
-import {PriorityQueue} from '../priority/queue';
-import type {QueryFilter} from '../query/filter';
-import type {QueryOptions} from '../query/options';
-import type {QueryResult} from '../query/result';
-import {isNumber} from '../utility';
+import {DirectedGraphEdge} from './graph/edge.js';
+import type {DirectedGraphError} from './graph/error.js';
+import type {DirectedGraphHeuristic} from './graph/heuristic.js';
+import {DirectedGraphIterator} from './graph/iterator.js';
+import type {DirectedGraphMethod} from './graph/method.js';
+import type {DirectedGraphOptions} from './graph/options.js';
+import type {DirectedGraphPath} from './graph/path.js';
+import {DirectedGraphVertex} from './graph/vertex.js';
+import {ElementPool} from '../element/pool.js';
+import type {Graph} from '../graph.js';
+import type {ObjectPoolConstructor} from '../object/pool/constructor.js';
+import {PriorityQueue} from '../priority/queue.js';
+import type {QueryFilter} from '../query/filter.js';
+import type {QueryOptions} from '../query/options.js';
+import type {QueryResult} from '../query/result.js';
+import {isNumber} from '../utility.js';
 
 /** Open set entry for `findPath`. */
 interface SearchEntry<ItemT> {
