@@ -66,11 +66,35 @@ export type {ObjectPoolInstance} from './object/pool/instance';
 export type {ObjectPoolOptions} from './object/pool/options';
 export type {ObjectPoolState} from './object/pool/state';
 
+// Oct Tree
+export {OctTree} from './oct/tree';
+export type {OctTreeBounds} from './oct/tree/bounds';
+export {OctTreeElement} from './oct/tree/element';
+export type {OctTreeError} from './oct/tree/error';
+export {OctTreeIterator} from './oct/tree/iterator';
+export type {OctTreeLocator} from './oct/tree/locator';
+export type {OctTreeMethod} from './oct/tree/method';
+export type {OctTreeOctant} from './oct/tree/octant';
+export type {OctTreeOptions} from './oct/tree/options';
+export type {OctTreePoint} from './oct/tree/point';
+
 // Priority Queue
 export {PriorityQueue} from './priority/queue';
 export type {PriorityQueueComparator} from './priority/queue/comparator';
 export type {PriorityQueueOptions} from './priority/queue/options';
 export type {PriorityQueueState} from './priority/queue/state';
+
+// Quad Tree
+export {QuadTree} from './quad/tree';
+export type {QuadTreeBounds} from './quad/tree/bounds';
+export {QuadTreeElement} from './quad/tree/element';
+export type {QuadTreeError} from './quad/tree/error';
+export {QuadTreeIterator} from './quad/tree/iterator';
+export type {QuadTreeLocator} from './quad/tree/locator';
+export type {QuadTreeMethod} from './quad/tree/method';
+export type {QuadTreeOptions} from './quad/tree/options';
+export type {QuadTreePoint} from './quad/tree/point';
+export type {QuadTreeQuadrant} from './quad/tree/quadrant';
 
 // Red Black Tree
 export {RedBlackTree} from './red/black/tree';

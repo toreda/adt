@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `allowDuplicates` option, defaulting to `true`. When `false`, inserting a duplicate adds nothing and returns the `duplicate_not_allowed` error code instead of throwing.
     * `update()` sets a node's item, and moves the item when its position is no longer valid. Use it after changing an item in place.
 * `DirectedGraph`: graph of vertices joined by weighted edges, implementing `Graph`. Each edge is one-way or bidirectional, and both kinds can be mixed. Includes breadth-first and depth-first traversal, cycle detection that is correct for mixed edge kinds, and cheapest paths with A* search. Vertex and edge wrappers are pooled by default.
+* `OctTree`: point octree over 3D positions read by a required locator, implementing `Tree`. Same API and options as `QuadTree`, with a z coordinate and eight octants per node.
+* `QuadTree`: point quadtree over 2D positions read by a required locator, implementing `Tree`. Includes exact position lookup, rectangle and radius searches, and nearest neighbor search. Node wrappers are pooled by default.
+    * `allowDuplicates` option, defaulting to `true`. When `false`, inserting at an occupied position adds nothing and returns the `duplicate_not_allowed` error code instead of throwing. Items without finite coordinates are refused with `invalid_position`.
+    * `update()` sets a node's item and moves the node to the item's new position, keeping the same node. Use it after changing an item's position in place.
 * `RedBlackTree`: self-balancing binary search tree with O(log n) worst-case search, insert, and removal, implementing `Tree`. Same API and options as `BinarySearchTree`, plus node `color()` and `blackHeight()`.
 
 ### Breaking Changes

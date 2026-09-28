@@ -28,6 +28,8 @@ Collection of TypeScript generic data structures with consistent APIs for search
 		- [Filter, query, and serialize](#filter-query-and-serialize)
 		- [Node pooling](#node-pooling)
 	- [**`RedBlackTree<T>`**](#redblacktreet)
+	- [**`QuadTree<T>`**](#quadtreet)
+	- [**`OctTree<T>`**](#octtreet)
 	- [**`DirectedGraph<T>`**](#directedgrapht)
 		- [Cheapest paths with A\*](#cheapest-paths-with-a)
 		- [Cycle detection](#cycle-detection)
@@ -53,7 +55,7 @@ interface DataStructure<ItemT> {
 }
 ```
 
-Node-based collections (`LinkedList`, `BinarySearchTree`, `RedBlackTree`, `DirectedGraph`) wrap each item in an element that implements `Element<T>`, whose `value()` reads the item. Tree collections also implement the shared `Tree` interface, and graph collections the shared `Graph` interface.
+Node-based collections (`LinkedList`, `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, `DirectedGraph`) wrap each item in an element that implements `Element<T>`, whose `value()` reads the item. Tree collections also implement the shared `Tree` interface, and graph collections the shared `Graph` interface.
 
 Methods return `null` instead of throwing when a collection is empty or holds no matching item, for example `pop()` on an empty `Stack`.
 
@@ -67,6 +69,8 @@ Methods return `null` instead of throwing when a collection is empty or holds no
 * [`ObjectPool`](#objectpoolt)
 * [`BinarySearchTree`](#binarysearchtreet)
 * [`RedBlackTree`](#redblacktreet)
+* [`QuadTree`](#quadtreet)
+* [`OctTree`](#octtreet)
 * [`DirectedGraph`](#directedgrapht)
 
 ## `Stack<T>`
@@ -872,6 +876,103 @@ small.stringify(); // returns '{"type":"RedBlackTree","elements":[20,30]}'
 ```
 
 Equal items keep their insertion order in every sorted walk, and `find()` and `remove()` act on the earliest one, as in `BinarySearchTree`. Rotations can move an equal item into a node's left subtree, so a left subtree holds equal or smaller items here instead of strictly smaller ones. This only matters when walking nodes by hand.
+
+## **`QuadTree<T>`**
+
+Point quadtree over positions on a plane. Each node holds one item and splits the plane around the item's position into four quadrants, each holding a subtree of the items that lie in it. Positions are read by a locator you provide, and any finite position fits: the plane is unbounded. Implements the shared `Tree` interface.
+
+Insert and exact position lookup take O(h), where h is the tree's height. Rectangle, radius, and nearest neighbor searches skip every quadrant that cannot hold a match. The tree is not self-balancing, so its shape depends on insertion order: well spread input gives O(log n) height, while input sorted along both axes degrades toward O(n). Removing a node relinks every node in its subtree, the conventional point quadtree deletion, so removing near the root costs more than removing a leaf.
+
+Children are indexed by quadrant: `0` north-east, `1` north-west, `2` south-east, `3` south-west. North means y equal or larger, and east means x equal or larger.
+
+Typescript
+
+```typescript
+import {QuadTree, QuadTreeLocator} from '@toreda/data-structures';
+
+interface Place {
+	name: string;
+	x: number;
+	y: number;
+}
+
+// Instantiate. The locator is required and throws when it is not a function.
+// Items that already have x and y fields can be returned as is.
+const byPosition: QuadTreeLocator<Place> = (place) => place;
+const tree = new QuadTree<Place>(byPosition);
+
+// Insert items. Returns the node now holding the item.
+const home = tree.insert({name: 'home', x: 0, y: 0}); // root
+tree.insert({name: 'park', x: 3, y: 4}); // home's north-east quadrant
+tree.insert({name: 'shop', x: -2, y: 1}); // home's north-west quadrant
+tree.insert({name: 'work', x: 10, y: -6}); // home's south-east quadrant
+
+// Items without finite coordinates are refused instead of throwing
+tree.insert({name: 'lost', x: NaN, y: 0}); // returns 'invalid_position'
+
+// Exact position lookup
+tree.find({x: 3, y: 4})?.value()?.name; // returns 'park'
+tree.contains({x: 1, y: 1}); // returns false
+
+// Rectangle search, edges included. Nodes come back in pre-order.
+tree.withinBounds({minX: -5, minY: -5, maxX: 5, maxY: 5}).map((node) => node.value()?.name);
+// returns ['home', 'park', 'shop']
+
+// Radius search, boundary included
+tree.withinRadius({x: 0, y: 0}, 3).map((node) => node.value()?.name); // returns ['home', 'shop']
+
+// Nearest neighbor
+tree.nearest({x: 9, y: -5})?.value()?.name; // returns 'work'
+
+// Nodes store the position their item was filed under. After moving an item
+// in place, call update() to move its node. The same node keeps the item.
+const park = tree.find({x: 3, y: 4})!;
+park.value()!.x = 20;
+tree.update(park, park.value()!); // returns park
+tree.find({x: 20, y: 4}) === park; // true
+
+// Remove matches the item itself, like Set.prototype.delete
+tree.remove(park.value()!); // returns the park item
+
+// Traversal: pre-order is the default for values(), iteration, forEach, and query
+tree.values().map((place) => place.name); // returns ['home', 'shop', 'work']
+tree.stringify(); // returns '{"type":"QuadTree","elements":[...]}' with items in pre-order
+```
+
+Node pooling, `filter`, `query`, `forEach`, `preOrder`, `postOrder`, `levelOrder`, and the `allowDuplicates` option work as in [`BinarySearchTree`](#binarysearchtreet). A quadtree has no sorted order, so there is no `inOrder()`, `min()`, or `max()`, and walks run in pre-order. Duplicates are items at exactly the same position. With `allowDuplicates: false`, inserting at an occupied position returns `'duplicate_not_allowed'` and adds nothing.
+
+## **`OctTree<T>`**
+
+Point octree: the 3D counterpart of [`QuadTree`](#quadtreet). Each node splits space around its item's position into eight octants. Positions, bounds, and search points gain a `z` coordinate, and everything else behaves as in `QuadTree`. Implements the shared `Tree` interface.
+
+Children are indexed by octant, a bitmask: bit `1` set means x smaller than the node's x, bit `2` means y smaller, and bit `4` means z smaller. Octant `0` holds positions equal or larger on every axis.
+
+Typescript
+
+```typescript
+import {OctTree, OctTreeLocator} from '@toreda/data-structures';
+
+interface Star {
+	name: string;
+	x: number;
+	y: number;
+	z: number;
+}
+
+const byPosition: OctTreeLocator<Star> = (star) => star;
+const sky = new OctTree<Star>(byPosition, [
+	{name: 'sol', x: 0, y: 0, z: 0},
+	{name: 'vega', x: 5, y: 5, z: 5},
+	{name: 'rigel', x: -9, y: 2, z: -3}
+]);
+
+sky.root()?.child(0)?.value()?.name; // returns 'vega'
+sky.root()?.child(5)?.value()?.name; // returns 'rigel' (x and z smaller)
+
+sky.withinBounds({minX: -1, minY: -1, minZ: -1, maxX: 6, maxY: 6, maxZ: 6}).length; // returns 2
+sky.withinRadius({x: 0, y: 0, z: 0}, 9).length; // returns 2 (sol, vega)
+sky.nearest({x: -7, y: 0, z: 0})?.value()?.name; // returns 'rigel'
+```
 
 ## **`DirectedGraph<T>`**
 

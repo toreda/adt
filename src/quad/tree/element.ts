@@ -1,0 +1,154 @@
+import type {QuadTree} from '../tree';
+import type {QuadTreeQuadrant} from './quadrant';
+import {type ObjectPoolInstance} from '../../object/pool/instance';
+import {type TreeElement} from '../../tree/element';
+
+/**
+ * Node wrapping one item in a `QuadTree`. Implements `ObjectPoolInstance` so
+ * the tree can recycle nodes through an internal `ObjectPool`. Links and
+ * position are read-only from outside: only the tree rewires or moves nodes,
+ * since any other change could break its spatial order.
+ *
+ * @category Quad Tree
+ */
+export class QuadTreeElement<T> implements TreeElement<T>, ObjectPoolInstance {
+	/**
+	 * Item held by this node. Managed by `QuadTree` only; a linked node always
+	 * holds exactly the item that was inserted, including null or undefined
+	 * items.
+	 */
+	public _value: T | null = null;
+	/**
+	 * Position the item was filed under, read from the locator when the node
+	 * was linked. Managed by `QuadTree` only. Every walk reads these instead of
+	 * calling the locator, so an item changed in place cannot break the tree.
+	 */
+	public _x: number = 0;
+	public _y: number = 0;
+	public _parent: QuadTreeElement<T> | null = null;
+	/** Child per quadrant, indexed by `QuadTreeQuadrant`. Always four entries. */
+	public readonly _children: (QuadTreeElement<T> | null)[] = [null, null, null, null];
+	/** Quadrant of `_parent` this node sits in. 0 for the root and unlinked nodes. */
+	public _quadrant: QuadTreeQuadrant = 0;
+	/**
+	 * Tree this node is currently linked into, or null when unlinked. Managed
+	 * by `QuadTree` only; lets it check ownership in O(1).
+	 */
+	public _tree: QuadTree<T> | null = null;
+	/**
+	 * Id of the insert that linked this node, unique within `_tree`, or 0 when
+	 * unlinked. Managed by `QuadTree` only. A recycled node gets a new id, so a
+	 * handle that captured the old one can tell the node was reissued.
+	 */
+	public _linkId: number = 0;
+
+	/**
+	 * @param element	Initial value. Omitted when constructed by an `ObjectPool`,
+	 * 					which hands out blank nodes for the tree to fill.
+	 */
+	constructor(element?: T) {
+		if (element !== undefined) {
+			this._value = element;
+		}
+	}
+
+	/**
+	 * Reset every field to its blank state. Called by `ObjectPool` on release
+	 * so a recycled node never carries a previous item or its links. Any new
+	 * field added to this class must be cleared here.
+	 */
+	public cleanObj(): void {
+		this._value = null;
+		this._x = 0;
+		this._y = 0;
+		this._parent = null;
+		this._children[0] = null;
+		this._children[1] = null;
+		this._children[2] = null;
+		this._children[3] = null;
+		this._quadrant = 0;
+		this._tree = null;
+		this._linkId = 0;
+	}
+
+	/**
+	 * Get the node's value, or set it when elementValue is provided.
+	 *
+	 * @remarks
+	 * While the node is linked into a tree, a new value is only accepted when
+	 * the tree's locator places it at exactly the node's position (e.g.
+	 * replacing an item with an updated copy that has not moved). Any other
+	 * value would break the spatial order, so it is ignored: use the tree's
+	 * `update()` instead, which moves the node when needed.
+	 */
+	public value(elementValue?: T): T | null {
+		if (typeof elementValue === 'undefined') {
+			return this._value;
+		}
+
+		if (this._tree === null) {
+			this._value = elementValue;
+			return null;
+		}
+
+		const point = this._tree.locator(elementValue);
+
+		if (point && point.x === this._x && point.y === this._y) {
+			this._value = elementValue;
+		}
+
+		return null;
+	}
+
+	/** X coordinate the tree filed this node under. */
+	public x(): number {
+		return this._x;
+	}
+
+	/** Y coordinate the tree filed this node under. */
+	public y(): number {
+		return this._y;
+	}
+
+	/** Quadrant of the parent this node sits in. 0 for the root. */
+	public quadrant(): QuadTreeQuadrant {
+		return this._quadrant;
+	}
+
+	/**
+	 * Child in the given quadrant.
+	 * @returns		Child node, or null when that quadrant is empty or quadrant
+	 * 				is not a valid `QuadTreeQuadrant`.
+	 */
+	public child(quadrant: QuadTreeQuadrant): QuadTreeElement<T> | null {
+		const child = this._children[quadrant];
+
+		return child !== undefined ? child : null;
+	}
+
+	public parent(): QuadTreeElement<T> | null {
+		return this._parent;
+	}
+
+	/** Existing children, in quadrant order. */
+	public children(): QuadTreeElement<T>[] {
+		const result: QuadTreeElement<T>[] = [];
+
+		for (const child of this._children) {
+			if (child) {
+				result.push(child);
+			}
+		}
+
+		return result;
+	}
+
+	public isLeaf(): boolean {
+		return (
+			this._children[0] === null &&
+			this._children[1] === null &&
+			this._children[2] === null &&
+			this._children[3] === null
+		);
+	}
+}
