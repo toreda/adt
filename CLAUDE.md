@@ -28,7 +28,7 @@ Byte encoding is not part of the base `ADT` contract. Each ADT gets a `Byte*` su
 ## Data Structures
 
 ### Base Interfaces
-* `Tree`: `<root>/src/tree.ts`
+* `Tree`: `<root>/src/tree.ts` (nodes implement `TreeElement`: `<root>/src/tree/element.ts`)
 * `List`: `<root>/src/list.ts`
 * `Graph`: `<root>/src/graph.ts`
 
@@ -36,6 +36,7 @@ Byte encoding is not part of the base `ADT` contract. Each ADT gets a `Byte*` su
 
 **Trees**
 * `BinaryTree`: `<root>/src/binary/tree.ts`
+* `BinarySearchTree`: `<root>/src/binary/search/tree.ts`
 * `OctTree`: `<root>/src/oct/tree.ts`
 * `QuadTree`: `<root>/src/quad/tree.ts`
 * `RedBlackTree`: `<root>/src/red/black/tree.ts`

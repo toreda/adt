@@ -1,3 +1,8 @@
+# pnpm workspace root for @toreda/adt.
+#
+# The library itself is the root package; `packages` lists additional members.
+# Add new members here (e.g. "packages/*") as the repo grows.
+packages: []
 allowBuilds:
   '@parcel/watcher': true
   '@swc/core': true
@@ -7,3 +12,5 @@ onlyBuiltDependencies:
   - '@swc/core'
   - es5-ext
   - unrs-resolver
+# Pinned minimum versions for transitive dependencies with known advisories.
+overrides:

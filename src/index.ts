@@ -14,6 +14,15 @@ export {itemCodecValid} from './item/codec/valid';
 export {ItemDecoder} from './item/decoder';
 export {ItemEncoder} from './item/encoder';
 
+// Binary Search Tree
+export {BinarySearchTree} from './binary/search/tree';
+export {BinarySearchTreeComparator} from './binary/search/tree/comparator';
+export {BinarySearchTreeElement} from './binary/search/tree/element';
+export {BinarySearchTreeError} from './binary/search/tree/error';
+export {BinarySearchTreeIterator} from './binary/search/tree/iterator';
+export {BinarySearchTreeMethod} from './binary/search/tree/method';
+export {BinarySearchTreeOptions} from './binary/search/tree/options';
+
 // Circular Queue
 export {CircularQueue} from './circular/queue';
 export {CircularQueueOptions} from './circular/queue/options';
@@ -51,6 +60,10 @@ export {QueueState} from './queue/state';
 export {Stack} from './stack';
 export {StackOptions} from './stack/options';
 export {StackState} from './stack/state';
+
+// Tree
+export {Tree} from './tree';
+export {TreeElement} from './tree/element';
 
 // Query
 export {QueryFilter} from './query/filter';
