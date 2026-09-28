@@ -1,12 +1,12 @@
-import type {DataStructure} from '../data/structure.js';
-import {booleanValue} from '../boolean/value.js';
-import {CircularQueueIterator} from './queue/iterator.js';
-import type {CircularQueueMethod} from './queue/method.js';
-import type {CircularQueueOptions} from './queue/options.js';
-import type {QueryFilter} from '../query/filter.js';
-import type {QueryOptions} from '../query/options.js';
-import type {QueryResult} from '../query/result.js';
-import {isNumber} from '../utility.js';
+import type {DataStructure} from '../data/structure';
+import {booleanValue} from '../boolean/value';
+import {CircularQueueIterator} from './queue/iterator';
+import type {CircularQueueMethod} from './queue/method';
+import type {CircularQueueOptions} from './queue/options';
+import type {QueryFilter} from '../query/filter';
+import type {QueryOptions} from '../query/options';
+import type {QueryResult} from '../query/result';
+import {isNumber} from '../utility';
 
 /** Capacity used when `maxSize` is missing or invalid. */
 const DEFAULT_MAX_SIZE = 25;

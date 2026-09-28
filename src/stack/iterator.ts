@@ -1,7 +1,7 @@
-import {Stack} from '../stack.js';
-import {type IterableType} from '../iterable/type.js';
-import {type Iterator} from '../iterator.js';
-import {iterableMakeType} from '../iterable/helpers.js';
+import {Stack} from '../stack';
+import {type IterableType} from '../iterable/type';
+import {type Iterator} from '../iterator';
+import {iterableMakeType} from '../iterable/helpers';
 
 /**
  * Iterator object used to iterate over Stack elements from top to bottom.

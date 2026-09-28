@@ -1,12 +1,12 @@
-import {type DataStructure} from '../data/structure.js';
-import {type ArrayMethod} from '../array/method.js';
-import {type PriorityQueueComparator as Comparator} from './queue/comparator.js';
-import {type PriorityQueueOptions as Options} from './queue/options.js';
-import {type QueryFilter} from '../query/filter.js';
-import {type QueryOptions} from '../query/options.js';
-import {type QueryResult} from '../query/result.js';
-import {PriorityQueueState as State} from './queue/state.js';
-import {isNumber} from '../utility.js';
+import {type DataStructure} from '../data/structure';
+import {type ArrayMethod} from '../array/method';
+import {type PriorityQueueComparator as Comparator} from './queue/comparator';
+import {type PriorityQueueOptions as Options} from './queue/options';
+import {type QueryFilter} from '../query/filter';
+import {type QueryOptions} from '../query/options';
+import {type QueryResult} from '../query/result';
+import type {PriorityQueueState as State} from './queue/state';
+import {isNumber} from '../utility';
 
 /**
  * Heap data structure which operates as a Min Heap or Max Heap

@@ -1,4 +1,4 @@
-import {type Element} from '../element.js';
+import {type Element} from '../element';
 
 /**
  * Base contract for the nodes of every tree data structure. A node wraps one item and

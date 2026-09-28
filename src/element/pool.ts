@@ -1,8 +1,8 @@
-import {type DataStructureOptions} from '../data/structure/options.js';
-import {ObjectPool} from '../object/pool.js';
-import {type ObjectPoolConstructor} from '../object/pool/constructor.js';
-import {type ObjectPoolInstance} from '../object/pool/instance.js';
-import {type ObjectPoolOptions} from '../object/pool/options.js';
+import {type DataStructureOptions} from '../data/structure/options';
+import {ObjectPool} from '../object/pool';
+import {type ObjectPoolConstructor} from '../object/pool/constructor';
+import {type ObjectPoolInstance} from '../object/pool/instance';
+import {type ObjectPoolOptions} from '../object/pool/options';
 
 /**
  * Element wrapper pooling shared by every node-based data structure. Wraps an optional

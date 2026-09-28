@@ -1,12 +1,12 @@
-import {type DataStructure} from './data/structure.js';
-import {type ArrayMethod} from './array/method.js';
-import {type QueryFilter} from './query/filter.js';
-import {type QueryOptions} from './query/options.js';
-import {type QueryResult} from './query/result.js';
-import {QueueIterator} from './queue/iterator.js';
-import {type QueueOptions} from './queue/options.js';
-import {QueueState as State} from './queue/state.js';
-import {isNumber} from './utility.js';
+import {type DataStructure} from './data/structure';
+import {type ArrayMethod} from './array/method';
+import {type QueryFilter} from './query/filter';
+import {type QueryOptions} from './query/options';
+import {type QueryResult} from './query/result';
+import {QueueIterator} from './queue/iterator';
+import {type QueueOptions} from './queue/options';
+import type {QueueState as State} from './queue/state';
+import {isNumber} from './utility';
 
 /**
  * Generic Queue data structure with FIFO element ordering.

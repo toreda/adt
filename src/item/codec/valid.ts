@@ -1,4 +1,4 @@
-import {type ItemCodec} from '../codec.js';
+import {type ItemCodec} from '../codec';
 
 /**
  * Runtime check that a value is a usable `ItemCodec`: an object with both

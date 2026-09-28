@@ -1,17 +1,17 @@
-import type {BinarySearchTreeComparator} from './tree/comparator.js';
-import {BinarySearchTreeElement} from './tree/element.js';
-import type {BinarySearchTreeError} from './tree/error.js';
-import {BinarySearchTreeIterator} from './tree/iterator.js';
-import type {BinarySearchTreeMethod} from './tree/method.js';
-import type {BinarySearchTreeOptions} from './tree/options.js';
-import {ElementPool} from '../../element/pool.js';
-import type {ObjectPoolConstructor} from '../../object/pool/constructor.js';
-import type {QueryFilter} from '../../query/filter.js';
-import type {QueryOptions} from '../../query/options.js';
-import type {QueryResult} from '../../query/result.js';
-import type {Tree} from '../../tree.js';
-import {booleanValue} from '../../boolean/value.js';
-import {isNumber} from '../../utility.js';
+import type {BinarySearchTreeComparator} from './tree/comparator';
+import {BinarySearchTreeElement} from './tree/element';
+import type {BinarySearchTreeError} from './tree/error';
+import {BinarySearchTreeIterator} from './tree/iterator';
+import type {BinarySearchTreeMethod} from './tree/method';
+import type {BinarySearchTreeOptions} from './tree/options';
+import {ElementPool} from '../../element/pool';
+import type {ObjectPoolConstructor} from '../../object/pool/constructor';
+import type {QueryFilter} from '../../query/filter';
+import type {QueryOptions} from '../../query/options';
+import type {QueryResult} from '../../query/result';
+import type {Tree} from '../../tree';
+import {booleanValue} from '../../boolean/value';
+import {isNumber} from '../../utility';
 
 /**
  * Unbalanced binary search tree ordered by a caller supplied comparator. Every

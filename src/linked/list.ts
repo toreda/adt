@@ -1,14 +1,14 @@
-import type {DataStructure} from '../data/structure.js';
-import type {LinkedListMethod} from './list/method.js';
-import {ElementPool} from '../element/pool.js';
-import {LinkedListElement} from './list/element.js';
-import {LinkedListIterator} from './list/iterator.js';
-import type {LinkedListOptions} from './list/options.js';
-import type {ObjectPoolConstructor} from '../object/pool/constructor.js';
-import type {QueryFilter} from '../query/filter.js';
-import type {QueryOptions} from '../query/options.js';
-import type {QueryResult} from '../query/result.js';
-import {isNumber} from '../utility.js';
+import type {DataStructure} from '../data/structure';
+import type {LinkedListMethod} from './list/method';
+import {ElementPool} from '../element/pool';
+import {LinkedListElement} from './list/element';
+import {LinkedListIterator} from './list/iterator';
+import type {LinkedListOptions} from './list/options';
+import type {ObjectPoolConstructor} from '../object/pool/constructor';
+import type {QueryFilter} from '../query/filter';
+import type {QueryOptions} from '../query/options';
+import type {QueryResult} from '../query/result';
+import {isNumber} from '../utility';
 
 /**
  * Doubly linked list. Elements wrap each item and expose `prev()` / `next()`

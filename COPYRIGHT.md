@@ -1,1 +1,0 @@
-&copy; Copyright 2019 - 2026 Toreda, Inc. All Rights Reserved.

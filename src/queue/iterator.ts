@@ -1,7 +1,7 @@
-import {Queue} from '../queue.js';
-import {IterableType} from '../iterable/type.js';
-import {Iterator} from '../iterator.js';
-import {iterableMakeType} from '../iterable/helpers.js';
+import {Queue} from '../queue';
+import type {IterableType} from '../iterable/type';
+import type {Iterator} from '../iterator';
+import {iterableMakeType} from '../iterable/helpers';
 
 /**
  * @category Queue

@@ -1,7 +1,7 @@
-import {type Element} from '../element.js';
-import {type QueryFilter} from '../query/filter.js';
-import {type QueryOptions} from '../query/options.js';
-import {type QueryResult} from '../query/result.js';
+import {type Element} from '../element';
+import {type QueryFilter} from '../query/filter';
+import {type QueryOptions} from '../query/options';
+import {type QueryResult} from '../query/result';
 
 /**
  * Core interface every collection in this package implements. Byte encoding

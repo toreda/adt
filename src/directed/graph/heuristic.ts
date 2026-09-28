@@ -1,4 +1,4 @@
-import type {DirectedGraphVertex} from './vertex.js';
+import type {DirectedGraphVertex} from './vertex';
 
 /**
  * Estimated cost of the cheapest path from vertex to goal, used by

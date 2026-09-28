@@ -1,5 +1,5 @@
-import type {DirectedGraph} from '../graph.js';
-import type {DirectedGraphVertex} from './vertex.js';
+import type {DirectedGraph} from '../graph';
+import type {DirectedGraphVertex} from './vertex';
 
 /**
  * Callback signature for DirectedGraph `forEach` and `filter`. Mirrors the

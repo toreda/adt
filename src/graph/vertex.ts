@@ -1,5 +1,5 @@
-import {type Element} from '../element.js';
-import {type GraphEdge} from './edge.js';
+import {type Element} from '../element';
+import {type GraphEdge} from './edge';
 
 /**
  * Base contract for the vertices of every graph data structure. A vertex wraps

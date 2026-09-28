@@ -1,6 +1,6 @@
-import {type DataStructure} from './data/structure.js';
-import {type GraphEdge} from './graph/edge.js';
-import {type GraphVertex} from './graph/vertex.js';
+import {type DataStructure} from './data/structure';
+import {type GraphEdge} from './graph/edge';
+import {type GraphVertex} from './graph/vertex';
 
 /**
  * Base contract shared by every graph data structure: a set of vertices, each

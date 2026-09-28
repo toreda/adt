@@ -1,7 +1,7 @@
-import type {CircularQueue} from '../queue.js';
-import {type IterableType} from '../../iterable/type.js';
-import {type Iterator} from '../../iterator.js';
-import {iterableMakeType} from '../../iterable/helpers.js';
+import type {CircularQueue} from '../queue';
+import {type IterableType} from '../../iterable/type';
+import {type Iterator} from '../../iterator';
+import {iterableMakeType} from '../../iterable/helpers';
 
 /**
  * Iterates CircularQueue items from front to rear.

@@ -1,4 +1,4 @@
-import {type DataStructureOptions} from '../../data/structure/options.js';
+import {type DataStructureOptions} from '../../data/structure/options';
 
 /**
  * Optional config provided to the CircularQueue constructor. Options are

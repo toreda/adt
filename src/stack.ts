@@ -1,12 +1,12 @@
-import type {DataStructure} from './data/structure.js';
-import type {ArrayMethod} from './array/method.js';
-import type {StackOptions as Options} from './stack/options.js';
-import type {QueryFilter} from './query/filter.js';
-import {type QueryOptions} from './query/options.js';
-import type {QueryResult} from './query/result.js';
-import {StackIterator} from './stack/iterator.js';
-import {StackState as State} from './stack/state.js';
-import {isNumber} from './utility.js';
+import type {DataStructure} from './data/structure';
+import type {ArrayMethod} from './array/method';
+import type {StackOptions as Options} from './stack/options';
+import type {QueryFilter} from './query/filter';
+import {type QueryOptions} from './query/options';
+import type {QueryResult} from './query/result';
+import {StackIterator} from './stack/iterator';
+import type {StackState as State} from './stack/state';
+import {isNumber} from './utility';
 
 /**
  * Stack data structure with standard FILO functionality.

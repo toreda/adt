@@ -1,11 +1,11 @@
-import type {ByteDataStructure} from '../data/structure.js';
-import {ByteEnvelope} from '../envelope.js';
-import {byteEnvelopeDecode} from '../envelope/decode.js';
-import {CircularQueue} from '../../circular/queue.js';
-import type {CircularQueueMethod} from '../../circular/queue/method.js';
-import type {CircularQueueOptions} from '../../circular/queue/options.js';
-import type {ItemCodec} from '../../item/codec.js';
-import {itemCodecValid} from '../../item/codec/valid.js';
+import type {ByteDataStructure} from '../data/structure';
+import {ByteEnvelope} from '../envelope';
+import {byteEnvelopeDecode} from '../envelope/decode';
+import {CircularQueue} from '../../circular/queue';
+import type {CircularQueueMethod} from '../../circular/queue/method';
+import type {CircularQueueOptions} from '../../circular/queue/options';
+import type {ItemCodec} from '../../item/codec';
+import {itemCodecValid} from '../../item/codec/valid';
 
 /**
  * `CircularQueue` that can always be converted to and from bytes. The item

@@ -1,7 +1,7 @@
-import {LinkedList} from '../list.js';
-import {LinkedListElement} from './element.js';
-import {type IterableType} from '../../iterable/type.js';
-import {iterableMakeType} from '../../iterable/helpers.js';
+import {LinkedList} from '../list';
+import {LinkedListElement} from './element';
+import {type IterableType} from '../../iterable/type';
+import {iterableMakeType} from '../../iterable/helpers';
 
 /**
  * @category Linked List

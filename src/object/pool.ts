@@ -1,15 +1,15 @@
-import {isInteger, isNumber} from '../utility.js';
+import {isInteger, isNumber} from '../utility';
 
-import {DataStructure} from '../data/structure.js';
-import {type ArrayMethod} from '../array/method.js';
-import {type ObjectPoolConstructor as Constructor} from './pool/constructor.js';
-import {type ObjectPoolInstance as Instance} from './pool/instance.js';
-import {ObjectPoolIterator} from './pool/iterator.js';
-import {type ObjectPoolOptions as Options} from './pool/options.js';
-import {type QueryFilter} from '../query/filter.js';
-import {type QueryOptions} from '../query/options.js';
-import {type QueryResult} from '../query/result.js';
-import {ObjectPoolState as State} from './pool/state.js';
+import type {DataStructure} from '../data/structure';
+import {type ArrayMethod} from '../array/method';
+import {type ObjectPoolConstructor as Constructor} from './pool/constructor';
+import {type ObjectPoolInstance as Instance} from './pool/instance';
+import {ObjectPoolIterator} from './pool/iterator';
+import {type ObjectPoolOptions as Options} from './pool/options';
+import {type QueryFilter} from '../query/filter';
+import {type QueryOptions} from '../query/options';
+import {type QueryResult} from '../query/result';
+import type {ObjectPoolState as State} from './pool/state';
 
 /**
  *

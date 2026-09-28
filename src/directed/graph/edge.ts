@@ -1,7 +1,7 @@
-import type {DirectedGraph} from '../graph.js';
-import type {DirectedGraphVertex} from './vertex.js';
-import {type GraphEdge} from '../../graph/edge.js';
-import {type ObjectPoolInstance} from '../../object/pool/instance.js';
+import type {DirectedGraph} from '../graph';
+import type {DirectedGraphVertex} from './vertex';
+import {type GraphEdge} from '../../graph/edge';
+import {type ObjectPoolInstance} from '../../object/pool/instance';
 
 /**
  * Weighted edge joining two vertices of a `DirectedGraph`. Implements

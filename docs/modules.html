@@ -1,378 +1,88 @@
-<!doctype html>
-<html class="default no-js">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>@toreda/adt</title>
-	<meta name="description" content="Documentation for @toreda/adt">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
-	<script async src="assets/js/search.js" id="search-script"></script>
-</head>
-<body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
-					<div class="field">
-						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
-						<input id="tsd-search-field" type="text" />
-					</div>
-					<ul class="results">
-						<li class="state loading">Preparing search index...</li>
-						<li class="state failure">The search index is not available</li>
-					</ul>
-					<a href="index.html" class="title">@toreda/adt</a>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-						</div>
-					</div>
-					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="tsd-page-title">
-		<div class="container">
-			<h1>@toreda/adt</h1>
-		</div>
-	</div>
-</header>
+<!DOCTYPE html><html class="default" lang="en" data-base="./"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@toreda/data-structures</title><meta name="description" content="Documentation for @toreda/data-structures"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script><script async src="assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="index.html" class="title">@toreda/data-structures</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></header>
 <div class="container container-main">
-	<div class="row">
-		<div class="col-8 col-content">
-			<section class="tsd-panel-group tsd-index-group">
-				<h2>Index</h2>
-				<section class="tsd-panel tsd-index-panel">
-					<div class="tsd-index-content">
-						<section class="tsd-index-section">
-							<h3>Base</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/ADT.html" class="tsd-kind-icon">ADT</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/Element.html" class="tsd-kind-icon">Element</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/IterableType.html" class="tsd-kind-icon">Iterable<wbr>Type</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/Iterator.html" class="tsd-kind-icon">Iterator</a></li>
-								<li class="tsd-kind-function tsd-has-type-parameter"><a href="modules.html#iterableMakeType" class="tsd-kind-icon">iterable<wbr>Make<wbr>Type</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section">
-							<h3>Circular Queue</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-has-type-parameter"><a href="classes/CircularQueue.html" class="tsd-kind-icon">Circular<wbr>Queue</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/CircularQueueOptions.html" class="tsd-kind-icon">Circular<wbr>Queue<wbr>Options</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/CircularQueueState.html" class="tsd-kind-icon">Circular<wbr>Queue<wbr>State</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section">
-							<h3>Linked List</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-has-type-parameter"><a href="classes/LinkedList.html" class="tsd-kind-icon">Linked<wbr>List</a></li>
-								<li class="tsd-kind-class tsd-has-type-parameter"><a href="classes/LinkedListElement.html" class="tsd-kind-icon">Linked<wbr>List<wbr>Element</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/LinkedListOptions.html" class="tsd-kind-icon">Linked<wbr>List<wbr>Options</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/LinkedListState.html" class="tsd-kind-icon">Linked<wbr>List<wbr>State</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section">
-							<h3>Object Pool</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-has-type-parameter"><a href="classes/ObjectPool.html" class="tsd-kind-icon">Object<wbr>Pool</a></li>
-								<li class="tsd-kind-interface"><a href="interfaces/ObjectPoolInstance.html" class="tsd-kind-icon">Object<wbr>Pool<wbr>Instance</a></li>
-								<li class="tsd-kind-interface"><a href="interfaces/ObjectPoolOptions.html" class="tsd-kind-icon">Object<wbr>Pool<wbr>Options</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/ObjectPoolState.html" class="tsd-kind-icon">Object<wbr>Pool<wbr>State</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section">
-							<h3>Priority Queue</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-has-type-parameter"><a href="classes/PriorityQueue.html" class="tsd-kind-icon">Priority<wbr>Queue</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/PriorityQueueComparator.html" class="tsd-kind-icon">Priority<wbr>Queue<wbr>Comparator</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/PriorityQueueOptions.html" class="tsd-kind-icon">Priority<wbr>Queue<wbr>Options</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/PriorityQueueState.html" class="tsd-kind-icon">Priority<wbr>Queue<wbr>State</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section">
-							<h3>Query</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/QueryFilter.html" class="tsd-kind-icon">Query<wbr>Filter</a></li>
-								<li class="tsd-kind-interface"><a href="interfaces/QueryOptions.html" class="tsd-kind-icon">Query<wbr>Options</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/QueryResult.html" class="tsd-kind-icon">Query<wbr>Result</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section">
-							<h3>Queue</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-has-type-parameter"><a href="classes/Queue.html" class="tsd-kind-icon">Queue</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/QueueOptions.html" class="tsd-kind-icon">Queue<wbr>Options</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/QueueState.html" class="tsd-kind-icon">Queue<wbr>State</a></li>
-								<li class="tsd-kind-type-alias"><a href="modules.html#QueueCallable" class="tsd-kind-icon">Queue<wbr>Callable</a></li>
-								<li class="tsd-kind-type-alias"><a href="modules.html#QueueCallableSync" class="tsd-kind-icon">Queue<wbr>Callable<wbr>Sync</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section">
-							<h3>Stack</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-has-type-parameter"><a href="classes/Stack.html" class="tsd-kind-icon">Stack</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/StackOptions.html" class="tsd-kind-icon">Stack<wbr>Options</a></li>
-								<li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/StackState.html" class="tsd-kind-icon">Stack<wbr>State</a></li>
-							</ul>
-						</section>
-					</div>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Base</h2>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-has-type-parameter">
-					<a name="iterableMakeType" class="tsd-anchor"></a>
-					<h3>iterable<wbr>Make<wbr>Type</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-has-type-parameter">
-						<li class="tsd-signature tsd-kind-icon">iterable<wbr>Make<wbr>Type&lt;T&gt;<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span>, done<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/IterableType.html" class="tsd-signature-type" data-tsd-kind="Interface">IterableType</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in iterable/helpers.ts:11</li>
-								</ul>
-							</aside>
-							<h4 class="tsd-type-parameters-title">Type parameters</h4>
-							<ul class="tsd-type-parameters">
-								<li>
-									<h4>T</h4>
-								</li>
-							</ul>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>value: <span class="tsd-signature-type">T</span></h5>
-								</li>
-								<li>
-									<h5>done: <span class="tsd-signature-type">boolean</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="interfaces/IterableType.html" class="tsd-signature-type" data-tsd-kind="Interface">IterableType</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
-						</li>
-					</ul>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Queue</h2>
-				<section class="tsd-panel tsd-member tsd-kind-type-alias">
-					<a name="QueueCallable" class="tsd-anchor"></a>
-					<h3>Queue<wbr>Callable</h3>
-					<div class="tsd-signature tsd-kind-icon">Queue<wbr>Callable<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>element<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, ndx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in queue/callable.ts:4</li>
-						</ul>
-					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter-signature">
-								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>element<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, ndx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
-								</ul>
-								<ul class="tsd-descriptions">
-									<li class="tsd-description">
-										<h4 class="tsd-parameters-title">Parameters</h4>
-										<ul class="tsd-parameters">
-											<li>
-												<h5>element: <span class="tsd-signature-type">any</span></h5>
-											</li>
-											<li>
-												<h5>ndx: <span class="tsd-signature-type">number</span></h5>
-											</li>
-										</ul>
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-type-alias">
-					<a name="QueueCallableSync" class="tsd-anchor"></a>
-					<h3>Queue<wbr>Callable<wbr>Sync</h3>
-					<div class="tsd-signature tsd-kind-icon">Queue<wbr>Callable<wbr>Sync<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>element<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">unknown</span>, ndx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">void</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in queue/callable/sync.ts:4</li>
-						</ul>
-					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter-signature">
-								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>element<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">unknown</span>, ndx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-								</ul>
-								<ul class="tsd-descriptions">
-									<li class="tsd-description">
-										<h4 class="tsd-parameters-title">Parameters</h4>
-										<ul class="tsd-parameters">
-											<li>
-												<h5>element: <span class="tsd-signature-type">unknown</span></h5>
-											</li>
-											<li>
-												<h5>ndx: <span class="tsd-signature-type">number</span></h5>
-											</li>
-										</ul>
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</div>
-				</section>
-			</section>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class="current ">
-						<a href="modules.html">Exports</a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-has-type-parameter">
-						<a href="classes/CircularQueue.html" class="tsd-kind-icon">Circular<wbr>Queue</a>
-					</li>
-					<li class=" tsd-kind-class tsd-has-type-parameter">
-						<a href="classes/LinkedList.html" class="tsd-kind-icon">Linked<wbr>List</a>
-					</li>
-					<li class=" tsd-kind-class tsd-has-type-parameter">
-						<a href="classes/LinkedListElement.html" class="tsd-kind-icon">Linked<wbr>List<wbr>Element</a>
-					</li>
-					<li class=" tsd-kind-class tsd-has-type-parameter">
-						<a href="classes/ObjectPool.html" class="tsd-kind-icon">Object<wbr>Pool</a>
-					</li>
-					<li class=" tsd-kind-class tsd-has-type-parameter">
-						<a href="classes/PriorityQueue.html" class="tsd-kind-icon">Priority<wbr>Queue</a>
-					</li>
-					<li class=" tsd-kind-class tsd-has-type-parameter">
-						<a href="classes/Queue.html" class="tsd-kind-icon">Queue</a>
-					</li>
-					<li class=" tsd-kind-class tsd-has-type-parameter">
-						<a href="classes/Stack.html" class="tsd-kind-icon">Stack</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/ADT.html" class="tsd-kind-icon">ADT</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/CircularQueueOptions.html" class="tsd-kind-icon">Circular<wbr>Queue<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/CircularQueueState.html" class="tsd-kind-icon">Circular<wbr>Queue<wbr>State</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/Element.html" class="tsd-kind-icon">Element</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/IterableType.html" class="tsd-kind-icon">Iterable<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/Iterator.html" class="tsd-kind-icon">Iterator</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/LinkedListOptions.html" class="tsd-kind-icon">Linked<wbr>List<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/LinkedListState.html" class="tsd-kind-icon">Linked<wbr>List<wbr>State</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/ObjectPoolInstance.html" class="tsd-kind-icon">Object<wbr>Pool<wbr>Instance</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/ObjectPoolOptions.html" class="tsd-kind-icon">Object<wbr>Pool<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/ObjectPoolState.html" class="tsd-kind-icon">Object<wbr>Pool<wbr>State</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/PriorityQueueComparator.html" class="tsd-kind-icon">Priority<wbr>Queue<wbr>Comparator</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/PriorityQueueOptions.html" class="tsd-kind-icon">Priority<wbr>Queue<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/PriorityQueueState.html" class="tsd-kind-icon">Priority<wbr>Queue<wbr>State</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/QueryFilter.html" class="tsd-kind-icon">Query<wbr>Filter</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/QueryOptions.html" class="tsd-kind-icon">Query<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/QueryResult.html" class="tsd-kind-icon">Query<wbr>Result</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/QueueOptions.html" class="tsd-kind-icon">Queue<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/QueueState.html" class="tsd-kind-icon">Queue<wbr>State</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/StackOptions.html" class="tsd-kind-icon">Stack<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-has-type-parameter">
-						<a href="interfaces/StackState.html" class="tsd-kind-icon">Stack<wbr>State</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#QueueCallable" class="tsd-kind-icon">Queue<wbr>Callable</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#QueueCallableSync" class="tsd-kind-icon">Queue<wbr>Callable<wbr>Sync</a>
-					</li>
-					<li class=" tsd-kind-function tsd-has-type-parameter">
-						<a href="modules.html#iterableMakeType" class="tsd-kind-icon">iterable<wbr>Make<wbr>Type</a>
-					</li>
-				</ul>
-			</nav>
-		</div>
-	</div>
-</div>
-<footer class="with-border-bottom">
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-			</ul>
-		</div>
-	</div>
-</footer>
-<div class="container tsd-generator">
-	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
-</div>
-<div class="overlay"></div>
-<script src="assets/js/main.js"></script>
-</body>
-</html>
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb"></ul>
+<h1>@toreda/data-structures</h1></div>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Base"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="base">Base<a href="#base" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="byteenvelope"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/ByteEnvelope.html">ByteEnvelope</a><a href="#byteenvelope" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="elementpool"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/ElementPool.html">ElementPool</a><a href="#elementpool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="bytedatastructure"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/ByteDataStructure.html">ByteDataStructure</a><a href="#bytedatastructure" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="datastructure"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/DataStructure.html">DataStructure</a><a href="#datastructure" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="datastructureoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/DataStructureOptions.html">DataStructureOptions</a><a href="#datastructureoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="element"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/Element.html">Element</a><a href="#element" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="itemcodec"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/ItemCodec.html">ItemCodec</a><a href="#itemcodec" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="iterabletype"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/IterableType.html">IterableType</a><a href="#iterabletype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="iterator"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/Iterator.html">Iterator</a><a href="#iterator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="arraymethod"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/ArrayMethod.html">ArrayMethod</a><a href="#arraymethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="itemdecoder"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/ItemDecoder.html">ItemDecoder</a><a href="#itemdecoder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="itemencoder"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/ItemEncoder.html">ItemEncoder</a><a href="#itemencoder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="byteenvelopedecode"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><a href="functions/byteEnvelopeDecode.html">byteEnvelopeDecode</a><a href="#byteenvelopedecode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="itemcodecvalid"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><a href="functions/itemCodecValid.html">itemCodecValid</a><a href="#itemcodecvalid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="iterablemaketype"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><a href="functions/iterableMakeType.html">iterableMakeType</a><a href="#iterablemaketype" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Binary Search Tree"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="binary-search-tree">Binary Search Tree<a href="#binary-search-tree" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="binarysearchtree"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/BinarySearchTree.html">BinarySearchTree</a><a href="#binarysearchtree" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="binarysearchtreeelement"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/BinarySearchTreeElement.html">BinarySearchTreeElement</a><a href="#binarysearchtreeelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="binarysearchtreeiterator"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/BinarySearchTreeIterator.html">BinarySearchTreeIterator</a><a href="#binarysearchtreeiterator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="binarysearchtreecomparator"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/BinarySearchTreeComparator.html">BinarySearchTreeComparator</a><a href="#binarysearchtreecomparator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="binarysearchtreeoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/BinarySearchTreeOptions.html">BinarySearchTreeOptions</a><a href="#binarysearchtreeoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="binarysearchtreeerror"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/BinarySearchTreeError.html">BinarySearchTreeError</a><a href="#binarysearchtreeerror" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="binarysearchtreemethod"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/BinarySearchTreeMethod.html">BinarySearchTreeMethod</a><a href="#binarysearchtreemethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Circular Queue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="circular-queue">Circular Queue<a href="#circular-queue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="bytecircularqueue"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/ByteCircularQueue.html">ByteCircularQueue</a><a href="#bytecircularqueue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="circularqueue"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/CircularQueue.html">CircularQueue</a><a href="#circularqueue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="circularqueueiterator"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/CircularQueueIterator.html">CircularQueueIterator</a><a href="#circularqueueiterator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="circularqueueoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/CircularQueueOptions.html">CircularQueueOptions</a><a href="#circularqueueoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="circularqueuemethod"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/CircularQueueMethod.html">CircularQueueMethod</a><a href="#circularqueuemethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Directed Graph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="directed-graph">Directed Graph<a href="#directed-graph" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="directedgraph"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/DirectedGraph.html">DirectedGraph</a><a href="#directedgraph" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="directedgraphedge"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/DirectedGraphEdge.html">DirectedGraphEdge</a><a href="#directedgraphedge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="directedgraphiterator"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/DirectedGraphIterator.html">DirectedGraphIterator</a><a href="#directedgraphiterator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="directedgraphvertex"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/DirectedGraphVertex.html">DirectedGraphVertex</a><a href="#directedgraphvertex" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="directedgraphoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/DirectedGraphOptions.html">DirectedGraphOptions</a><a href="#directedgraphoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="directedgraphpath"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/DirectedGraphPath.html">DirectedGraphPath</a><a href="#directedgraphpath" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="directedgrapherror"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/DirectedGraphError.html">DirectedGraphError</a><a href="#directedgrapherror" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="directedgraphheuristic"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/DirectedGraphHeuristic.html">DirectedGraphHeuristic</a><a href="#directedgraphheuristic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="directedgraphmethod"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/DirectedGraphMethod.html">DirectedGraphMethod</a><a href="#directedgraphmethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Graph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="graph-1">Graph<a href="#graph-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="graph"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/Graph.html">Graph</a><a href="#graph" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="graphedge"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/GraphEdge.html">GraphEdge</a><a href="#graphedge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="graphvertex"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/GraphVertex.html">GraphVertex</a><a href="#graphvertex" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Linked List"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="linked-list">Linked List<a href="#linked-list" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="bytelinkedlist"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/ByteLinkedList.html">ByteLinkedList</a><a href="#bytelinkedlist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="linkedlist"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/LinkedList.html">LinkedList</a><a href="#linkedlist" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="linkedlistelement"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/LinkedListElement.html">LinkedListElement</a><a href="#linkedlistelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="linkedlistoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/LinkedListOptions.html">LinkedListOptions</a><a href="#linkedlistoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="linkedlistmethod"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/LinkedListMethod.html">LinkedListMethod</a><a href="#linkedlistmethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Object Pool"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="object-pool">Object Pool<a href="#object-pool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="objectpool"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/ObjectPool.html">ObjectPool</a><a href="#objectpool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="objectpoolinstance"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/ObjectPoolInstance.html">ObjectPoolInstance</a><a href="#objectpoolinstance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="objectpooloptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/ObjectPoolOptions.html">ObjectPoolOptions</a><a href="#objectpooloptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="objectpoolstate"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/ObjectPoolState.html">ObjectPoolState</a><a href="#objectpoolstate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Priority Queue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="priority-queue">Priority Queue<a href="#priority-queue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="priorityqueue"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/PriorityQueue.html">PriorityQueue</a><a href="#priorityqueue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="priorityqueuecomparator"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/PriorityQueueComparator.html">PriorityQueueComparator</a><a href="#priorityqueuecomparator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="priorityqueueoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/PriorityQueueOptions.html">PriorityQueueOptions</a><a href="#priorityqueueoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="priorityqueuestate"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/PriorityQueueState.html">PriorityQueueState</a><a href="#priorityqueuestate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Query"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="query">Query<a href="#query" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="queryfilter"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/QueryFilter.html">QueryFilter</a><a href="#queryfilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="queryoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/QueryOptions.html">QueryOptions</a><a href="#queryoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="queryresult"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/QueryResult.html">QueryResult</a><a href="#queryresult" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Queue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="queue-1">Queue<a href="#queue-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="queue"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/Queue.html">Queue</a><a href="#queue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="queueoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/QueueOptions.html">QueueOptions</a><a href="#queueoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="queuestate"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/QueueState.html">QueueState</a><a href="#queuestate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="queuecallable"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/QueueCallable.html">QueueCallable</a><a href="#queuecallable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="queuecallablesync"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/QueueCallableSync.html">QueueCallableSync</a><a href="#queuecallablesync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Red Black Tree"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="red-black-tree">Red Black Tree<a href="#red-black-tree" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="redblacktree"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/RedBlackTree.html">RedBlackTree</a><a href="#redblacktree" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="redblacktreeelement"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/RedBlackTreeElement.html">RedBlackTreeElement</a><a href="#redblacktreeelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="redblacktreeiterator"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/RedBlackTreeIterator.html">RedBlackTreeIterator</a><a href="#redblacktreeiterator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="redblacktreecomparator"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/RedBlackTreeComparator.html">RedBlackTreeComparator</a><a href="#redblacktreecomparator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="redblacktreeoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/RedBlackTreeOptions.html">RedBlackTreeOptions</a><a href="#redblacktreeoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="redblacktreecolor"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/RedBlackTreeColor.html">RedBlackTreeColor</a><a href="#redblacktreecolor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="redblacktreeerror"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/RedBlackTreeError.html">RedBlackTreeError</a><a href="#redblacktreeerror" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="redblacktreemethod"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><a href="types/RedBlackTreeMethod.html">RedBlackTreeMethod</a><a href="#redblacktreemethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Stack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="stack-1">Stack<a href="#stack-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="stack"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><a href="classes/Stack.html">Stack</a><a href="#stack" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="stackoptions"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/StackOptions.html">StackOptions</a><a href="#stackoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="stackstate"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/StackState.html">StackState</a><a href="#stackstate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Tree"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="tree-1">Tree<a href="#tree-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="tree"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/Tree.html">Tree</a><a href="#tree" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="treeelement"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><a href="interfaces/TreeElement.html">TreeElement</a><a href="#treeelement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Validation Helpers"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="validation-helpers">Validation Helpers<a href="#validation-helpers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2></summary><dl class="tsd-member-summaries"><dt class="tsd-member-summary" id="intnullvalue"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><a href="functions/intNullValue.html">intNullValue</a><a href="#intnullvalue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd><dt class="tsd-member-summary" id="intvalue"><span class="tsd-member-summary-name"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><a href="functions/intValue.html">intValue</a><a href="#intvalue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></span></dt><dd class="tsd-member-summary"></dd></dl></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Base"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Base</summary>
+<div><a href="#byteenvelope"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Byte<wbr/>Envelope</span></a><a href="#elementpool"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Element<wbr/>Pool</span></a><a href="#bytedatastructure"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Byte<wbr/>Data<wbr/>Structure</span></a><a href="#datastructure"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Data<wbr/>Structure</span></a><a href="#datastructureoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Data<wbr/>Structure<wbr/>Options</span></a><a href="#element"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Element</span></a><a href="#itemcodec"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Item<wbr/>Codec</span></a><a href="#iterabletype"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Iterable<wbr/>Type</span></a><a href="#iterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Iterator</span></a><a href="#arraymethod"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Array<wbr/>Method</span></a><a href="#itemdecoder"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Item<wbr/>Decoder</span></a><a href="#itemencoder"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Item<wbr/>Encoder</span></a><a href="#byteenvelopedecode"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><span>byte<wbr/>Envelope<wbr/>Decode</span></a><a href="#itemcodecvalid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><span>item<wbr/>Codec<wbr/>Valid</span></a><a href="#iterablemaketype"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><span>iterable<wbr/>Make<wbr/>Type</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Binary Search Tree"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Binary Search Tree</summary>
+<div><a href="#binarysearchtree"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Binary<wbr/>Search<wbr/>Tree</span></a><a href="#binarysearchtreeelement"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Binary<wbr/>Search<wbr/>Tree<wbr/>Element</span></a><a href="#binarysearchtreeiterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Binary<wbr/>Search<wbr/>Tree<wbr/>Iterator</span></a><a href="#binarysearchtreecomparator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Binary<wbr/>Search<wbr/>Tree<wbr/>Comparator</span></a><a href="#binarysearchtreeoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Binary<wbr/>Search<wbr/>Tree<wbr/>Options</span></a><a href="#binarysearchtreeerror"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Binary<wbr/>Search<wbr/>Tree<wbr/>Error</span></a><a href="#binarysearchtreemethod"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Binary<wbr/>Search<wbr/>Tree<wbr/>Method</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Circular Queue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Circular Queue</summary>
+<div><a href="#bytecircularqueue"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Byte<wbr/>Circular<wbr/>Queue</span></a><a href="#circularqueue"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Circular<wbr/>Queue</span></a><a href="#circularqueueiterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Circular<wbr/>Queue<wbr/>Iterator</span></a><a href="#circularqueueoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Circular<wbr/>Queue<wbr/>Options</span></a><a href="#circularqueuemethod"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Circular<wbr/>Queue<wbr/>Method</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Directed Graph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Directed Graph</summary>
+<div><a href="#directedgraph"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Directed<wbr/>Graph</span></a><a href="#directedgraphedge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Directed<wbr/>Graph<wbr/>Edge</span></a><a href="#directedgraphiterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Directed<wbr/>Graph<wbr/>Iterator</span></a><a href="#directedgraphvertex"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Directed<wbr/>Graph<wbr/>Vertex</span></a><a href="#directedgraphoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Directed<wbr/>Graph<wbr/>Options</span></a><a href="#directedgraphpath"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Directed<wbr/>Graph<wbr/>Path</span></a><a href="#directedgrapherror"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Directed<wbr/>Graph<wbr/>Error</span></a><a href="#directedgraphheuristic"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Directed<wbr/>Graph<wbr/>Heuristic</span></a><a href="#directedgraphmethod"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Directed<wbr/>Graph<wbr/>Method</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Graph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Graph</summary>
+<div><a href="#graph"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Graph</span></a><a href="#graphedge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Graph<wbr/>Edge</span></a><a href="#graphvertex"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Graph<wbr/>Vertex</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Linked List"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Linked List</summary>
+<div><a href="#bytelinkedlist"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Byte<wbr/>Linked<wbr/>List</span></a><a href="#linkedlist"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Linked<wbr/>List</span></a><a href="#linkedlistelement"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Linked<wbr/>List<wbr/>Element</span></a><a href="#linkedlistoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Linked<wbr/>List<wbr/>Options</span></a><a href="#linkedlistmethod"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Linked<wbr/>List<wbr/>Method</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Object Pool"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Object Pool</summary>
+<div><a href="#objectpool"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Object<wbr/>Pool</span></a><a href="#objectpoolinstance"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Object<wbr/>Pool<wbr/>Instance</span></a><a href="#objectpooloptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Object<wbr/>Pool<wbr/>Options</span></a><a href="#objectpoolstate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Object<wbr/>Pool<wbr/>State</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Priority Queue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Priority Queue</summary>
+<div><a href="#priorityqueue"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Priority<wbr/>Queue</span></a><a href="#priorityqueuecomparator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Priority<wbr/>Queue<wbr/>Comparator</span></a><a href="#priorityqueueoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Priority<wbr/>Queue<wbr/>Options</span></a><a href="#priorityqueuestate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Priority<wbr/>Queue<wbr/>State</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Query"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Query</summary>
+<div><a href="#queryfilter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Query<wbr/>Filter</span></a><a href="#queryoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Query<wbr/>Options</span></a><a href="#queryresult"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Query<wbr/>Result</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Queue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Queue</summary>
+<div><a href="#queue"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Queue</span></a><a href="#queueoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Queue<wbr/>Options</span></a><a href="#queuestate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Queue<wbr/>State</span></a><a href="#queuecallable"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Queue<wbr/>Callable</span></a><a href="#queuecallablesync"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Queue<wbr/>Callable<wbr/>Sync</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Red Black Tree"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Red Black Tree</summary>
+<div><a href="#redblacktree"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Red<wbr/>Black<wbr/>Tree</span></a><a href="#redblacktreeelement"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Red<wbr/>Black<wbr/>Tree<wbr/>Element</span></a><a href="#redblacktreeiterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Red<wbr/>Black<wbr/>Tree<wbr/>Iterator</span></a><a href="#redblacktreecomparator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Red<wbr/>Black<wbr/>Tree<wbr/>Comparator</span></a><a href="#redblacktreeoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Red<wbr/>Black<wbr/>Tree<wbr/>Options</span></a><a href="#redblacktreecolor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Red<wbr/>Black<wbr/>Tree<wbr/>Color</span></a><a href="#redblacktreeerror"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Red<wbr/>Black<wbr/>Tree<wbr/>Error</span></a><a href="#redblacktreemethod"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Type Alias"><use href="assets/icons.svg#icon-2097152"></use></svg><span>Red<wbr/>Black<wbr/>Tree<wbr/>Method</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Stack"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Stack</summary>
+<div><a href="#stack"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Class"><use href="assets/icons.svg#icon-128"></use></svg><span>Stack</span></a><a href="#stackoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Stack<wbr/>Options</span></a><a href="#stackstate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Stack<wbr/>State</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Tree"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Tree</summary>
+<div><a href="#tree"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Tree</span></a><a href="#treeelement"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Interface"><use href="assets/icons.svg#icon-256"></use></svg><span>Tree<wbr/>Element</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Validation Helpers"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Validation Helpers</summary>
+<div><a href="#intnullvalue"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><span>int<wbr/>Null<wbr/>Value</span></a><a href="#intvalue"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Function"><use href="assets/icons.svg#icon-64"></use></svg><span>int<wbr/>Value</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="modules.html" class="current">@toreda/data-structures</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

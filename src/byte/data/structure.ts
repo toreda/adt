@@ -1,5 +1,5 @@
-import {type DataStructure} from '../../data/structure.js';
-import {type ByteEnvelope} from '../envelope.js';
+import {type DataStructure} from '../../data/structure';
+import {type ByteEnvelope} from '../envelope';
 
 /**
  * Contract for the byte form of a data structure: a subclass of a base data structure that was

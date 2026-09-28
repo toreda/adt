@@ -1,5 +1,5 @@
-import type {BinarySearchTree} from '../tree.js';
-import type {BinarySearchTreeElement} from './element.js';
+import type {BinarySearchTree} from '../tree';
+import type {BinarySearchTreeElement} from './element';
 
 /**
  * Callback signature for BinarySearchTree `forEach` and `filter`. Mirrors the

@@ -8,9 +8,9 @@
 		"alwaysStrict": true,
 		"declaration": true,
 		"esModuleInterop": true,
-		"isolatedModules": false,
+		"isolatedModules": true,
 		"lib": ["es6", "ES2015", "ES2017", "ES2017.TypedArrays"],
-		"module": "commonjs",
+		"module": "esnext",
 		"moduleResolution": "bundler",
 		"noImplicitUseStrict": false,
 		"outDir": "./dist",
@@ -21,6 +21,7 @@
 		"strict": true,
 		"strictBindCallApply": true,
 		"strictNullChecks": true,
+		"verbatimModuleSyntax": true,
 		"strictPropertyInitialization": true,
 		"target": "es2015",
 		"traceResolution": false
@@ -31,7 +32,8 @@
 		"compilerOptions": {
 			"declaration": false,
 			"allowImportingTsExtensions": true,
-			"isolatedModules": true,
+			"module": "commonjs",
+			"verbatimModuleSyntax": false,
 			"sourceMap": false
 		}
 	}

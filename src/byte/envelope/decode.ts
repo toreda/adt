@@ -1,5 +1,5 @@
-import {ByteEnvelope} from '../envelope.js';
-import {type ItemCodec} from '../../item/codec.js';
+import {ByteEnvelope} from '../envelope';
+import {type ItemCodec} from '../../item/codec';
 
 /**
  * Rebuild items from envelope bytes received by a byte data structure constructor.

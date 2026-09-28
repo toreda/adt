@@ -1,4 +1,4 @@
-import {type ObjectPoolOptions} from '../../object/pool/options.js';
+import {type ObjectPoolOptions} from '../../object/pool/options';
 
 /**
  * Options shared by every data structure's options interface, except `ObjectPoolOptions`

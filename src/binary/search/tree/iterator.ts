@@ -1,7 +1,7 @@
-import type {BinarySearchTree} from '../tree.js';
-import type {BinarySearchTreeElement} from './element.js';
-import {type IterableType} from '../../../iterable/type.js';
-import {iterableMakeType} from '../../../iterable/helpers.js';
+import type {BinarySearchTree} from '../tree';
+import type {BinarySearchTreeElement} from './element';
+import {type IterableType} from '../../../iterable/type';
+import {iterableMakeType} from '../../../iterable/helpers';
 
 /**
  * Iterates BinarySearchTree items in sorted (in-order) order, smallest first,

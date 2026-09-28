@@ -1,106 +1,109 @@
 // Base
-export {DataStructure} from './data/structure.js';
-export {DataStructureOptions} from './data/structure/options.js';
-export {ArrayMethod} from './array/method.js';
-export {Element} from './element.js';
-export {ElementPool} from './element/pool.js';
+export type {DataStructure} from './data/structure';
+export type {DataStructureOptions} from './data/structure/options';
+export type {ArrayMethod} from './array/method';
+export type {Element} from './element';
+export {ElementPool} from './element/pool';
 
 // Bytes
-export {ByteDataStructure} from './byte/data/structure.js';
-export {ByteEnvelope} from './byte/envelope.js';
-export {byteEnvelopeDecode} from './byte/envelope/decode.js';
-export {ItemCodec} from './item/codec.js';
-export {itemCodecValid} from './item/codec/valid.js';
-export {ItemDecoder} from './item/decoder.js';
-export {ItemEncoder} from './item/encoder.js';
+export type {ByteDataStructure} from './byte/data/structure';
+export {ByteEnvelope} from './byte/envelope';
+export {byteEnvelopeDecode} from './byte/envelope/decode';
+export type {ItemCodec} from './item/codec';
+export {itemCodecValid} from './item/codec/valid';
+export type {ItemDecoder} from './item/decoder';
+export type {ItemEncoder} from './item/encoder';
 
 // Binary Search Tree
-export {BinarySearchTree} from './binary/search/tree.js';
-export {BinarySearchTreeComparator} from './binary/search/tree/comparator.js';
-export {BinarySearchTreeElement} from './binary/search/tree/element.js';
-export {BinarySearchTreeError} from './binary/search/tree/error.js';
-export {BinarySearchTreeIterator} from './binary/search/tree/iterator.js';
-export {BinarySearchTreeMethod} from './binary/search/tree/method.js';
-export {BinarySearchTreeOptions} from './binary/search/tree/options.js';
+export {BinarySearchTree} from './binary/search/tree';
+export type {BinarySearchTreeComparator} from './binary/search/tree/comparator';
+export {BinarySearchTreeElement} from './binary/search/tree/element';
+export type {BinarySearchTreeError} from './binary/search/tree/error';
+export {BinarySearchTreeIterator} from './binary/search/tree/iterator';
+export type {BinarySearchTreeMethod} from './binary/search/tree/method';
+export type {BinarySearchTreeOptions} from './binary/search/tree/options';
 
 // Circular Queue
-export {ByteCircularQueue} from './byte/circular/queue.js';
-export {CircularQueue} from './circular/queue.js';
-export {CircularQueueIterator} from './circular/queue/iterator.js';
-export {CircularQueueMethod} from './circular/queue/method.js';
-export {CircularQueueOptions} from './circular/queue/options.js';
+export {ByteCircularQueue} from './byte/circular/queue';
+export {CircularQueue} from './circular/queue';
+export {CircularQueueIterator} from './circular/queue/iterator';
+export type {CircularQueueMethod} from './circular/queue/method';
+export type {CircularQueueOptions} from './circular/queue/options';
 
 // Directed Graph
-export {DirectedGraph} from './directed/graph.js';
-export {DirectedGraphEdge} from './directed/graph/edge.js';
-export {DirectedGraphError} from './directed/graph/error.js';
-export {DirectedGraphHeuristic} from './directed/graph/heuristic.js';
-export {DirectedGraphIterator} from './directed/graph/iterator.js';
-export {DirectedGraphMethod} from './directed/graph/method.js';
-export {DirectedGraphOptions} from './directed/graph/options.js';
-export {DirectedGraphPath} from './directed/graph/path.js';
-export {DirectedGraphVertex} from './directed/graph/vertex.js';
+export {DirectedGraph} from './directed/graph';
+export {DirectedGraphEdge} from './directed/graph/edge';
+export type {DirectedGraphError} from './directed/graph/error';
+export type {DirectedGraphHeuristic} from './directed/graph/heuristic';
+export {DirectedGraphIterator} from './directed/graph/iterator';
+export type {DirectedGraphMethod} from './directed/graph/method';
+export type {DirectedGraphOptions} from './directed/graph/options';
+export type {DirectedGraphPath} from './directed/graph/path';
+export {DirectedGraphVertex} from './directed/graph/vertex';
 
 // Graph
-export {Graph} from './graph.js';
-export {GraphEdge} from './graph/edge.js';
-export {GraphVertex} from './graph/vertex.js';
+export type {Graph} from './graph';
+export type {GraphEdge} from './graph/edge';
+export type {GraphVertex} from './graph/vertex';
 
 // Linked List
-export {ByteLinkedList} from './byte/linked/list.js';
-export {LinkedList} from './linked/list.js';
-export {LinkedListElement} from './linked/list/element.js';
-export {LinkedListMethod} from './linked/list/method.js';
-export {LinkedListOptions} from './linked/list/options.js';
+export {ByteLinkedList} from './byte/linked/list';
+export {LinkedList} from './linked/list';
+export {LinkedListElement} from './linked/list/element';
+export {LinkedListIterator} from './linked/list/iterator';
+export type {LinkedListMethod} from './linked/list/method';
+export type {LinkedListOptions} from './linked/list/options';
 
-export {Iterator} from './iterator.js';
-export {IterableType} from './iterable/type.js';
-export {iterableMakeType} from './iterable/helpers.js';
+export type {Iterator} from './iterator';
+export type {IterableType} from './iterable/type';
+export {iterableMakeType} from './iterable/helpers';
 
 // Object Pool
-export {ObjectPool} from './object/pool.js';
-export {ObjectPoolInstance} from './object/pool/instance.js';
-export {ObjectPoolOptions} from './object/pool/options.js';
-export {ObjectPoolState} from './object/pool/state.js';
+export {ObjectPool} from './object/pool';
+export {ObjectPoolIterator} from './object/pool/iterator';
+export type {ObjectPoolConstructor} from './object/pool/constructor';
+export type {ObjectPoolInstance} from './object/pool/instance';
+export type {ObjectPoolOptions} from './object/pool/options';
+export type {ObjectPoolState} from './object/pool/state';
 
 // Priority Queue
-export {PriorityQueue} from './priority/queue.js';
-export {PriorityQueueComparator} from './priority/queue/comparator.js';
-export {PriorityQueueOptions} from './priority/queue/options.js';
-export {PriorityQueueState} from './priority/queue/state.js';
+export {PriorityQueue} from './priority/queue';
+export type {PriorityQueueComparator} from './priority/queue/comparator';
+export type {PriorityQueueOptions} from './priority/queue/options';
+export type {PriorityQueueState} from './priority/queue/state';
 
 // Red Black Tree
-export {RedBlackTree} from './red/black/tree.js';
-export {RedBlackTreeColor} from './red/black/tree/color.js';
-export {RedBlackTreeComparator} from './red/black/tree/comparator.js';
-export {RedBlackTreeElement} from './red/black/tree/element.js';
-export {RedBlackTreeError} from './red/black/tree/error.js';
-export {RedBlackTreeIterator} from './red/black/tree/iterator.js';
-export {RedBlackTreeMethod} from './red/black/tree/method.js';
-export {RedBlackTreeOptions} from './red/black/tree/options.js';
+export {RedBlackTree} from './red/black/tree';
+export type {RedBlackTreeColor} from './red/black/tree/color';
+export type {RedBlackTreeComparator} from './red/black/tree/comparator';
+export {RedBlackTreeElement} from './red/black/tree/element';
+export type {RedBlackTreeError} from './red/black/tree/error';
+export {RedBlackTreeIterator} from './red/black/tree/iterator';
+export type {RedBlackTreeMethod} from './red/black/tree/method';
+export type {RedBlackTreeOptions} from './red/black/tree/options';
 
 // Queue
-export {Queue} from './queue.js';
-export {QueueOptions} from './queue/options.js';
-export {QueueState} from './queue/state.js';
+export {Queue} from './queue';
+export type {QueueOptions} from './queue/options';
+export type {QueueState} from './queue/state';
 
 // Stack
-export {Stack} from './stack.js';
-export {StackOptions} from './stack/options.js';
-export {StackState} from './stack/state.js';
+export {Stack} from './stack';
+export type {StackOptions} from './stack/options';
+export type {StackState} from './stack/state';
 
 // Tree
-export {Tree} from './tree.js';
-export {TreeElement} from './tree/element.js';
+export type {Tree} from './tree';
+export type {TreeElement} from './tree/element';
 
 // Query
-export {QueryFilter} from './query/filter.js';
-export {QueryOptions} from './query/options.js';
-export {QueryResult} from './query/result.js';
+export type {QueryFilter} from './query/filter';
+export type {QueryOptions} from './query/options';
+export type {QueryResult} from './query/result';
 
 // Callable
-export {QueueCallableSync} from './queue/callable/sync.js';
-export {QueueCallable} from './queue/callable.js';
+export type {QueueCallableSync} from './queue/callable/sync';
+export type {QueueCallable} from './queue/callable';
 
-export {intValue} from './int/value.js';
-export {intNullValue} from './int/null/value.js';
+export {intValue} from './int/value';
+export {intNullValue} from './int/null/value';

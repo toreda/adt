@@ -1,6 +1,6 @@
-import {Element} from '../../element.js';
-import type {LinkedList} from '../list.js';
-import {type ObjectPoolInstance} from '../../object/pool/instance.js';
+import type {Element} from '../../element';
+import type {LinkedList} from '../list';
+import {type ObjectPoolInstance} from '../../object/pool/instance';
 
 /**
  * Node wrapping one item in a `LinkedList`. Implements `ObjectPoolInstance`

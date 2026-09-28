@@ -1,5 +1,5 @@
-import {type DataStructure} from './data/structure.js';
-import {type TreeElement} from './tree/element.js';
+import {type DataStructure} from './data/structure';
+import {type TreeElement} from './tree/element';
 
 /**
  * Base contract shared by every tree data structure: a rooted hierarchy of nodes, each

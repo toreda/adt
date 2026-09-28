@@ -1,6 +1,6 @@
-import type {DirectedGraphVertex} from './vertex.js';
-import {type IterableType} from '../../iterable/type.js';
-import {iterableMakeType} from '../../iterable/helpers.js';
+import type {DirectedGraphVertex} from './vertex';
+import {type IterableType} from '../../iterable/type';
+import {iterableMakeType} from '../../iterable/helpers';
 
 /**
  * Iterates DirectedGraph items in vertex insertion order. Reads the graph's

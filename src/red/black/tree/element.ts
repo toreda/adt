@@ -1,7 +1,7 @@
-import type {RedBlackTree} from '../tree.js';
-import type {RedBlackTreeColor} from './color.js';
-import {type ObjectPoolInstance} from '../../../object/pool/instance.js';
-import {type TreeElement} from '../../../tree/element.js';
+import type {RedBlackTree} from '../tree';
+import type {RedBlackTreeColor} from './color';
+import {type ObjectPoolInstance} from '../../../object/pool/instance';
+import {type TreeElement} from '../../../tree/element';
 
 /**
  * Node wrapping one item in a `RedBlackTree`. Implements `ObjectPoolInstance`
