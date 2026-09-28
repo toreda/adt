@@ -52,6 +52,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added Serialization
 -   Added Query Selector
 
-[Unreleased]: https://github.com/toreda/adt/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/toreda/adt/compare/v0.1.0...v1.0.0
-[0.1.0]: https://github.com/toreda/adt/compare/v0.0.0...v0.1.0
+[Unreleased]: https://github.com/toreda/data-structures/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/toreda/data-structures/compare/v0.1.0...v1.0.0
+[0.1.0]: https://github.com/toreda/data-structures/compare/v0.0.0...v0.1.0

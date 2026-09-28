@@ -1,8 +1,8 @@
 [![Toreda](https://content.toreda.com/logo/toreda-logo.png)](https://www.toreda.com)
 
-[![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/toreda/adt/master?style=for-the-badge)](https://github.com/toreda/adt/releases/latest) [![GitHub Release Date](https://img.shields.io/github/release-date/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/releases/latest) [![GitHub issues](https://img.shields.io/github/issues/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/issues)
+[![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/toreda/data-structures/master?style=for-the-badge)](https://github.com/toreda/data-structures/releases/latest) [![GitHub Release Date](https://img.shields.io/github/release-date/toreda/data-structures?style=for-the-badge)](https://github.com/toreda/data-structures/releases/latest) [![GitHub issues](https://img.shields.io/github/issues/toreda/data-structures?style=for-the-badge)](https://github.com/toreda/data-structures/issues)
 
-[![GitHub](https://img.shields.io/github/stars/toreda/adt?style=for-the-badge&logo=github&label=GitHub)](https://github.com/toreda/adt) [![NPM Downloads](https://img.shields.io/npm/dm/@toreda/data-structures?style=for-the-badge&logo=npm&label=NPM)](https://www.npmjs.com/package/@toreda/data-structures) [![license](https://img.shields.io/github/license/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/blob/master/LICENSE.md)
+[![GitHub](https://img.shields.io/github/stars/toreda/data-structures?style=for-the-badge&logo=github&label=GitHub)](https://github.com/toreda/data-structures) [![NPM Downloads](https://img.shields.io/npm/dm/@toreda/data-structures?style=for-the-badge&logo=npm&label=NPM)](https://www.npmjs.com/package/@toreda/data-structures) [![license](https://img.shields.io/github/license/toreda/data-structures?style=for-the-badge)](https://github.com/toreda/data-structures/blob/master/LICENSE.md)
 
 # `@toreda/data-structures`
 
@@ -1100,7 +1100,7 @@ queryResults[1].element; // returns 30
 ```
 
 # Install
-Install `@toreda/data-structures` from NPM, or [clone the GitHub repo](https://github.com/toreda/adt) to work on it.
+Install `@toreda/data-structures` from NPM, or [clone the GitHub repo](https://github.com/toreda/data-structures) to work on it.
 
 ### Install using pnpm
 Add the package to your project:

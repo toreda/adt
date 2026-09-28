@@ -35,7 +35,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/toreda/adt.git"
+		"url": "git+https://github.com/toreda/data-structures.git"
 	},
 	"keywords": [
 		"adt",
@@ -94,10 +94,10 @@
 	"author": "Toreda, Inc.",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/toreda/adt/issues"
+		"url": "https://github.com/toreda/data-structures/issues"
 	},
 	"prettier": "@toreda/prettier-config",
-	"homepage": "https://github.com/toreda/adt#readme",
+	"homepage": "https://github.com/toreda/data-structures#readme",
 	"devDependencies": {
 		"@jest/types": "^30.5.1",
 		"@swc/core": "^1.16.2",
