@@ -23,7 +23,7 @@ import {isNumber} from '../../utility';
  * already sorted. Every walk is iterative, so a degenerate tree never
  * overflows the call stack.
  *
- * Node wrappers are pooled by default (see `ADTOptions`). Removal relinks
+ * Node wrappers are pooled by default (see `DataStructureOptions`). Removal relinks
  * nodes instead of copying values between them, so a node handed out by
  * `insert()` keeps holding its item until that item is removed.
  *

@@ -1,12 +1,12 @@
 // Base
-export {ADT} from './adt';
-export {ADTOptions} from './adt/options';
+export {DataStructure} from './data/structure';
+export {DataStructureOptions} from './data/structure/options';
 export {ArrayMethod} from './array/method';
 export {Element} from './element';
 export {ElementPool} from './element/pool';
 
 // Bytes
-export {ByteADT} from './byte/adt';
+export {ByteDataStructure} from './byte/data/structure';
 export {ByteEnvelope} from './byte/envelope';
 export {byteEnvelopeDecode} from './byte/envelope/decode';
 export {ItemCodec} from './item/codec';
@@ -24,9 +24,27 @@ export {BinarySearchTreeMethod} from './binary/search/tree/method';
 export {BinarySearchTreeOptions} from './binary/search/tree/options';
 
 // Circular Queue
+export {ByteCircularQueue} from './byte/circular/queue';
 export {CircularQueue} from './circular/queue';
+export {CircularQueueIterator} from './circular/queue/iterator';
+export {CircularQueueMethod} from './circular/queue/method';
 export {CircularQueueOptions} from './circular/queue/options';
-export {CircularQueueState} from './circular/queue/state';
+
+// Directed Graph
+export {DirectedGraph} from './directed/graph';
+export {DirectedGraphEdge} from './directed/graph/edge';
+export {DirectedGraphError} from './directed/graph/error';
+export {DirectedGraphHeuristic} from './directed/graph/heuristic';
+export {DirectedGraphIterator} from './directed/graph/iterator';
+export {DirectedGraphMethod} from './directed/graph/method';
+export {DirectedGraphOptions} from './directed/graph/options';
+export {DirectedGraphPath} from './directed/graph/path';
+export {DirectedGraphVertex} from './directed/graph/vertex';
+
+// Graph
+export {Graph} from './graph';
+export {GraphEdge} from './graph/edge';
+export {GraphVertex} from './graph/vertex';
 
 // Linked List
 export {ByteLinkedList} from './byte/linked/list';
@@ -50,6 +68,16 @@ export {PriorityQueue} from './priority/queue';
 export {PriorityQueueComparator} from './priority/queue/comparator';
 export {PriorityQueueOptions} from './priority/queue/options';
 export {PriorityQueueState} from './priority/queue/state';
+
+// Red Black Tree
+export {RedBlackTree} from './red/black/tree';
+export {RedBlackTreeColor} from './red/black/tree/color';
+export {RedBlackTreeComparator} from './red/black/tree/comparator';
+export {RedBlackTreeElement} from './red/black/tree/element';
+export {RedBlackTreeError} from './red/black/tree/error';
+export {RedBlackTreeIterator} from './red/black/tree/iterator';
+export {RedBlackTreeMethod} from './red/black/tree/method';
+export {RedBlackTreeOptions} from './red/black/tree/options';
 
 // Queue
 export {Queue} from './queue';

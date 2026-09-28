@@ -1,7 +1,7 @@
 import {type Element} from '../element';
 
 /**
- * Base contract for the nodes of every tree ADT. A node wraps one item and
+ * Base contract for the nodes of every tree data structure. A node wraps one item and
  * exposes its links so callers can walk the tree in any direction. Each tree
  * extends this with its own links (e.g. `left()` / `right()` in binary trees).
  *

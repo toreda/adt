@@ -1,5 +1,5 @@
 /**
- * Callback signature shared by array-style ADT methods such as forEach, filter,
+ * Callback signature shared by array-style data structure methods such as forEach, filter,
  * and map. Mirrors the callback passed to the equivalent Array.prototype methods.
  *
  * @typeParam T		Element type passed to the callback.

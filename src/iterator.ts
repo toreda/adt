@@ -1,7 +1,7 @@
 import type {IterableType} from './iterable/type';
 
 /**
- * Base contract for ADTs which return Iterators. ADTs may also
+ * Base contract for data structures which return Iterators. Data structures may also
  * extend this contract to add implementation-specific data.
  *
  * @category Base

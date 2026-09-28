@@ -1,29 +1,31 @@
-import {CircularQueue} from '../queue';
+import type {CircularQueue} from '../queue';
 import {type IterableType} from '../../iterable/type';
 import {type Iterator} from '../../iterator';
 import {iterableMakeType} from '../../iterable/helpers';
 
 /**
+ * Iterates CircularQueue items from front to rear.
+ *
  * @category Circular Queue
  */
 export class CircularQueueIterator<ItemT> implements Iterator<ItemT | null> {
+	/** Position from the front of the next item to visit. */
 	private curr: number;
-	private circularQueue: CircularQueue<ItemT>;
+	private readonly queue: CircularQueue<ItemT>;
 
-	constructor(cq: CircularQueue<ItemT>) {
-		this.circularQueue = cq;
+	constructor(queue: CircularQueue<ItemT>) {
+		this.queue = queue;
 		this.curr = 0;
 	}
 
 	public next(): IterableType<ItemT | null> {
-		if (this.circularQueue.isEmpty() || this.curr >= this.circularQueue.size()) {
+		if (this.curr >= this.queue.size()) {
 			return iterableMakeType(null, true);
 		}
 
-		const value = this.circularQueue.getIndex(this.curr);
-		const done = this.curr === this.circularQueue.size() ? true : false;
+		const value = this.queue.getIndex(this.curr);
 		this.curr++;
 
-		return iterableMakeType(value, done);
+		return iterableMakeType(value, false);
 	}
 }

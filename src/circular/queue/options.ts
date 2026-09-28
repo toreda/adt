@@ -1,13 +1,25 @@
+import {type DataStructureOptions} from '../../data/structure/options';
+
 /**
+ * Optional config provided to the CircularQueue constructor. Options are
+ * always optional, so nothing here is ever required: every entry falls back to
+ * its default when missing or invalid, and invalid values never throw.
+ *
+ * The pooling entries from `DataStructureOptions` have no effect: the queue stores items
+ * directly in its ring buffer and allocates no element wrappers.
+ *
  * @category Circular Queue
  */
-export interface CircularQueueOptions<T> {
-	elements?: T[];
-	front?: number;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export interface CircularQueueOptions<ItemT> extends DataStructureOptions {
+	/**
+	 * Capacity of the queue. Must be a positive integer; defaults to `25`.
+	 */
 	maxSize?: number;
+	/**
+	 * When `true`, adding to a full queue overwrites the element at the
+	 * opposite end instead of failing. Only a strict boolean is accepted;
+	 * defaults to `false`.
+	 */
 	overwrite?: boolean;
-	rear?: number;
-	serializedState?: string;
-	size?: number;
-	reverseInsert?: boolean;
 }

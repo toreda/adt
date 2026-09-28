@@ -4,7 +4,7 @@ import {type ItemEncoder} from '../item/encoder';
 /**
  * Byte representation of a whole collection. A directory header records where
  * each item's bytes live, followed by the item bytes themselves. The envelope
- * is shared by every byte ADT: only the item bytes inside it are ADT specific,
+ * is shared by every byte data structure: only the item bytes inside it differ between data structures,
  * and producing or reading those requires the caller's `ItemCodec`.
  *
  * Layout, all integers little-endian:

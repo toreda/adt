@@ -1,4 +1,4 @@
-# pnpm workspace root for @toreda/adt.
+# pnpm workspace root for @toreda/data-structures.
 #
 # The library itself is the root package; `packages` lists additional members.
 # Add new members here (e.g. "packages/*") as the repo grows.

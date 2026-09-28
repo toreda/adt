@@ -1,8 +1,8 @@
-import {type ADT} from './adt';
+import {type DataStructure} from './data/structure';
 import {type TreeElement} from './tree/element';
 
 /**
- * Base contract shared by every tree ADT: a rooted hierarchy of nodes, each
+ * Base contract shared by every tree data structure: a rooted hierarchy of nodes, each
  * wrapping one item. Insertion and lookup rules differ per tree (ordered,
  * spatial, balanced), so they belong to each implementation, not this base.
  *
@@ -11,7 +11,7 @@ import {type TreeElement} from './tree/element';
  *
  * @category Tree
  */
-export interface Tree<ItemT, ElementT extends TreeElement<ItemT> = TreeElement<ItemT>> extends ADT<ItemT> {
+export interface Tree<ItemT, ElementT extends TreeElement<ItemT> = TreeElement<ItemT>> extends DataStructure<ItemT> {
 	/** Topmost node, or null when the tree is empty. */
 	root(): ElementT | null;
 	/** Number of items in the tree. */

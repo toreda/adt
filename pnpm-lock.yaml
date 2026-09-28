@@ -19,16 +19,16 @@ importers:
         version: 0.2.39(@swc/core@1.16.2)
       '@toreda/build-tools':
         specifier: ^0.8.0
-        version: 0.8.0(@swc/core@1.16.2)(@swc/types@0.1.28)(@types/node@26.6.2)(chokidar@3.6.0)(prettier@3.9.8)(supports-color@8.1.1)(typescript@6.0.3)
+        version: 0.8.0(@swc/core@1.16.2)(@swc/types@0.1.28)(@types/node@26.6.3)(chokidar@3.6.0)(prettier@3.9.9)(supports-color@8.1.1)(typescript@6.0.3)
       '@toreda/eslint-config':
         specifier: ^4.0.0
-        version: 4.0.0(@stylistic/eslint-plugin@5.10.0(eslint@10.11.0(supports-color@8.1.1)))(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint-plugin-prettier@5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.8))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.8)(typescript-eslint@8.70.0(eslint@10.11.0(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(typescript@6.0.3)
+        version: 4.0.0(@stylistic/eslint-plugin@5.10.0(eslint@10.11.0(supports-color@8.1.1)))(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint-plugin-prettier@5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.9))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.9)(typescript-eslint@8.70.0(eslint@10.11.0(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(typescript@6.0.3)
       '@toreda/log':
         specifier: ^1.0.0
         version: 1.0.0
       '@toreda/prettier-config':
         specifier: ^2.0.0
-        version: 2.0.0(prettier@3.9.8)
+        version: 2.0.0(prettier@3.9.9)
       '@toreda/shared-types':
         specifier: ^3.0.0
         version: 3.0.0
@@ -45,8 +45,8 @@ importers:
         specifier: ^30.0.0
         version: 30.0.0
       '@types/node':
-        specifier: ^26.6.2
-        version: 26.6.2
+        specifier: ^26.6.3
+        version: 26.6.3
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.70.1
         version: 8.70.1(@typescript-eslint/parser@8.70.1(eslint@10.11.0(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.11.0(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)
@@ -67,10 +67,10 @@ importers:
         version: 10.1.8(eslint@10.11.0(supports-color@8.1.1))
       eslint-plugin-prettier:
         specifier: ^5.5.6
-        version: 5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.8)
+        version: 5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.9)
       jest:
         specifier: ^30.5.2
-        version: 30.5.2(@types/node@26.6.2)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+        version: 30.5.2(@types/node@26.6.3)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       jest-canvas-mock:
         specifier: ^2.5.8
         version: 2.5.8
@@ -81,11 +81,11 @@ importers:
         specifier: ^30.1.1
         version: 30.1.1
       prettier:
-        specifier: ^3.9.8
-        version: 3.9.8
+        specifier: ^3.9.9
+        version: 3.9.9
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)
+        version: 10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)
       typedoc:
         specifier: ^0.28.20
         version: 0.28.20(typescript@6.0.3)
@@ -1239,8 +1239,8 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/node@26.6.2':
-    resolution: {integrity: sha512-X1P21scMv4zGKLYqjdGjaKa7COa0RKVYYZZN/NfvLQ1JegxFhdhpZG/Lyn8AXx6CDUavKAd11v6BvfpkDByK8g==}
+  '@types/node@26.6.3':
+    resolution: {integrity: sha512-dsqMQQoeTLqu9wynDD00q573mNzso3IdQOAfHRJqLCcmCFPoGo9A1bDpUcv/9tnKpErQWv9uKeGfl37EIS02Yg==}
 
   '@types/picomatch@4.0.3':
     resolution: {integrity: sha512-iG0T6+nYJ9FAPmx9SsUlnwcq1ZVRuCXcVEvWnntoPlrOpwtSTKNDC9uVAxTsC3PUvJ+99n4RpAcNgBbHX3JSnQ==}
@@ -4071,8 +4071,8 @@ packages:
     resolution: {integrity: sha512-SxToR7P8Y2lWmv/kTzVLC1t/GDI2WGjMwNhLLE9qtH8Q13C+aEmuRlzDst4Up4s0Wc8sF2M+J57iB3cMLqftfg==}
     engines: {node: '>=6.0.0'}
 
-  prettier@3.9.8:
-    resolution: {integrity: sha512-WRFq3Wn3WId7LLROfMLdH7xaFr2jR62wU8nLO6rQUOLOxNZUviyJQs1M0iIhLexSFy+L+w0ch66wtoO2jRjG0A==}
+  prettier@3.9.9:
+    resolution: {integrity: sha512-Z/CJHIkdujO/OtN7nXUii0Rf3VT5SRuhjBA82Xvu2XhBUgX3nhP67T0LHceBdQLex7OOFGTox+Q5Yg8Jk2Qivg==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -4748,8 +4748,8 @@ packages:
     resolution: {integrity: sha512-/RXwi5m/Mu3H6IHQGww3GNt1PNXlbeCuclF2QYR14L/2CHPz3DFZkvB5hZ0N/QUkiXWCACML2jXViIQEQc2MLg==}
     engines: {node: '>= 0.10'}
 
-  undici-types@8.11.0:
-    resolution: {integrity: sha512-Ophcodxps+mlNdcccUrHXy+Pp8X7Q0ycBk3QelSNl+jBAPMh6cEB/5xs9xDL3PJVnVs2Cp//nnsJySuD9D2WFA==}
+  undici-types@8.11.2:
+    resolution: {integrity: sha512-iMVNmWZ0leK/goS6eXMizSzmm9CDWtyphwbaCms3DNLqRxDL+mMoNVcZMTyyVgXP0N+Z8neAMzDoUOUJL8veKg==}
 
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
@@ -5713,7 +5713,7 @@ snapshots:
   '@jest/console@27.5.1':
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       jest-message-util: 27.5.1
       jest-util: 27.5.1
@@ -5722,27 +5722,27 @@ snapshots:
   '@jest/console@30.5.2':
     dependencies:
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       jest-message-util: 30.5.1
       jest-util: 30.5.1
       slash: 3.0.0
 
-  '@jest/core@27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))':
+  '@jest/core@27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))':
     dependencies:
       '@jest/console': 27.5.1
       '@jest/reporters': 27.5.1(supports-color@8.1.1)
       '@jest/test-result': 27.5.1
       '@jest/transform': 27.5.1(supports-color@8.1.1)
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       emittery: 0.8.1
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 27.5.1
-      jest-config: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      jest-config: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       jest-haste-map: 27.5.1
       jest-message-util: 27.5.1
       jest-regex-util: 27.5.1
@@ -5765,7 +5765,7 @@ snapshots:
       - ts-node
       - utf-8-validate
 
-  '@jest/core@30.5.2(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))':
+  '@jest/core@30.5.2(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))':
     dependencies:
       '@jest/console': 30.5.2
       '@jest/pattern': 30.5.0
@@ -5773,7 +5773,7 @@ snapshots:
       '@jest/test-result': 30.5.2
       '@jest/transform': 30.5.2(supports-color@8.1.1)
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       ci-info: 4.4.0
@@ -5781,7 +5781,7 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       graceful-fs: 4.2.11
       jest-changed-files: 30.5.1
-      jest-config: 30.5.2(@types/node@26.6.2)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      jest-config: 30.5.2(@types/node@26.6.3)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       jest-haste-map: 30.5.1
       jest-message-util: 30.5.1
       jest-regex-util: 30.5.0
@@ -5813,7 +5813,7 @@ snapshots:
       '@jest/fake-timers': 30.5.2
       '@jest/types': 30.5.1
       '@types/jsdom': 21.1.7
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-mock: 30.5.2
       jest-util: 30.5.1
       jsdom: 26.1.0(supports-color@8.1.1)
@@ -5822,14 +5822,14 @@ snapshots:
     dependencies:
       '@jest/fake-timers': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-mock: 27.5.1
 
   '@jest/environment@30.5.2':
     dependencies:
       '@jest/fake-timers': 30.5.2
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-mock: 30.5.2
 
   '@jest/expect-utils@30.5.2':
@@ -5847,7 +5847,7 @@ snapshots:
     dependencies:
       '@jest/types': 27.5.1
       '@sinonjs/fake-timers': 8.1.0
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-message-util: 27.5.1
       jest-mock: 27.5.1
       jest-util: 27.5.1
@@ -5856,7 +5856,7 @@ snapshots:
     dependencies:
       '@jest/types': 30.5.1
       '@sinonjs/fake-timers': 15.4.0
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-message-util: 30.5.1
       jest-mock: 30.5.2
       jest-util: 30.5.1
@@ -5880,7 +5880,7 @@ snapshots:
 
   '@jest/pattern@30.5.0':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-regex-util: 30.5.0
 
   '@jest/reporters@27.5.1(supports-color@8.1.1)':
@@ -5890,7 +5890,7 @@ snapshots:
       '@jest/test-result': 27.5.1
       '@jest/transform': 27.5.1(supports-color@8.1.1)
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       collect-v8-coverage: 1.0.3
       exit: 0.1.2
@@ -5921,7 +5921,7 @@ snapshots:
       '@jest/transform': 30.5.2(supports-color@8.1.1)
       '@jest/types': 30.5.1
       '@jridgewell/trace-mapping': 0.3.31
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       collect-v8-coverage: 1.0.3
       exit-x: 0.2.2
@@ -6038,7 +6038,7 @@ snapshots:
     dependencies:
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       '@types/yargs': 16.0.11
       chalk: 4.1.2
 
@@ -6048,7 +6048,7 @@ snapshots:
       '@jest/schemas': 30.5.0
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -6390,7 +6390,7 @@ snapshots:
 
   '@tootallnate/once@1.1.2': {}
 
-  '@toreda/build-tools@0.8.0(@swc/core@1.16.2)(@swc/types@0.1.28)(@types/node@26.6.2)(chokidar@3.6.0)(prettier@3.9.8)(supports-color@8.1.1)(typescript@6.0.3)':
+  '@toreda/build-tools@0.8.0(@swc/core@1.16.2)(@swc/types@0.1.28)(@types/node@26.6.3)(chokidar@3.6.0)(prettier@3.9.9)(supports-color@8.1.1)(typescript@6.0.3)':
     dependencies:
       '@swc-node/core': 1.14.1(@swc/core@1.16.2)(@swc/types@0.1.28)
       '@swc-node/register': 1.11.1(@swc/core@1.16.2)(@swc/types@0.1.28)(supports-color@8.1.1)(typescript@6.0.3)
@@ -6405,21 +6405,21 @@ snapshots:
       '@typescript-eslint/typescript-estree': 5.62.0(supports-color@8.1.1)(typescript@6.0.3)
       eslint: 8.57.1(supports-color@8.1.1)
       eslint-config-prettier: 8.10.2(eslint@8.57.1(supports-color@8.1.1))
-      eslint-plugin-prettier: 4.2.5(eslint-config-prettier@8.10.2(eslint@8.57.1(supports-color@8.1.1)))(eslint@8.57.1(supports-color@8.1.1))(prettier@3.9.8)
+      eslint-plugin-prettier: 4.2.5(eslint-config-prettier@8.10.2(eslint@8.57.1(supports-color@8.1.1)))(eslint@8.57.1(supports-color@8.1.1))(prettier@3.9.9)
       fs-extra: 10.1.0
       gulp: 4.0.2(supports-color@8.1.1)
       gulp-nunjucks-render: 2.2.3(chokidar@3.6.0)
       gulp-sourcemaps: 3.0.0(supports-color@8.1.1)
       gulp-swc: 1.4.0(@swc/core@1.16.2)(gulp@4.0.2(supports-color@8.1.1))
       gulp-typescript: 6.0.0-alpha.1(typescript@6.0.3)
-      jest: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
-      jest-cli: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      jest: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
+      jest-cli: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       jest-sonar-reporter: 2.0.0
       merge-stream: 2.0.0
       regenerator-runtime: 0.13.11
       swc-node: 1.0.0(@swc/core@1.16.2)(@swc/types@0.1.28)(supports-color@8.1.1)(typescript@6.0.3)
       through2: 4.0.2
-      ts-node: 10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)
+      ts-node: 10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)
       webpack: 5.102.1(@swc/core@1.16.2)(webpack-cli@4.10.0)
       webpack-cli: 4.10.0(webpack@5.102.1)
       yargs: 17.7.2
@@ -6444,13 +6444,13 @@ snapshots:
 
   '@toreda/eslint-config@2.2.0': {}
 
-  '@toreda/eslint-config@4.0.0(@stylistic/eslint-plugin@5.10.0(eslint@10.11.0(supports-color@8.1.1)))(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint-plugin-prettier@5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.8))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.8)(typescript-eslint@8.70.0(eslint@10.11.0(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(typescript@6.0.3)':
+  '@toreda/eslint-config@4.0.0(@stylistic/eslint-plugin@5.10.0(eslint@10.11.0(supports-color@8.1.1)))(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint-plugin-prettier@5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.9))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.9)(typescript-eslint@8.70.0(eslint@10.11.0(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(typescript@6.0.3)':
     dependencies:
       '@stylistic/eslint-plugin': 5.10.0(eslint@10.11.0(supports-color@8.1.1))
       eslint: 10.11.0(supports-color@8.1.1)
       eslint-config-prettier: 10.1.8(eslint@10.11.0(supports-color@8.1.1))
-      eslint-plugin-prettier: 5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.8)
-      prettier: 3.9.8
+      eslint-plugin-prettier: 5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.9)
+      prettier: 3.9.9
       typescript: 6.0.3
       typescript-eslint: 8.70.0(eslint@10.11.0(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)
 
@@ -6462,9 +6462,9 @@ snapshots:
 
   '@toreda/prettier-config@1.0.1': {}
 
-  '@toreda/prettier-config@2.0.0(prettier@3.9.8)':
+  '@toreda/prettier-config@2.0.0(prettier@3.9.9)':
     dependencies:
-      prettier: 3.9.8
+      prettier: 3.9.9
 
   '@toreda/shared-types@3.0.0':
     dependencies:
@@ -6527,17 +6527,17 @@ snapshots:
 
   '@types/glob-stream@8.0.3':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       '@types/picomatch': 4.0.3
       '@types/streamx': 2.9.5
 
   '@types/graceful-fs@4.1.9':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
 
   '@types/gulp@4.0.18':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       '@types/undertaker': 1.2.12
       '@types/vinyl-fs': 3.0.8
       chokidar: 3.6.0
@@ -6563,20 +6563,20 @@ snapshots:
 
   '@types/jsdom@21.1.7':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       '@types/tough-cookie': 4.0.5
       parse5: 7.3.0
 
   '@types/jsdom@30.0.0':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       '@types/tough-cookie': 4.0.5
       parse5: 8.0.1
-      undici-types: 8.11.0
+      undici-types: 8.11.2
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/node@26.6.2':
+  '@types/node@26.6.3':
     dependencies:
       undici-types: 8.9.0
 
@@ -6590,7 +6590,7 @@ snapshots:
 
   '@types/streamx@2.9.5':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
 
   '@types/tough-cookie@4.0.5': {}
 
@@ -6598,7 +6598,7 @@ snapshots:
 
   '@types/undertaker@1.2.12':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       '@types/undertaker-registry': 1.0.4
       async-done: 1.3.2
 
@@ -6607,13 +6607,13 @@ snapshots:
   '@types/vinyl-fs@3.0.8':
     dependencies:
       '@types/glob-stream': 8.0.3
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       '@types/vinyl': 2.0.12
 
   '@types/vinyl@2.0.12':
     dependencies:
       '@types/expect': 1.20.4
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -7911,18 +7911,18 @@ snapshots:
     dependencies:
       eslint: 8.57.1(supports-color@8.1.1)
 
-  eslint-plugin-prettier@4.2.5(eslint-config-prettier@8.10.2(eslint@8.57.1(supports-color@8.1.1)))(eslint@8.57.1(supports-color@8.1.1))(prettier@3.9.8):
+  eslint-plugin-prettier@4.2.5(eslint-config-prettier@8.10.2(eslint@8.57.1(supports-color@8.1.1)))(eslint@8.57.1(supports-color@8.1.1))(prettier@3.9.9):
     dependencies:
       eslint: 8.57.1(supports-color@8.1.1)
-      prettier: 3.9.8
+      prettier: 3.9.9
       prettier-linter-helpers: 1.0.1
     optionalDependencies:
       eslint-config-prettier: 8.10.2(eslint@8.57.1(supports-color@8.1.1))
 
-  eslint-plugin-prettier@5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.8):
+  eslint-plugin-prettier@5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.9):
     dependencies:
       eslint: 10.11.0(supports-color@8.1.1)
-      prettier: 3.9.8
+      prettier: 3.9.9
       prettier-linter-helpers: 1.0.1
       synckit: 0.11.13
     optionalDependencies:
@@ -8870,7 +8870,7 @@ snapshots:
       '@jest/environment': 27.5.1
       '@jest/test-result': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       co: 4.6.0
       dedent: 0.7.0
@@ -8895,7 +8895,7 @@ snapshots:
       '@jest/expect': 30.5.2(supports-color@8.1.1)
       '@jest/test-result': 30.5.2
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       co: 4.6.0
       dedent: 1.7.2
@@ -8915,16 +8915,16 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-cli@27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)):
+  jest-cli@27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)):
     dependencies:
-      '@jest/core': 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      '@jest/core': 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       '@jest/test-result': 27.5.1
       '@jest/types': 27.5.1
       chalk: 4.1.2
       exit: 0.1.2
       graceful-fs: 4.2.11
       import-local: 3.2.0
-      jest-config: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      jest-config: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       jest-util: 27.5.1
       jest-validate: 27.5.1
       prompts: 2.4.2
@@ -8936,15 +8936,15 @@ snapshots:
       - ts-node
       - utf-8-validate
 
-  jest-cli@30.5.2(@types/node@26.6.2)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)):
+  jest-cli@30.5.2(@types/node@26.6.3)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)):
     dependencies:
-      '@jest/core': 30.5.2(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      '@jest/core': 30.5.2(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       '@jest/test-result': 30.5.2
       '@jest/types': 30.5.1
       chalk: 4.1.2
       exit-x: 0.2.2
       import-local: 3.2.0
-      jest-config: 30.5.2(@types/node@26.6.2)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      jest-config: 30.5.2(@types/node@26.6.3)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       jest-util: 30.5.1
       jest-validate: 30.5.1
       yargs: 17.7.3
@@ -8955,7 +8955,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)):
+  jest-config@27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)):
     dependencies:
       '@babel/core': 7.28.5(supports-color@8.1.1)
       '@jest/test-sequencer': 27.5.1(supports-color@8.1.1)
@@ -8982,14 +8982,14 @@ snapshots:
       slash: 3.0.0
       strip-json-comments: 3.1.1
     optionalDependencies:
-      ts-node: 10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)
+      ts-node: 10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)
     transitivePeerDependencies:
       - bufferutil
       - canvas
       - supports-color
       - utf-8-validate
 
-  jest-config@30.5.2(@types/node@26.6.2)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)):
+  jest-config@30.5.2(@types/node@26.6.3)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)):
     dependencies:
       '@babel/core': 7.29.7(supports-color@8.1.1)
       '@jest/get-type': 30.5.0
@@ -9015,8 +9015,8 @@ snapshots:
       slash: 3.0.0
       strip-json-comments: 3.1.1
     optionalDependencies:
-      '@types/node': 26.6.2
-      ts-node: 10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)
+      '@types/node': 26.6.3
+      ts-node: 10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -9065,7 +9065,7 @@ snapshots:
       '@jest/environment': 27.5.1
       '@jest/fake-timers': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-mock: 27.5.1
       jest-util: 27.5.1
       jsdom: 16.7.0(supports-color@8.1.1)
@@ -9091,7 +9091,7 @@ snapshots:
       '@jest/environment': 27.5.1
       '@jest/fake-timers': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-mock: 27.5.1
       jest-util: 27.5.1
 
@@ -9100,7 +9100,7 @@ snapshots:
       '@jest/environment': 30.5.2
       '@jest/fake-timers': 30.5.2
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-mock: 30.5.2
       jest-util: 30.5.1
       jest-validate: 30.5.1
@@ -9111,7 +9111,7 @@ snapshots:
     dependencies:
       '@jest/types': 27.5.1
       '@types/graceful-fs': 4.1.9
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -9128,7 +9128,7 @@ snapshots:
     dependencies:
       '@jest/types': 30.5.1
       '@parcel/watcher': 2.6.0
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       fdir: 6.5.0(picomatch@4.0.7)
@@ -9144,7 +9144,7 @@ snapshots:
       '@jest/source-map': 27.5.1
       '@jest/test-result': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       co: 4.6.0
       expect: 27.5.1
@@ -9212,13 +9212,13 @@ snapshots:
   jest-mock@27.5.1:
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
 
   jest-mock@30.5.2:
     dependencies:
       '@jest/expect-utils': 30.5.2
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       jest-util: 30.5.1
 
   jest-pnp-resolver@1.2.3(jest-resolve@27.5.1):
@@ -9274,7 +9274,7 @@ snapshots:
       '@jest/test-result': 27.5.1
       '@jest/transform': 27.5.1(supports-color@8.1.1)
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       emittery: 0.8.1
       graceful-fs: 4.2.11
@@ -9304,7 +9304,7 @@ snapshots:
       '@jest/test-result': 30.5.2
       '@jest/transform': 30.5.2(supports-color@8.1.1)
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       emittery: 0.13.1
       exit-x: 0.2.2
@@ -9359,7 +9359,7 @@ snapshots:
       '@jest/test-result': 30.5.2
       '@jest/transform': 30.5.2(supports-color@8.1.1)
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       cjs-module-lexer: 2.2.1
       collect-v8-coverage: 1.0.3
@@ -9380,7 +9380,7 @@ snapshots:
 
   jest-serializer@27.5.1:
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       graceful-fs: 4.2.11
 
   jest-snapshot@27.5.1(supports-color@8.1.1):
@@ -9443,7 +9443,7 @@ snapshots:
   jest-util@27.5.1:
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -9452,7 +9452,7 @@ snapshots:
   jest-util@30.5.1:
     dependencies:
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       chalk: 4.1.2
       ci-info: 4.4.0
       graceful-fs: 4.2.11
@@ -9480,7 +9480,7 @@ snapshots:
     dependencies:
       '@jest/test-result': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       jest-util: 27.5.1
@@ -9490,7 +9490,7 @@ snapshots:
     dependencies:
       '@jest/test-result': 30.5.2
       '@jest/types': 30.5.1
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       emittery: 0.13.1
@@ -9499,23 +9499,23 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
   jest-worker@30.5.1:
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       '@ungap/structured-clone': 1.3.0
       jest-util: 30.5.1
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)):
+  jest@27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)):
     dependencies:
-      '@jest/core': 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      '@jest/core': 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       import-local: 3.2.0
-      jest-cli: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      jest-cli: 27.5.1(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -9523,12 +9523,12 @@ snapshots:
       - ts-node
       - utf-8-validate
 
-  jest@30.5.2(@types/node@26.6.2)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3)):
+  jest@30.5.2(@types/node@26.6.3)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3)):
     dependencies:
-      '@jest/core': 30.5.2(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      '@jest/core': 30.5.2(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
       '@jest/types': 30.5.1
       import-local: 3.2.0
-      jest-cli: 30.5.2(@types/node@26.6.2)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3))
+      jest-cli: 30.5.2(@types/node@26.6.3)(supports-color@8.1.1)(ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -10183,7 +10183,7 @@ snapshots:
     dependencies:
       fast-diff: 1.3.0
 
-  prettier@3.9.8: {}
+  prettier@3.9.9: {}
 
   pretty-format@27.5.1:
     dependencies:
@@ -10777,14 +10777,14 @@ snapshots:
     dependencies:
       typescript: 6.0.3
 
-  ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.2)(typescript@6.0.3):
+  ts-node@10.9.2(@swc/core@1.16.2)(@swc/wasm@1.15.2)(@types/node@26.6.3)(typescript@6.0.3):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.13
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 26.6.2
+      '@types/node': 26.6.3
       acorn: 8.18.0
       acorn-walk: 8.3.5
       arg: 4.1.3
@@ -10866,7 +10866,7 @@ snapshots:
       object.reduce: 1.0.1
       undertaker-registry: 1.0.1
 
-  undici-types@8.11.0: {}
+  undici-types@8.11.2: {}
 
   undici-types@8.9.0: {}
 

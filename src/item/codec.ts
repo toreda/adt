@@ -3,7 +3,7 @@ import {type ItemEncoder} from './encoder';
 
 /**
  * Caller supplied pair converting a single item to and from its byte form.
- * Items are generic, so every byte ADT requires one at construction.
+ * Items are generic, so every byte data structure requires one at construction.
  *
  * @category Base
  */

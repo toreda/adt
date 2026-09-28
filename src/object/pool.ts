@@ -1,6 +1,6 @@
 import {isInteger, isNumber} from '../utility';
 
-import {ADT} from '../adt';
+import {DataStructure} from '../data/structure';
 import {type ArrayMethod} from '../array/method';
 import {type ObjectPoolConstructor as Constructor} from './pool/constructor';
 import {type ObjectPoolInstance as Instance} from './pool/instance';
@@ -15,7 +15,7 @@ import {ObjectPoolState as State} from './pool/state';
  *
  * @category Object Pool
  */
-export class ObjectPool<T extends Instance> implements ADT<T> {
+export class ObjectPool<T extends Instance> implements DataStructure<T> {
 	public readonly state: State<T>;
 	private readonly objectClass: Constructor<T>;
 	private wastedSpace: number = 0;

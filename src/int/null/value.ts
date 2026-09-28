@@ -1,17 +1,17 @@
 import {typeValue} from '@toreda/shared-types';
 
-export function intNullValue(fallback: number, ...values: unknown[]): number | null {
-    return typeValue(
-        (value?: unknown): value is number | null => {
-            if (value === null) {
-                return true;
-            } else if (typeof value !== 'number') {
-                return false;
-            }
-
-            return Number.isFinite(value) && value % 1 !== 0;
-        },
-        fallback,
-        ...values
-    );
+/**
+ * First value that is an integer or null, or fallback when none is. Integers
+ * are finite numbers with no fractional part; NaN and ±Infinity are rejected.
+ *
+ * @category Validation Helpers
+ */
+export function intNullValue(fallback: number | null, ...values: unknown[]): number | null {
+	return typeValue(
+		(value?: unknown): value is number | null => {
+			return value === null || Number.isInteger(value);
+		},
+		fallback,
+		...values
+	);
 }

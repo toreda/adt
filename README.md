@@ -2,16 +2,16 @@
 
 [![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/toreda/adt/master?style=for-the-badge)](https://github.com/toreda/adt/releases/latest) [![GitHub Release Date](https://img.shields.io/github/release-date/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/releases/latest) [![GitHub issues](https://img.shields.io/github/issues/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/issues)
 
-[![GitHub](https://img.shields.io/github/stars/toreda/adt?style=for-the-badge&logo=github&label=GitHub)](https://github.com/toreda/adt) [![NPM Downloads](https://img.shields.io/npm/dm/@toreda/adt?style=for-the-badge&logo=npm&label=NPM)](https://www.npmjs.com/package/@toreda/adt) [![license](https://img.shields.io/github/license/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/blob/master/LICENSE.md)
+[![GitHub](https://img.shields.io/github/stars/toreda/adt?style=for-the-badge&logo=github&label=GitHub)](https://github.com/toreda/adt) [![NPM Downloads](https://img.shields.io/npm/dm/@toreda/data-structures?style=for-the-badge&logo=npm&label=NPM)](https://www.npmjs.com/package/@toreda/data-structures) [![license](https://img.shields.io/github/license/toreda/adt?style=for-the-badge)](https://github.com/toreda/adt/blob/master/LICENSE.md)
 
-# `@toreda/adt` Abstract Data Types
+# `@toreda/data-structures`
 
 Collection of TypeScript generic data structures with consistent APIs for search, insertion, and deletion.
 
 # Contents
-- [`@toreda/adt` Abstract Data Types](#toredaadt-abstract-data-types)
+- [`@toreda/data-structures`](#toredadata-structures)
 - [Contents](#contents)
-- [**`ADT` Interface**](#adt-interface)
+- [**`DataStructure` Interface**](#datastructure-interface)
 - [Data Structures](#data-structures)
 	- [`Stack<T>`](#stackt)
 	- [`Queue<T>`](#queuet)
@@ -27,16 +27,22 @@ Collection of TypeScript generic data structures with consistent APIs for search
 		- [Duplicates](#duplicates)
 		- [Filter, query, and serialize](#filter-query-and-serialize)
 		- [Node pooling](#node-pooling)
+	- [**`RedBlackTree<T>`**](#redblacktreet)
+	- [**`DirectedGraph<T>`**](#directedgrapht)
+		- [Cheapest paths with A\*](#cheapest-paths-with-a)
+		- [Cycle detection](#cycle-detection)
+		- [Filter, query, and serialize a graph](#filter-query-and-serialize-a-graph)
+		- [Vertex and edge pooling](#vertex-and-edge-pooling)
 - [Query Selectors](#query-selectors)
 - [Install](#install)
 		- [Install using pnpm](#install-using-pnpm)
 - [License](#license)
 
-# **`ADT` Interface**
-Every collection is generic over its item type and implements the `ADT` interface:
+# **`DataStructure` Interface**
+Every collection is generic over its item type and implements the `DataStructure` interface:
 
 ```typescript
-interface ADT<ItemT> {
+interface DataStructure<ItemT> {
 	clearElements(): void;
 	reset(): void;
 	stringify(): string | null;
@@ -47,7 +53,7 @@ interface ADT<ItemT> {
 }
 ```
 
-Node-based collections (`LinkedList`, `BinarySearchTree`) wrap each item in an element that implements `Element<T>`, whose `value()` reads the item. Tree collections also implement the shared `Tree` interface.
+Node-based collections (`LinkedList`, `BinarySearchTree`, `RedBlackTree`, `DirectedGraph`) wrap each item in an element that implements `Element<T>`, whose `value()` reads the item. Tree collections also implement the shared `Tree` interface, and graph collections the shared `Graph` interface.
 
 Methods return `null` instead of throwing when a collection is empty or holds no matching item, for example `pop()` on an empty `Stack`.
 
@@ -60,6 +66,8 @@ Methods return `null` instead of throwing when a collection is empty or holds no
 * [`PriorityQueue`](#priorityqueuet)
 * [`ObjectPool`](#objectpoolt)
 * [`BinarySearchTree`](#binarysearchtreet)
+* [`RedBlackTree`](#redblacktreet)
+* [`DirectedGraph`](#directedgrapht)
 
 ## `Stack<T>`
 
@@ -69,7 +77,7 @@ Typescript
 
 ```typescript
 // Import
-import {Stack} from '@toreda/adt';
+import {Stack} from '@toreda/data-structures';
 
 // Instantiate
 const myStack = new Stack<string>();
@@ -136,7 +144,7 @@ Typescript
 
 ```typescript
 // Import
-import {Queue} from '@toreda/adt';
+import {Queue} from '@toreda/data-structures';
 
 // Instantiate
 const myQueue = new Queue<string>();
@@ -205,7 +213,7 @@ Typescript
 
 ```typescript
 // Import
-import {LinkedList} from '@toreda/adt';
+import {LinkedList} from '@toreda/data-structures';
 
 // Instantiate
 const myLinkedList = new LinkedList<string>();
@@ -297,7 +305,7 @@ const serialized = myLinkedList.stringify(); // returns '{"type":"LinkedList","e
 
 // Byte form of the whole list is provided by ByteLinkedList, a superset of
 // LinkedList. Items are generic, so it requires an ItemCodec at construction.
-import {ByteLinkedList} from '@toreda/adt';
+import {ByteLinkedList} from '@toreda/data-structures';
 
 const codec = {
 	encode: (item: string): Uint8Array => new TextEncoder().encode(item),
@@ -316,27 +324,31 @@ fromBytes.values(); // returns ['a', 'b']
 
 ## **`CircularQueue<T>`**
 
-Fixed capacity queue backed by a ring buffer. Only the `maxSize` (default `25`) and `overwrite` (default `false`) options are read; the other entries in `CircularQueueOptions` are currently ignored.
+Fixed capacity FIFO queue backed by a ring buffer. Items are added at the rear and removed from the front in O(1). Every traversal (`forEach`, `filter`, `query`, iteration, `getIndex`) runs from the front to the rear, and position 0 is the front.
+
+Options: `maxSize` (a positive integer, default `25`) and `overwrite` (a strict boolean, default `false`). An invalid option falls back to its default and never throws.
 
 Typescript
 
 ```typescript
 // Import
-import {CircularQueue} from '@toreda/adt';
+import {CircularQueue} from '@toreda/data-structures';
 
 // Instantiate
 const circularQueueDefault = new CircularQueue<number>(); // maxSize 25, overwrite false
-const circularQueueWithOptions = new CircularQueue<number>({
-	maxSize: 999,
-	overwrite: true
-});
+const circularQueueWithOptions = new CircularQueue<number>([], {maxSize: 999, overwrite: true});
+// Instantiate with starting items, pushed front to rear
+const circularQueueWithItems = new CircularQueue<number>([1, 2, 3], {maxSize: 10});
+circularQueueWithItems.front(); // returns 1
+
+// Items beyond maxSize are dropped, or with overwrite only the last maxSize are kept
+new CircularQueue<number>([1, 2, 3, 4], {maxSize: 3}).values(); // returns [1, 2, 3]
+new CircularQueue<number>([1, 2, 3, 4], {maxSize: 3, overwrite: true}).values(); // returns [2, 3, 4]
 
 // Use as Queue
-const circularQueue = new CircularQueue<number>({
-	maxSize: 4
-});
+const circularQueue = new CircularQueue<number>([], {maxSize: 4});
 
-// Add elements to the rear of the queue. Returns false once the queue is full.
+// Add items to the rear of the queue. Returns false once the queue is full.
 circularQueue.push(10); // returns true
 circularQueue.push(20); // returns true
 circularQueue.push(30); // returns true
@@ -347,22 +359,23 @@ circularQueue.push(50); // returns false
 circularQueue.size(); // returns 4
 circularQueue.isFull(); // returns true
 
-// Get first element added to queue
+// Get the front item
 circularQueue.front(); // returns 10
 circularQueue.peek(); // alias of front(), returns 10
 
-// Get last element added to queue
+// Get the rear item
 circularQueue.rear(); // returns 40
 
-// Get nth-after-first element added to queue
+// Get the item at a position from the front
 circularQueue.getIndex(1); // returns 20
 circularQueue.getIndex(2); // returns 30
+circularQueue.getIndex(4); // returns null, outside the queue
 
-// Get nth-to-last element added to queue
+// Negative positions count back from the rear, like Array.prototype.at
 circularQueue.getIndex(-1); // returns 40
 circularQueue.getIndex(-2); // returns 30
 
-// Remove element from the front of the queue
+// Remove and return the front item
 circularQueue.pop(); // returns 10
 circularQueue.pop(); // returns 20
 circularQueue.size(); // returns 2
@@ -371,21 +384,19 @@ circularQueue.pop(); // returns 40
 circularQueue.size(); // returns 0
 circularQueue.pop(); // returns null
 
-// push and insertFront accept several elements at once
+// push and insertFront accept several items at once
 circularQueue.push(1, 2, 3); // returns true
 circularQueue.insertFront(0); // returns true; queue is now 0, 1, 2, 3
 circularQueue.push(9); // returns false because the queue is full
 
-// Remove all elements from the queue
+// pushArray adds every item of an array, and works for arrays of any length
 circularQueue.clearElements(); // returns circularQueue
+circularQueue.pushArray([10, 20, 30]); // returns true
 
-// Use as Buffer. When full, each push overwrites the oldest element.
-const circularBuffer = new CircularQueue<number>({
-	maxSize: 4,
-	overwrite: true
-});
+// Use as Buffer. When full, each push overwrites the front item.
+const circularBuffer = new CircularQueue<number>([], {maxSize: 4, overwrite: true});
 
-// Add element to the buffer
+// Add items to the buffer
 circularBuffer.push(10); // returns true
 circularBuffer.push(20); // returns true
 circularBuffer.push(30); // returns true
@@ -395,58 +406,64 @@ circularBuffer.push(50); // returns true and overwrites 10
 // Get buffer size
 circularBuffer.size(); // returns 4
 
-// Get first element in buffer
+// Get the front item
 circularBuffer.front(); // returns 20
 
-// Get last element added to buffer
+// Get the rear item
 circularBuffer.rear(); // returns 50
 
-// Get nth-after-first element in buffer
+// Get the item at a position from the front
 circularBuffer.getIndex(1); // returns 30
-circularBuffer.getIndex(2); // returns 40
-
-// Get nth-to-last element added to buffer
 circularBuffer.getIndex(-1); // returns 50
-circularBuffer.getIndex(-2); // returns 40
 
-// Remove element from the buffer
+// Remove items from the buffer
 circularBuffer.pop(); // returns 20
 circularBuffer.pop(); // returns 30
 circularBuffer.size(); // returns 2
-circularBuffer.pop(); // returns 40
-circularBuffer.pop(); // returns 50
-circularBuffer.size(); // returns 0
-circularBuffer.pop(); // returns null
 
-// Iterate from front to rear. forEach's index is the element's slot in the
-// ring buffer, and arr is the ring buffer itself.
-circularQueue.push(10); // returns true
-circularQueue.push(20); // returns true
-circularQueue.push(30); // returns true
+// Iterate from front to rear. index is the position from the front, and the
+// third argument is the queue itself (like Map/Set.forEach).
 circularQueue.pop(); // returns 10
-circularQueue.size(); // returns 2
-circularQueue.forEach((elem, index, arr) => {
-	console.log(elem + ' is at index ' + index + ' in array ' + JSON.stringify(arr));
-}); // returns circularQueue
-// outputs '20 is at index 1 in array [10,20,30]'
-// outputs '30 is at index 2 in array [10,20,30]'
-
 circularQueue.push(40); // returns true
-circularQueue.push(50); // returns true, stored in slot 0 after wrapping around
-circularQueue.size(); // returns 4
-circularQueue.forEach((elem, index, arr) => {
-	console.log(elem + ' is at index ' + index + ' in array ' + JSON.stringify(arr));
+circularQueue.push(50); // returns true, wrapping around the end of the ring buffer
+circularQueue.forEach((item, index, queue) => {
+	console.log(item + ' is at index ' + index + ' of ' + queue.size());
 }); // returns circularQueue
-// outputs '20 is at index 1 in array [50,20,30,40]'
-// outputs '30 is at index 2 in array [50,20,30,40]'
-// outputs '40 is at index 3 in array [50,20,30,40]'
-// outputs '50 is at index 0 in array [50,20,30,40]'
+// outputs '20 is at index 0 of 4'
+// outputs '30 is at index 1 of 4'
+// outputs '40 is at index 2 of 4'
+// outputs '50 is at index 3 of 4'
 
-// Iterate values front to rear
-[...circularQueue]; // returns [20, 30, 40, 50]
+// Iterate items front to rear
+for (const item of circularQueue) {
+	console.log(item); // outputs 20, 30, 40, 50
+}
+circularQueue.values(); // returns [20, 30, 40, 50]
 
-// Returns the current state of the queue as a JSON string
-const serialized = circularQueue.stringify();
+// New queue holding the matching items. Uses this queue's options.
+const large = circularQueue.filter((item) => item > 25); // items [30, 40, 50], maxSize 4
+
+// Returns queue items, front to rear, as a JSON string
+const serialized = circularQueue.stringify(); // returns '{"type":"CircularQueue","elements":[20,30,40,50]}'
+
+// Reset queue and remove all items. Options are kept.
+circularQueue.reset(); // returns circularQueue
+
+// Byte form of the whole queue is provided by ByteCircularQueue, a superset of
+// CircularQueue. Items are generic, so it requires an ItemCodec at construction.
+import {ByteCircularQueue} from '@toreda/data-structures';
+
+const codec = {
+	encode: (item: number): Uint8Array => new Uint8Array([item]),
+	decode: (bytes: Uint8Array): number => bytes[0]
+};
+
+const source = new ByteCircularQueue<number>(codec, [1, 2, 3], {maxSize: 8});
+const bytes = source.toBytes(); // Uint8Array, same as source.toByteEnvelope().toBytes()
+
+// Rebuild a queue from envelope bytes. Throws when bytes are not a valid envelope.
+const fromBytes = new ByteCircularQueue<number>(codec, bytes, {maxSize: 8});
+fromBytes.values(); // returns [1, 2, 3]
 ```
 
 
@@ -458,7 +475,7 @@ Typescript
 
 ```typescript
 // Import
-import {PriorityQueue, PriorityQueueComparator} from '@toreda/adt';
+import {PriorityQueue, PriorityQueueComparator} from '@toreda/data-structures';
 
 // Instantiate. The comparator is required and throws when it is not a function.
 const minFirst: PriorityQueueComparator<number> = (a, b) => a < b;
@@ -518,7 +535,7 @@ Typescript
 
 ```typescript
 // Import
-import {ObjectPool, ObjectPoolInstance} from '@toreda/adt';
+import {ObjectPool, ObjectPoolInstance} from '@toreda/data-structures';
 
 // Pooled classes implement cleanObj(), which resets the object for reuse
 class ObjectClass implements ObjectPoolInstance {
@@ -604,7 +621,7 @@ Typescript
 
 ```typescript
 // Import
-import {BinarySearchTree, BinarySearchTreeComparator} from '@toreda/adt';
+import {BinarySearchTree, BinarySearchTreeComparator} from '@toreda/data-structures';
 
 // Instantiate. The comparator is required and throws when it is not a function.
 const byNumber: BinarySearchTreeComparator<number> = (a, b) => a - b;
@@ -767,7 +784,7 @@ tree.remove({k: 1}) === first; // true
 Set `allowDuplicates: false` to keep items unique. A duplicate is not added, and instead of throwing, the method returns the `duplicate_not_allowed` error code (type `BinarySearchTreeError`). Only a strict boolean is accepted; any other value keeps the default of `true`.
 
 ```typescript
-import {BinarySearchTree, BinarySearchTreeError} from '@toreda/adt';
+import {BinarySearchTree, BinarySearchTreeError} from '@toreda/data-structures';
 
 const unique = new BinarySearchTree<number>((a, b) => a - b, [5, 3, 5, 8], {allowDuplicates: false});
 unique.values(); // returns [3, 5, 8]. Duplicates in constructor data and insertArray are skipped.
@@ -817,6 +834,172 @@ const pooled = new BinarySearchTree<number>((a, b) => a - b, [], {pool: {startSi
 const unpooled = new BinarySearchTree<number>((a, b) => a - b, [], {disableElementPooling: true});
 ```
 
+## **`RedBlackTree<T>`**
+
+Self-balancing binary search tree ordered by a comparator you provide. Insert and removal recolor and rotate nodes so the tree's height never exceeds 2 log2(n + 1), whatever order items arrive in. Search, insert, and removal take O(log n) in the worst case, including for items inserted already sorted. Implements the shared `Tree` interface.
+
+`RedBlackTree` has the same API as [`BinarySearchTree`](#binarysearchtreet): `insert`, `find`, `remove`, `update`, `min`, `max`, `successor`, `predecessor`, every traversal order, `filter`, `query`, the `allowDuplicates` option, and node pooling all behave the same way. It adds node colors and `blackHeight()`.
+
+Typescript
+
+```typescript
+import {RedBlackTree, RedBlackTreeComparator} from '@toreda/data-structures';
+
+// Instantiate. The comparator is required and throws when it is not a function.
+const byNumber: RedBlackTreeComparator<number> = (a, b) => a - b;
+const tree = new RedBlackTree<number>(byNumber);
+
+// Sorted input stays balanced. A BinarySearchTree would have height 999 here.
+for (let i = 0; i < 1000; i++) {
+	tree.insert(i);
+}
+tree.height(); // returns 16 (never more than 2 log2(n + 1))
+
+// Nodes expose their color
+const small = new RedBlackTree<number>(byNumber, [20, 10, 30]);
+//         20 (black)
+//        /    //   10 (red)  30 (red)
+small.root()?.color(); // returns 'black'
+small.root()?.left()?.color(); // returns 'red'
+
+// Black nodes on every path from the root down to a missing child
+small.blackHeight(); // returns 1
+
+// Everything else works as in BinarySearchTree
+small.remove(10); // returns 10
+small.values(); // returns [20, 30]
+small.stringify(); // returns '{"type":"RedBlackTree","elements":[20,30]}'
+```
+
+Equal items keep their insertion order in every sorted walk, and `find()` and `remove()` act on the earliest one, as in `BinarySearchTree`. Rotations can move an equal item into a node's left subtree, so a left subtree holds equal or smaller items here instead of strictly smaller ones. This only matters when walking nodes by hand.
+
+## **`DirectedGraph<T>`**
+
+Graph of vertices joined by weighted edges. Each edge is either one-way (`addEdge`), traveled only from its source to its target, or bidirectional (`addBidirectionalEdge`), traveled either way. Both kinds can be mixed in one graph; a graph using only bidirectional edges behaves as an undirected graph. Implements the shared `Graph` interface.
+
+Adding and removing an edge, and checking whether two vertices are adjacent, take O(1). Removing a vertex takes O(d), where d is the number of edges touching it. Traversals and cycle detection take O(V + E), and `findPath()` takes O(E log V). Every walk is iterative, so long paths never overflow the call stack.
+
+Vertices are handles: the graph never compares its items, and one item can be added as several vertices. Keep the vertex returned by `addVertex()`, or look one up with `find(item)` in O(V).
+
+Typescript
+
+```typescript
+import {DirectedGraph} from '@toreda/data-structures';
+
+const graph = new DirectedGraph<string>();
+
+// Add vertices. Each returns the vertex holding the item.
+const home = graph.addVertex('home');
+const park = graph.addVertex('park');
+const shop = graph.addVertex('shop');
+const work = graph.addVertex('work');
+
+// Add edges with an optional weight (default 1)
+graph.addBidirectionalEdge(home, park, 2); // home <-> park
+graph.addBidirectionalEdge(park, work, 2); // park <-> work
+graph.addEdge(home, shop, 1); // home -> shop
+graph.addEdge(shop, work, 5); // shop -> work
+
+graph.size(); // returns 4 (vertices)
+graph.edgeCount(); // returns 4 (a bidirectional edge counts once)
+graph.adjacent(home, shop); // returns true
+graph.adjacent(shop, home); // returns false (one-way)
+graph.adjacent(park, home); // returns true (bidirectional)
+graph.neighbors(home); // returns [park, shop]
+graph.edge(home, shop)?.weight(); // returns 1
+
+// Edges that cannot be added return an error code (type DirectedGraphError) instead of throwing
+graph.addEdge(home, shop); // returns 'edge_exists'
+graph.addEdge(home, park); // returns 'edge_exists' (home -> park is already covered)
+graph.addEdge(home, null); // returns 'vertex_not_in_graph'
+graph.addEdge(shop, home, -1); // returns 'invalid_weight' (weights must be finite and 0 or more)
+
+// Traversals follow edges in their direction of travel
+graph.breadthFirst(home); // returns [home, park, shop, work]
+graph.depthFirst(home); // returns [home, park, work, shop]
+graph.depthFirst(); // omit start to walk every vertex, including unreachable ones
+
+// Remove an edge, or a vertex along with its edges
+graph.removeEdge(graph.edge(home, shop)); // returns true
+graph.removeVertex(shop); // returns 'shop'
+```
+
+### Cheapest paths with A*
+
+`findPath(start, goal, heuristic?)` returns the cheapest path as `{vertices, edges, cost}`, or `null` when the goal cannot be reached. The optional heuristic estimates the remaining cost from a vertex to the goal and steers the search toward it. It must never overestimate, or the path found may not be the cheapest. Without one, the search runs as Dijkstra's algorithm.
+
+```typescript
+// Using the home / park / shop / work graph as first built above
+const path = graph.findPath(home, work);
+path?.vertices; // returns [home, park, work]
+path?.cost; // returns 4 (cheaper than home -> shop -> work, which costs 6)
+
+// Bidirectional edges are traveled either way, one-way edges only forward
+graph.findPath(work, shop)?.vertices; // returns [work, park, home, shop]
+
+// Grid search with a Manhattan distance heuristic
+import {DirectedGraphVertex} from '@toreda/data-structures';
+
+type Cell = {x: number; y: number};
+const grid = new DirectedGraph<Cell>();
+const manhattan = (vertex: DirectedGraphVertex<Cell>, goal: DirectedGraphVertex<Cell>): number => {
+	const a = vertex.value()!;
+	const b = goal.value()!;
+	return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+};
+// ...add a vertex per cell and a bidirectional edge between neighboring cells
+grid.findPath(startCell, goalCell, manhattan);
+```
+
+### Cycle detection
+
+`hasCycle()` checks for a path that returns to its first vertex without using any edge twice, following each edge in a direction it can be traveled. It works for any mix of one-way and bidirectional edges, and for graphs split into several disconnected parts.
+
+```typescript
+// Using the home / park / shop / work graph as first built above
+graph.hasCycle(); // returns true: home -> shop -> work -> park -> home
+
+graph.removeEdge(graph.edge(shop, work));
+graph.hasCycle(); // returns false
+
+// Going back over one bidirectional edge uses it twice, so that is not a cycle
+const pair = new DirectedGraph<string>();
+const [a, b] = pair.addVertexArray(['a', 'b']);
+pair.addBidirectionalEdge(a, b);
+pair.hasCycle(); // returns false
+
+// Two one-way edges in opposite directions are one
+pair.removeEdge(pair.edge(a, b));
+pair.addEdge(a, b);
+pair.addEdge(b, a);
+pair.hasCycle(); // returns true
+```
+
+### Filter, query, and serialize a graph
+
+```typescript
+// New graph with the matching vertices and every edge between them
+const noShop = graph.filter((vertex) => vertex.value() !== 'shop');
+
+// Query vertices by item, in insertion order. delete() removes the vertex and its edges.
+const results = graph.query((item) => item.startsWith('p'));
+results[0].element.value(); // returns 'park'
+
+// Vertex items in insertion order, and edges by vertex index
+graph.stringify();
+// returns '{"type":"DirectedGraph","vertices":["home","park","shop","work"],
+//   "edges":[{"from":0,"to":1,"weight":2,"bidirectional":true},...]}'
+```
+
+### Vertex and edge pooling
+
+Vertex and edge wrappers are pooled by default, so once the pools have grown, adding vertices and edges creates no new objects. The `pool` options apply to both pools. After a vertex or edge is removed, don't use it again; read the removed item from the return value of `removeVertex()`.
+
+```typescript
+const pooled = new DirectedGraph<string>([], {pool: {startSize: 64}});
+const unpooled = new DirectedGraph<string>([], {disableElementPooling: true});
+```
+
 # Query Selectors
 
 Every collection supports `query()`. A query takes one filter, or an array of filters that must all match, and returns one `QueryResult` per match. Each result holds the matched `element` and offers `index()`, `key()`, and `delete()`.
@@ -824,8 +1007,8 @@ Every collection supports `query()`. A query takes one filter, or an array of fi
 Typescript
 
 ```typescript
-import {QueryFilter, QueryOptions, QueryResult} from '@toreda/adt';
-import {BinarySearchTree, CircularQueue, LinkedList, PriorityQueue, Queue, Stack} from '@toreda/adt';
+import {QueryFilter, QueryOptions, QueryResult} from '@toreda/data-structures';
+import {BinarySearchTree, CircularQueue, LinkedList, PriorityQueue, Queue, Stack} from '@toreda/data-structures';
 
 const myQueue = new Queue<number>();
 const myStack = new Stack<number>();
@@ -844,7 +1027,7 @@ const genQueryFilter = (target: number, lessThan: boolean): QueryFilter<number> 
 	return (value) => (lessThan ? value < target : value > target);
 };
 
-// Add elements to all ADTs
+// Add elements to all data structures
 [10, 20, 30, 40, 50].forEach((value) => {
 	myQueue.push(value);
 	myStack.push(value);
@@ -862,7 +1045,7 @@ const resultsCircularQueue = myCircularQueue.query(basicQueryFilter);
 const resultsPriorityQueue = myPriorityQueue.query(basicQueryFilter);
 const resultsTree = myTree.query(basicQueryFilter);
 
-// Get the element in query result. Node-based ADTs return the node.
+// Get the element in query result. Node-based data structures return the node.
 resultsQueue[0].element; // returns 30
 resultsStack[0].element; // returns 30
 resultsLinkedList[0].element.value(); // returns 30
@@ -874,7 +1057,7 @@ resultsTree[0].element.value(); // returns 30
 resultsQueue[0].index(); // returns 2 (position from the front)
 resultsStack[0].index(); // returns 2 (position down from the top)
 resultsLinkedList[0].index(); // returns null (lists have no index)
-resultsCircularQueue[0].index(); // returns 2 (slot in the ring buffer)
+resultsCircularQueue[0].index(); // returns 2 (position from the front)
 resultsPriorityQueue[0].index(); // returns 2 (position in the heap array)
 resultsTree[0].index(); // returns null (trees have no index)
 
@@ -888,10 +1071,10 @@ myPriorityQueue.pop(); // returns 10
 resultsQueue[0].index(); // returns 1
 resultsStack[0].index(); // returns 1
 resultsLinkedList[0].index(); // returns null
-resultsCircularQueue[0].index(); // returns 2 (the slot did not move)
+resultsCircularQueue[0].index(); // returns 1
 resultsPriorityQueue[0].index(); // returns 2
 
-// Delete query result from original ADT. Returns the removed item.
+// Delete query result from original data structure. Returns the removed item.
 resultsQueue[0].delete(); // returns 30
 resultsStack[0].delete(); // returns 30
 resultsLinkedList[0].delete(); // returns 30
@@ -917,12 +1100,12 @@ queryResults[1].element; // returns 30
 ```
 
 # Install
-Install `@toreda/adt` from NPM, or [clone the GitHub repo](https://github.com/toreda/adt) to work on it.
+Install `@toreda/data-structures` from NPM, or [clone the GitHub repo](https://github.com/toreda/adt) to work on it.
 
 ### Install using pnpm
 Add the package to your project:
 ```bash
-pnpm add @toreda/adt
+pnpm add @toreda/data-structures
 ```
 
 Or, in a clone of the repo, open a shell in the project root folder and install its dependencies:

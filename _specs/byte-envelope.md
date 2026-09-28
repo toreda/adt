@@ -1,12 +1,12 @@
 # Byte Envelope Specification
 
-Defines how a collection in this package is converted to and from bytes. The envelope is the container format shared by every ADT. It stores the byte form of each item and says nothing about what those bytes mean, because items are generic and only the caller knows their layout.
+Defines how a collection in this package is converted to and from bytes. The envelope is the container format shared by every data structure. It stores the byte form of each item and says nothing about what those bytes mean, because items are generic and only the caller knows their layout.
 
 Status: version 1. Any change to the layout below requires a new version number.
 
 ## Goals
 
-- One container format for every ADT, so each byte class only maintains its own item handling.
+- One container format for every data structure, so each byte class only maintains its own item handling.
 - Item encoding stays with the caller. The package never inspects, stringifies, or parses item contents.
 - Random access to any item's bytes without scanning the payload.
 - Malformed input is rejected before any item decoder runs.
@@ -14,7 +14,7 @@ Status: version 1. Any change to the layout below requires a new version number.
 ## Non-goals
 
 - Defining an item byte format. That is the caller's `ItemCodec`.
-- Preserving ADT-specific structure beyond item order. A list, stack, or queue all serialize to the same shape: items in collection order. Rebuilding structure is the job of the byte class constructor.
+- Preserving any structure beyond item order. A list, stack, or queue all serialize to the same shape: items in collection order. Rebuilding structure is the job of the byte class constructor.
 - Compression, checksums, or encryption. Callers can wrap the envelope bytes.
 
 ## Layout
@@ -77,16 +77,16 @@ The container. Holds an ordered array of `Uint8Array` items.
 | `decode(decode)`                | Runs the decoder over each item, in order.                           |
 | `toBytes()`                     | Serializes to the layout above.                                      |
 
-### `ByteADT<ItemT>` — `byte/adt.ts`
+### `ByteDataStructure<ItemT>` — `byte/data/structure.ts`
 
-Interface extending `ADT<ItemT>`. Implemented by every byte class. Both methods are non-null because a byte class always has a codec.
+Interface extending `DataStructure<ItemT>`. Implemented by every byte class. Both methods are non-null because a byte class always has a codec.
 
 | Method               | Returns                                                  |
 |----------------------|----------------------------------------------------------|
 | `toByteEnvelope()`   | `ByteEnvelope` holding every item's bytes in collection order. |
 | `toBytes()`          | `Uint8Array`, equal to `toByteEnvelope().toBytes()`.     |
 
-The base `ADT` interface deliberately has no byte methods. Whether an instance can encode is decided at construction, so it is expressed by the type rather than by a runtime null or error code.
+The base `DataStructure` interface deliberately has no byte methods. Whether an instance can encode is decided at construction, so it is expressed by the type rather than by a runtime null or error code.
 
 ### `ItemCodec<ItemT>` — `item/codec.ts`
 
@@ -104,13 +104,14 @@ Shared constructor step for byte classes: parse with `fromBytes`, throw if `null
 
 ### Byte classes
 
-One per ADT, a superset of the base class. Naming and location: `Byte` prefix on the class, path `src/byte/<base path>`. Current implementations:
+One per data structure, a superset of the base class. Naming and location: `Byte` prefix on the class, path `src/byte/<base path>`. Current implementations:
 
 | Class            | Base         | Path                    |
 |------------------|--------------|-------------------------|
 | `ByteLinkedList` | `LinkedList` | `byte/linked/list.ts`   |
+| `ByteCircularQueue` | `CircularQueue` | `byte/circular/queue.ts` |
 
-The remaining ADTs gain a byte class as each is reworked.
+The remaining data structures gain a byte class as each is reworked.
 
 ## Byte class contract
 
@@ -127,7 +128,7 @@ constructor(codec: ItemCodec<ItemT>, data?: ItemT[] | Uint8Array | null, options
 Encoding rules:
 
 - Items are encoded in collection order, as the base class's iteration would visit them (for `LinkedList`, head to tail).
-- Elements whose stored value is `null` are skipped, matching `stringify()`. Decoding an envelope therefore never produces a null-valued element.
+- A byte class encodes exactly the items its `stringify()` includes. `LinkedList` skips elements whose stored value is `null`, so decoding its envelope never produces a null-valued element. `CircularQueue` stores items directly and encodes every item, passing any `null` item to the codec. The package-wide null rules are an open review item (`TODO.md`).
 - `toBytes()` output round-trips: `new ByteX(codec, x.toBytes())` yields a collection with equal values in the same order, and its `toBytes()` is byte-for-byte equal.
 
 Maintenance boundary: a byte class owns only its constructor, `toByteEnvelope()`, `toBytes()`, and any override needed so derived instances keep the codec (for example `filter()`). Everything else is inherited, so base class changes do not need mirroring.

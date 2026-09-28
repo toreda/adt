@@ -1,431 +1,369 @@
 import {CircularQueue} from '../../src/circular/queue';
 import {CircularQueueIterator} from '../../src/circular/queue/iterator';
-import {type CircularQueueOptions} from '../../src/circular/queue/options';
 
-const QUEUE_MAX_SIZE = 10;
-const repeat = (n: number, f: any) => {
-	while (n-- > 0) f(n);
+/** Raw ring buffer, for checking where items physically sit. */
+const bufferOf = (q: CircularQueue<any>): unknown[] => (q as any)._elements;
+
+/** Queue of maxSize 5 whose items wrap around the end of the ring buffer. */
+const wrapped = (): CircularQueue<string> => {
+	const q = new CircularQueue<string>(['a', 'b', 'c', 'd', 'e'], {maxSize: 5});
+	q.pop();
+	q.pop();
+	q.push('f', 'g');
+	// Physical layout is now [f, g, c, d, e] with the front in slot 2.
+	return q;
 };
 
-const add10ItemsQueue = (q: CircularQueue<any>) => repeat(10, (n: number) => q.push((10 - n) * 10));
-const add10ItemsCirc = (q: CircularQueue<any>) => repeat(10, (n: number) => q.push(10 - n));
-
 describe('CircularQueue', () => {
-	let instance: CircularQueue<any>;
-	let options: CircularQueueOptions<any>;
+	describe('constructor', () => {
+		it('defaults', () => {
+			const q = new CircularQueue<number>();
 
-	beforeAll(() => {
-		options = {};
-		instance = new CircularQueue({maxSize: 15, overwrite: true});
-	});
+			expect(q).toBeInstanceOf(CircularQueue);
+			expect(q.size()).toBe(0);
+			expect(q.maxSize).toBe(25);
+			expect(q.overwrite).toBe(false);
+		});
 
-	beforeEach(() => {
-		instance.reset();
-		expect(instance.size()).toBe(0);
-		options = {
-			maxSize: 7
-		};
+		it('with items pushed front to rear', () => {
+			const q = new CircularQueue<number>([1, 2, 3]);
 
-		instance.reset();
-		expect(instance.size()).toBe(0);
-	});
+			expect(q.size()).toBe(3);
+			expect(q.front()).toBe(1);
+			expect(q.rear()).toBe(3);
+		});
 
-	describe('INSTANTIATION', () => {
-		it('default params', () => {
-			const result = new CircularQueue();
-			expect(result).toBeInstanceOf(CircularQueue);
-			expect(result.size()).toBe(0);
+		it('does not keep a reference to the provided array', () => {
+			const items = [1, 2, 3];
+			const q = new CircularQueue<number>(items);
+			items.push(4);
+
+			expect(q.size()).toBe(3);
 		});
 
 		it('with options', () => {
-			const options: CircularQueueOptions<any> = {
-				elements: [1, 2, 3, 4, 5, 6, 7],
-				front: 5,
-				rear: 0,
-				size: 2,
-				maxSize: 7,
-				overwrite: true
-			};
-			const result = new CircularQueue(options);
-			expect(result).toBeInstanceOf(CircularQueue);
-			expect(result.size()).toBe(2);
+			const q = new CircularQueue<number>([], {maxSize: 7, overwrite: true});
+
+			expect(q.maxSize).toBe(7);
+			expect(q.overwrite).toBe(true);
 		});
 
-		it('stringify instance', () => {
-			const stringified = instance.stringify();
-			expect(new CircularQueue({serializedState: stringified})).toEqual(instance);
+		it('drops items beyond maxSize, or keeps the last ones with overwrite', () => {
+			expect(new CircularQueue<number>([1, 2, 3, 4], {maxSize: 3}).values()).toEqual([1, 2, 3]);
+			expect(new CircularQueue<number>([1, 2, 3, 4], {maxSize: 3, overwrite: true}).values()).toEqual([
+				2, 3, 4
+			]);
 		});
 
+		it('invalid options fall back to defaults instead of throwing', () => {
+			for (const maxSize of [0, -1, 1.5, NaN, Infinity, '7', null]) {
+				expect(new CircularQueue<number>([], {maxSize: maxSize as any}).maxSize).toBe(25);
+			}
+			for (const overwrite of [0, 1, 'true', null, {}]) {
+				expect(new CircularQueue<number>([], {overwrite: overwrite as any}).overwrite).toBe(false);
+			}
+			expect(new CircularQueue<number>([1], null).size()).toBe(1);
+			expect(new CircularQueue<number>([1], 'nope' as any).maxSize).toBe(25);
+		});
 
-		it('invalid', () => {
-			expect(() => {
-				const result = new CircularQueue({
-					elements: 'adsf' as any,
-					front: '7' as any,
-					maxSize: -1 as any,
-					overwrite: 0 as any,
-					rear: 1.5 as any,
-					size: '0' as any
-				});
-				console.log(result);
-			}).toThrow();
+		it('ignores invalid data instead of throwing', () => {
+			expect(new CircularQueue('adsf' as any).size()).toBe(0);
+			expect(new CircularQueue(null).size()).toBe(0);
+			expect(new CircularQueue({elements: [4]} as any).size()).toBe(0);
+			expect(new CircularQueue(new Uint8Array([1, 2, 3]) as any).size()).toBe(0);
+		});
 
-			expect(() => {
-				const result = new CircularQueue({serializedState: 'null'});
-				console.log(result);
-			}).toThrow();
+		it('has no byte methods; those belong to ByteCircularQueue', () => {
+			const q = new CircularQueue<number>([1]) as any;
 
-			expect(() => {
-				const result = new CircularQueue({serializedState: 'in{valid'});
-				console.log(result);
-			}).toThrow();
-
-			expect(() => {
-				const result = new CircularQueue({serializedState: '{"elements": [4]}'});
-				console.log(result);
-			}).toThrow();
+			expect(q.toBytes).toBeUndefined();
+			expect(q.toByteEnvelope).toBeUndefined();
+			expect(q.toBinary).toBeUndefined();
 		});
 	});
 
-	describe('PUSH/POP', () => {
-		it('move front & rear', () => {
-			expect(instance.front()).toBeNull();
-			expect(instance.rear()).toBeNull();
+	describe('push / pop', () => {
+		it('moves front and rear', () => {
+			const q = new CircularQueue<number>([], {maxSize: 7});
 
-			let front = 99;
-			instance.push(front);
-			expect(instance.front()).toBe(front);
+			expect(q.front()).toBeNull();
+			expect(q.rear()).toBeNull();
 
-			[13, 24, 35, 46, 57, 68].forEach((v) => {
-				instance.push(v);
-				expect(instance.rear()).toBe(v);
-				expect(instance.front()).toBe(front);
+			[99, 13, 24, 35].forEach((v) => {
+				expect(q.push(v)).toBe(true);
+				expect(q.rear()).toBe(v);
+				expect(q.front()).toBe(99);
 			});
 
-			const rear = instance.rear();
-			const initialFront = front;
-
-			while (instance.size()) {
-				expect(instance.rear()).toBe(rear);
-				expect(instance.front()).toBe(front);
-				instance.pop();
-				front = instance.front() as number;
-				expect(front).not.toBe(initialFront);
-			}
-
-			instance.pop();
+			expect(q.pop()).toBe(99);
+			expect(q.front()).toBe(13);
+			expect(q.peek()).toBe(13);
+			expect(q.size()).toBe(3);
 		});
 
-		it('blocks push when full', () => {
-			const q = new CircularQueue<number>({maxSize: QUEUE_MAX_SIZE, overwrite: false});
-
-			while (!q.isFull()) {
-				q.push(Math.random());
-			}
-
-			const justFilled = q.stringify();
-
-			repeat(5, () => {
-				expect(q.push(Math.random())).toBe(false);
-				const afterFull = q.stringify();
-				expect(afterFull).toEqual(justFilled);
-			});
+		it('pop returns null when empty', () => {
+			expect(new CircularQueue<number>().pop()).toBeNull();
 		});
 
-		it('can override front', () => {
-			const q = new CircularQueue<number>({maxSize: QUEUE_MAX_SIZE, overwrite: true});
-			add10ItemsCirc(q);
+		it('blocks push when full without overwrite', () => {
+			const q = new CircularQueue<number>([1, 2, 3], {maxSize: 3});
 
-			const size = QUEUE_MAX_SIZE;
-			let curr = 10;
+			expect(q.isFull()).toBe(true);
+			expect(q.push(4)).toBe(false);
+			expect(q.values()).toEqual([1, 2, 3]);
+		});
 
-			expect(q.size()).toBe(size);
-			expect(q.front()).toBe(curr - size + 1);
-			expect(q.rear()).toBe(curr);
+		it('push adds items until full, then reports failure', () => {
+			const q = new CircularQueue<number>([], {maxSize: 3});
 
-			repeat(5, () => {
-				q.push(++curr);
-				expect(q.front()).toBe(curr - size + 1);
-				expect(q.rear()).toBe(curr);
-			});
+			expect(q.push(1, 2, 3, 4, 5)).toBe(false);
+			expect(q.values()).toEqual([1, 2, 3]);
+		});
+
+		it('overwrites the front item when full with overwrite', () => {
+			const q = new CircularQueue<number>([10, 20, 30, 40], {maxSize: 4, overwrite: true});
+
+			expect(q.push(50)).toBe(true);
+			expect(q.size()).toBe(4);
+			expect(q.front()).toBe(20);
+			expect(q.rear()).toBe(50);
+			expect(q.values()).toEqual([20, 30, 40, 50]);
+		});
+
+		it('pushArray handles arrays of any length', () => {
+			const q = new CircularQueue<number>([], {maxSize: 200000});
+			const items = Array.from({length: 150000}, (_, i) => i);
+
+			expect(q.pushArray(items)).toBe(true);
+			expect(q.size()).toBe(150000);
+			expect(q.rear()).toBe(149999);
+			expect(q.pushArray(null)).toBe(false);
+			expect(q.pushArray('abc' as any)).toBe(false);
+		});
+
+		it('pop releases the reference to the removed item', () => {
+			const item = {id: 1};
+			const q = new CircularQueue<object>([item]);
+			q.pop();
+
+			expect(bufferOf(q)).not.toContain(item);
+		});
+
+		it('keeps order across many wraps', () => {
+			const q = new CircularQueue<number>([], {maxSize: 3});
+			const expected: number[] = [];
+
+			for (let i = 0; i < 20; i++) {
+				q.push(i);
+				expected.push(i);
+				if (i % 2 === 1) {
+					expect(q.pop()).toBe(expected.shift());
+				}
+				if (q.isFull()) {
+					expect(q.pop()).toBe(expected.shift());
+				}
+				expect(q.values()).toEqual(expected);
+			}
 		});
 	});
 
-	describe('INSERT FRONT', () => {
-		it('inserts elements ahead of the current front', () => {
-			instance.push(1, 2, 3);
-			instance.insertFront(0);
+	describe('insertFront', () => {
+		it('inserts items ahead of the current front, last argument in front', () => {
+			const q = new CircularQueue<number>([1, 2, 3], {maxSize: 7});
 
-			expect(instance.size()).toBe(4);
-			expect(instance.front()).toBe(0);
-			expect(instance.rear()).toBe(3);
-			expect([...instance]).toEqual([0, 1, 2, 3]);
+			expect(q.insertFront(0)).toBe(true);
+			expect(q.values()).toEqual([0, 1, 2, 3]);
+			expect(q.insertFront(-1, -2)).toBe(true);
+			expect(q.values()).toEqual([-2, -1, 0, 1, 2, 3]);
 		});
 
 		it('inserts into an empty queue', () => {
-			instance.insertFront('a');
-			instance.insertFront('b');
+			const q = new CircularQueue<string>();
+			q.insertFront('a');
+			q.insertFront('b');
 
-			expect(instance.size()).toBe(2);
-			expect(instance.front()).toBe('b');
-			expect(instance.rear()).toBe('a');
-			expect([...instance]).toEqual(['b', 'a']);
+			expect(q.front()).toBe('b');
+			expect(q.rear()).toBe('a');
+			expect([...q]).toEqual(['b', 'a']);
 		});
 
-		it('overwrites the rear element when full with overwrite enabled', () => {
-			while (!instance.isFull()) {
-				instance.push(instance.size());
-			}
+		it('overwrites the rear item when full with overwrite', () => {
+			const q = new CircularQueue<number>([1, 2, 3], {maxSize: 3, overwrite: true});
 
-			const size = instance.size();
-			const secondToLast = instance.getIndex(size - 2);
-
-			expect(instance.insertFront(-1)).toBe(true);
-			expect(instance.size()).toBe(size);
-			expect(instance.front()).toBe(-1);
-			expect(instance.rear()).toBe(secondToLast);
+			expect(q.insertFront(0)).toBe(true);
+			expect(q.size()).toBe(3);
+			expect(q.values()).toEqual([0, 1, 2]);
 		});
 
-		it('returns false when full with overwrite disabled', () => {
-			const q = new CircularQueue<number>({maxSize: 3, overwrite: false});
-			q.push(1, 2, 3);
+		it('returns false when full without overwrite', () => {
+			const q = new CircularQueue<number>([1, 2, 3], {maxSize: 3});
 
 			expect(q.insertFront(0)).toBe(false);
-			expect(q.size()).toBe(3);
-			expect([...q]).toEqual([1, 2, 3]);
+			expect(q.values()).toEqual([1, 2, 3]);
 		});
 	});
 
-	describe('ARRAY LIKE USAGE', () => {
-		it('forEach', () => {
-			const frontToBack: any = [];
+	describe('getIndex', () => {
+		it('counts from the front, and from the rear when negative', () => {
+			const q = wrapped();
 
-			instance.forEach((e: number) => {
-				frontToBack.push(e);
-			}, instance);
-
-			frontToBack.forEach((e: any) => {
-				expect(e).toBe(instance.peek());
-				instance.pop();
-			});
-
-			add10ItemsQueue(instance);
-
-			const nonZeroStart: any = [];
-
-			instance.forEach((e: any) => {
-				nonZeroStart.push(e);
-			}, instance);
-
-			nonZeroStart.forEach((e: any) => {
-				expect(e).toBe(instance.peek());
-				instance.pop();
-			});
+			expect([0, 1, 2, 3, 4].map((n) => q.getIndex(n))).toEqual(['c', 'd', 'e', 'f', 'g']);
+			expect([-1, -2, -5].map((n) => q.getIndex(n))).toEqual(['g', 'f', 'c']);
 		});
 
-		it('get relative index', () => {
-			expect(instance.getIndex(6)).toBe(null);
+		it('returns null outside the queue or for non-integers', () => {
+			const q = new CircularQueue<number>([1, 2, 3], {maxSize: 10});
 
-			add10ItemsCirc(instance);
-
-			const asArray: any = [];
-			const reverse: any = [];
-
-			instance.forEach((e) => {
-				asArray.push(e);
-				reverse.unshift(e);
-			});
-
-			repeat(QUEUE_MAX_SIZE, (n: number) => {
-				expect(instance.getIndex(n)).toBe(asArray[n]);
-				expect(instance.getIndex(n - QUEUE_MAX_SIZE)).toBe(reverse[QUEUE_MAX_SIZE - n - 1]);
-			});
-
-			expect(instance.getIndex(1.6)).toBe(null);
-		});
-
-		it('filter', () => {
-			add10ItemsQueue(instance);
-			repeat(5, () => instance.push('random string - ' + Math.random().toString()));
-
-			const strings = instance.filter((e) => typeof e === 'string', instance);
-			const numbers = instance.filter((e) => typeof e === 'number');
-
-			expect(strings.size()).toBe(5);
-			expect(numbers.size()).toBe(10);
-
-			strings.forEach((e) => {
-				expect(e).toContain('random string - ');
-			});
+			expect(q.getIndex(3)).toBeNull();
+			expect(q.getIndex(-4)).toBeNull();
+			expect(q.getIndex(1.6)).toBeNull();
+			expect(q.getIndex(NaN)).toBeNull();
+			expect(new CircularQueue<number>().getIndex(0)).toBeNull();
 		});
 	});
 
-	describe('Iterator', () => {
-		describe('iterator on empty Cirqular instance', () => {
-			it('should not throw on empty cirqular instance', () => {
-				const iter = new CircularQueueIterator(instance);
-				expect(() => {
-					iter.next();
-				}).not.toThrow();
-			});
-
-			it('should return true for done', () => {
-				const iter = new CircularQueueIterator(instance);
-				expect(() => {
-					const res = iter.next();
-					expect(res.done).toBe(true);
-				});
-			});
-
-			it('should return null for value', () => {
-				const iter = new CircularQueueIterator(instance);
-				expect(() => {
-					const res = iter.next();
-					expect(res.value).toBe(null);
-				});
-			});
-		});
-
-		describe('iterator on single element Cirqular instance', () => {
-			it('should not throw calling iter.next', () => {
-				instance.push(10);
-				const iter = new CircularQueueIterator(instance);
-				expect(() => {
-					let res = iter.next();
-					res = iter.next();
-				}).not.toThrow();
-			});
-
-			it('should return true for done', () => {
-				instance.push(10);
-				const iter = new CircularQueueIterator(instance);
-				expect(() => {
-					let res = iter.next();
-					res = iter.next();
-					expect(res.done).toBe(true);
-				});
-			});
-
-			it('should return null for value', () => {
-				instance.push(10);
-				const iter = new CircularQueueIterator(instance);
-				expect(() => {
-					let res = iter.next();
-					res = iter.next();
-					expect(res.value).toBe(null);
-				});
-			});
-		});
-
-		describe('iterator for elements of instanceular instance', () => {
-			beforeEach(() => {
-				add10ItemsCirc(instance);
-			});
-
-			it('should not throw when using for of', () => {
-				const arr: any = [];
-				expect(() => {
-					for (const item of instance) {
-						arr.push(item);
-					}
-				}).not.toThrow();
-			});
-
-			it('should not throw when adding to the cq using for of', () => {
-				instance.push(11);
-				const arr: any = [];
-				expect(() => {
-					for (const item of instance) {
-						arr.push(item);
-					}
-				}).not.toThrow();
-				expect(arr.length).toBe(instance.size());
-				expect(arr[0]).toBe(instance.front());
-				expect(arr[instance.size() - 1]).toBe(instance.rear());
-			});
-		});
-	});
-
-	describe('QUERY', () => {
-		beforeEach(() => {
-			add10ItemsQueue(instance);
-		});
-
-		it('array of matches', () => {
-			instance.push(null);
-			const above = instance.query((value) => (value as number) > 55);
-			const below = instance.query((value) => (value as number) < 55);
-
-			expect(above.length + below.length).toBe(instance.size());
+	describe('forEach / values / iteration', () => {
+		it('visits front to rear with logical positions and the queue', () => {
+			const q = wrapped();
+			const seen: [string, number][] = [];
 
 			expect(
-				above.every((res) => {
-					const value = res.element as number;
-					return value > 55;
+				q.forEach((item, index, queue) => {
+					expect(queue).toBe(q);
+					seen.push([item, index]);
 				})
-			).toBe(true);
-
-			expect(
-				below.every((res) => {
-					const value = res.element as number;
-					return value < 55;
-				})
-			).toBe(true);
+			).toBe(q);
+			expect(seen).toEqual([
+				['c', 0],
+				['d', 1],
+				['e', 2],
+				['f', 3],
+				['g', 4]
+			]);
 		});
 
-		it('using queries', () => {
-			instance.push(null);
-			const queryLimit = 1;
-			const queries = instance.query([(v) => typeof v === 'number', (v) => !!v], {limit: queryLimit});
-			const queryLength = queries.length;
-			const instanceSize = instance.size();
-			expect(queries.length).toBe(Math.min(instanceSize, queryLimit));
+		it('passes thisArg as given', () => {
+			const q = new CircularQueue<number>([1]);
+			const context = {};
+			let received: unknown = null;
+			q.forEach(function (this: unknown) {
+				received = this;
+			}, context);
 
-			const queryToDelete = queries[0];
-			expect(queryToDelete.key()).toBeNull();
-			expect(queryToDelete.index()).not.toBeNull();
-			queryToDelete.delete();
-			expect(queries.length).toBe(queryLength);
-			expect(instance.size()).toBe(instanceSize - 1);
-			queryToDelete.delete();
-
-			add10ItemsCirc(instance);
-			const sizeBeforeDelete = instance.size();
-			const instanceQueries = instance.query((v) => v === 9);
-			const instanceQuery = instanceQueries[0];
-			instanceQuery.delete();
-			expect(instance.size()).toBe(sizeBeforeDelete - 1);
+			expect(received).toBe(context);
 		});
 
-		it('preserves element order when deleting from a wrapped queue', () => {
-			const q = new CircularQueue<string>({maxSize: 5, overwrite: false});
-			q.push('a', 'b', 'c', 'd', 'e');
-			q.pop();
-			q.pop();
-			q.push('f', 'g');
+		it('values and iteration run front to rear', () => {
+			const q = wrapped();
 
-			// Physical layout is now [f, g, c, d, e] with front at index 2.
+			expect(q.values()).toEqual(['c', 'd', 'e', 'f', 'g']);
 			expect([...q]).toEqual(['c', 'd', 'e', 'f', 'g']);
-
-			const match = q.query((v) => v === 'd')[0];
-			expect(match.delete()).toBe('d');
-
-			expect(q.size()).toBe(4);
-			expect([...q]).toEqual(['c', 'e', 'f', 'g']);
+			expect([...new CircularQueue<number>()]).toEqual([]);
 		});
 
-		it('deletes the rear element of a wrapped queue', () => {
-			const q = new CircularQueue<string>({maxSize: 5, overwrite: false});
-			q.push('a', 'b', 'c', 'd', 'e');
-			q.pop();
-			q.pop();
-			q.push('f', 'g');
+		it('iterator reports done with a null value when exhausted', () => {
+			const iter = new CircularQueueIterator(new CircularQueue<number>([10]));
 
-			const match = q.query((v) => v === 'g')[0];
-			expect(match.delete()).toBe('g');
+			expect(iter.next()).toEqual({value: 10, done: false});
+			expect(iter.next()).toEqual({value: null, done: true});
+		});
+	});
 
-			expect(q.size()).toBe(4);
-			expect([...q]).toEqual(['c', 'd', 'e', 'f']);
+	describe('filter', () => {
+		it('returns a new queue of matching items with the same options', () => {
+			const q = new CircularQueue<number | string>([1, 'a', 2, 'b', 3], {maxSize: 9, overwrite: true});
+			const numbers = q.filter((item) => typeof item === 'number');
+
+			expect(numbers).not.toBe(q);
+			expect(numbers.values()).toEqual([1, 2, 3]);
+			expect(numbers.maxSize).toBe(9);
+			expect(numbers.overwrite).toBe(true);
+			expect(q.size()).toBe(5);
+		});
+
+		it('passes logical positions and thisArg', () => {
+			const q = wrapped();
+			const context = {skip: 'e'};
+			const result = q.filter(function (this: typeof context, item, index) {
+				return item !== this.skip && index < 4;
+			}, context);
+
+			expect(result.values()).toEqual(['c', 'd', 'f']);
+		});
+	});
+
+	describe('query', () => {
+		it('matches front to rear and respects the limit', () => {
+			const q = new CircularQueue<number>([10, 20, 30, 40, 50]);
+
+			expect(q.query((v) => v > 15).map((r) => r.element)).toEqual([20, 30, 40, 50]);
+			expect(q.query([(v) => v > 15, (v) => v < 45]).map((r) => r.element)).toEqual([20, 30, 40]);
+			expect(q.query(() => true, {limit: 2}).map((r) => r.element)).toEqual([10, 20]);
+			expect(q.query([])).toEqual([]);
+		});
+
+		it('index is the current position from the front', () => {
+			const q = new CircularQueue<number>([10, 20, 30, 40, 50]);
+			const [match] = q.query((v) => v === 30);
+
+			expect(match.key()).toBeNull();
+			expect(match.index()).toBe(2);
+			q.pop();
+			expect(match.index()).toBe(1);
+		});
+
+		it('delete removes the item once and keeps order', () => {
+			const q = new CircularQueue<number>([10, 20, 30, 40, 50]);
+			const [match] = q.query((v) => v === 30);
+
+			expect(match.delete()).toBe(30);
+			expect(match.delete()).toBeNull();
+			expect(match.index()).toBeNull();
+			expect(q.values()).toEqual([10, 20, 40, 50]);
+		});
+
+		it('preserves order when deleting from a wrapped queue', () => {
+			const q = wrapped();
+
+			expect(q.query((v) => v === 'd')[0].delete()).toBe('d');
+			expect(q.values()).toEqual(['c', 'e', 'f', 'g']);
+			expect(q.push('h')).toBe(true);
+			expect(q.values()).toEqual(['c', 'e', 'f', 'g', 'h']);
+		});
+
+		it('deletes the rear item of a wrapped queue', () => {
+			const q = wrapped();
+
+			expect(q.query((v) => v === 'g')[0].delete()).toBe('g');
+			expect(q.values()).toEqual(['c', 'd', 'e', 'f']);
+			expect(q.rear()).toBe('f');
+		});
+	});
+
+	describe('stringify', () => {
+		it('serializes items front to rear', () => {
+			expect(wrapped().stringify()).toBe('{"type":"CircularQueue","elements":["c","d","e","f","g"]}');
+		});
+
+		it('returns null for items that cannot be serialized', () => {
+			expect(new CircularQueue<bigint>([BigInt(1)]).stringify()).toBeNull();
+		});
+	});
+
+	describe('clearElements / reset', () => {
+		it('remove every item and keep options', () => {
+			const q = new CircularQueue<number>([1, 2, 3], {maxSize: 3, overwrite: true});
+
+			expect(q.clearElements()).toBe(q);
+			expect(q.size()).toBe(0);
+			expect(q.front()).toBeNull();
+			q.push(4);
+			expect(q.values()).toEqual([4]);
+
+			expect(q.reset()).toBe(q);
+			expect(q.isEmpty()).toBe(true);
+			expect(q.maxSize).toBe(3);
+			expect(q.overwrite).toBe(true);
 		});
 	});
 });

@@ -2,7 +2,7 @@
  * Caller supplied conversion producing the byte form of a single item.
  *
  * @remarks
- * ADT items are generic, so an ADT cannot encode them itself. Byte ADTs take
+ * Data structure items are generic, so a data structure cannot encode them itself. Byte data structures take
  * an encoder as the `encode` half of the `ItemCodec` required at construction.
  *
  * @category Base

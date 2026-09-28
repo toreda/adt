@@ -2,8 +2,8 @@ import {ByteEnvelope} from '../envelope';
 import {type ItemCodec} from '../../item/codec';
 
 /**
- * Rebuild items from envelope bytes received by a byte ADT constructor.
- * Shared by every byte ADT so they reject malformed input the same way.
+ * Rebuild items from envelope bytes received by a byte data structure constructor.
+ * Shared by every byte data structure so they reject malformed input the same way.
  *
  * @throws		When `bytes` is not a well formed `ByteEnvelope`.
  *

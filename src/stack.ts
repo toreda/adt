@@ -1,4 +1,4 @@
-import type {ADT} from './adt';
+import type {DataStructure} from './data/structure';
 import type {ArrayMethod} from './array/method';
 import type {StackOptions as Options} from './stack/options';
 import type {QueryFilter} from './query/filter';
@@ -9,11 +9,11 @@ import {StackState as State} from './stack/state';
 import {isNumber} from './utility';
 
 /**
- * Stack ADT with standard FILO functionality.
+ * Stack data structure with standard FILO functionality.
  *
  * @category Stack
  */
-export class Stack<T> implements ADT<T> {
+export class Stack<T> implements DataStructure<T> {
 	public readonly state: State<T>;
 
 	constructor(options?: Options<T>) {

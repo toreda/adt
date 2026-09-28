@@ -1,4 +1,4 @@
-import {type ADT} from './adt';
+import {type DataStructure} from './data/structure';
 import {type ArrayMethod} from './array/method';
 import {type QueryFilter} from './query/filter';
 import {type QueryOptions} from './query/options';
@@ -13,7 +13,7 @@ import {isNumber} from './utility';
  *
  * @category Queue
  */
-export class Queue<T> implements ADT<T> {
+export class Queue<T> implements DataStructure<T> {
 	public readonly state: State<T>;
 
 	constructor(options?: QueueOptions<T>) {

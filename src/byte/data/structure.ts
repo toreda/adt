@@ -1,10 +1,10 @@
-import {type ADT} from '../adt';
-import {type ByteEnvelope} from './envelope';
+import {type DataStructure} from '../../data/structure';
+import {type ByteEnvelope} from '../envelope';
 
 /**
- * Contract for the byte form of an ADT: a subclass of a base ADT that was
+ * Contract for the byte form of a data structure: a subclass of a base data structure that was
  * constructed with an `ItemCodec` and can therefore always produce, and be
- * rebuilt from, a `ByteEnvelope`. Base ADTs never carry these methods, so a
+ * rebuilt from, a `ByteEnvelope`. Base data structures never carry these methods, so a
  * missing codec is a compile-time error rather than a runtime null.
  *
  * Envelope layout, validation rules, and the byte class constructor contract
@@ -12,7 +12,7 @@ import {type ByteEnvelope} from './envelope';
  *
  * @category Base
  */
-export interface ByteADT<ItemT> extends ADT<ItemT> {
+export interface ByteDataStructure<ItemT> extends DataStructure<ItemT> {
 	/**
 	 * Envelope holding every item's bytes, in collection order.
 	 */

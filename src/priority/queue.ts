@@ -1,4 +1,4 @@
-import {type ADT} from '../adt';
+import {type DataStructure} from '../data/structure';
 import {type ArrayMethod} from '../array/method';
 import {type PriorityQueueComparator as Comparator} from './queue/comparator';
 import {type PriorityQueueOptions as Options} from './queue/options';
@@ -14,7 +14,7 @@ import {isNumber} from '../utility';
  *
  * @category Priority Queue
  */
-export class PriorityQueue<ItemT> implements ADT<ItemT> {
+export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
 	private readonly state: State<ItemT>;
 	private readonly comparator: Comparator<ItemT>;
 

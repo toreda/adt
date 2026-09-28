@@ -2,7 +2,7 @@ import {type ItemCodec} from '../codec';
 
 /**
  * Runtime check that a value is a usable `ItemCodec`: an object with both
- * `encode` and `decode` functions. Byte ADT constructors use it to fail fast
+ * `encode` and `decode` functions. Byte data structure constructors use it to fail fast
  * for callers outside the type system.
  *
  * @category Base

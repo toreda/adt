@@ -1,8 +1,8 @@
 # TODO
 
-## Null handling review (all ADTs)
+## Null handling review (all data structures)
 
-Null and `undefined` item values are handled inconsistently. Establish the rules first, then check every ADT against them.
+Null and `undefined` item values are handled inconsistently. Establish the rules first, then check every data structure against them.
 
 **Rules to decide:**
 - Whether `null` / `undefined` are valid items or are rejected on insert.
@@ -15,4 +15,4 @@ Null and `undefined` item values are handled inconsistently. Establish the rules
 - `query` never matches an element whose value is `null`.
 - `insert(undefined)` stores `null`, because `LinkedListElement.value(undefined)` is treated as a getter call.
 
-**Then:** check every other ADT (Trees, Graphs, `CircularQueue`, `HashTable`, `ObjectPool`, `PriorityQueue`, `Queue`, `Stack`, `Trie`) against the rules, and record them in `CLAUDE.md`.
+**Then:** check every other data structure (Trees, Graphs, `CircularQueue`, `HashTable`, `ObjectPool`, `PriorityQueue`, `Queue`, `Stack`, `Trie`) against the rules, and record them in `CLAUDE.md`.

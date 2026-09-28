@@ -1,4 +1,4 @@
-import type {ADT} from '../adt';
+import type {DataStructure} from '../data/structure';
 import type {LinkedListMethod} from './list/method';
 import {ElementPool} from '../element/pool';
 import {LinkedListElement} from './list/element';
@@ -14,13 +14,13 @@ import {isNumber} from '../utility';
  * Doubly linked list. Elements wrap each item and expose `prev()` / `next()`
  * links so callers can walk the list in either direction.
  *
- * Node wrappers are pooled by default (see `ADTOptions`). Byte encoding is
+ * Node wrappers are pooled by default (see `DataStructureOptions`). Byte encoding is
  * provided by the `ByteLinkedList` subclass, which requires an `ItemCodec`
  * at construction.
  *
  * @category Linked List
  */
-export class LinkedList<ItemT> implements ADT<ItemT> {
+export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	private _head: LinkedListElement<ItemT> | null;
 	private _tail: LinkedListElement<ItemT> | null;
 	private _size: number;

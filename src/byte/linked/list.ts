@@ -1,5 +1,5 @@
 import type {LinkedListMethod} from '../../linked/list/method';
-import type {ByteADT} from '../adt';
+import type {ByteDataStructure} from '../data/structure';
 import {ByteEnvelope} from '../envelope';
 import {byteEnvelopeDecode} from '../envelope/decode';
 import type {ItemCodec} from '../../item/codec';
@@ -14,7 +14,7 @@ import type {LinkedListOptions} from '../../linked/list/options';
  *
  * @category Linked List
  */
-export class ByteLinkedList<ItemT> extends LinkedList<ItemT> implements ByteADT<ItemT> {
+export class ByteLinkedList<ItemT> extends LinkedList<ItemT> implements ByteDataStructure<ItemT> {
 	public readonly codec: ItemCodec<ItemT>;
 
 	/**
