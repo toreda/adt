@@ -17,10 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     * `allowDuplicates` option, defaulting to `true`. When `false`, inserting at an occupied position adds nothing and returns the `duplicate_not_allowed` error code instead of throwing. Items without finite coordinates are refused with `invalid_position`.
     * `update()` sets a node's item and moves the node to the item's new position, keeping the same node. Use it after changing an item's position in place.
 * `RedBlackTree`: self-balancing binary search tree with O(log n) worst-case search, insert, and removal, implementing `Tree`. Same API and options as `BinarySearchTree`, plus node `color()` and `blackHeight()`.
+* `Trie`: prefix tree mapping string keys, read from each item by a required key selector, to items. Insert, find, and removal take time proportional to key length, not item count. Includes `keysWithPrefix()` for autocomplete, `withPrefix()` and allocation-free `forEachWithPrefix()`, `hasPrefix()`, `longestPrefixOf()`, and `min()` / `max()` / `successor()` / `predecessor()` in key order. Node wrappers are pooled by default.
+    * Keys are unique. Inserting an item under a stored key replaces the stored item, like `Map.prototype.set()`.
+    * `update()` moves an item to its new key after the item was changed in place.
 
 ### Breaking Changes
 * Package renamed from `@toreda/adt` to `@toreda/data-structures`.
 * `@toreda/log` and `@toreda/shared-types` are no longer peer dependencies, so the package has no runtime or peer dependencies. `typeValue` is now provided by this package. Projects that used either package without listing it in their own `package.json` must add it.
+* Requires Node.js 22 or later, declared in `engines`. Browser builds are unaffected.
+* The published package contains only `dist/`, `src/`, `README.md`, `LICENSE.md`, and `CHANGELOG.md`. Build configuration, specs, and editor settings are no longer published.
 * `ADT` interface renamed to `DataStructure`, `ADTOptions` to `DataStructureOptions`, and `ByteADT` to `ByteDataStructure`.
 * `CircularQueue` constructor is now `(data?, options?)`. Starting items are passed as an array in `data` instead of the `elements` option.
 * `CircularQueue` options are reduced to `maxSize` and `overwrite`. The `elements`, `front`, `rear`, `size`, `serializedState`, and `reverseInsert` options are removed. Invalid option values fall back to their defaults instead of throwing.
@@ -56,11 +61,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Exported validation helpers `booleanValue`, `booleanNullValue`, `numberValue`, `numberNullValue`, and `typeValue` (with its `TypeValueTest` type), alongside the existing `intValue` and `intNullValue`.
 * Dual CommonJS and ES module builds. `require` and `import` each load their own build with matching type declarations.
+* `"sideEffects": false` in `package.json`, so bundlers can leave out data structures that are not imported.
+* `pnpm bench` runs `bench/alloc.cjs`, which measures bytes allocated per operation on each steady-state hot path. `bench/compare.cjs` runs the same measurement against other data structure packages.
 * `Tree` base interface shared by all tree data structures, with `TreeElement` as the base node contract.
 * `Graph` base interface shared by all graph data structures, with `GraphVertex` and `GraphEdge` as the base vertex and edge contracts.
 * `ByteCircularQueue`: `CircularQueue` superset that requires an `ItemCodec` and converts to and from `ByteEnvelope` bytes.
 * `CircularQueue.pushArray()` adds every item of an array, for arrays of any length, and `CircularQueue.values()` returns items front to rear.
-* `Byte*` subclass for every collection except `ObjectPool`: `ByteStack`, `ByteQueue`, `BytePriorityQueue`, `ByteBinarySearchTree`, `ByteRedBlackTree`, `ByteQuadTree`, `ByteOctTree`, and `ByteDirectedGraph`.
+* `Byte*` subclass for every collection except `ObjectPool`: `ByteStack`, `ByteQueue`, `BytePriorityQueue`, `ByteBinarySearchTree`, `ByteRedBlackTree`, `ByteQuadTree`, `ByteOctTree`, `ByteTrie`, and `ByteDirectedGraph`.
 * `ByteGraphEnvelope`: container for `ByteDirectedGraph`. Embeds an unchanged `ByteEnvelope` of vertex items and adds an edge section, so every other byte class keeps the v1 format.
 * `QuadTree` and `OctTree` `forEachWithinBounds()` and `forEachWithinRadius()` visit matches without allocating. They are safe under mutation, with the same rules as `forEach`: matches are collected before the callback first runs, and a match removed before it is reached is skipped. `withinBounds()` and `withinRadius()` accept an optional array to refill.
 * `DirectedGraph.forEachNeighbor()` visits neighbors without allocating. `neighbors()`, `outEdges()`, and `inEdges()` accept an optional array to refill, and `findPath()` accepts an optional path to refill.
@@ -94,7 +101,7 @@ Steady-state hot paths no longer allocate. Each of these was measured with zero 
 * `DirectedGraph.findPath()` with a reused path, and `forEachNeighbor()`.
 * `forEach` on every collection.
 
-Adding and removing `DirectedGraph` edges and vertices still produces some garbage, about one full GC per 50,000 edge changes, because V8 reallocates `Map` tables as entries are added and removed.
+Adding and removing `DirectedGraph` edges and vertices still produces some garbage, about one major GC per 200,000 to 400,000 edge changes on Node 23, because V8 reallocates `Map` tables as entries are added and removed.
 
 Changes by data structure:
 * **`ObjectPool`**

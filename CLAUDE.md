@@ -57,7 +57,6 @@ Byte encoding is not part of the base `DataStructure` contract. Each data struct
 **Standalone** (no shared base type)
 * `CircularQueue`: `<root>/src/circular/queue.ts`
 * `ByteCircularQueue`: `<root>/src/byte/circular/queue.ts` (superset of `CircularQueue` implementing `ByteDataStructure`)
-* `HashTable`: `<root>/src/hash/table.ts`
 * `ObjectPool`: `<root>/src/object/pool.ts`
 * `PriorityQueue`: `<root>/src/priority/queue.ts`
 * `BytePriorityQueue`: `<root>/src/byte/priority/queue.ts` (superset of `PriorityQueue` implementing `ByteDataStructure`)
@@ -66,6 +65,7 @@ Byte encoding is not part of the base `DataStructure` contract. Each data struct
 * `Stack`: `<root>/src/stack.ts`
 * `ByteStack`: `<root>/src/byte/stack.ts` (superset of `Stack` implementing `ByteDataStructure`)
 * `Trie`: `<root>/src/trie.ts`
+* `ByteTrie`: `<root>/src/byte/trie.ts` (superset of `Trie` implementing `ByteDataStructure`)
 
 
 ## Performance Rules

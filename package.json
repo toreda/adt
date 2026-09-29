@@ -2,8 +2,19 @@
 	"name": "@toreda/data-structures",
 	"version": "1.0.0",
 	"packageManager": "pnpm@12.6.0",
-	"description": "Low GC churn TypeScript data structures for games and real-time media. Pooled node wrappers mean steady-state inserts and removals create no new objects. Includes Stack, Queue, Circular Queue (ring buffer), Priority Queue, Doubly Linked List, Object Pool, Binary Search Tree, Red-Black Tree, Quadtree, Octree, and Directed Graph with A* pathfinding.",
-	"public": true,
+	"description": "Low GC churn TypeScript data structures for games and real-time media. Pooled node wrappers mean steady-state inserts and removals create no new objects. Includes Stack, Queue, Circular Queue (ring buffer), Priority Queue, Doubly Linked List, Object Pool, Binary Search Tree, Red-Black Tree, Quadtree, Octree, Trie, and Directed Graph with A* pathfinding.",
+	"publishConfig": {
+		"access": "public"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"sideEffects": false,
+	"files": [
+		"dist",
+		"src",
+		"CHANGELOG.md"
+	],
 	"main": "./dist/cjs/index.js",
 	"module": "./dist/esm/index.js",
 	"types": "./dist/cjs/index.d.ts",
@@ -24,10 +35,11 @@
 		"lint": "pnpm eslint ./src/** --quiet",
 		"lint:nofix": "pnpm lint",
 		"lint:fix": "pnpm eslint src/**/*.{js,ts,tsx} --quiet --fix",
-		"make:docs": "pnpm typedoc docs --categorizeByGroup false --entryPoints ./src/index.ts",
+		"make:docs": "pnpm typedoc --out docs --categorizeByGroup false --entryPoints ./src/index.ts",
 		"build": "pnpm build:prod",
 		"build:prod": "pnpm gulp --prod",
 		"build:dev": "pnpm gulp --dev",
+		"bench": "node --expose-gc --max-semi-space-size=1024 bench/alloc.cjs",
 		"test": "jest --ci --coverage --maxWorkers=50%",
 		"test:ci": "cross-env COVERAGE=full jest --ci --coverage --maxWorkers=50% --reporters=default --reporters=jest-junit",
 		"test:fast": "cross-env COVERAGE=summary jest --bail --coverage",
@@ -62,8 +74,6 @@
 		"doubly-linked-list",
 		"object-pool",
 		"pooling",
-		"hash-table",
-		"hashmap",
 		"trie",
 		"prefix-tree",
 		"tree",

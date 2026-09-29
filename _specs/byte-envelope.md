@@ -132,6 +132,7 @@ One per data structure, a superset of the base class. Naming and location: `Byte
 | `ByteRedBlackTree`     | `RedBlackTree`     | `byte/red/black/tree.ts`      |
 | `ByteQuadTree`         | `QuadTree`         | `byte/quad/tree.ts`           |
 | `ByteOctTree`          | `OctTree`          | `byte/oct/tree.ts`            |
+| `ByteTrie`             | `Trie`             | `byte/trie.ts`                |
 | `ByteDirectedGraph`    | `DirectedGraph`    | `byte/directed/graph.ts`      |
 
 `ObjectPool` has no byte class, by design. Its objects are pool-owned scratch instances that `cleanObj()` resets on release, not caller items, so there is no collection content to preserve. A pool is rebuilt by constructing it again with the same options.

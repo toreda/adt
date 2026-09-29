@@ -1,6 +1,6 @@
 [![Toreda](https://content.toreda.com/logo/toreda-logo.png)](https://www.toreda.com)
 
-[![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/toreda/data-structures/master?style=for-the-badge)](https://github.com/toreda/data-structures/releases/latest) [![GitHub Release Date](https://img.shields.io/github/release-date/toreda/data-structures?style=for-the-badge)](https://github.com/toreda/data-structures/releases/latest) [![GitHub issues](https://img.shields.io/github/issues/toreda/data-structures?style=for-the-badge)](https://github.com/toreda/data-structures/issues)
+[![CI](https://img.shields.io/github/actions/workflow/status/toreda/data-structures/main.yml?branch=master&style=for-the-badge)](https://github.com/toreda/data-structures/actions) [![GitHub package.json version (branch)](https://img.shields.io/github/package-json/v/toreda/data-structures/master?style=for-the-badge)](https://github.com/toreda/data-structures/releases/latest) [![GitHub Release Date](https://img.shields.io/github/release-date/toreda/data-structures?style=for-the-badge)](https://github.com/toreda/data-structures/releases/latest) [![GitHub issues](https://img.shields.io/github/issues/toreda/data-structures?style=for-the-badge)](https://github.com/toreda/data-structures/issues)
 
 [![GitHub](https://img.shields.io/github/stars/toreda/data-structures?style=for-the-badge&logo=github&label=GitHub)](https://github.com/toreda/data-structures) [![NPM Downloads](https://img.shields.io/npm/dm/@toreda/data-structures?style=for-the-badge&logo=npm&label=NPM)](https://www.npmjs.com/package/@toreda/data-structures) [![license](https://img.shields.io/github/license/toreda/data-structures?style=for-the-badge)](https://github.com/toreda/data-structures/blob/master/LICENSE.md)
 
@@ -15,14 +15,20 @@ Generic TypeScript data structures built for low garbage collection (GC) churn. 
 * **Stack-safe.** Tree and graph traversals are iterative, so deep or lopsided structures never overflow the call stack.
 * **One consistent API.** Every collection supports search, insertion, deletion, `query()` filters, and JSON serialization, and returns `null` instead of throwing when empty.
 * **Binary encoding.** Every collection except `ObjectPool` has a `Byte*` subclass, such as `ByteLinkedList` or `ByteDirectedGraph`, that encodes the whole collection to bytes with your own item codec and rebuilds it from those bytes.
+* **Zero dependencies.** No runtime or peer dependencies. TypeScript types, an ES module build, and a CommonJS build are included.
 
 # Contents <!-- omit from toc -->
+- [Install](#install)
 - [Use Cases](#use-cases)
 	- [Game object pooling with `ObjectPool`](#game-object-pooling-with-objectpool)
 	- [Bounded history and stream buffers with `CircularQueue`](#bounded-history-and-stream-buffers-with-circularqueue)
 	- [Spatial queries with `QuadTree` and `OctTree`](#spatial-queries-with-quadtree-and-octtree)
 	- [Pathfinding with `DirectedGraph`](#pathfinding-with-directedgraph)
 	- [Ordered and scheduled data](#ordered-and-scheduled-data)
+- [Performance](#performance)
+	- [Allocation benchmark](#allocation-benchmark)
+	- [Compared with other packages](#compared-with-other-packages)
+	- [When to use something else](#when-to-use-something-else)
 - [**`DataStructure` Interface**](#datastructure-interface)
 - [Data Structures](#data-structures)
 	- [**`BinarySearchTree<T>`**](#binarysearchtreet)
@@ -88,11 +94,47 @@ Generic TypeScript data structures built for low garbage collection (GC) churn. 
 		- [Iterating a stack](#iterating-a-stack)
 		- [Pop and reverse a stack](#pop-and-reverse-a-stack)
 		- [Serialize and reset a stack](#serialize-and-reset-a-stack)
+	- [**`Trie<T>`**](#triet)
+		- [Trie basics](#trie-basics)
+		- [Prefix search and autocomplete](#prefix-search-and-autocomplete)
+		- [Objects keyed by string](#objects-keyed-by-string)
+		- [Trie traversal and shared features](#trie-traversal-and-shared-features)
 - [Query Selectors](#query-selectors)
-- [Install](#install)
-		- [Install using pnpm](#install-using-pnpm)
-		- [Clone the repo](#clone-the-repo)
+- [Validation Helpers](#validation-helpers)
+- [Development](#development)
 - [License](#license)
+
+# Install
+
+```bash
+npm install @toreda/data-structures
+```
+
+Or with another package manager:
+
+```bash
+pnpm add @toreda/data-structures
+yarn add @toreda/data-structures
+bun add @toreda/data-structures
+```
+
+* **No dependencies.** Installing adds this package only.
+* **TypeScript types included.** No `@types` package is needed.
+* **ES modules and CommonJS.** `import` and `require` each load their own build, with matching type declarations.
+* **Browsers and Node.js.** The build targets ES2015 and uses no Node.js APIs, so it runs in browsers through any bundler, such as Vite, webpack, esbuild, or Rollup. Node.js 22 or later is supported and tested.
+* **Tree-shakable.** The package declares `"sideEffects": false`, so bundlers leave out the data structures you don't import.
+
+```typescript
+// ES modules and TypeScript
+import {CircularQueue, ObjectPool, QuadTree} from '@toreda/data-structures';
+```
+
+```javascript
+// CommonJS
+const {CircularQueue, ObjectPool, QuadTree} = require('@toreda/data-structures');
+```
+
+Import from the package root. Deep imports such as `@toreda/data-structures/dist/...` are blocked by the package's `exports` map.
 
 # Use Cases
 
@@ -211,7 +253,7 @@ Use for navigation graphs, waypoint networks, tile and hex maps, and dialogue an
 
 * `findPath()` runs A* with your heuristic, or Dijkstra's algorithm without one, and returns the vertices, edges, and total cost.
 * One-way and bidirectional edges mix freely in one graph, which covers one-way doors, ledges, and conveyors.
-* Adjacency checks and edge insertion and removal are O(1). Vertex and edge wrappers are pooled, and removing a vertex or edge allocates nothing. The engine may still resize the graph's internal `Map` and `Set` tables as it grows.
+* Adjacency checks and edge insertion and removal are O(1), and vertex and edge wrappers are pooled. Adjacency lives in JavaScript `Map`s, which V8 resizes as entries are added and removed, so changing edges still produces some garbage: in our measurements on Node 23, about one major GC per 200,000 to 400,000 edge changes and no minor GCs. Build the graph up front, and keep per-frame work to lookups, `forEachNeighbor()`, and `findPath()`.
 * `forEachNeighbor()` visits a vertex's neighbors without allocating, for per-frame AI and steering queries.
 * `findPath()` reuses one search state per graph, and can refill a path object you pass in instead of returning a new one.
 
@@ -220,6 +262,75 @@ Use for navigation graphs, waypoint networks, tile and hex maps, and dialogue an
 * **`RedBlackTree`** keeps items sorted with O(log n) worst case insert, find, and removal. Use it for leaderboards, timelines, sequencer events sorted by time, and sorted render or update queues. `update()` moves an item after its sort key changes and keeps the same node, and nodes are pooled.
 * **`PriorityQueue`** is a binary heap for timers, scheduled events, AI task queues, and the open set in custom searches.
 * **`LinkedList`** removes a node in O(1) when you hold the node. Use it for active lists where entities are removed in any order, and for LRU caches. Nodes are pooled, and `forEach` walks the links without building an array.
+
+# Performance
+
+## Allocation benchmark
+
+`pnpm bench` runs [`bench/alloc.cjs`](bench/alloc.cjs), which measures the heap bytes each operation allocates once the structure has warmed up. The young generation is enlarged so no garbage collection runs during a measurement, which makes the heap growth equal to the bytes allocated. Each row is 200,000 operations after 20,000 warm-up operations, on Node.js 23.11.
+
+| Operation | Bytes per operation |
+|---|---:|
+| `CircularQueue` push + pop | 0 |
+| `CircularQueue` push with `overwrite` | 0 |
+| `Queue` push + pop | 0 |
+| `Stack` push + pop | 0 |
+| `PriorityQueue` push + pop (100 items) | 0 |
+| `LinkedList` insert + `removeNode` | 0 |
+| `ObjectPool` allocate + release | 0 |
+| `BinarySearchTree` insert + remove (1000 items) | 0 |
+| `BinarySearchTree` `update()` move | 0 |
+| `RedBlackTree` insert + remove (1000 items) | 0 |
+| `RedBlackTree` `update()` move | 0 |
+| `QuadTree` `nearest()` (1000 items) | 0 |
+| `QuadTree` `forEachWithinBounds()` | 0 |
+| `QuadTree` `forEachWithinRadius()` | 0 |
+| `QuadTree` remove + insert | 0 |
+| `OctTree` `nearest()` (1000 items) | 0 |
+| `DirectedGraph` `forEachNeighbor()` | 0 |
+| `DirectedGraph` `findPath()` A* on a 20 x 20 grid, reusing a path | 0 |
+| `DirectedGraph` `addEdge()` + `removeEdge()` | 26 |
+
+Graph edge changes allocate because V8 resizes the `Map` tables that hold adjacency. See [Pathfinding with `DirectedGraph`](#pathfinding-with-directedgraph).
+
+## Compared with other packages
+
+[`bench/compare.cjs`](bench/compare.cjs) runs the same measurement on equivalent operations in other packages. Each row holds 1000 items, then adds one and removes one per operation. Time is the median of three runs of 1,000,000 operations on Node.js 23.11 and varies by machine, so compare rows within the table rather than with other benchmarks.
+
+| Structure | Package | Bytes per op | ns per op |
+|---|---|---:|---:|
+| FIFO queue | `@toreda/data-structures` `Queue` | 0 | 25 |
+| FIFO queue | `denque` 2.1.0 | 0 | 25 |
+| FIFO queue | `js-sdsl` 4.4.2 `Queue` | 0 | 24 |
+| FIFO queue | `mnemonist` 0.40.5 `Queue` | 4 | 28 |
+| FIFO queue | `@datastructures-js/queue` 4.3.0 | 2 | 30 |
+| Ring buffer | `@toreda/data-structures` `CircularQueue` | 0 | 21 |
+| Ring buffer | `mnemonist` 0.40.5 `CircularBuffer` | 0 | 18 |
+| Binary heap | `@toreda/data-structures` `PriorityQueue` | 0 | 80 |
+| Binary heap | `js-sdsl` 4.4.2 `PriorityQueue` | 0 | 83 |
+| Binary heap | `mnemonist` 0.40.5 `Heap` | 0 | 147 |
+| Binary heap | `@datastructures-js/priority-queue` 6.4.0 | 0 | 309 |
+| Sorted set | `@toreda/data-structures` `RedBlackTree` | 0 | 496 |
+| Sorted set | `js-sdsl` 4.4.2 `OrderedSet` | 2 | 390 |
+| Doubly linked list | `@toreda/data-structures` `LinkedList` | 0 | 95 |
+| Doubly linked list | `js-sdsl` 4.4.2 `LinkList` | 48 | 211 |
+| Doubly linked list | `@datastructures-js/linked-list` 6.1.4 | 48 | 72 |
+
+What the numbers show:
+
+* **Array-backed structures are close across packages.** Queues, ring buffers, and heaps allocate little or nothing in every package tested, because they reuse an array.
+* **Node-based structures are where pooling matters.** The other linked lists allocate a new node for every insert. `LinkedList` reuses pooled nodes and allocates nothing. The same pooling applies to `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, and `DirectedGraph`.
+* **`js-sdsl`'s `OrderedSet` is faster.** It took about 20% less time per operation than `RedBlackTree` here.
+
+This package also has structures the others don't: dynamic `QuadTree` and `OctTree` spatial indexes with insert, remove, and move (`mnemonist`'s `KDTree` and `VPTree` are built once from a fixed dataset), `DirectedGraph` with A* pathfinding, `ObjectPool` for your own objects, and `Byte*` subclasses that encode a whole collection to bytes.
+
+## When to use something else
+
+* **You need structures this package doesn't have.** `mnemonist` has LRU caches, Bloom filters, bit sets, multimaps, and suffix arrays. `js-sdsl` has hash maps and sets, deques, and ordered maps.
+* **You only need a double-ended queue.** `denque` is a small, single-purpose package.
+* **You need the fastest sorted set and allocation doesn't matter.** `js-sdsl`'s `OrderedSet` and `OrderedMap` were faster in the comparison above.
+* **Thousands of spatial items all move every frame.** Point trees relink on moves, so a uniform grid or a per-frame rebuild usually costs less.
+* **A graph's edges change every frame.** Edge changes still allocate inside V8's `Map` tables. Build the graph up front and keep per-frame work to lookups, `forEachNeighbor()`, and `findPath()`.
 
 # **`DataStructure` Interface**
 Every collection is generic over its item type and implements the `DataStructure` interface:
@@ -236,7 +347,7 @@ interface DataStructure<ItemT> {
 }
 ```
 
-Node-based collections (`LinkedList`, `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, `DirectedGraph`) wrap each item in an element that implements `Element<T>`, whose `value()` reads the item. Tree collections also implement the shared `Tree` interface, and graph collections the shared `Graph` interface.
+Node-based collections (`LinkedList`, `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, `DirectedGraph`, `Trie`) wrap each item in an element that implements `Element<T>`, whose `value()` reads the item. Tree collections also implement the shared `Tree` interface, and graph collections the shared `Graph` interface.
 
 Methods return `null` instead of throwing when a collection is empty or holds no matching item, for example `pop()` on an empty `Stack`.
 
@@ -652,7 +763,7 @@ fromBytes.values(); // returns [1, 2, 3]
 
 Graph of vertices joined by weighted edges. Each edge is either one-way (`addEdge`), traveled only from its source to its target, or bidirectional (`addBidirectionalEdge`), traveled either way. Both kinds can be mixed in one graph; a graph using only bidirectional edges behaves as an undirected graph. Implements the shared `Graph` interface.
 
-Adding and removing an edge, and checking whether two vertices are adjacent, take O(1). Removing a vertex takes O(d), where d is the number of edges touching it. Traversals and cycle detection take O(V + E), and `findPath()` takes O(E log V). Every walk is iterative, so long paths never overflow the call stack.
+Adding and removing an edge, and checking whether two vertices are adjacent, take O(1). Removing a vertex takes O(d), where d is the number of edges touching it. Traversals and cycle detection take O(V + E), and `findPath()` takes O(E log V) without a heuristic or with a consistent one (see [Cheapest paths with A*](#cheapest-paths-with-a)). Every walk is iterative, so long paths never overflow the call stack.
 
 Vertices are handles: the graph never compares its items, and one item can be added as several vertices. Keep the vertex returned by `addVertex()`, or look one up with `find(item)` in O(V).
 
@@ -719,6 +830,8 @@ graph.removeVertex(shop); // returns 'shop'
 ### Cheapest paths with A*
 
 `findPath(start, goal, heuristic?)` returns the cheapest path as `{vertices, edges, cost}`, or `null` when the goal cannot be reached. The optional heuristic estimates the remaining cost from a vertex to the goal and steers the search toward it. It must never overestimate, or the path found may not be the cheapest. Without one, the search runs as Dijkstra's algorithm.
+
+The search takes O(E log V) when the heuristic is also consistent: for every edge from `u` to `v`, the estimate at `u` is at most the edge's weight plus the estimate at `v`. Straight-line distance on a map and Manhattan distance on a 4-way grid are both consistent. A heuristic that never overestimates but is not consistent still finds the cheapest path, but may expand some vertices more than once, so the search can take longer.
 
 ```typescript
 // Using the home / park / shop / work graph as first built above
@@ -809,7 +922,7 @@ fromBytes.edgeCount(); // returns 1
 
 ### Vertex and edge pooling
 
-Vertex and edge wrappers are pooled by default, so once the pools have grown, adding and removing vertices and edges creates no new wrapper objects. The engine may still resize the graph's internal `Map` and `Set` tables as it grows. The `pool` options apply to both pools. After a vertex or edge is removed, don't use it again; read the removed item from the return value of `removeVertex()`.
+Vertex and edge wrappers are pooled by default, so once the pools have grown, adding and removing vertices and edges creates no new wrapper objects. V8 still resizes the graph's internal `Map` tables as entries are added and removed, so frequent edge and vertex changes produce some garbage. The `pool` options apply to both pools. After a vertex or edge is removed, don't use it again; read the removed item from the return value of `removeVertex()`.
 
 ```typescript
 const pooled = new DirectedGraph<string>([], {pool: {startSize: 64}});
@@ -1113,7 +1226,7 @@ sky.nearest({x: -7, y: 0, z: 0})?.value()?.name; // returns 'rigel'
 
 ## **`PriorityQueue<T>`**
 
-Binary heap. The comparator returns `true` when `a` should be closer to the front than `b`, so `(a, b) => a < b` gives a min heap and `(a, b) => a > b` a max heap. Items of equal priority never swap. Every item, `null` included, goes to the comparator.
+Binary heap. The comparator returns `true` when `a` should be closer to the front than `b`, so `(a, b) => a < b` gives a min heap and `(a, b) => a > b` a max heap. With a strict comparator (`<` or `>`, not `<=` or `>=`), items of equal priority never swap. The heap is not stable: items of equal priority do not come out in insertion order. Every item, `null` included, goes to the comparator.
 
 The backing array keeps its largest size, so once it has grown, `push()` and `pop()` allocate nothing.
 
@@ -1312,7 +1425,7 @@ Node pooling, `filter`, `query`, `forEach`, `preOrder`, `postOrder`, `levelOrder
 
 ## `Queue<T>`
 
-First in, first out, backed by a growable ring buffer. `push()` and `pop()` are O(1), and once the buffer has grown to the queue's largest size they allocate nothing. Every traversal runs from the front to the rear.
+First in, first out, backed by a growable ring buffer. `pop()` is O(1). `push()` is amortized O(1): a push into a full buffer doubles it and copies every item, which is O(n). Once the buffer has grown to the queue's largest size, `push()` and `pop()` allocate nothing. Every traversal runs from the front to the rear.
 
 ### Queue basics
 
@@ -1548,6 +1661,125 @@ const fromBytes = new ByteStack<string>(codec, bytes);
 fromBytes.top(); // returns 'b'
 ```
 
+## **`Trie<T>`**
+
+Prefix tree mapping string keys to items. Each key is stored as a path of nodes from the root, one node per UTF-16 code unit, so keys sharing a prefix share the nodes for it. Insert, find, and removal take time proportional to the key's length, not the number of items, and prefix searches only visit nodes below the prefix. Keys are unique: inserting an item under a stored key replaces the stored item, like `Map.prototype.set()`.
+
+A key selector that reads each item's key is required, as a comparator is for `BinarySearchTree`. Items are kept in key order: ascending by UTF-16 code unit, the order of `Array.prototype.sort()` without a comparator.
+
+### Trie basics
+
+Typescript
+
+```typescript
+import {Trie} from '@toreda/data-structures';
+
+// Instantiate. For string items, the key selector returns the item itself.
+// Throws when the key selector is not a function.
+const words = new Trie<string>((word) => word, ['car', 'cart', 'cat']);
+
+words.insert('care'); // returns the node now holding 'care'
+words.size(); // returns 4
+
+// Look up whole keys
+words.contains('car'); // returns true
+words.contains('ca'); // returns false, 'ca' is only a prefix
+words.get('cat'); // returns 'cat'
+words.find('cart')?.key(); // returns 'cart'
+
+// Remove by key
+words.remove('cart'); // returns 'cart'
+words.remove('dog'); // returns null
+
+// Items without a string key are refused instead of throwing
+new Trie<any>((item) => item).insert(42); // returns 'invalid_key'
+```
+
+### Prefix search and autocomplete
+
+```typescript
+const dictionary = new Trie<string>((word) => word, ['she', 'sells', 'sea', 'shells', 'shore']);
+
+dictionary.hasPrefix('sh'); // returns true
+dictionary.keysWithPrefix('sh'); // returns ['she', 'shells', 'shore']
+
+// Nodes instead of keys. Pass an array to refill instead of allocating a new one.
+const matches = dictionary.withPrefix('se'); // nodes holding 'sea', 'sells'
+
+// Visit matches without allocating
+dictionary.forEachWithPrefix('sh', (node, index, trie) => {
+	console.log(node.key()); // outputs 'she', then 'shells', then 'shore'
+});
+
+// Longest stored key at the start of some text, e.g. for tokenizing
+dictionary.longestPrefixOf('shellsort')?.key(); // returns 'shells'
+```
+
+### Objects keyed by string
+
+```typescript
+interface Command {
+	name: string;
+	run: () => void;
+}
+
+const commands = new Trie<Command>((command) => command.name);
+const node = commands.insert({name: 'build', run: () => {}});
+
+// A stored key's item is replaced, and the node stays the same
+commands.insert({name: 'build', run: () => {}}); // returns the same node
+commands.size(); // returns 1
+
+// After changing a key in place, call update() so the item moves to its new key.
+// A node stands for a key, so use the returned node from then on.
+const command = commands.get('build')!;
+command.name = 'bundle';
+const moved = commands.update(commands.find('build'), command);
+commands.get('bundle'); // returns command
+```
+
+### Trie traversal and shared features
+
+```typescript
+const trie = new Trie<string>((word) => word, ['b', 'a', 'ab']);
+
+trie.keys(); // returns ['a', 'ab', 'b']
+trie.values(); // returns ['a', 'ab', 'b']
+[...trie]; // same items, in key order
+
+// Walk nodes in key order
+trie.min()?.key(); // returns 'a'
+trie.max()?.key(); // returns 'b'
+trie.successor(trie.min())?.key(); // returns 'ab'
+
+// Walk the node structure by hand. The root stands for the empty prefix.
+trie.root().child('a')?.child('b')?.key(); // returns 'ab'
+
+// Filter, query, and serialize work as in the other collections.
+// Each query result's key() returns the matched item's key.
+trie.query((item) => item.length > 1)[0].key(); // returns 'ab'
+trie.filter((node) => node.key() !== 'b').keys(); // returns ['a', 'ab']
+trie.stringify(); // returns '{"type":"Trie","elements":["a","ab","b"]}'
+
+// Byte form of the whole trie is provided by ByteTrie, a superset of Trie.
+// Items are generic, so it requires an ItemCodec at construction.
+import {ByteTrie} from '@toreda/data-structures';
+
+const codec = {
+	encode: (item: string): Uint8Array => new TextEncoder().encode(item),
+	decode: (bytes: Uint8Array): string => new TextDecoder().decode(bytes)
+};
+
+const source = new ByteTrie<string>(codec, (word) => word, ['b', 'a', 'ab']);
+const bytes = source.toBytes(); // Uint8Array, items in key order
+
+// Rebuild a trie from envelope bytes. Throws when bytes are not a valid envelope.
+const fromBytes = new ByteTrie<string>(codec, (word) => word, bytes);
+fromBytes.keys(); // returns ['a', 'ab', 'b']
+```
+
+Node wrappers are pooled by default, as in [`LinkedList`](#linked-list-node-pooling). The root node belongs to the trie for its lifetime and is never pooled. Removing an item unlinks the nodes that no longer lead to any key, so don't keep using a node after removing its item.
+
 # Query Selectors
 
 Every collection supports `query()`. A query takes one filter, or an array of filters that must all match, and returns one `QueryResult` per match. Each result holds the matched `element` and offers `index()`, `key()`, and `delete()`.
@@ -1647,27 +1879,52 @@ queryResults[0].element; // returns 20
 queryResults[1].element; // returns 30
 ```
 
-# Install
-Install `@toreda/data-structures` from NPM, or [clone the GitHub repo](https://github.com/toreda/data-structures) to work on it.
+# Validation Helpers
 
-### Install using pnpm
-Add the package to your project:
-```bash
-pnpm add @toreda/data-structures
+Functions for reading loosely typed input, such as options objects, parsed JSON, or query strings. Each returns the first of its `values` that has the expected type, or `fallback` when none does. Numbers must be finite, so `NaN` and `±Infinity` are skipped.
+
+```typescript
+import {
+	booleanNullValue,
+	booleanValue,
+	intNullValue,
+	intValue,
+	numberNullValue,
+	numberValue,
+	typeValue
+} from '@toreda/data-structures';
+
+intValue(10, '5', 3.5, 7); // returns 7 ('5' is a string and 3.5 is not an integer)
+numberValue(0, 'x', NaN, Infinity, 2.5); // returns 2.5
+booleanValue(false, 'true', 1, true); // returns true
+booleanNullValue(null, 0, false); // returns false
+
+// The *NullValue variants accept a null fallback
+intNullValue(null, 'x', 1.5); // returns null
+numberNullValue(null); // returns null
+
+// typeValue takes your own type guard
+const isString = (value: unknown): value is string => typeof value === 'string';
+typeValue(isString, 'default', 1, 'a'); // returns 'a'
+typeValue(isString, 'default', 1); // returns 'default'
 ```
 
-Or use `pnpm install`, which does the same thing when given a package name:
-```bash
-pnpm install @toreda/data-structures
-```
+# Development
 
-### Clone the repo
 Clone the repo, move into its root folder, and install its dependencies with pnpm:
+
 ```bash
 git clone https://github.com/toreda/data-structures.git
 cd data-structures
 pnpm install
 ```
+
+| Command | What it does |
+|---|---|
+| `pnpm build` | Lints, then builds `dist/cjs` and `dist/esm` |
+| `pnpm test` | Runs the Jest suite with coverage |
+| `pnpm bench` | Runs the [allocation benchmark](#allocation-benchmark) (build first) |
+| `pnpm make:docs` | Generates the API reference into `docs/` |
 
 # License
 

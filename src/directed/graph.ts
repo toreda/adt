@@ -52,7 +52,8 @@ const noVertices: never[] = [];
  * takes O(d), where d is the number of edges touching it. Traversals and
  * `stringify()` take O(V + E), cycle detection takes O((V + E) α(V)) (α is
  * the inverse Ackermann function, below 5 for any real graph), and
- * `findPath()` takes O(E log V). Every walk is iterative, so long paths never
+ * `findPath()` takes O(E log V) without a heuristic or with a consistent one.
+ * Every walk is iterative, so long paths never
  * overflow the call stack.
  *
  * Vertex and edge wrappers are pooled by default (see `DataStructureOptions`),
@@ -659,7 +660,11 @@ export class DirectedGraph<ItemT> implements Graph<
 	}
 
 	/**
-	 * Cheapest path from start to goal, found with A* search in O(E log V).
+	 * Cheapest path from start to goal, found with A* search. Takes O(E log V)
+	 * without a heuristic, or with one that is consistent (for every edge u -> v,
+	 * the estimate at u is at most the edge weight plus the estimate at v). A
+	 * heuristic that never overestimates but is not consistent still finds the
+	 * cheapest path, but may expand vertices more than once.
 	 * Edges are followed in their direction of travel and cost their weight.
 	 *
 	 * The graph keeps its search state (open set, pooled queue entries, and

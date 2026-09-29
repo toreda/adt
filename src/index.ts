@@ -136,6 +136,16 @@ export type {StackState} from './stack/state';
 export type {Tree} from './tree';
 export type {TreeElement} from './tree/element';
 
+// Trie
+export {ByteTrie} from './byte/trie';
+export {Trie} from './trie';
+export {TrieElement} from './trie/element';
+export type {TrieError} from './trie/error';
+export {TrieIterator} from './trie/iterator';
+export type {TrieKeySelector} from './trie/key/selector';
+export type {TrieMethod} from './trie/method';
+export type {TrieOptions} from './trie/options';
+
 // Query
 export type {QueryFilter} from './query/filter';
 export type {QueryOptions} from './query/options';
