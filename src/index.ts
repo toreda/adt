@@ -124,6 +124,30 @@ export type {QueueMethod} from './queue/method';
 export type {QueueOptions} from './queue/options';
 export type {QueueState} from './queue/state';
 
+// Spatial
+export type {SpatialBounds} from './spatial/bounds';
+export {SpatialElement} from './spatial/element';
+export {SpatialGrid} from './spatial/grid';
+export type {SpatialGridOptions} from './spatial/grid/options';
+export type {SpatialGridVisitor} from './spatial/grid/visitor';
+export {SpatialIterator} from './spatial/iterator';
+export type {SpatialLocator} from './spatial/locator';
+export type {SpatialPoint} from './spatial/point';
+
+// Spatial Hash
+export {ByteSpatialHash} from './byte/spatial/hash';
+export {SpatialHash} from './spatial/hash';
+export type {SpatialHashError} from './spatial/hash/error';
+export type {SpatialHashMethod} from './spatial/hash/method';
+export type {SpatialHashOptions} from './spatial/hash/options';
+
+// Spatial Map
+export {ByteSpatialMap} from './byte/spatial/map';
+export {SpatialMap} from './spatial/map';
+export type {SpatialMapError} from './spatial/map/error';
+export type {SpatialMapMethod} from './spatial/map/method';
+export type {SpatialMapOptions} from './spatial/map/options';
+
 // Stack
 export {ByteStack} from './byte/stack';
 export {Stack} from './stack';

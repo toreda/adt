@@ -14,10 +14,10 @@
 <h1 id="_" class="tsd-anchor-link"><code>@toreda/data-structures</code> <!-- omit from toc --><a href="#_" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
 <p>Generic TypeScript data structures built for low garbage collection (GC) churn. Made for games, real-time audio and video, and other hot loops where GC pauses cause dropped frames and audio glitches.</p>
 <ul>
-<li><strong>Pooled nodes by default.</strong> <code>LinkedList</code>, <code>BinarySearchTree</code>, <code>RedBlackTree</code>, <code>QuadTree</code>, <code>OctTree</code>, and <code>DirectedGraph</code> recycle their internal node wrappers. Once a pool has grown, inserts and removals in steady state create no new nodes.</li>
+<li><strong>Pooled nodes by default.</strong> <code>LinkedList</code>, <code>BinarySearchTree</code>, <code>RedBlackTree</code>, <code>QuadTree</code>, <code>OctTree</code>, <code>SpatialHash</code>, <code>SpatialMap</code>, and <code>DirectedGraph</code> recycle their internal node wrappers. Once a pool has grown, inserts and removals in steady state create no new nodes.</li>
 <li><strong>Fixed-capacity ring buffer.</strong> <code>CircularQueue</code> pushes and pops in O(1) without resizing, which suits audio samples, network packets, input history, and frame timings.</li>
 <li><strong>Pools for your own objects.</strong> <code>ObjectPool</code> hands out reusable instances of your own classes, such as particles, entities, and projectiles, instead of allocating new ones each frame.</li>
-<li><strong>Game-ready algorithms.</strong> <code>QuadTree</code> and <code>OctTree</code> handle 2D and 3D range, radius, and nearest neighbor queries for collision and visibility. <code>DirectedGraph</code> finds A* paths, and <code>PriorityQueue</code> schedules by priority.</li>
+<li><strong>Game-ready algorithms.</strong> <code>QuadTree</code> and <code>OctTree</code> handle 2D and 3D range, radius, and nearest neighbor queries for collision and visibility. <code>SpatialHash</code> and <code>SpatialMap</code> are uniform grids for items that move every frame and for voxel and tile worlds. <code>DirectedGraph</code> finds A* paths, and <code>PriorityQueue</code> schedules by priority.</li>
 <li><strong>Stack-safe.</strong> Tree and graph traversals are iterative, so deep or lopsided structures never overflow the call stack.</li>
 <li><strong>One consistent API.</strong> Every collection supports search, insertion, deletion, <code>query()</code> filters, and JSON serialization, and returns <code>null</code> instead of throwing when empty.</li>
 <li><strong>Binary encoding.</strong> Every collection except <code>ObjectPool</code> has a <code>Byte*</code> subclass, such as <code>ByteLinkedList</code> or <code>ByteDirectedGraph</code>, that encodes the whole collection to bytes with your own item codec and rebuilds it from those bytes.</li>
@@ -31,12 +31,14 @@
 <li><a href="#game-object-pooling-with-objectpool">Game object pooling with <code>ObjectPool</code></a></li>
 <li><a href="#bounded-history-and-stream-buffers-with-circularqueue">Bounded history and stream buffers with <code>CircularQueue</code></a></li>
 <li><a href="#spatial-queries-with-quadtree-and-octtree">Spatial queries with <code>QuadTree</code> and <code>OctTree</code></a></li>
+<li><a href="#moving-items-and-voxel-grids-with-spatialhash-and-spatialmap">Moving items and voxel grids with <code>SpatialHash</code> and <code>SpatialMap</code></a></li>
 <li><a href="#pathfinding-with-directedgraph">Pathfinding with <code>DirectedGraph</code></a></li>
 <li><a href="#ordered-and-scheduled-data">Ordered and scheduled data</a></li>
 </ul>
 </li>
 <li><a href="#performance">Performance</a>
 <ul>
+<li><a href="#runtime-complexity">Runtime complexity</a></li>
 <li><a href="#allocation-benchmark">Allocation benchmark</a></li>
 <li><a href="#compared-with-other-packages">Compared with other packages</a></li>
 <li><a href="#when-to-use-something-else">When to use something else</a></li>
@@ -133,6 +135,19 @@
 <li><a href="#red-black-tree-duplicates">Red-black tree duplicates</a></li>
 </ul>
 </li>
+<li><a href="#spatialhasht"><strong><code>SpatialHash&lt;T&gt;</code></strong></a>
+<ul>
+<li><a href="#spatial-hash-basics">Spatial hash basics</a></li>
+<li><a href="#moving-spatial-hash-items">Moving spatial hash items</a></li>
+<li><a href="#choosing-a-cell-size">Choosing a cell size</a></li>
+</ul>
+</li>
+<li><a href="#spatialmapt"><strong><code>SpatialMap&lt;T&gt;</code></strong></a>
+<ul>
+<li><a href="#spatial-map-basics">Spatial map basics</a></li>
+<li><a href="#collisions-and-overwrite">Collisions and overwrite</a></li>
+</ul>
+</li>
 <li><a href="#stackt"><code>Stack&lt;T&gt;</code></a>
 <ul>
 <li><a href="#stack-basics">Stack basics</a></li>
@@ -211,7 +226,16 @@
 <li><code>nearest()</code>, <code>forEachWithinBounds()</code>, and <code>forEachWithinRadius()</code> allocate nothing, so they are safe to call per entity per frame.</li>
 <li>Positions come from your own locator function, so items stay your own objects. Any finite position fits, with no world bounds to set up front.</li>
 <li>Nodes are pooled, every walk is iterative, and removing or moving an item allocates nothing.</li>
-<li>These are point trees. Moving a leaf with <code>update()</code> relinks nothing, but moving an inner node relinks its subtree, so they suit items that are static or move occasionally. For thousands of items that all move every frame, a uniform grid or a per-frame rebuild usually costs less.</li>
+<li>These are point trees. Moving a leaf with <code>update()</code> relinks nothing, but moving an inner node relinks its subtree, so they suit items that are static or move occasionally. For thousands of items that all move every frame, use <code>SpatialHash</code>.</li>
+</ul>
+<h2 id="moving-items-and-voxel-grids-with-and" class="tsd-anchor-link">Moving items and voxel grids with <code>SpatialHash</code> and <code>SpatialMap</code><a href="#moving-items-and-voxel-grids-with-and" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Use for crowds, projectiles, and particles that all move every frame, broad-phase collision, proximity and awareness checks, and block, voxel, tile, and chunk worlds.</p>
+<ul>
+<li>Both cut space into cubic cells of one size and keep only occupied cells in a hash table, so space is unbounded and empty regions cost nothing.</li>
+<li><code>update()</code> is O(1) on average however far an item moves. An item moving inside its cell only has its position written.</li>
+<li><code>SpatialHash</code> holds any number of items per cell. <code>SpatialMap</code> holds at most one, refuses a second with <code>cell_occupied</code> (or replaces the first with <code>overwrite: true</code>), and finds a cell's item by integer cell coordinates with <code>findCell()</code>.</li>
+<li><code>nearest()</code>, <code>forEachWithinBounds()</code>, <code>forEachWithinRadius()</code>, <code>update()</code>, and <code>findCell()</code> allocate nothing, and element wrappers are pooled.</li>
+<li>Searches only probe cells overlapping the search region, so pick a cell size near your typical search radius. See <a href="#choosing-a-cell-size">Choosing a cell size</a>.</li>
 </ul>
 <h2 id="pathfinding-with" class="tsd-anchor-link">Pathfinding with <code>DirectedGraph</code><a href="#pathfinding-with" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Use for navigation graphs, waypoint networks, tile and hex maps, and dialogue and quest graphs.</p>
@@ -229,6 +253,832 @@
 <li><strong><code>LinkedList</code></strong> removes a node in O(1) when you hold the node. Use it for active lists where entities are removed in any order, and for LRU caches. Nodes are pooled, and <code>forEach</code> walks the links without building an array.</li>
 </ul>
 <h1 id="performance" class="tsd-anchor-link">Performance<a href="#performance" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
+<h2 id="runtime-complexity" class="tsd-anchor-link">Runtime complexity<a href="#runtime-complexity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Time complexity of each operation, taken from the implementation. Variables:</p>
+<ul>
+<li><strong>n</strong>: items in the structure. <strong>k</strong>: results returned.</li>
+<li><strong>h</strong>: tree height. <code>BinarySearchTree</code>, <code>QuadTree</code>, and <code>OctTree</code> don't rebalance, so h is O(log n) for well-spread input and O(n) for sorted input or many duplicates.</li>
+<li><strong>V</strong>, <strong>E</strong>: graph vertices and edges. <strong>d</strong>: a vertex's in-degree plus out-degree.</li>
+<li><strong>s</strong>: items in one cell of a <code>SpatialHash</code>. <strong>c</strong>: cells a <code>SpatialHash</code> or <code>SpatialMap</code> search probes, which is the cells overlapping the search region, capped at the cell table size.</li>
+<li><strong>m</strong>: key length in UTF-16 code units. <strong>p</strong>: prefix length. <strong>t</strong>: length of the text passed to <code>longestPrefixOf()</code>. <strong>L</strong>: longest stored key. <strong>σ</strong>: children of one trie node (binary searched). <strong>S</strong>: trie nodes under a prefix. <strong>N</strong>: trie nodes in total.</li>
+</ul>
+<p><code>query()</code> searches every structure the same way: a linear walk that tests each element against the filters. It doesn't use a tree's order or spatial layout, so prefer the structure's own lookups when they fit. It is still the only way to search by an arbitrary condition, or to find and remove items in structures with no lookup method (<code>Queue</code>, <code>Stack</code>, <code>PriorityQueue</code>, <code>LinkedList</code>, <code>CircularQueue</code>, <code>ObjectPool</code>). With the <code>limit</code> option the walk stops once <code>limit</code> results are found, which gives the best case below. A result's <code>delete()</code> removes the matched element.</p>
+<p>Growing an internal array or element pool is left out of these costs. Growth doubles capacity, so it is amortized O(1) per insert, and the single insert that triggers it pays an extra O(n). <code>DirectedGraph</code> adjacency lives in <code>Map</code>s, so its costs assume normal hashing.</p>
+<table>
+<thead>
+<tr>
+<th>Data structure</th>
+<th>Action</th>
+<th>Worst Case</th>
+<th>Average Case</th>
+<th>Best Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BinarySearchTree</code></td>
+<td><code>insert</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>BinarySearchTree</code></td>
+<td><code>find</code>, <code>contains</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>BinarySearchTree</code></td>
+<td><code>remove</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>BinarySearchTree</code></td>
+<td><code>removeNode</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>BinarySearchTree</code></td>
+<td><code>update</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(h)</td>
+</tr>
+<tr>
+<td><code>BinarySearchTree</code></td>
+<td><code>min</code>, <code>max</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>BinarySearchTree</code></td>
+<td><code>successor</code>, <code>predecessor</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>BinarySearchTree</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(h)</td>
+</tr>
+<tr>
+<td><code>BinarySearchTree</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>CircularQueue</code></td>
+<td><code>push</code>, <code>insertFront</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>CircularQueue</code></td>
+<td><code>pop</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>CircularQueue</code></td>
+<td><code>front</code>, <code>rear</code>, <code>getIndex</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>CircularQueue</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>CircularQueue</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>addVertex</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>removeVertex</code></td>
+<td>O(d)</td>
+<td>O(d)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>addEdge</code>, <code>addBidirectionalEdge</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>removeEdge</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>edge</code>, <code>adjacent</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>find</code>, <code>contains</code></td>
+<td>O(V)</td>
+<td>O(V)</td>
+<td>O(V)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>forEachNeighbor</code></td>
+<td>O(d)</td>
+<td>O(d)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>breadthFirst</code>, <code>depthFirst</code></td>
+<td>O(V + E)</td>
+<td>O(V + E)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>findPath</code> (A*)</td>
+<td>O((V + E) log V)</td>
+<td>O((V + E) log V)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>hasCycle</code></td>
+<td>O(E α(V))</td>
+<td>O(E α(V))</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>query</code></td>
+<td>O(V)</td>
+<td>O(V)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>DirectedGraph</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(d)</td>
+<td>O(d)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>LinkedList</code></td>
+<td><code>insert</code>, <code>insertAtHead</code>, <code>insertAtTail</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>LinkedList</code></td>
+<td><code>removeNode</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>LinkedList</code></td>
+<td><code>head</code>, <code>tail</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>LinkedList</code></td>
+<td><code>reverse</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td><code>LinkedList</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>LinkedList</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>ObjectPool</code></td>
+<td><code>allocate</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>ObjectPool</code></td>
+<td><code>release</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>ObjectPool</code></td>
+<td><code>increaseCapacity</code></td>
+<td>O(k)</td>
+<td>O(k)</td>
+<td>O(k)</td>
+</tr>
+<tr>
+<td><code>ObjectPool</code></td>
+<td><code>clearElements</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td><code>ObjectPool</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>ObjectPool</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>OctTree</code></td>
+<td><code>insert</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>OctTree</code></td>
+<td><code>find</code>, <code>contains</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>OctTree</code></td>
+<td><code>remove</code>, <code>removeNode</code></td>
+<td>O(n²)</td>
+<td>O(log² n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>OctTree</code></td>
+<td><code>update</code></td>
+<td>O(n²)</td>
+<td>O(log² n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>OctTree</code></td>
+<td><code>withinBounds</code>, <code>withinRadius</code></td>
+<td>O(n)</td>
+<td>O(n^(2/3) + k)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>OctTree</code></td>
+<td><code>nearest</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>OctTree</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>OctTree</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(n²)</td>
+<td>O(log² n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>PriorityQueue</code></td>
+<td><code>push</code></td>
+<td>O(log n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>PriorityQueue</code></td>
+<td><code>pop</code></td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>PriorityQueue</code></td>
+<td><code>peek</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>PriorityQueue</code></td>
+<td><code>heapify</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td><code>PriorityQueue</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>PriorityQueue</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>QuadTree</code></td>
+<td><code>insert</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>QuadTree</code></td>
+<td><code>find</code>, <code>contains</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>QuadTree</code></td>
+<td><code>remove</code>, <code>removeNode</code></td>
+<td>O(n²)</td>
+<td>O(log² n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>QuadTree</code></td>
+<td><code>update</code></td>
+<td>O(n²)</td>
+<td>O(log² n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>QuadTree</code></td>
+<td><code>withinBounds</code>, <code>withinRadius</code></td>
+<td>O(n)</td>
+<td>O(√n + k)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>QuadTree</code></td>
+<td><code>nearest</code></td>
+<td>O(n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>QuadTree</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>QuadTree</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(n²)</td>
+<td>O(log² n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Queue</code></td>
+<td><code>push</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Queue</code></td>
+<td><code>pop</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Queue</code></td>
+<td><code>front</code>, <code>rear</code>, <code>at</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Queue</code></td>
+<td><code>reverse</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td><code>Queue</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Queue</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td><code>RedBlackTree</code></td>
+<td><code>insert</code></td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+</tr>
+<tr>
+<td><code>RedBlackTree</code></td>
+<td><code>find</code>, <code>contains</code></td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+</tr>
+<tr>
+<td><code>RedBlackTree</code></td>
+<td><code>remove</code></td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+</tr>
+<tr>
+<td><code>RedBlackTree</code></td>
+<td><code>removeNode</code></td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>RedBlackTree</code></td>
+<td><code>update</code></td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>RedBlackTree</code></td>
+<td><code>min</code>, <code>max</code></td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+</tr>
+<tr>
+<td><code>RedBlackTree</code></td>
+<td><code>successor</code>, <code>predecessor</code></td>
+<td>O(log n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>RedBlackTree</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(log n)</td>
+</tr>
+<tr>
+<td><code>RedBlackTree</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(log n)</td>
+<td>O(log n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code></td>
+<td><code>insert</code></td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code></td>
+<td><code>find</code>, <code>contains</code>, <code>remove</code></td>
+<td>O(n)</td>
+<td>O(1 + s)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code></td>
+<td><code>removeNode</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code></td>
+<td><code>update</code></td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code></td>
+<td><code>withinBounds</code>, <code>withinRadius</code></td>
+<td>O(c + n)</td>
+<td>O(c + k)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code></td>
+<td><code>nearest</code></td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialMap</code></td>
+<td><code>insert</code>, <code>update</code></td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialMap</code></td>
+<td><code>find</code>, <code>findCell</code>, <code>contains</code>, <code>containsCell</code>, <code>remove</code></td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialMap</code></td>
+<td><code>removeNode</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialMap</code></td>
+<td><code>withinBounds</code>, <code>withinRadius</code></td>
+<td>O(c + n)</td>
+<td>O(c + k)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialMap</code></td>
+<td><code>nearest</code></td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialMap</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>SpatialMap</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Stack</code></td>
+<td><code>push</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Stack</code></td>
+<td><code>pop</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Stack</code></td>
+<td><code>top</code>, <code>bottom</code>, <code>at</code></td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Stack</code></td>
+<td><code>reverse</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td><code>Stack</code></td>
+<td><code>query</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Stack</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>insert</code></td>
+<td>O(m log σ + σ)</td>
+<td>O(m log σ)</td>
+<td>O(m)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>find</code>, <code>get</code>, <code>contains</code></td>
+<td>O(m log σ)</td>
+<td>O(m log σ)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>remove</code></td>
+<td>O(m log σ + σ)</td>
+<td>O(m log σ)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>removeNode</code></td>
+<td>O(m log σ + σ)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>hasPrefix</code></td>
+<td>O(p log σ)</td>
+<td>O(p log σ)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>longestPrefixOf</code></td>
+<td>O(min(t, L) log σ)</td>
+<td>O(min(t, L) log σ)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>withPrefix</code>, <code>keysWithPrefix</code>, <code>forEachWithPrefix</code></td>
+<td>O((p + S) log σ)</td>
+<td>O((p + S) log σ)</td>
+<td>O(p log σ)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>min</code>, <code>max</code></td>
+<td>O(L)</td>
+<td>O(L)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>successor</code>, <code>predecessor</code></td>
+<td>O(L log σ)</td>
+<td>O(log σ)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>query</code></td>
+<td>O(N log σ)</td>
+<td>O(N log σ)</td>
+<td>O(m)</td>
+</tr>
+<tr>
+<td><code>Trie</code></td>
+<td><code>query</code> result <code>delete()</code></td>
+<td>O(m log σ + σ)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>All <code>Byte*</code> classes</td>
+<td><code>toBytes</code></td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td><code>ByteDirectedGraph</code></td>
+<td><code>toBytes</code>, rebuild from bytes</td>
+<td>O(V + E)</td>
+<td>O(V + E)</td>
+<td>O(V + E)</td>
+</tr>
+<tr>
+<td><code>ByteBinarySearchTree</code>, <code>ByteQuadTree</code>, <code>ByteOctTree</code></td>
+<td>rebuild from bytes</td>
+<td>O(n²)</td>
+<td>O(n log n)</td>
+<td>O(n log n)</td>
+</tr>
+<tr>
+<td><code>ByteRedBlackTree</code>, <code>BytePriorityQueue</code></td>
+<td>rebuild from bytes</td>
+<td>O(n log n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td><code>ByteTrie</code></td>
+<td>rebuild from bytes</td>
+<td>O(N log σ)</td>
+<td>O(N log σ)</td>
+<td>O(N)</td>
+</tr>
+<tr>
+<td><code>ByteCircularQueue</code>, <code>ByteLinkedList</code>, <code>ByteQueue</code>, <code>ByteSpatialHash</code>, <code>ByteSpatialMap</code>, <code>ByteStack</code></td>
+<td>rebuild from bytes</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+</tbody>
+</table>
+<p>Notes on the less obvious rows:</p>
+<ul>
+<li><strong><code>RedBlackTree</code> lookups are O(log n) even in the best case.</strong> Rotations can put equal items in left subtrees, so <code>find()</code> keeps walking left after a match to return the earliest inserted one.</li>
+<li><strong>Removing from <code>QuadTree</code> and <code>OctTree</code> relinks the removed node's subtree.</strong> These are point trees, one item per node, so each node in the subtree is re-inserted. Removing a leaf is O(1). Removing the root of a degenerate tree is O(n²).</li>
+<li><strong><code>QuadTree</code> and <code>OctTree</code> average cases assume well-spread points.</strong> Nothing caps their depth, and coincident points chain into a single branch.</li>
+<li><strong><code>SpatialHash</code> and <code>SpatialMap</code> costs are averages over the cell hash table.</strong> The worst cases need nearly every cell to collide in the table. <code>nearest()</code> is O(1) on average when items fill the space around the search point evenly. It searches outward shell by shell, and once a shell would probe more cells than there are items, it measures every item instead, which caps it at O(n).</li>
+<li><strong><code>PriorityQueue</code> <code>push</code> is O(1) on average</strong> for random priorities, because the new item usually stops within a level or two.</li>
+<li><strong><code>DirectedGraph</code> <code>find()</code> is Θ(V) even when the first vertex matches,</strong> because it has no item-to-vertex index. Keep the vertex returned by <code>addVertex()</code> instead of searching for it. <code>removeVertex()</code> uses the reverse adjacency each vertex keeps, so it never scans other vertices.</li>
+<li><strong><code>findPath()</code> assumes a consistent heuristic, or none (Dijkstra).</strong> An admissible but inconsistent heuristic can re-expand vertices.</li>
+<li><strong><code>Byte*</code> classes inherit every other operation unchanged.</strong> Byte costs leave out the <code>ItemCodec</code>'s per-item encode and decode time. Bytes written by <code>toBytes()</code> rebuild a <code>ByteRedBlackTree</code> or <code>BytePriorityQueue</code> in O(n), because they are already in key or heap order.</li>
+</ul>
 <h2 id="allocation-benchmark" class="tsd-anchor-link">Allocation benchmark<a href="#allocation-benchmark" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p><code>pnpm bench</code> runs <a href="media/alloc.cjs"><code>bench/alloc.cjs</code></a>, which measures the heap bytes each operation allocates once the structure has warmed up. The young generation is enlarged so no garbage collection runs during a measurement, which makes the heap growth equal to the bytes allocated. Each row is 200,000 operations after 20,000 warm-up operations, on Node.js 23.11.</p>
 <table>
@@ -301,6 +1151,30 @@
 </tr>
 <tr>
 <td><code>OctTree</code> <code>nearest()</code> (1000 items)</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code> <code>nearest()</code> (1000 items)</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code> <code>forEachWithinRadius()</code></td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code> <code>update()</code> move</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td><code>SpatialHash</code> remove + insert</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td><code>SpatialMap</code> <code>findCell()</code></td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td><code>SpatialMap</code> insert + <code>removeNode()</code></td>
 <td style="text-align:right">0</td>
 </tr>
 <tr>
@@ -431,16 +1305,16 @@
 <p>What the numbers show:</p>
 <ul>
 <li><strong>Array-backed structures are close across packages.</strong> Queues, ring buffers, and heaps allocate little or nothing in every package tested, because they reuse an array.</li>
-<li><strong>Node-based structures are where pooling matters.</strong> The other linked lists allocate a new node for every insert. <code>LinkedList</code> reuses pooled nodes and allocates nothing. The same pooling applies to <code>BinarySearchTree</code>, <code>RedBlackTree</code>, <code>QuadTree</code>, <code>OctTree</code>, and <code>DirectedGraph</code>.</li>
+<li><strong>Node-based structures are where pooling matters.</strong> The other linked lists allocate a new node for every insert. <code>LinkedList</code> reuses pooled nodes and allocates nothing. The same pooling applies to <code>BinarySearchTree</code>, <code>RedBlackTree</code>, <code>QuadTree</code>, <code>OctTree</code>, <code>SpatialHash</code>, <code>SpatialMap</code>, and <code>DirectedGraph</code>.</li>
 <li><strong><code>js-sdsl</code>'s <code>OrderedSet</code> is faster.</strong> It took about 20% less time per operation than <code>RedBlackTree</code> here.</li>
 </ul>
-<p>This package also has structures the others don't: dynamic <code>QuadTree</code> and <code>OctTree</code> spatial indexes with insert, remove, and move (<code>mnemonist</code>'s <code>KDTree</code> and <code>VPTree</code> are built once from a fixed dataset), <code>DirectedGraph</code> with A* pathfinding, <code>ObjectPool</code> for your own objects, and <code>Byte*</code> subclasses that encode a whole collection to bytes.</p>
+<p>This package also has structures the others don't: dynamic <code>QuadTree</code> and <code>OctTree</code> spatial indexes with insert, remove, and move (<code>mnemonist</code>'s <code>KDTree</code> and <code>VPTree</code> are built once from a fixed dataset), <code>SpatialHash</code> and <code>SpatialMap</code> uniform grids, <code>DirectedGraph</code> with A* pathfinding, <code>ObjectPool</code> for your own objects, and <code>Byte*</code> subclasses that encode a whole collection to bytes.</p>
 <h2 id="when-to-use-something-else" class="tsd-anchor-link">When to use something else<a href="#when-to-use-something-else" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
 <li><strong>You need structures this package doesn't have.</strong> <code>mnemonist</code> has LRU caches, Bloom filters, bit sets, multimaps, and suffix arrays. <code>js-sdsl</code> has hash maps and sets, deques, and ordered maps.</li>
 <li><strong>You only need a double-ended queue.</strong> <code>denque</code> is a small, single-purpose package.</li>
 <li><strong>You need the fastest sorted set and allocation doesn't matter.</strong> <code>js-sdsl</code>'s <code>OrderedSet</code> and <code>OrderedMap</code> were faster in the comparison above.</li>
-<li><strong>Thousands of spatial items all move every frame.</strong> Point trees relink on moves, so a uniform grid or a per-frame rebuild usually costs less.</li>
+<li><strong>Thousands of spatial items all move every frame.</strong> Point trees relink on moves. Use <code>SpatialHash</code> from this package, or a per-frame rebuild.</li>
 <li><strong>A graph's edges change every frame.</strong> Edge changes still allocate inside V8's <code>Map</code> tables. Build the graph up front and keep per-frame work to lookups, <code>forEachNeighbor()</code>, and <code>findPath()</code>.</li>
 </ul>
 <h1 id="interface" class="tsd-anchor-link"><strong><code>DataStructure</code> Interface</strong><a href="#interface" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
@@ -448,7 +1322,7 @@
 <pre><code class="typescript"><span class="hl-6">interface</span><span class="hl-1"> </span><span class="hl-8">DataStructure</span><span class="hl-1">&lt;</span><span class="hl-8">ItemT</span><span class="hl-1">&gt; {</span><br/><span class="hl-1">	</span><span class="hl-0">clearElements</span><span class="hl-1">(): </span><span class="hl-8">void</span><span class="hl-1">;</span><br/><span class="hl-1">	</span><span class="hl-0">reset</span><span class="hl-1">(): </span><span class="hl-8">void</span><span class="hl-1">;</span><br/><span class="hl-1">	</span><span class="hl-0">stringify</span><span class="hl-1">(): </span><span class="hl-8">string</span><span class="hl-1"> | </span><span class="hl-8">null</span><span class="hl-1">;</span><br/><span class="hl-1">	</span><span class="hl-0">query</span><span class="hl-1">(</span><br/><span class="hl-1">		</span><span class="hl-5">query</span><span class="hl-1">: </span><span class="hl-8">QueryFilter</span><span class="hl-1">&lt;</span><span class="hl-8">ItemT</span><span class="hl-1">&gt; | </span><span class="hl-8">QueryFilter</span><span class="hl-1">&lt;</span><span class="hl-8">ItemT</span><span class="hl-1">&gt;[],</span><br/><span class="hl-1">		</span><span class="hl-5">options</span><span class="hl-1">?: </span><span class="hl-8">QueryOptions</span><br/><span class="hl-1">	): </span><span class="hl-8">QueryResult</span><span class="hl-1">&lt;</span><span class="hl-8">ItemT</span><span class="hl-1">&gt;[] | </span><span class="hl-8">QueryResult</span><span class="hl-1">&lt;</span><span class="hl-8">Element</span><span class="hl-1">&lt;</span><span class="hl-8">ItemT</span><span class="hl-1">&gt;, </span><span class="hl-8">ItemT</span><span class="hl-1">&gt;[];</span><br/><span class="hl-1">}</span>
 </code><button type="button">Copy</button></pre>
 
-<p>Node-based collections (<code>LinkedList</code>, <code>BinarySearchTree</code>, <code>RedBlackTree</code>, <code>QuadTree</code>, <code>OctTree</code>, <code>DirectedGraph</code>, <code>Trie</code>) wrap each item in an element that implements <code>Element&lt;T&gt;</code>, whose <code>value()</code> reads the item. Tree collections also implement the shared <code>Tree</code> interface, and graph collections the shared <code>Graph</code> interface.</p>
+<p>Node-based collections (<code>LinkedList</code>, <code>BinarySearchTree</code>, <code>RedBlackTree</code>, <code>QuadTree</code>, <code>OctTree</code>, <code>SpatialHash</code>, <code>SpatialMap</code>, <code>DirectedGraph</code>, <code>Trie</code>) wrap each item in an element that implements <code>Element&lt;T&gt;</code>, whose <code>value()</code> reads the item. Tree collections also implement the shared <code>Tree</code> interface, and graph collections the shared <code>Graph</code> interface.</p>
 <p>Methods return <code>null</code> instead of throwing when a collection is empty or holds no matching item, for example <code>pop()</code> on an empty <code>Stack</code>.</p>
 <h1 id="data-structures" class="tsd-anchor-link">Data Structures<a href="#data-structures" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1>
 <h2 id="_-1" class="tsd-anchor-link"><strong><code>BinarySearchTree&lt;T&gt;</code></strong><a href="#_-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
@@ -700,7 +1574,54 @@
 <p><code>ByteRedBlackTree</code> is the byte form, with the same <code>(codec, comparator, data?, options?)</code> constructor as <code>ByteBinarySearchTree</code>. Items are encoded in sorted order.</p>
 <h3 id="red-black-tree-duplicates" class="tsd-anchor-link">Red-black tree duplicates<a href="#red-black-tree-duplicates" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Equal items keep their insertion order in every sorted walk, and <code>find()</code> and <code>remove()</code> act on the earliest one, as in <code>BinarySearchTree</code>. Rotations can move an equal item into a node's left subtree, so a left subtree holds equal or smaller items here instead of strictly smaller ones. This only matters when walking nodes by hand.</p>
-<h2 id="_-11" class="tsd-anchor-link"><code>Stack&lt;T&gt;</code><a href="#_-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="_-11" class="tsd-anchor-link"><strong><code>SpatialHash&lt;T&gt;</code></strong><a href="#_-11" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Uniform grid spatial hash. Space is cut into cubic cells of <code>cellSize</code>, and each item is filed under the cell holding the position your locator returns. Any number of items can share a cell. Only occupied cells take memory, so there are no world bounds to set up front. For at most one item per cell, use <a href="#spatialmapt"><code>SpatialMap</code></a>.</p>
+<p>Insert, remove, and <code>update()</code> are O(1) on average however far an item moves, which suits items that all move every frame. Positions, bounds, and search points use the same shapes as <code>OctTree</code>, typed <code>SpatialPoint</code> and <code>SpatialBounds</code>. For 2D, return <code>0</code> for <code>z</code>. The <code>ByteSpatialHash</code> subclass encodes the hash to bytes.</p>
+<p>Iteration, <code>values()</code>, <code>toArray()</code>, <code>query()</code>, and <code>stringify()</code> follow insertion order. Spatial searches return matches in cell order, which is unspecified.</p>
+<h3 id="spatial-hash-basics" class="tsd-anchor-link">Spatial hash basics<a href="#spatial-hash-basics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> {</span><span class="hl-5">SpatialHash</span><span class="hl-1">, </span><span class="hl-5">SpatialLocator</span><span class="hl-1">} </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@toreda/data-structures&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">interface</span><span class="hl-1"> </span><span class="hl-8">Ship</span><span class="hl-1"> {</span><br/><span class="hl-1">	</span><span class="hl-5">name</span><span class="hl-1">: </span><span class="hl-8">string</span><span class="hl-1">;</span><br/><span class="hl-1">	</span><span class="hl-5">x</span><span class="hl-1">: </span><span class="hl-8">number</span><span class="hl-1">;</span><br/><span class="hl-1">	</span><span class="hl-5">y</span><span class="hl-1">: </span><span class="hl-8">number</span><span class="hl-1">;</span><br/><span class="hl-1">	</span><span class="hl-5">z</span><span class="hl-1">: </span><span class="hl-8">number</span><span class="hl-1">;</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-0">byPosition</span><span class="hl-1">: </span><span class="hl-8">SpatialLocator</span><span class="hl-1">&lt;</span><span class="hl-8">Ship</span><span class="hl-1">&gt; = (</span><span class="hl-5">ship</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-5">ship</span><span class="hl-1">;</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">ships</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">SpatialHash</span><span class="hl-1">&lt;</span><span class="hl-8">Ship</span><span class="hl-1">&gt;(</span><br/><span class="hl-1">	</span><span class="hl-5">byPosition</span><span class="hl-1">,</span><br/><span class="hl-1">	[</span><br/><span class="hl-1">		{</span><span class="hl-5">name:</span><span class="hl-1"> </span><span class="hl-2">&#39;scout&#39;</span><span class="hl-1">, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">10</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">},</span><br/><span class="hl-1">		{</span><span class="hl-5">name:</span><span class="hl-1"> </span><span class="hl-2">&#39;hauler&#39;</span><span class="hl-1">, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">40</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">5</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">},</span><br/><span class="hl-1">		{</span><span class="hl-5">name:</span><span class="hl-1"> </span><span class="hl-2">&#39;raider&#39;</span><span class="hl-1">, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">900</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">}</span><br/><span class="hl-1">	],</span><br/><span class="hl-1">	{</span><span class="hl-5">cellSize:</span><span class="hl-1"> </span><span class="hl-9">50</span><span class="hl-1">}</span><br/><span class="hl-1">);</span><br/><br/><span class="hl-5">ships</span><span class="hl-1">.</span><span class="hl-0">size</span><span class="hl-1">(); </span><span class="hl-3">// returns 3</span><br/><span class="hl-5">ships</span><span class="hl-1">.</span><span class="hl-0">cellCount</span><span class="hl-1">(); </span><span class="hl-3">// returns 2 (scout and hauler share cell 0, 0, 0)</span><br/><span class="hl-5">ships</span><span class="hl-1">.</span><span class="hl-0">withinRadius</span><span class="hl-1">({</span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">}, </span><span class="hl-9">45</span><span class="hl-1">).</span><span class="hl-5">length</span><span class="hl-1">; </span><span class="hl-3">// returns 2 (scout, hauler)</span><br/><span class="hl-5">ships</span><span class="hl-1">.</span><span class="hl-0">nearest</span><span class="hl-1">({</span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">700</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">})?.</span><span class="hl-0">value</span><span class="hl-1">()?.</span><span class="hl-5">name</span><span class="hl-1">; </span><span class="hl-3">// returns &#39;raider&#39;</span><br/><span class="hl-5">ships</span><span class="hl-1">.</span><span class="hl-0">find</span><span class="hl-1">({</span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">10</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">})?.</span><span class="hl-0">value</span><span class="hl-1">()?.</span><span class="hl-5">name</span><span class="hl-1">; </span><span class="hl-3">// returns &#39;scout&#39; (exact position)</span>
+</code><button type="button">Copy</button></pre>
+
+<p><code>insert()</code> returns the element holding the item, or the <code>invalid_position</code> error code when the locator doesn't return finite coordinates. <code>withinBounds()</code> and <code>withinRadius()</code> take an optional array to refill. <code>forEachWithinBounds()</code> and <code>forEachWithinRadius()</code> visit matches without allocating, and are safe to call when the callback inserts, removes, or moves items:</p>
+<pre><code class="typescript"><span class="hl-5">ships</span><span class="hl-1">.</span><span class="hl-0">forEachWithinRadius</span><span class="hl-1">({</span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">}, </span><span class="hl-9">100</span><span class="hl-1">, (</span><span class="hl-5">element</span><span class="hl-1">, </span><span class="hl-5">index</span><span class="hl-1">, </span><span class="hl-5">hash</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">	</span><span class="hl-3">// Runs once per ship in range, allocating nothing.</span><br/><span class="hl-1">});</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="moving-spatial-hash-items" class="tsd-anchor-link">Moving spatial hash items<a href="#moving-spatial-hash-items" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>The hash stores the position each item was filed under, so it can't see an item move. After changing anything the locator reads, pass the element and item to <code>update()</code>. It keeps the same element, and only relinks when the item changes cell:</p>
+<pre><code class="typescript"><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">scout</span><span class="hl-1"> = </span><span class="hl-5">ships</span><span class="hl-1">.</span><span class="hl-0">find</span><span class="hl-1">({</span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">10</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">})!;</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">ship</span><span class="hl-1"> = </span><span class="hl-5">scout</span><span class="hl-1">.</span><span class="hl-0">value</span><span class="hl-1">()!;</span><br/><br/><span class="hl-5">ship</span><span class="hl-1">.</span><span class="hl-5">x</span><span class="hl-1"> = </span><span class="hl-9">950</span><span class="hl-1">;</span><br/><span class="hl-5">ships</span><span class="hl-1">.</span><span class="hl-0">update</span><span class="hl-1">(</span><span class="hl-5">scout</span><span class="hl-1">, </span><span class="hl-5">ship</span><span class="hl-1">); </span><span class="hl-3">// returns scout</span><br/><span class="hl-5">scout</span><span class="hl-1">.</span><span class="hl-0">cellX</span><span class="hl-1">(); </span><span class="hl-3">// returns 19</span><br/><span class="hl-5">ships</span><span class="hl-1">.</span><span class="hl-0">withinRadius</span><span class="hl-1">({</span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">925</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">}, </span><span class="hl-9">30</span><span class="hl-1">).</span><span class="hl-5">length</span><span class="hl-1">; </span><span class="hl-3">// returns 2 (raider, scout)</span>
+</code><button type="button">Copy</button></pre>
+
+<p><code>remove(item)</code> searches the cell of the item's current locator position, so call <code>update()</code> before removing an item that has moved, or use <code>removeNode()</code>.</p>
+<h3 id="choosing-a-cell-size" class="tsd-anchor-link">Choosing a cell size<a href="#choosing-a-cell-size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Searches probe every cell overlapping the search region, then test each item in those cells.</p>
+<ul>
+<li><strong>Near your typical search radius</strong> is a good default. A radius search then probes at most 27 cells.</li>
+<li><strong>Much smaller cells</strong> make each search probe many empty cells.</li>
+<li><strong>Much larger cells</strong> make each probe test many items that are out of range.</li>
+</ul>
+<p><code>cellSize</code> defaults to <code>1</code>. <code>expectedCellCount</code> (default <code>64</code>) sizes the cell table up front. The table grows past it on demand, so set it only to avoid growth when you know the eventual cell count. Cell coordinates are 32-bit integers, so positions more than about 2.1 billion cells from the origin are refused with <code>invalid_position</code>.</p>
+<h2 id="_-12" class="tsd-anchor-link"><strong><code>SpatialMap&lt;T&gt;</code></strong><a href="#_-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>Sparse uniform grid holding at most one item per cell, for grids sized so each cell fits one item: blocks, voxels, tiles, chunks, and occupancy checks for collision. Cells work as map keys, so the item in a cell is found in O(1) on average, either by a position inside it with <code>find()</code> or by integer cell coordinates with <code>findCell()</code>.</p>
+<p>Everything else matches <a href="#spatialhasht"><code>SpatialHash</code></a>: the locator, <code>cellSize</code>, spatial searches, <code>nearest()</code>, <code>update()</code>, pooling, iteration in insertion order, and the <code>ByteSpatialMap</code> subclass. <code>size()</code> is also the number of occupied cells.</p>
+<h3 id="spatial-map-basics" class="tsd-anchor-link">Spatial map basics<a href="#spatial-map-basics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<pre><code class="typescript"><span class="hl-4">import</span><span class="hl-1"> {</span><span class="hl-5">SpatialMap</span><span class="hl-1">, </span><span class="hl-5">SpatialLocator</span><span class="hl-1">} </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@toreda/data-structures&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">interface</span><span class="hl-1"> </span><span class="hl-8">Block</span><span class="hl-1"> {</span><br/><span class="hl-1">	</span><span class="hl-5">type</span><span class="hl-1">: </span><span class="hl-8">string</span><span class="hl-1">;</span><br/><span class="hl-1">	</span><span class="hl-5">x</span><span class="hl-1">: </span><span class="hl-8">number</span><span class="hl-1">;</span><br/><span class="hl-1">	</span><span class="hl-5">y</span><span class="hl-1">: </span><span class="hl-8">number</span><span class="hl-1">;</span><br/><span class="hl-1">	</span><span class="hl-5">z</span><span class="hl-1">: </span><span class="hl-8">number</span><span class="hl-1">;</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-0">byPosition</span><span class="hl-1">: </span><span class="hl-8">SpatialLocator</span><span class="hl-1">&lt;</span><span class="hl-8">Block</span><span class="hl-1">&gt; = (</span><span class="hl-5">block</span><span class="hl-1">) </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-5">block</span><span class="hl-1">;</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">blocks</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">SpatialMap</span><span class="hl-1">&lt;</span><span class="hl-8">Block</span><span class="hl-1">&gt;(</span><span class="hl-5">byPosition</span><span class="hl-1">);</span><br/><br/><span class="hl-5">blocks</span><span class="hl-1">.</span><span class="hl-0">insert</span><span class="hl-1">({</span><span class="hl-5">type:</span><span class="hl-1"> </span><span class="hl-2">&#39;stone&#39;</span><span class="hl-1">, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">}); </span><span class="hl-3">// returns the element</span><br/><span class="hl-5">blocks</span><span class="hl-1">.</span><span class="hl-0">insert</span><span class="hl-1">({</span><span class="hl-5">type:</span><span class="hl-1"> </span><span class="hl-2">&#39;dirt&#39;</span><span class="hl-1">, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">0.5</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0.2</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0.9</span><span class="hl-1">}); </span><span class="hl-3">// returns &#39;cell_occupied&#39;</span><br/><span class="hl-5">blocks</span><span class="hl-1">.</span><span class="hl-0">insert</span><span class="hl-1">({</span><span class="hl-5">type:</span><span class="hl-1"> </span><span class="hl-2">&#39;dirt&#39;</span><span class="hl-1">, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">1</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">}); </span><span class="hl-3">// returns the element</span><br/><br/><span class="hl-5">blocks</span><span class="hl-1">.</span><span class="hl-0">findCell</span><span class="hl-1">(</span><span class="hl-9">1</span><span class="hl-1">, </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-9">0</span><span class="hl-1">)?.</span><span class="hl-0">value</span><span class="hl-1">()?.</span><span class="hl-5">type</span><span class="hl-1">; </span><span class="hl-3">// returns &#39;dirt&#39;</span><br/><span class="hl-5">blocks</span><span class="hl-1">.</span><span class="hl-0">containsCell</span><span class="hl-1">(</span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-9">1</span><span class="hl-1">, </span><span class="hl-9">0</span><span class="hl-1">); </span><span class="hl-3">// returns false</span><br/><span class="hl-5">blocks</span><span class="hl-1">.</span><span class="hl-0">find</span><span class="hl-1">({</span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">0.7</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0.7</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0.7</span><span class="hl-1">})?.</span><span class="hl-0">value</span><span class="hl-1">()?.</span><span class="hl-5">type</span><span class="hl-1">; </span><span class="hl-3">// returns &#39;stone&#39;</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Cell <code>(cx, cy, cz)</code> holds positions whose <code>floor(x / cellSize)</code>, <code>floor(y / cellSize)</code>, and <code>floor(z / cellSize)</code> equal those coordinates. Each element reports its cell with <code>cellX()</code>, <code>cellY()</code>, and <code>cellZ()</code>, so neighbors are one step away on each axis:</p>
+<pre><code class="typescript"><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">chunks</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">SpatialMap</span><span class="hl-1">&lt;</span><span class="hl-8">Block</span><span class="hl-1">&gt;(</span><span class="hl-5">byPosition</span><span class="hl-1">, </span><span class="hl-6">null</span><span class="hl-1">, {</span><span class="hl-5">cellSize:</span><span class="hl-1"> </span><span class="hl-9">16</span><span class="hl-1">});</span><br/><br/><span class="hl-5">chunks</span><span class="hl-1">.</span><span class="hl-0">insert</span><span class="hl-1">({</span><span class="hl-5">type:</span><span class="hl-1"> </span><span class="hl-2">&#39;chunk&#39;</span><span class="hl-1">, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">40</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> -</span><span class="hl-9">3</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">100</span><span class="hl-1">});</span><br/><span class="hl-5">chunks</span><span class="hl-1">.</span><span class="hl-0">findCell</span><span class="hl-1">(</span><span class="hl-9">2</span><span class="hl-1">, -</span><span class="hl-9">1</span><span class="hl-1">, </span><span class="hl-9">6</span><span class="hl-1">)?.</span><span class="hl-0">value</span><span class="hl-1">()?.</span><span class="hl-5">type</span><span class="hl-1">; </span><span class="hl-3">// returns &#39;chunk&#39;</span>
+</code><button type="button">Copy</button></pre>
+
+<h3 id="collisions-and-overwrite" class="tsd-anchor-link">Collisions and overwrite<a href="#collisions-and-overwrite" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<p>Occupancy is decided by cell, not exact position: two items at different positions in one cell collide. By default an item arriving at an occupied cell is refused with <code>cell_occupied</code>. A refused <code>update()</code> changes nothing, so it doubles as a collision check:</p>
+<pre><code class="typescript"><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">stone</span><span class="hl-1"> = </span><span class="hl-5">blocks</span><span class="hl-1">.</span><span class="hl-0">findCell</span><span class="hl-1">(</span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-9">0</span><span class="hl-1">)!;</span><br/><br/><span class="hl-5">blocks</span><span class="hl-1">.</span><span class="hl-0">update</span><span class="hl-1">(</span><span class="hl-5">stone</span><span class="hl-1">, {...</span><span class="hl-5">stone</span><span class="hl-1">.</span><span class="hl-0">value</span><span class="hl-1">()!, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">1.5</span><span class="hl-1">}); </span><span class="hl-3">// returns &#39;cell_occupied&#39;, nothing moves</span><br/><span class="hl-5">blocks</span><span class="hl-1">.</span><span class="hl-0">update</span><span class="hl-1">(</span><span class="hl-5">stone</span><span class="hl-1">, {...</span><span class="hl-5">stone</span><span class="hl-1">.</span><span class="hl-0">value</span><span class="hl-1">()!, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">1</span><span class="hl-1">}); </span><span class="hl-3">// returns stone, now in cell 0, 1, 0</span>
+</code><button type="button">Copy</button></pre>
+
+<p>When an item was changed in place and its move is refused, the item's locator position no longer matches its element. Restore its position, or remove it with <code>removeNode()</code>, since <code>remove()</code> searches by the locator's position.</p>
+<p>With <code>overwrite: true</code>, an arriving item replaces the occupant instead, like <code>Map.prototype.set()</code>:</p>
+<pre><code class="typescript"><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">latest</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">SpatialMap</span><span class="hl-1">&lt;</span><span class="hl-8">Block</span><span class="hl-1">&gt;(</span><span class="hl-5">byPosition</span><span class="hl-1">, </span><span class="hl-6">null</span><span class="hl-1">, {</span><span class="hl-5">overwrite:</span><span class="hl-1"> </span><span class="hl-6">true</span><span class="hl-1">});</span><br/><br/><span class="hl-5">latest</span><span class="hl-1">.</span><span class="hl-0">insert</span><span class="hl-1">({</span><span class="hl-5">type:</span><span class="hl-1"> </span><span class="hl-2">&#39;stone&#39;</span><span class="hl-1">, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0</span><span class="hl-1">});</span><br/><span class="hl-5">latest</span><span class="hl-1">.</span><span class="hl-0">insert</span><span class="hl-1">({</span><span class="hl-5">type:</span><span class="hl-1"> </span><span class="hl-2">&#39;glass&#39;</span><span class="hl-1">, </span><span class="hl-5">x:</span><span class="hl-1"> </span><span class="hl-9">0.5</span><span class="hl-1">, </span><span class="hl-5">y:</span><span class="hl-1"> </span><span class="hl-9">0.5</span><span class="hl-1">, </span><span class="hl-5">z:</span><span class="hl-1"> </span><span class="hl-9">0.5</span><span class="hl-1">}); </span><span class="hl-3">// replaces stone</span><br/><span class="hl-5">latest</span><span class="hl-1">.</span><span class="hl-0">size</span><span class="hl-1">(); </span><span class="hl-3">// returns 1</span>
+</code><button type="button">Copy</button></pre>
+
+<h2 id="_-13" class="tsd-anchor-link"><code>Stack&lt;T&gt;</code><a href="#_-13" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Last in, first out. The backing array keeps its largest size, so once it has grown, <code>push()</code> and <code>pop()</code> allocate nothing. Every traversal (<code>forEach</code>, iteration, <code>at</code>, query <code>index()</code>) runs from the top down, and position 0 is the top.</p>
 <h3 id="stack-basics" class="tsd-anchor-link">Stack basics<a href="#stack-basics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <p>Typescript</p>
@@ -719,7 +1640,7 @@
 <pre><code class="typescript"><span class="hl-3">// Returns the current state of the stack as a JSON string</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">serialized</span><span class="hl-1"> = </span><span class="hl-5">myStack</span><span class="hl-1">.</span><span class="hl-0">stringify</span><span class="hl-1">(); </span><span class="hl-3">// returns &#39;{&quot;type&quot;:&quot;Stack&quot;,&quot;elements&quot;:[&quot;three&quot;,&quot;two&quot;,&quot;one&quot;]}&#39;</span><br/><br/><span class="hl-3">// Reset stack and remove all elements. The backing array&#39;s capacity is kept.</span><br/><span class="hl-5">myStack</span><span class="hl-1">.</span><span class="hl-0">reset</span><span class="hl-1">(); </span><span class="hl-3">// returns myStack</span><br/><br/><span class="hl-3">// Byte form of the whole stack is provided by ByteStack, a superset of Stack.</span><br/><span class="hl-3">// Items are generic, so it requires an ItemCodec at construction.</span><br/><span class="hl-4">import</span><span class="hl-1"> {</span><span class="hl-5">ByteStack</span><span class="hl-1">} </span><span class="hl-4">from</span><span class="hl-1"> </span><span class="hl-2">&#39;@toreda/data-structures&#39;</span><span class="hl-1">;</span><br/><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">codec</span><span class="hl-1"> = {</span><br/><span class="hl-1">	</span><span class="hl-0">encode</span><span class="hl-5">:</span><span class="hl-1"> (</span><span class="hl-5">item</span><span class="hl-1">: </span><span class="hl-8">string</span><span class="hl-1">): </span><span class="hl-8">Uint8Array</span><span class="hl-1"> </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">TextEncoder</span><span class="hl-1">().</span><span class="hl-0">encode</span><span class="hl-1">(</span><span class="hl-5">item</span><span class="hl-1">),</span><br/><span class="hl-1">	</span><span class="hl-0">decode</span><span class="hl-5">:</span><span class="hl-1"> (</span><span class="hl-5">bytes</span><span class="hl-1">: </span><span class="hl-8">Uint8Array</span><span class="hl-1">): </span><span class="hl-8">string</span><span class="hl-1"> </span><span class="hl-6">=&gt;</span><span class="hl-1"> </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">TextDecoder</span><span class="hl-1">().</span><span class="hl-0">decode</span><span class="hl-1">(</span><span class="hl-5">bytes</span><span class="hl-1">)</span><br/><span class="hl-1">};</span><br/><br/><span class="hl-3">// Array items are pushed bottom to top</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">source</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">ByteStack</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;(</span><span class="hl-5">codec</span><span class="hl-1">, [</span><span class="hl-2">&#39;a&#39;</span><span class="hl-1">, </span><span class="hl-2">&#39;b&#39;</span><span class="hl-1">]);</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">bytes</span><span class="hl-1"> = </span><span class="hl-5">source</span><span class="hl-1">.</span><span class="hl-0">toBytes</span><span class="hl-1">(); </span><span class="hl-3">// Uint8Array, items top to bottom</span><br/><br/><span class="hl-3">// Rebuild a stack from envelope bytes. Throws when bytes are not a valid envelope.</span><br/><span class="hl-6">const</span><span class="hl-1"> </span><span class="hl-7">fromBytes</span><span class="hl-1"> = </span><span class="hl-6">new</span><span class="hl-1"> </span><span class="hl-0">ByteStack</span><span class="hl-1">&lt;</span><span class="hl-8">string</span><span class="hl-1">&gt;(</span><span class="hl-5">codec</span><span class="hl-1">, </span><span class="hl-5">bytes</span><span class="hl-1">);</span><br/><span class="hl-5">fromBytes</span><span class="hl-1">.</span><span class="hl-0">top</span><span class="hl-1">(); </span><span class="hl-3">// returns &#39;b&#39;</span>
 </code><button type="button">Copy</button></pre>
 
-<h2 id="_-12" class="tsd-anchor-link"><strong><code>Trie&lt;T&gt;</code></strong><a href="#_-12" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<h2 id="_-14" class="tsd-anchor-link"><strong><code>Trie&lt;T&gt;</code></strong><a href="#_-14" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>Prefix tree mapping string keys to items. Each key is stored as a path of nodes from the root, one node per UTF-16 code unit, so keys sharing a prefix share the nodes for it. Insert, find, and removal take time proportional to the key's length, not the number of items, and prefix searches only visit nodes below the prefix. Keys are unique: inserting an item under a stored key replaces the stored item, like <code>Map.prototype.set()</code>.</p>
 <p>A key selector that reads each item's key is required, as a comparator is for <code>BinarySearchTree</code>. Items are kept in key order: ascending by UTF-16 code unit, the order of <code>Array.prototype.sort()</code> without a comparator.</p>
 <h3 id="trie-basics" class="tsd-anchor-link">Trie basics<a href="#trie-basics" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3>
@@ -804,9 +1725,11 @@
 <li><a href="#game-object-pooling-with"><span>Game object pooling with </span></a></li>
 <li><a href="#bounded-history-and-stream-buffers-with"><span>Bounded history and stream buffers with </span></a></li>
 <li><a href="#spatial-queries-with-and"><span>Spatial queries with  and </span></a></li>
+<li><a href="#moving-items-and-voxel-grids-with-and"><span>Moving items and voxel grids with  and </span></a></li>
 <li><a href="#pathfinding-with"><span>Pathfinding with </span></a></li>
 <li><a href="#ordered-and-scheduled-data"><span>Ordered and scheduled data</span></a></li></ul><a href="#performance"><span>Performance</span></a>
 <ul>
+<li><a href="#runtime-complexity"><span>Runtime complexity</span></a></li>
 <li><a href="#allocation-benchmark"><span>Allocation benchmark</span></a></li>
 <li><a href="#compared-with-other-packages"><span>Compared with other packages</span></a></li>
 <li><a href="#when-to-use-something-else"><span>When to use something else</span></a></li></ul><a href="#interface"><span> <wbr/>Interface</span></a><a href="#data-structures"><span>Data <wbr/>Structures</span></a>
@@ -892,11 +1815,22 @@
 <li><a href="#_-11"><span></span></a></li>
 <li>
 <ul>
+<li><a href="#spatial-hash-basics"><span>Spatial hash basics</span></a></li>
+<li><a href="#moving-spatial-hash-items"><span>Moving spatial hash items</span></a></li>
+<li><a href="#choosing-a-cell-size"><span>Choosing a cell size</span></a></li></ul></li>
+<li><a href="#_-12"><span></span></a></li>
+<li>
+<ul>
+<li><a href="#spatial-map-basics"><span>Spatial map basics</span></a></li>
+<li><a href="#collisions-and-overwrite"><span>Collisions and overwrite</span></a></li></ul></li>
+<li><a href="#_-13"><span></span></a></li>
+<li>
+<ul>
 <li><a href="#stack-basics"><span>Stack basics</span></a></li>
 <li><a href="#iterating-a-stack"><span>Iterating a stack</span></a></li>
 <li><a href="#pop-and-reverse-a-stack"><span>Pop and reverse a stack</span></a></li>
 <li><a href="#serialize-and-reset-a-stack"><span>Serialize and reset a stack</span></a></li></ul></li>
-<li><a href="#_-12"><span></span></a></li>
+<li><a href="#_-14"><span></span></a></li>
 <li>
 <ul>
 <li><a href="#trie-basics"><span>Trie basics</span></a></li>

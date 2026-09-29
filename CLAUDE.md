@@ -54,6 +54,13 @@ Byte encoding is not part of the base `DataStructure` contract. Each data struct
 * `LinkedList`: `<root>/src/linked/list.ts`
 * `ByteLinkedList`: `<root>/src/byte/linked/list.ts` (superset of `LinkedList` implementing `ByteDataStructure`)
 
+**Spatial grids**
+* `SpatialGrid`: `<root>/src/spatial/grid.ts` (options: `SpatialGridOptions`, `<root>/src/spatial/grid/options.ts`). Shared cell table engine behind `SpatialHash` and `SpatialMap`, held by composition like `ElementPool`, not a base class. Both use one element class, `SpatialElement` (`<root>/src/spatial/element.ts`), and one iterator, `SpatialIterator`.
+* `SpatialHash`: `<root>/src/spatial/hash.ts` (any number of items per cell)
+* `ByteSpatialHash`: `<root>/src/byte/spatial/hash.ts` (superset of `SpatialHash` implementing `ByteDataStructure`)
+* `SpatialMap`: `<root>/src/spatial/map.ts` (at most one item per cell)
+* `ByteSpatialMap`: `<root>/src/byte/spatial/map.ts` (superset of `SpatialMap` implementing `ByteDataStructure`)
+
 **Standalone** (no shared base type)
 * `CircularQueue`: `<root>/src/circular/queue.ts`
 * `ByteCircularQueue`: `<root>/src/byte/circular/queue.ts` (superset of `CircularQueue` implementing `ByteDataStructure`)

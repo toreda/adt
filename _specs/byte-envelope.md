@@ -132,6 +132,8 @@ One per data structure, a superset of the base class. Naming and location: `Byte
 | `ByteRedBlackTree`     | `RedBlackTree`     | `byte/red/black/tree.ts`      |
 | `ByteQuadTree`         | `QuadTree`         | `byte/quad/tree.ts`           |
 | `ByteOctTree`          | `OctTree`          | `byte/oct/tree.ts`            |
+| `ByteSpatialHash`      | `SpatialHash`      | `byte/spatial/hash.ts`        |
+| `ByteSpatialMap`       | `SpatialMap`       | `byte/spatial/map.ts`         |
 | `ByteTrie`             | `Trie`             | `byte/trie.ts`                |
 | `ByteDirectedGraph`    | `DirectedGraph`    | `byte/directed/graph.ts`      |
 
@@ -151,7 +153,7 @@ constructor(codec: ItemCodec<ItemT>, data?: ItemT[] | Uint8Array | null, options
 
 Encoding rules:
 
-- Items are encoded in collection order, as the base class's iteration would visit them (for `LinkedList`, head to tail).
+- Items are encoded in collection order, as the base class's iteration would visit them (for `LinkedList`, head to tail; for `SpatialHash` and `SpatialMap`, insertion order).
 - `ByteDirectedGraph` encodes vertices in insertion order and edges in edge insertion order, into a graph envelope (see Graph envelope). Its `data` bytes must be a graph envelope; a plain envelope throws like any other malformed input. `toByteEnvelope()` still returns the vertex items alone, as `ByteDataStructure` requires, and those bytes carry no edges.
 - A byte class encodes exactly the items its `stringify()` includes. `LinkedList` skips elements whose stored value is `null`, so decoding its envelope never produces a null-valued element. `CircularQueue` stores items directly and encodes every item, passing any `null` item to the codec. The package-wide null rules are an open review item (`TODO.md`).
 - `toBytes()` output round-trips: `new ByteX(codec, x.toBytes())` yields a collection with equal values in the same order, and its `toBytes()` is byte-for-byte equal.

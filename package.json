@@ -2,7 +2,7 @@
 	"name": "@toreda/data-structures",
 	"version": "1.0.0",
 	"packageManager": "pnpm@12.6.0",
-	"description": "Low GC churn TypeScript data structures for games and real-time media. Pooled node wrappers mean steady-state inserts and removals create no new objects. Includes Stack, Queue, Circular Queue (ring buffer), Priority Queue, Doubly Linked List, Object Pool, Binary Search Tree, Red-Black Tree, Quadtree, Octree, Trie, and Directed Graph with A* pathfinding.",
+	"description": "Low GC churn TypeScript data structures for games and real-time media. Pooled node wrappers mean steady-state inserts and removals create no new objects. Includes Stack, Queue, Circular Queue (ring buffer), Priority Queue, Doubly Linked List, Object Pool, Binary Search Tree, Red-Black Tree, Quadtree, Octree, Spatial Hash, Spatial Map (uniform grids), Trie, and Directed Graph with A* pathfinding.",
 	"publishConfig": {
 		"access": "public"
 	},
@@ -86,6 +86,10 @@
 		"octree",
 		"spatial-index",
 		"spatial-partitioning",
+		"spatial-hash",
+		"spatial-hashing",
+		"uniform-grid",
+		"voxel",
 		"graph",
 		"directed-graph",
 		"digraph",

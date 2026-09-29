@@ -123,6 +123,46 @@ measure('OctTree nearest', () => {
 	t.nearest(probe3);
 });
 
+// Spatial grids (1000 items held)
+function spatialHash() {
+	const t = new L.SpatialHash(byPosition, null, {cellSize: 50});
+	const items = [];
+	const nodes = [];
+	for (let i = 0; i < 1000; i++) {
+		const p = {x: (i * 7919) % 1000, y: (i * 104729) % 1000, z: (i * 31) % 1000};
+		items.push(p);
+		nodes.push(t.insert(p));
+	}
+	return {t, items, nodes};
+}
+measure('SpatialHash nearest', spatialHash, (c, i) => {
+	probe3.x = (i * 37) % 1000;
+	c.t.nearest(probe3);
+});
+measure('SpatialHash forEachWithinRadius', spatialHash, (c) => c.t.forEachWithinRadius(probe3, 100, noop));
+measure('SpatialHash update (move)', spatialHash, (c, i) => {
+	const node = c.nodes[i % 1000];
+	const p = node.value();
+	p.x = (p.x + 137) % 1000;
+	c.t.update(node, p);
+});
+measure('SpatialHash remove + insert', spatialHash, (c, i) => {
+	const p = c.items[i % 50];
+	c.t.remove(p);
+	c.t.insert(p);
+});
+function spatialMap() {
+	const t = new L.SpatialMap(byPosition);
+	for (let x = 0; x < 10; x++) for (let y = 0; y < 10; y++) for (let z = 0; z < 10; z++) t.insert({x, y, z});
+	return t;
+}
+const voxel = {x: 20, y: 0, z: 0};
+measure('SpatialMap findCell', spatialMap, (t, i) => t.findCell(i % 10, (i >> 3) % 10, (i >> 6) % 10));
+measure('SpatialMap insert + removeNode', spatialMap, (t, i) => {
+	voxel.x = 20 + (i % 64);
+	t.removeNode(t.insert(voxel));
+});
+
 // Graph (20 x 20 grid)
 function grid() {
 	const n = 20;

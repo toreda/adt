@@ -8,10 +8,10 @@
 
 Generic TypeScript data structures built for low garbage collection (GC) churn. Made for games, real-time audio and video, and other hot loops where GC pauses cause dropped frames and audio glitches.
 
-* **Pooled nodes by default.** `LinkedList`, `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, and `DirectedGraph` recycle their internal node wrappers. Once a pool has grown, inserts and removals in steady state create no new nodes.
+* **Pooled nodes by default.** `LinkedList`, `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, `SpatialHash`, `SpatialMap`, and `DirectedGraph` recycle their internal node wrappers. Once a pool has grown, inserts and removals in steady state create no new nodes.
 * **Fixed-capacity ring buffer.** `CircularQueue` pushes and pops in O(1) without resizing, which suits audio samples, network packets, input history, and frame timings.
 * **Pools for your own objects.** `ObjectPool` hands out reusable instances of your own classes, such as particles, entities, and projectiles, instead of allocating new ones each frame.
-* **Game-ready algorithms.** `QuadTree` and `OctTree` handle 2D and 3D range, radius, and nearest neighbor queries for collision and visibility. `DirectedGraph` finds A* paths, and `PriorityQueue` schedules by priority.
+* **Game-ready algorithms.** `QuadTree` and `OctTree` handle 2D and 3D range, radius, and nearest neighbor queries for collision and visibility. `SpatialHash` and `SpatialMap` are uniform grids for items that move every frame and for voxel and tile worlds. `DirectedGraph` finds A* paths, and `PriorityQueue` schedules by priority.
 * **Stack-safe.** Tree and graph traversals are iterative, so deep or lopsided structures never overflow the call stack.
 * **One consistent API.** Every collection supports search, insertion, deletion, `query()` filters, and JSON serialization, and returns `null` instead of throwing when empty.
 * **Binary encoding.** Every collection except `ObjectPool` has a `Byte*` subclass, such as `ByteLinkedList` or `ByteDirectedGraph`, that encodes the whole collection to bytes with your own item codec and rebuilds it from those bytes.
@@ -23,9 +23,11 @@ Generic TypeScript data structures built for low garbage collection (GC) churn. 
 	- [Game object pooling with `ObjectPool`](#game-object-pooling-with-objectpool)
 	- [Bounded history and stream buffers with `CircularQueue`](#bounded-history-and-stream-buffers-with-circularqueue)
 	- [Spatial queries with `QuadTree` and `OctTree`](#spatial-queries-with-quadtree-and-octtree)
+	- [Moving items and voxel grids with `SpatialHash` and `SpatialMap`](#moving-items-and-voxel-grids-with-spatialhash-and-spatialmap)
 	- [Pathfinding with `DirectedGraph`](#pathfinding-with-directedgraph)
 	- [Ordered and scheduled data](#ordered-and-scheduled-data)
 - [Performance](#performance)
+	- [Runtime complexity](#runtime-complexity)
 	- [Allocation benchmark](#allocation-benchmark)
 	- [Compared with other packages](#compared-with-other-packages)
 	- [When to use something else](#when-to-use-something-else)
@@ -89,6 +91,13 @@ Generic TypeScript data structures built for low garbage collection (GC) churn. 
 		- [Balancing sorted input](#balancing-sorted-input)
 		- [Node colors and black height](#node-colors-and-black-height)
 		- [Red-black tree duplicates](#red-black-tree-duplicates)
+	- [**`SpatialHash<T>`**](#spatialhasht)
+		- [Spatial hash basics](#spatial-hash-basics)
+		- [Moving spatial hash items](#moving-spatial-hash-items)
+		- [Choosing a cell size](#choosing-a-cell-size)
+	- [**`SpatialMap<T>`**](#spatialmapt)
+		- [Spatial map basics](#spatial-map-basics)
+		- [Collisions and overwrite](#collisions-and-overwrite)
 	- [`Stack<T>`](#stackt)
 		- [Stack basics](#stack-basics)
 		- [Iterating a stack](#iterating-a-stack)
@@ -245,7 +254,17 @@ Use for finding the nearest enemy or target, everything within an attack or soun
 * `nearest()`, `forEachWithinBounds()`, and `forEachWithinRadius()` allocate nothing, so they are safe to call per entity per frame.
 * Positions come from your own locator function, so items stay your own objects. Any finite position fits, with no world bounds to set up front.
 * Nodes are pooled, every walk is iterative, and removing or moving an item allocates nothing.
-* These are point trees. Moving a leaf with `update()` relinks nothing, but moving an inner node relinks its subtree, so they suit items that are static or move occasionally. For thousands of items that all move every frame, a uniform grid or a per-frame rebuild usually costs less.
+* These are point trees. Moving a leaf with `update()` relinks nothing, but moving an inner node relinks its subtree, so they suit items that are static or move occasionally. For thousands of items that all move every frame, use `SpatialHash`.
+
+## Moving items and voxel grids with `SpatialHash` and `SpatialMap`
+
+Use for crowds, projectiles, and particles that all move every frame, broad-phase collision, proximity and awareness checks, and block, voxel, tile, and chunk worlds.
+
+* Both cut space into cubic cells of one size and keep only occupied cells in a hash table, so space is unbounded and empty regions cost nothing.
+* `update()` is O(1) on average however far an item moves. An item moving inside its cell only has its position written.
+* `SpatialHash` holds any number of items per cell. `SpatialMap` holds at most one, refuses a second with `cell_occupied` (or replaces the first with `overwrite: true`), and finds a cell's item by integer cell coordinates with `findCell()`.
+* `nearest()`, `forEachWithinBounds()`, `forEachWithinRadius()`, `update()`, and `findCell()` allocate nothing, and element wrappers are pooled.
+* Searches only probe cells overlapping the search region, so pick a cell size near your typical search radius. See [Choosing a cell size](#choosing-a-cell-size).
 
 ## Pathfinding with `DirectedGraph`
 
@@ -264,6 +283,147 @@ Use for navigation graphs, waypoint networks, tile and hex maps, and dialogue an
 * **`LinkedList`** removes a node in O(1) when you hold the node. Use it for active lists where entities are removed in any order, and for LRU caches. Nodes are pooled, and `forEach` walks the links without building an array.
 
 # Performance
+
+## Runtime complexity
+
+Time complexity of each operation, taken from the implementation. Variables:
+
+* **n**: items in the structure. **k**: results returned.
+* **h**: tree height. `BinarySearchTree`, `QuadTree`, and `OctTree` don't rebalance, so h is O(log n) for well-spread input and O(n) for sorted input or many duplicates.
+* **V**, **E**: graph vertices and edges. **d**: a vertex's in-degree plus out-degree.
+* **s**: items in one cell of a `SpatialHash`. **c**: cells a `SpatialHash` or `SpatialMap` search probes, which is the cells overlapping the search region, capped at the cell table size.
+* **m**: key length in UTF-16 code units. **p**: prefix length. **t**: length of the text passed to `longestPrefixOf()`. **L**: longest stored key. **σ**: children of one trie node (binary searched). **S**: trie nodes under a prefix. **N**: trie nodes in total.
+
+`query()` searches every structure the same way: a linear walk that tests each element against the filters. It doesn't use a tree's order or spatial layout, so prefer the structure's own lookups when they fit. It is still the only way to search by an arbitrary condition, or to find and remove items in structures with no lookup method (`Queue`, `Stack`, `PriorityQueue`, `LinkedList`, `CircularQueue`, `ObjectPool`). With the `limit` option the walk stops once `limit` results are found, which gives the best case below. A result's `delete()` removes the matched element.
+
+Growing an internal array or element pool is left out of these costs. Growth doubles capacity, so it is amortized O(1) per insert, and the single insert that triggers it pays an extra O(n). `DirectedGraph` adjacency lives in `Map`s, so its costs assume normal hashing.
+
+| Data structure | Action | Worst Case | Average Case | Best Case |
+|---|---|---|---|---|
+| `BinarySearchTree` | `insert` | O(n) | O(log n) | O(1) |
+| `BinarySearchTree` | `find`, `contains` | O(n) | O(log n) | O(1) |
+| `BinarySearchTree` | `remove` | O(n) | O(log n) | O(1) |
+| `BinarySearchTree` | `removeNode` | O(n) | O(log n) | O(1) |
+| `BinarySearchTree` | `update` | O(n) | O(log n) | O(h) |
+| `BinarySearchTree` | `min`, `max` | O(n) | O(log n) | O(1) |
+| `BinarySearchTree` | `successor`, `predecessor` | O(n) | O(log n) | O(1) |
+| `BinarySearchTree` | `query` | O(n) | O(n) | O(h) |
+| `BinarySearchTree` | `query` result `delete()` | O(n) | O(log n) | O(1) |
+| `CircularQueue` | `push`, `insertFront` | O(1) | O(1) | O(1) |
+| `CircularQueue` | `pop` | O(1) | O(1) | O(1) |
+| `CircularQueue` | `front`, `rear`, `getIndex` | O(1) | O(1) | O(1) |
+| `CircularQueue` | `query` | O(n) | O(n) | O(1) |
+| `CircularQueue` | `query` result `delete()` | O(n) | O(n) | O(n) |
+| `DirectedGraph` | `addVertex` | O(1) | O(1) | O(1) |
+| `DirectedGraph` | `removeVertex` | O(d) | O(d) | O(1) |
+| `DirectedGraph` | `addEdge`, `addBidirectionalEdge` | O(1) | O(1) | O(1) |
+| `DirectedGraph` | `removeEdge` | O(1) | O(1) | O(1) |
+| `DirectedGraph` | `edge`, `adjacent` | O(1) | O(1) | O(1) |
+| `DirectedGraph` | `find`, `contains` | O(V) | O(V) | O(V) |
+| `DirectedGraph` | `forEachNeighbor` | O(d) | O(d) | O(1) |
+| `DirectedGraph` | `breadthFirst`, `depthFirst` | O(V + E) | O(V + E) | O(1) |
+| `DirectedGraph` | `findPath` (A*) | O((V + E) log V) | O((V + E) log V) | O(1) |
+| `DirectedGraph` | `hasCycle` | O(E α(V)) | O(E α(V)) | O(1) |
+| `DirectedGraph` | `query` | O(V) | O(V) | O(1) |
+| `DirectedGraph` | `query` result `delete()` | O(d) | O(d) | O(1) |
+| `LinkedList` | `insert`, `insertAtHead`, `insertAtTail` | O(1) | O(1) | O(1) |
+| `LinkedList` | `removeNode` | O(1) | O(1) | O(1) |
+| `LinkedList` | `head`, `tail` | O(1) | O(1) | O(1) |
+| `LinkedList` | `reverse` | O(n) | O(n) | O(n) |
+| `LinkedList` | `query` | O(n) | O(n) | O(1) |
+| `LinkedList` | `query` result `delete()` | O(1) | O(1) | O(1) |
+| `ObjectPool` | `allocate` | O(1) | O(1) | O(1) |
+| `ObjectPool` | `release` | O(1) | O(1) | O(1) |
+| `ObjectPool` | `increaseCapacity` | O(k) | O(k) | O(k) |
+| `ObjectPool` | `clearElements` | O(n) | O(n) | O(n) |
+| `ObjectPool` | `query` | O(n) | O(n) | O(1) |
+| `ObjectPool` | `query` result `delete()` | O(1) | O(1) | O(1) |
+| `OctTree` | `insert` | O(n) | O(log n) | O(1) |
+| `OctTree` | `find`, `contains` | O(n) | O(log n) | O(1) |
+| `OctTree` | `remove`, `removeNode` | O(n²) | O(log² n) | O(1) |
+| `OctTree` | `update` | O(n²) | O(log² n) | O(1) |
+| `OctTree` | `withinBounds`, `withinRadius` | O(n) | O(n^(2/3) + k) | O(1) |
+| `OctTree` | `nearest` | O(n) | O(log n) | O(1) |
+| `OctTree` | `query` | O(n) | O(n) | O(1) |
+| `OctTree` | `query` result `delete()` | O(n²) | O(log² n) | O(1) |
+| `PriorityQueue` | `push` | O(log n) | O(1) | O(1) |
+| `PriorityQueue` | `pop` | O(log n) | O(log n) | O(1) |
+| `PriorityQueue` | `peek` | O(1) | O(1) | O(1) |
+| `PriorityQueue` | `heapify` | O(n) | O(n) | O(n) |
+| `PriorityQueue` | `query` | O(n) | O(n) | O(1) |
+| `PriorityQueue` | `query` result `delete()` | O(n) | O(n) | O(1) |
+| `QuadTree` | `insert` | O(n) | O(log n) | O(1) |
+| `QuadTree` | `find`, `contains` | O(n) | O(log n) | O(1) |
+| `QuadTree` | `remove`, `removeNode` | O(n²) | O(log² n) | O(1) |
+| `QuadTree` | `update` | O(n²) | O(log² n) | O(1) |
+| `QuadTree` | `withinBounds`, `withinRadius` | O(n) | O(√n + k) | O(1) |
+| `QuadTree` | `nearest` | O(n) | O(log n) | O(1) |
+| `QuadTree` | `query` | O(n) | O(n) | O(1) |
+| `QuadTree` | `query` result `delete()` | O(n²) | O(log² n) | O(1) |
+| `Queue` | `push` | O(1) | O(1) | O(1) |
+| `Queue` | `pop` | O(1) | O(1) | O(1) |
+| `Queue` | `front`, `rear`, `at` | O(1) | O(1) | O(1) |
+| `Queue` | `reverse` | O(n) | O(n) | O(n) |
+| `Queue` | `query` | O(n) | O(n) | O(1) |
+| `Queue` | `query` result `delete()` | O(n) | O(n) | O(n) |
+| `RedBlackTree` | `insert` | O(log n) | O(log n) | O(log n) |
+| `RedBlackTree` | `find`, `contains` | O(log n) | O(log n) | O(log n) |
+| `RedBlackTree` | `remove` | O(log n) | O(log n) | O(log n) |
+| `RedBlackTree` | `removeNode` | O(log n) | O(log n) | O(1) |
+| `RedBlackTree` | `update` | O(log n) | O(log n) | O(1) |
+| `RedBlackTree` | `min`, `max` | O(log n) | O(log n) | O(log n) |
+| `RedBlackTree` | `successor`, `predecessor` | O(log n) | O(1) | O(1) |
+| `RedBlackTree` | `query` | O(n) | O(n) | O(log n) |
+| `RedBlackTree` | `query` result `delete()` | O(log n) | O(log n) | O(1) |
+| `SpatialHash` | `insert` | O(n) | O(1) | O(1) |
+| `SpatialHash` | `find`, `contains`, `remove` | O(n) | O(1 + s) | O(1) |
+| `SpatialHash` | `removeNode` | O(1) | O(1) | O(1) |
+| `SpatialHash` | `update` | O(n) | O(1) | O(1) |
+| `SpatialHash` | `withinBounds`, `withinRadius` | O(c + n) | O(c + k) | O(1) |
+| `SpatialHash` | `nearest` | O(n) | O(1) | O(1) |
+| `SpatialHash` | `query` | O(n) | O(n) | O(1) |
+| `SpatialHash` | `query` result `delete()` | O(1) | O(1) | O(1) |
+| `SpatialMap` | `insert`, `update` | O(n) | O(1) | O(1) |
+| `SpatialMap` | `find`, `findCell`, `contains`, `containsCell`, `remove` | O(n) | O(1) | O(1) |
+| `SpatialMap` | `removeNode` | O(1) | O(1) | O(1) |
+| `SpatialMap` | `withinBounds`, `withinRadius` | O(c + n) | O(c + k) | O(1) |
+| `SpatialMap` | `nearest` | O(n) | O(1) | O(1) |
+| `SpatialMap` | `query` | O(n) | O(n) | O(1) |
+| `SpatialMap` | `query` result `delete()` | O(1) | O(1) | O(1) |
+| `Stack` | `push` | O(1) | O(1) | O(1) |
+| `Stack` | `pop` | O(1) | O(1) | O(1) |
+| `Stack` | `top`, `bottom`, `at` | O(1) | O(1) | O(1) |
+| `Stack` | `reverse` | O(n) | O(n) | O(n) |
+| `Stack` | `query` | O(n) | O(n) | O(1) |
+| `Stack` | `query` result `delete()` | O(n) | O(n) | O(1) |
+| `Trie` | `insert` | O(m log σ + σ) | O(m log σ) | O(m) |
+| `Trie` | `find`, `get`, `contains` | O(m log σ) | O(m log σ) | O(1) |
+| `Trie` | `remove` | O(m log σ + σ) | O(m log σ) | O(1) |
+| `Trie` | `removeNode` | O(m log σ + σ) | O(1) | O(1) |
+| `Trie` | `hasPrefix` | O(p log σ) | O(p log σ) | O(1) |
+| `Trie` | `longestPrefixOf` | O(min(t, L) log σ) | O(min(t, L) log σ) | O(1) |
+| `Trie` | `withPrefix`, `keysWithPrefix`, `forEachWithPrefix` | O((p + S) log σ) | O((p + S) log σ) | O(p log σ) |
+| `Trie` | `min`, `max` | O(L) | O(L) | O(1) |
+| `Trie` | `successor`, `predecessor` | O(L log σ) | O(log σ) | O(1) |
+| `Trie` | `query` | O(N log σ) | O(N log σ) | O(m) |
+| `Trie` | `query` result `delete()` | O(m log σ + σ) | O(1) | O(1) |
+| All `Byte*` classes | `toBytes` | O(n) | O(n) | O(n) |
+| `ByteDirectedGraph` | `toBytes`, rebuild from bytes | O(V + E) | O(V + E) | O(V + E) |
+| `ByteBinarySearchTree`, `ByteQuadTree`, `ByteOctTree` | rebuild from bytes | O(n²) | O(n log n) | O(n log n) |
+| `ByteRedBlackTree`, `BytePriorityQueue` | rebuild from bytes | O(n log n) | O(n) | O(n) |
+| `ByteTrie` | rebuild from bytes | O(N log σ) | O(N log σ) | O(N) |
+| `ByteCircularQueue`, `ByteLinkedList`, `ByteQueue`, `ByteSpatialHash`, `ByteSpatialMap`, `ByteStack` | rebuild from bytes | O(n) | O(n) | O(n) |
+
+Notes on the less obvious rows:
+
+* **`RedBlackTree` lookups are O(log n) even in the best case.** Rotations can put equal items in left subtrees, so `find()` keeps walking left after a match to return the earliest inserted one.
+* **Removing from `QuadTree` and `OctTree` relinks the removed node's subtree.** These are point trees, one item per node, so each node in the subtree is re-inserted. Removing a leaf is O(1). Removing the root of a degenerate tree is O(n²).
+* **`QuadTree` and `OctTree` average cases assume well-spread points.** Nothing caps their depth, and coincident points chain into a single branch.
+* **`SpatialHash` and `SpatialMap` costs are averages over the cell hash table.** The worst cases need nearly every cell to collide in the table. `nearest()` is O(1) on average when items fill the space around the search point evenly. It searches outward shell by shell, and once a shell would probe more cells than there are items, it measures every item instead, which caps it at O(n).
+* **`PriorityQueue` `push` is O(1) on average** for random priorities, because the new item usually stops within a level or two.
+* **`DirectedGraph` `find()` is Θ(V) even when the first vertex matches,** because it has no item-to-vertex index. Keep the vertex returned by `addVertex()` instead of searching for it. `removeVertex()` uses the reverse adjacency each vertex keeps, so it never scans other vertices.
+* **`findPath()` assumes a consistent heuristic, or none (Dijkstra).** An admissible but inconsistent heuristic can re-expand vertices.
+* **`Byte*` classes inherit every other operation unchanged.** Byte costs leave out the `ItemCodec`'s per-item encode and decode time. Bytes written by `toBytes()` rebuild a `ByteRedBlackTree` or `BytePriorityQueue` in O(n), because they are already in key or heap order.
 
 ## Allocation benchmark
 
@@ -287,6 +447,12 @@ Use for navigation graphs, waypoint networks, tile and hex maps, and dialogue an
 | `QuadTree` `forEachWithinRadius()` | 0 |
 | `QuadTree` remove + insert | 0 |
 | `OctTree` `nearest()` (1000 items) | 0 |
+| `SpatialHash` `nearest()` (1000 items) | 0 |
+| `SpatialHash` `forEachWithinRadius()` | 0 |
+| `SpatialHash` `update()` move | 0 |
+| `SpatialHash` remove + insert | 0 |
+| `SpatialMap` `findCell()` | 0 |
+| `SpatialMap` insert + `removeNode()` | 0 |
 | `DirectedGraph` `forEachNeighbor()` | 0 |
 | `DirectedGraph` `findPath()` A* on a 20 x 20 grid, reusing a path | 0 |
 | `DirectedGraph` `addEdge()` + `removeEdge()` | 26 |
@@ -319,17 +485,17 @@ Graph edge changes allocate because V8 resizes the `Map` tables that hold adjace
 What the numbers show:
 
 * **Array-backed structures are close across packages.** Queues, ring buffers, and heaps allocate little or nothing in every package tested, because they reuse an array.
-* **Node-based structures are where pooling matters.** The other linked lists allocate a new node for every insert. `LinkedList` reuses pooled nodes and allocates nothing. The same pooling applies to `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, and `DirectedGraph`.
+* **Node-based structures are where pooling matters.** The other linked lists allocate a new node for every insert. `LinkedList` reuses pooled nodes and allocates nothing. The same pooling applies to `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, `SpatialHash`, `SpatialMap`, and `DirectedGraph`.
 * **`js-sdsl`'s `OrderedSet` is faster.** It took about 20% less time per operation than `RedBlackTree` here.
 
-This package also has structures the others don't: dynamic `QuadTree` and `OctTree` spatial indexes with insert, remove, and move (`mnemonist`'s `KDTree` and `VPTree` are built once from a fixed dataset), `DirectedGraph` with A* pathfinding, `ObjectPool` for your own objects, and `Byte*` subclasses that encode a whole collection to bytes.
+This package also has structures the others don't: dynamic `QuadTree` and `OctTree` spatial indexes with insert, remove, and move (`mnemonist`'s `KDTree` and `VPTree` are built once from a fixed dataset), `SpatialHash` and `SpatialMap` uniform grids, `DirectedGraph` with A* pathfinding, `ObjectPool` for your own objects, and `Byte*` subclasses that encode a whole collection to bytes.
 
 ## When to use something else
 
 * **You need structures this package doesn't have.** `mnemonist` has LRU caches, Bloom filters, bit sets, multimaps, and suffix arrays. `js-sdsl` has hash maps and sets, deques, and ordered maps.
 * **You only need a double-ended queue.** `denque` is a small, single-purpose package.
 * **You need the fastest sorted set and allocation doesn't matter.** `js-sdsl`'s `OrderedSet` and `OrderedMap` were faster in the comparison above.
-* **Thousands of spatial items all move every frame.** Point trees relink on moves, so a uniform grid or a per-frame rebuild usually costs less.
+* **Thousands of spatial items all move every frame.** Point trees relink on moves. Use `SpatialHash` from this package, or a per-frame rebuild.
 * **A graph's edges change every frame.** Edge changes still allocate inside V8's `Map` tables. Build the graph up front and keep per-frame work to lookups, `forEachNeighbor()`, and `findPath()`.
 
 # **`DataStructure` Interface**
@@ -347,7 +513,7 @@ interface DataStructure<ItemT> {
 }
 ```
 
-Node-based collections (`LinkedList`, `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, `DirectedGraph`, `Trie`) wrap each item in an element that implements `Element<T>`, whose `value()` reads the item. Tree collections also implement the shared `Tree` interface, and graph collections the shared `Graph` interface.
+Node-based collections (`LinkedList`, `BinarySearchTree`, `RedBlackTree`, `QuadTree`, `OctTree`, `SpatialHash`, `SpatialMap`, `DirectedGraph`, `Trie`) wrap each item in an element that implements `Element<T>`, whose `value()` reads the item. Tree collections also implement the shared `Tree` interface, and graph collections the shared `Graph` interface.
 
 Methods return `null` instead of throwing when a collection is empty or holds no matching item, for example `pop()` on an empty `Stack`.
 
@@ -1566,6 +1732,140 @@ small.stringify(); // returns '{"type":"RedBlackTree","elements":[20,30]}'
 ### Red-black tree duplicates
 
 Equal items keep their insertion order in every sorted walk, and `find()` and `remove()` act on the earliest one, as in `BinarySearchTree`. Rotations can move an equal item into a node's left subtree, so a left subtree holds equal or smaller items here instead of strictly smaller ones. This only matters when walking nodes by hand.
+
+## **`SpatialHash<T>`**
+
+Uniform grid spatial hash. Space is cut into cubic cells of `cellSize`, and each item is filed under the cell holding the position your locator returns. Any number of items can share a cell. Only occupied cells take memory, so there are no world bounds to set up front. For at most one item per cell, use [`SpatialMap`](#spatialmapt).
+
+Insert, remove, and `update()` are O(1) on average however far an item moves, which suits items that all move every frame. Positions, bounds, and search points use the same shapes as `OctTree`, typed `SpatialPoint` and `SpatialBounds`. For 2D, return `0` for `z`. The `ByteSpatialHash` subclass encodes the hash to bytes.
+
+Iteration, `values()`, `toArray()`, `query()`, and `stringify()` follow insertion order. Spatial searches return matches in cell order, which is unspecified.
+
+### Spatial hash basics
+
+```typescript
+import {SpatialHash, SpatialLocator} from '@toreda/data-structures';
+
+interface Ship {
+	name: string;
+	x: number;
+	y: number;
+	z: number;
+}
+
+const byPosition: SpatialLocator<Ship> = (ship) => ship;
+const ships = new SpatialHash<Ship>(
+	byPosition,
+	[
+		{name: 'scout', x: 10, y: 0, z: 0},
+		{name: 'hauler', x: 40, y: 5, z: 0},
+		{name: 'raider', x: 900, y: 0, z: 0}
+	],
+	{cellSize: 50}
+);
+
+ships.size(); // returns 3
+ships.cellCount(); // returns 2 (scout and hauler share cell 0, 0, 0)
+ships.withinRadius({x: 0, y: 0, z: 0}, 45).length; // returns 2 (scout, hauler)
+ships.nearest({x: 700, y: 0, z: 0})?.value()?.name; // returns 'raider'
+ships.find({x: 10, y: 0, z: 0})?.value()?.name; // returns 'scout' (exact position)
+```
+
+`insert()` returns the element holding the item, or the `invalid_position` error code when the locator doesn't return finite coordinates. `withinBounds()` and `withinRadius()` take an optional array to refill. `forEachWithinBounds()` and `forEachWithinRadius()` visit matches without allocating, and are safe to call when the callback inserts, removes, or moves items:
+
+```typescript
+ships.forEachWithinRadius({x: 0, y: 0, z: 0}, 100, (element, index, hash) => {
+	// Runs once per ship in range, allocating nothing.
+});
+```
+
+### Moving spatial hash items
+
+The hash stores the position each item was filed under, so it can't see an item move. After changing anything the locator reads, pass the element and item to `update()`. It keeps the same element, and only relinks when the item changes cell:
+
+```typescript
+const scout = ships.find({x: 10, y: 0, z: 0})!;
+const ship = scout.value()!;
+
+ship.x = 950;
+ships.update(scout, ship); // returns scout
+scout.cellX(); // returns 19
+ships.withinRadius({x: 925, y: 0, z: 0}, 30).length; // returns 2 (raider, scout)
+```
+
+`remove(item)` searches the cell of the item's current locator position, so call `update()` before removing an item that has moved, or use `removeNode()`.
+
+### Choosing a cell size
+
+Searches probe every cell overlapping the search region, then test each item in those cells.
+
+* **Near your typical search radius** is a good default. A radius search then probes at most 27 cells.
+* **Much smaller cells** make each search probe many empty cells.
+* **Much larger cells** make each probe test many items that are out of range.
+
+`cellSize` defaults to `1`. `expectedCellCount` (default `64`) sizes the cell table up front. The table grows past it on demand, so set it only to avoid growth when you know the eventual cell count. Cell coordinates are 32-bit integers, so positions more than about 2.1 billion cells from the origin are refused with `invalid_position`.
+
+## **`SpatialMap<T>`**
+
+Sparse uniform grid holding at most one item per cell, for grids sized so each cell fits one item: blocks, voxels, tiles, chunks, and occupancy checks for collision. Cells work as map keys, so the item in a cell is found in O(1) on average, either by a position inside it with `find()` or by integer cell coordinates with `findCell()`.
+
+Everything else matches [`SpatialHash`](#spatialhasht): the locator, `cellSize`, spatial searches, `nearest()`, `update()`, pooling, iteration in insertion order, and the `ByteSpatialMap` subclass. `size()` is also the number of occupied cells.
+
+### Spatial map basics
+
+```typescript
+import {SpatialMap, SpatialLocator} from '@toreda/data-structures';
+
+interface Block {
+	type: string;
+	x: number;
+	y: number;
+	z: number;
+}
+
+const byPosition: SpatialLocator<Block> = (block) => block;
+const blocks = new SpatialMap<Block>(byPosition);
+
+blocks.insert({type: 'stone', x: 0, y: 0, z: 0}); // returns the element
+blocks.insert({type: 'dirt', x: 0.5, y: 0.2, z: 0.9}); // returns 'cell_occupied'
+blocks.insert({type: 'dirt', x: 1, y: 0, z: 0}); // returns the element
+
+blocks.findCell(1, 0, 0)?.value()?.type; // returns 'dirt'
+blocks.containsCell(0, 1, 0); // returns false
+blocks.find({x: 0.7, y: 0.7, z: 0.7})?.value()?.type; // returns 'stone'
+```
+
+Cell `(cx, cy, cz)` holds positions whose `floor(x / cellSize)`, `floor(y / cellSize)`, and `floor(z / cellSize)` equal those coordinates. Each element reports its cell with `cellX()`, `cellY()`, and `cellZ()`, so neighbors are one step away on each axis:
+
+```typescript
+const chunks = new SpatialMap<Block>(byPosition, null, {cellSize: 16});
+
+chunks.insert({type: 'chunk', x: 40, y: -3, z: 100});
+chunks.findCell(2, -1, 6)?.value()?.type; // returns 'chunk'
+```
+
+### Collisions and overwrite
+
+Occupancy is decided by cell, not exact position: two items at different positions in one cell collide. By default an item arriving at an occupied cell is refused with `cell_occupied`. A refused `update()` changes nothing, so it doubles as a collision check:
+
+```typescript
+const stone = blocks.findCell(0, 0, 0)!;
+
+blocks.update(stone, {...stone.value()!, x: 1.5}); // returns 'cell_occupied', nothing moves
+blocks.update(stone, {...stone.value()!, y: 1}); // returns stone, now in cell 0, 1, 0
+```
+
+When an item was changed in place and its move is refused, the item's locator position no longer matches its element. Restore its position, or remove it with `removeNode()`, since `remove()` searches by the locator's position.
+
+With `overwrite: true`, an arriving item replaces the occupant instead, like `Map.prototype.set()`:
+
+```typescript
+const latest = new SpatialMap<Block>(byPosition, null, {overwrite: true});
+
+latest.insert({type: 'stone', x: 0, y: 0, z: 0});
+latest.insert({type: 'glass', x: 0.5, y: 0.5, z: 0.5}); // replaces stone
+latest.size(); // returns 1
+```
 
 ## `Stack<T>`
 

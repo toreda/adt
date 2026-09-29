@@ -50,12 +50,14 @@ function arrayRemoveAt<T>(arr: T[], index: number): void {
  * from the root, one node per UTF-16 code unit, so keys sharing a prefix
  * share the nodes for it. The node at the end of a key's path holds its item.
  *
- * Insert, find, and removal take O(k log c) for a key of k code units, where
- * c is the most children any node on the path has (at most 65,536, and
- * usually far fewer). They do not depend on how many items the trie holds.
- * Prefix searches take O(p log c) to reach the prefix, plus one step per node
- * below it. Every walk is iterative, so long keys never overflow the call
- * stack.
+ * Find takes O(k log c) for a key of k code units, where c is the most
+ * children any node on the path has (at most 65,536, and usually far fewer).
+ * Each node keeps its children in a sorted array, so insert and removal add
+ * O(c) when they add or remove a child and shift that array, for O(k log c + c)
+ * in all. At most one node per insert or removal can have many children to
+ * shift. None of these depend on how many items the trie holds. Prefix
+ * searches take O(p log c) to reach the prefix, plus O(log c) per node below
+ * it. Every walk is iterative, so long keys never overflow the call stack.
  *
  * Items are kept in key order: ascending by UTF-16 code unit, the order of
  * the `<` operator on strings and of `Array.prototype.sort()` without a

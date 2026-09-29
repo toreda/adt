@@ -26,7 +26,7 @@ since any other change could break its spatial order.</p>
 <li><a href="../interfaces/TreeElement.html" class="tsd-signature-type tsd-kind-interface">TreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></li>
 <li><a href="../interfaces/ObjectPoolInstance.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolInstance</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L14">oct/tree/element.ts:14</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L14">oct/tree/element.ts:14</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -83,7 +83,7 @@ which hands out blank nodes for the tree to fill.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">OctTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L59">oct/tree/element.ts:59</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L59">oct/tree/element.ts:59</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -93,7 +93,7 @@ which hands out blank nodes for the tree to fill.</p>
 <div class="tsd-comment tsd-typography"><p>Child per octant, indexed by <code>OctTreeOctant</code>. Always eight entries.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L31">oct/tree/element.ts:31</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L31">oct/tree/element.ts:31</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="_linkid"><span>_<wbr/>link<wbr/>Id</span><a href="#_linkid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_linkId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
@@ -102,19 +102,19 @@ unlinked. Managed by <code>OctTree</code> only. A recycled node gets a new id, s
 handle that captured the old one can tell the node was reissued.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L53">oct/tree/element.ts:53</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L53">oct/tree/element.ts:53</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="_octant"><span>_<wbr/>octant</span><a href="#_octant" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_octant</span><span class="tsd-signature-symbol">:</span> <a href="../types/OctTreeOctant.html" class="tsd-signature-type tsd-kind-type-alias">OctTreeOctant</a><span class="tsd-signature-symbol"> = 0</span></div>
 <div class="tsd-comment tsd-typography"><p>Octant of <code>_parent</code> this node sits in. 0 for the root and unlinked nodes.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L42">oct/tree/element.ts:42</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L42">oct/tree/element.ts:42</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="_parent"><span>_<wbr/>parent</span><a href="#_parent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_parent</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">OctTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> = null</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L29">oct/tree/element.ts:29</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L29">oct/tree/element.ts:29</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="_tree"><span>_<wbr/>tree</span><a href="#_tree" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_tree</span><span class="tsd-signature-symbol">:</span> <a href="OctTree.html" class="tsd-signature-type tsd-kind-class">OctTree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> = null</span></div>
@@ -122,7 +122,7 @@ handle that captured the old one can tell the node was reissued.</p>
 by <code>OctTree</code> only; lets it check ownership in O(1).</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L47">oct/tree/element.ts:47</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L47">oct/tree/element.ts:47</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="_value"><span>_<wbr/>value</span><a href="#_value" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_value</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> = null</span></div>
@@ -131,7 +131,7 @@ holds exactly the item that was inserted, including null or undefined
 items.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L20">oct/tree/element.ts:20</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L20">oct/tree/element.ts:20</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="_x"><span>_<wbr/>x</span><a href="#_x" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_x</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
@@ -140,17 +140,17 @@ was linked. Managed by <code>OctTree</code> only. Every walk reads these instead
 calling the locator, so an item changed in place cannot break the tree.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L26">oct/tree/element.ts:26</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L26">oct/tree/element.ts:26</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="_y"><span>_<wbr/>y</span><a href="#_y" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_y</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L27">oct/tree/element.ts:27</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L27">oct/tree/element.ts:27</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="_z"><span>_<wbr/>z</span><a href="#_z" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_z</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L28">oct/tree/element.ts:28</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L28">oct/tree/element.ts:28</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -170,7 +170,7 @@ calling the locator, so an item changed in place cannot break the tree.</p>
 not a valid <code>OctTreeOctant</code>.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L140">oct/tree/element.ts:140</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L140">oct/tree/element.ts:140</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="children"><span>children</span><a href="#children" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -194,7 +194,7 @@ storage again. For zero allocation use <code>child(octant)</code>.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/TreeElement.html">TreeElement</a>.<a href="../interfaces/TreeElement.html#children">children</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L160">oct/tree/element.ts:160</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L160">oct/tree/element.ts:160</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="cleanobj"><span>clean<wbr/>Obj</span><a href="#cleanobj" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -208,7 +208,7 @@ field added to this class must be cleared here.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/ObjectPoolInstance.html">ObjectPoolInstance</a>.<a href="../interfaces/ObjectPoolInstance.html#cleanobj">cleanObj</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L70">oct/tree/element.ts:70</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L70">oct/tree/element.ts:70</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isleaf"><span>is<wbr/>Leaf</span><a href="#isleaf" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -220,7 +220,7 @@ field added to this class must be cleared here.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/TreeElement.html">TreeElement</a>.<a href="../interfaces/TreeElement.html#isleaf">isLeaf</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L177">oct/tree/element.ts:177</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L177">oct/tree/element.ts:177</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="octant"><span>octant</span><a href="#octant" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -231,7 +231,7 @@ field added to this class must be cleared here.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="../types/OctTreeOctant.html" class="tsd-signature-type tsd-kind-type-alias">OctTreeOctant</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L131">oct/tree/element.ts:131</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L131">oct/tree/element.ts:131</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="parent"><span>parent</span><a href="#parent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -243,7 +243,7 @@ field added to this class must be cleared here.</p>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">OctTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/TreeElement.html">TreeElement</a>.<a href="../interfaces/TreeElement.html#parent">parent</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L146">oct/tree/element.ts:146</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L146">oct/tree/element.ts:146</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="value"><span>value</span><a href="#value" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -267,7 +267,7 @@ value would break the spatial order, so it is ignored: use the tree's
 </div></div><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/TreeElement.html">TreeElement</a>.<a href="../interfaces/TreeElement.html#value">value</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L96">oct/tree/element.ts:96</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L96">oct/tree/element.ts:96</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="x"><span>x</span><a href="#x" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -278,7 +278,7 @@ value would break the spatial order, so it is ignored: use the tree's
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L116">oct/tree/element.ts:116</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L116">oct/tree/element.ts:116</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="y"><span>y</span><a href="#y" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -289,7 +289,7 @@ value would break the spatial order, so it is ignored: use the tree's
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L121">oct/tree/element.ts:121</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L121">oct/tree/element.ts:121</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="z"><span>z</span><a href="#z" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -300,7 +300,7 @@ value would break the spatial order, so it is ignored: use the tree's
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/fac881fcc517c1fa82e96fa2ccf1b502ea67dd0d/src/oct/tree/element.ts#L126">oct/tree/element.ts:126</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/oct/tree/element.ts#L126">oct/tree/element.ts:126</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
