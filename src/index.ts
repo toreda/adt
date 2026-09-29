@@ -145,5 +145,12 @@ export type {QueryResult} from './query/result';
 export type {QueueCallableSync} from './queue/callable/sync';
 export type {QueueCallable} from './queue/callable';
 
+// Validation Helpers
+export {booleanValue} from './boolean/value';
+export {booleanNullValue} from './boolean/null/value';
 export {intValue} from './int/value';
 export {intNullValue} from './int/null/value';
+export {numberValue} from './number/value';
+export {numberNullValue} from './number/null/value';
+export {typeValue} from './type/value';
+export type {TypeValueTest} from './type/value/test';

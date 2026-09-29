@@ -8,8 +8,6 @@ allowBuilds:
   '@swc/core': true
   es5-ext: true
   unrs-resolver: true
-minimumReleaseAgeExclude:
-  - '@toreda/shared-types@3.0.1'
 onlyBuiltDependencies:
   - '@swc/core'
   - es5-ext

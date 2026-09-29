@@ -1,4 +1,3 @@
-import {Levels, Log} from '@toreda/log';
 import {series} from 'gulp';
 
 import {Build} from '@toreda/build-tools';
@@ -7,11 +6,6 @@ import {EventEmitter} from 'events';
 import {execFileSync} from 'node:child_process';
 import {existsSync, readFileSync, readdirSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
-
-const log = new Log({
-	globalLevel: Levels.ALL,
-	consoleEnabled: true
-});
 
 const build: Build = new Build({
 	events: new EventEmitter()

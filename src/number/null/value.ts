@@ -1,4 +1,4 @@
-import {typeValue} from '@toreda/shared-types';
+import {typeValue} from '../../type/value';
 
 export function numberNullValue(fallback: number | null, ...values: unknown[]): number | null {
 	return typeValue(

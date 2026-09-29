@@ -206,15 +206,9 @@ importers:
       '@toreda/eslint-config':
         specifier: ^4.0.0
         version: 4.0.0(@stylistic/eslint-plugin@5.10.0(eslint@10.11.0(supports-color@8.1.1)))(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint-plugin-prettier@5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@10.11.0(supports-color@8.1.1)))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.9))(eslint@10.11.0(supports-color@8.1.1))(prettier@3.9.9)(typescript-eslint@8.70.0(eslint@10.11.0(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(typescript@6.0.3)
-      '@toreda/log':
-        specifier: ^1.0.0
-        version: 1.0.0
       '@toreda/prettier-config':
         specifier: ^2.0.0
         version: 2.0.0(prettier@3.9.9)
-      '@toreda/shared-types':
-        specifier: ^3.0.1
-        version: 3.0.1
       '@types/eslint':
         specifier: ^9.6.1
         version: 9.6.1
@@ -1343,10 +1337,6 @@ packages:
   '@toreda/log@0.6.16':
     resolution: {integrity: sha512-H/Q5wP6PXginemsBdZFwqi6l4Ul4j3i3VO8XRj4PWq+bm89+vfy74gHCY70778R+V9WCSnZmBw7+nrh2NPeYlw==}
 
-  '@toreda/log@1.0.0':
-    resolution: {integrity: sha512-FAjo3JbqHZIFva8Xg3K8BGYZEhH65jJ1XrQEUag0cGPIRffZ0saZx4+OB0TT45s+bXqxgRehqUIG54n0/V0+bw==}
-    engines: {node: ^20.19.0 || ^22.13.0 || >=24}
-
   '@toreda/prettier-config@1.0.1':
     resolution: {integrity: sha512-YE13umi84GlKSOVPAEN1WRsoAGPjT3C3VmOGORtQAeZm5bqayL7XRHQM/ifXaF1ZWSkzeEAXYEnFflmIen/4kw==}
 
@@ -1354,12 +1344,6 @@ packages:
     resolution: {integrity: sha512-99JnV54R9Z8TSlT8wJzdwpnPscq1NN43oXJ4P5JvhUoPnrHcv0Gqb8hbg/vYIq8oE0CjeFI1u8TPSFGCxFEKPA==}
     peerDependencies:
       prettier: '>=3.0.0'
-
-  '@toreda/shared-types@3.0.0':
-    resolution: {integrity: sha512-NDJ2P/fwlDcSb3mLlB8iHS3VKhYVx6Vi2Jc3Ve52xrAndVIHCHjo7iYJbTYKlL2HF9nQIJ4xZtnVFA4lcgmOYw==}
-
-  '@toreda/shared-types@3.0.1':
-    resolution: {integrity: sha512-+ZkfpZMUAGbXrH6ndIsj0LeiQaBXuUCzBdyBUnL8oS/E5+x/9EIcR22oQJmA18snvxwjguzNI+R4mqXYnqMhBQ==}
 
   '@tsconfig/node10@1.0.13':
     resolution: {integrity: sha512-gcLdvR9HO1ZJBypsOGqaP6TFEzb6vIta0KSTLt9NAQ6pXQO3cRgSVyCN6pzYqI9DlJgY71XKO0dpDhCf08b3pg==}
@@ -4013,11 +3997,6 @@ packages:
 
   markdown-it@14.3.2:
     resolution: {integrity: sha512-sHHjZ5fJKlgrG4qns2YwVcdNep35h5fERrfkD2YNsb9UFk0UIHarbiTaHKVMlPuWAoiilyK8Fv/jAm11slsY7Q==}
-    hasBin: true
-
-  marked@4.3.0:
-    resolution: {integrity: sha512-PRsaiG84bK+AMvxziE/lCFss8juXjNaWzVbN5tXAm4XjeaS9NAHhop+PjQxz2A9h8Q4M/xGmzP8vqNwy6JeK0A==}
-    engines: {node: '>= 12'}
     hasBin: true
 
   matchdep@2.0.0:
@@ -6869,23 +6848,11 @@ snapshots:
 
   '@toreda/log@0.6.16': {}
 
-  '@toreda/log@1.0.0':
-    dependencies:
-      '@toreda/shared-types': 3.0.0
-
   '@toreda/prettier-config@1.0.1': {}
 
   '@toreda/prettier-config@2.0.0(prettier@3.9.9)':
     dependencies:
       prettier: 3.9.9
-
-  '@toreda/shared-types@3.0.0':
-    dependencies:
-      marked: 4.3.0
-
-  '@toreda/shared-types@3.0.1':
-    dependencies:
-      marked: 4.3.0
 
   '@tsconfig/node10@1.0.13': {}
 
@@ -10362,8 +10329,6 @@ snapshots:
       mdurl: 2.1.0
       punycode.js: 2.3.1
       uc.micro: 2.1.0
-
-  marked@4.3.0: {}
 
   matchdep@2.0.0(supports-color@8.1.1):
     dependencies:

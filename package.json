@@ -123,9 +123,7 @@
 		"@swc/jest": "^0.2.39",
 		"@toreda/build-tools": "^0.8.0",
 		"@toreda/eslint-config": "^4.0.0",
-		"@toreda/log": "^1.0.0",
 		"@toreda/prettier-config": "^2.0.0",
-		"@toreda/shared-types": "^3.0.1",
 		"@types/eslint": "^9.6.1",
 		"@types/gulp": "^4.0.18",
 		"@types/jest": "^30.0.0",
@@ -148,9 +146,5 @@
 		"ts-node": "^10.9.2",
 		"typedoc": "^0.28.20",
 		"typescript": "^6.0.3"
-	},
-	"peerDependencies": {
-		"@toreda/log": "^1.0.0",
-		"@toreda/shared-types": "^3.0.1"
 	}
 }

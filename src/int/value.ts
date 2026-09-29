@@ -1,4 +1,4 @@
-import {typeValue} from '@toreda/shared-types';
+import {typeValue} from '../type/value';
 
 /**
  * First value that is an integer, or fallback when none is. Integers are

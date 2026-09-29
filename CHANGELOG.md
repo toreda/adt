@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 * Package renamed from `@toreda/adt` to `@toreda/data-structures`.
+* `@toreda/log` and `@toreda/shared-types` are no longer peer dependencies, so the package has no runtime or peer dependencies. `typeValue` is now provided by this package. Projects that used either package without listing it in their own `package.json` must add it.
 * `ADT` interface renamed to `DataStructure`, `ADTOptions` to `DataStructureOptions`, and `ByteADT` to `ByteDataStructure`.
 * `CircularQueue` constructor is now `(data?, options?)`. Starting items are passed as an array in `data` instead of the `elements` option.
 * `CircularQueue` options are reduced to `maxSize` and `overwrite`. The `elements`, `front`, `rear`, `size`, `serializedState`, and `reverseInsert` options are removed. Invalid option values fall back to their defaults instead of throwing.
@@ -53,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `DirectedGraph.findPath()` calls the heuristic at most once per vertex per search, and returns `null` when called on the same graph from inside its own heuristic.
 
 ### Added
+* Exported validation helpers `booleanValue`, `booleanNullValue`, `numberValue`, `numberNullValue`, and `typeValue` (with its `TypeValueTest` type), alongside the existing `intValue` and `intNullValue`.
 * Dual CommonJS and ES module builds. `require` and `import` each load their own build with matching type declarations.
 * `Tree` base interface shared by all tree data structures, with `TreeElement` as the base node contract.
 * `Graph` base interface shared by all graph data structures, with `GraphVertex` and `GraphEdge` as the base vertex and edge contracts.

@@ -66,3 +66,14 @@ Byte encoding is not part of the base `DataStructure` contract. Each data struct
 * `Stack`: `<root>/src/stack.ts`
 * `ByteStack`: `<root>/src/byte/stack.ts` (superset of `Stack` implementing `ByteDataStructure`)
 * `Trie`: `<root>/src/trie.ts`
+
+
+## Performance Rules
+
+### Collection Allocations
+* Collections that create a wrapper object for each stored item must use an internal `ObjectPool` to allocate wrapper instances.
+
+### Class Members
+* Call `.bind()` once per member function at most.
+* Place all `.bind()` calls in a `private bindHandlers()` method called at the end of the ctor.
+  * No `bindHandlers()` method is required for classes with no `.bind()` calls.  

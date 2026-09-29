@@ -1,4 +1,4 @@
-import {typeValue} from '@toreda/shared-types';
+import {typeValue} from '../type/value';
 
 export function booleanValue(fallback: boolean, ...values: unknown[]): boolean {
 	return typeValue(
