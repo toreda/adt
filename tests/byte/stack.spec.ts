@@ -28,10 +28,10 @@ describe('ByteStack', () => {
 			expect(result.bottom()).toBe(7);
 		});
 
-		it('pushes data on top of options.elements', () => {
-			const result = new ByteStack(codec, [3, 4], {elements: [1, 2]});
+		it('ignores the removed elements option', () => {
+			const result = new ByteStack(codec, [3, 4], {elements: [1, 2]} as any);
 
-			expect(result.state.elements).toEqual([1, 2, 3, 4]);
+			expect(result.state.elements).toEqual([3, 4]);
 		});
 
 		it('from envelope bytes keeps the same top', () => {

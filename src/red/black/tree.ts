@@ -11,7 +11,7 @@ import type {QueryOptions} from '../../query/options';
 import type {QueryResult} from '../../query/result';
 import type {Tree} from '../../tree';
 import {booleanValue} from '../../boolean/value';
-import {isNumber} from '../../utility';
+import {isNumber, undefinedItemSkip} from '../../utility';
 
 /**
  * Self-balancing binary search tree ordered by a caller supplied comparator.
@@ -57,6 +57,8 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	public readonly comparator: RedBlackTreeComparator<ItemT>;
 	/** Whether items comparing equal to one already in the tree are accepted. */
 	public readonly allowDuplicates: boolean;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 	private _root: RedBlackTreeElement<ItemT> | null;
 	private _size: number;
 	/** Last id handed to a linked node. Only increases, so ids never repeat. */
@@ -89,6 +91,7 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 
 		this.comparator = comparator;
 		this.allowDuplicates = booleanValue(true, options?.allowDuplicates);
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 		this._root = null;
 		this._size = 0;
 		this.lastLinkId = 0;
@@ -118,11 +121,17 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	/**
 	 * Insert item at its sorted position, after any items comparing equal,
 	 * then rebalance in O(log n).
-	 * @returns		The node now holding item, or `duplicate_not_allowed` when
-	 * 				item compares equal to one already in the tree and
-	 * 				duplicates are not allowed. Nothing is added in that case.
+	 * @returns		The node now holding item, or an error code when nothing is
+	 * 				added: `undefined_item` when item is undefined (throws
+	 * 				instead when `allowUndefinedItem` is `false`), or
+	 * 				`duplicate_not_allowed` when item compares equal to one
+	 * 				already in the tree and duplicates are not allowed.
 	 */
 	public insert(item: ItemT): RedBlackTreeElement<ItemT> | RedBlackTreeError {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'RedBlackTree')) {
+			return 'undefined_item';
+		}
+
 		if (!this.findSlot(item)) {
 			return 'duplicate_not_allowed';
 		}
@@ -479,7 +488,11 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	 * derived trees that behave the same way.
 	 */
 	protected options(): RedBlackTreeOptions<ItemT> {
-		return {...this.elements.options(), allowDuplicates: this.allowDuplicates};
+		return {
+			...this.elements.options(),
+			allowDuplicates: this.allowDuplicates,
+			allowUndefinedItem: this.allowUndefinedItem
+		};
 	}
 
 	/**

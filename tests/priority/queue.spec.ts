@@ -42,7 +42,7 @@ describe('PriorityQueue', () => {
 		});
 
 		it('with options', () => {
-			const options: Required<PriorityQueueOptions<any>> = {
+			const options: PriorityQueueOptions<any> = {
 				elements: [1, 2, 3]
 			};
 			const result = new PriorityQueue(comparator, options);

@@ -14,7 +14,7 @@ import type {QueryOptions} from '../query/options';
 import type {QueryResult} from '../query/result';
 import type {Tree} from '../tree';
 import {booleanValue} from '../boolean/value';
-import {isNumber} from '../utility';
+import {isNumber, undefinedItemSkip} from '../utility';
 
 /** Shared by every query result: a octree has no keys. */
 const queryNoKey = (): string | null => null;
@@ -67,6 +67,8 @@ export class OctTree<ItemT> implements Tree<ItemT, OctTreeElement<ItemT>> {
 	public readonly locator: OctTreeLocator<ItemT>;
 	/** Whether items at exactly the position of one already in the tree are accepted. */
 	public readonly allowDuplicates: boolean;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 	private _root: OctTreeElement<ItemT> | null;
 	private _size: number;
 	/** Last id handed to a linked node. Only increases, so ids never repeat. */
@@ -122,6 +124,7 @@ export class OctTree<ItemT> implements Tree<ItemT, OctTreeElement<ItemT>> {
 
 		this.locator = locator;
 		this.allowDuplicates = booleanValue(true, options?.allowDuplicates);
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 		this._root = null;
 		this._size = 0;
 		this.lastLinkId = 0;
@@ -162,13 +165,19 @@ export class OctTree<ItemT> implements Tree<ItemT, OctTreeElement<ItemT>> {
 	/**
 	 * Insert item at the position its locator returns, as a new leaf, in
 	 * O(depth).
-	 * @returns		The node now holding item. `invalid_position` when the
-	 * 				locator does not return finite x, y, and z coordinates, or
+	 * @returns		The node now holding item. `invalid_position` when item is
+	 * 				undefined (throws instead when `allowUndefinedItem` is
+	 * 				`false`; the locator is never called) or when the locator
+	 * 				does not return finite x, y, and z coordinates, or
 	 * 				`duplicate_not_allowed` when an item already sits at that
 	 * 				exact position and duplicates are not allowed. Nothing is
 	 * 				added in either case.
 	 */
 	public insert(item: ItemT): OctTreeElement<ItemT> | OctTreeError {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'OctTree')) {
+			return 'invalid_position';
+		}
+
 		const point = this.locator(item);
 
 		if (!this.isPoint(point)) {
@@ -649,7 +658,11 @@ export class OctTree<ItemT> implements Tree<ItemT, OctTreeElement<ItemT>> {
 	 * derived trees that behave the same way.
 	 */
 	protected options(): OctTreeOptions<ItemT> {
-		return {...this.elements.options(), allowDuplicates: this.allowDuplicates};
+		return {
+			...this.elements.options(),
+			allowDuplicates: this.allowDuplicates,
+			allowUndefinedItem: this.allowUndefinedItem
+		};
 	}
 
 	/**

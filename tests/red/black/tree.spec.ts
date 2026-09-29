@@ -223,7 +223,7 @@ describe('RedBlackTree', () => {
 			expect(pool.size()).toBe(0);
 
 			for (let i = 0; i < 100; i++) {
-				expect(nodes.has(pooled.insert(i))).toBe(true);
+				expect(nodes.has(pooled.insert(i) as RedBlackTreeElement<number>)).toBe(true);
 			}
 			expectValid(pooled);
 		});
@@ -351,12 +351,13 @@ describe('RedBlackTree', () => {
 			expectValid(keyed);
 		});
 
-		it('stores null and undefined items as given', () => {
+		it('stores null items as given and skips undefined items', () => {
 			const anything = new RedBlackTree<number | null | undefined>(() => 0);
 			anything.insertArray([null, undefined, 3]);
 
-			expect(anything.values()).toEqual([null, undefined, 3]);
-			expect(anything.size()).toBe(3);
+			expect(anything.values()).toEqual([null, 3]);
+			expect(anything.size()).toBe(2);
+			expect(anything.insert(undefined)).toBe('undefined_item');
 		});
 
 		it('insertArray ignores non-arrays', () => {
@@ -773,7 +774,7 @@ describe('RedBlackTree', () => {
 
 				for (let i = 0; i < 200; i++) {
 					const result = numbers.insert(Math.floor(random() * 1000));
-					if (result !== 'duplicate_not_allowed') {
+					if (typeof result !== 'string') {
 						nodes.push(result);
 					}
 				}

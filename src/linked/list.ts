@@ -8,7 +8,8 @@ import type {ObjectPoolConstructor} from '../object/pool/constructor';
 import type {QueryFilter} from '../query/filter';
 import type {QueryOptions} from '../query/options';
 import type {QueryResult} from '../query/result';
-import {isNumber} from '../utility';
+import {booleanValue} from '../boolean/value';
+import {isNumber, undefinedItemSkip} from '../utility';
 
 /** Shared `key()` for every query result. Module level, so no closure per result. */
 function queryResultKey(): string | null {
@@ -28,6 +29,15 @@ function queryResultIndex(): number | null {
  * provided by the `ByteLinkedList` subclass, which requires an `ItemCodec`
  * at construction.
  *
+ * @remarks
+ * `null` and `undefined` items are not supported, because `null` is the
+ * list's own empty-node sentinel: insert methods reject them and return
+ * `null` instead of linking a node (an undefined item throws instead when
+ * `allowUndefinedItem` is `false`). Use a wrapper item when an "empty" entry
+ * must round-trip. A linked node's value can still be set to `null` through
+ * the element itself; such nodes count toward `size()` but are skipped by
+ * `values()`, `filter()`, `query()`, and `stringify()`.
+ *
  * @category Linked List
  */
 export class LinkedList<ItemT> implements DataStructure<ItemT> {
@@ -38,13 +48,17 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	private lastLinkId: number;
 	/** Source of node wrappers, pooled or freshly allocated per options. */
 	private readonly elements: ElementPool<LinkedListElement<ItemT>>;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 
 	/**
-	 * @param data		Items inserted head to tail on creation. Any other input is ignored.
+	 * @param data		Items inserted head to tail on creation. Any other input
+	 * 					is ignored, and null and undefined entries add nothing.
 	 * @param options	Optional config. Each option falls back to its default when
 	 * 					missing or invalid.
 	 */
 	constructor(data?: ItemT[] | null, options?: LinkedListOptions<ItemT> | null) {
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 		this._head = null;
 		this._tail = null;
 		this._size = 0;
@@ -75,9 +89,14 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	 * the new Linked List head.
 	 *
 	 * @param element
-	 * @returns
+	 * @returns		The node wrapping element, or null when element is null or
+	 * 				undefined, which are not supported and add nothing.
 	 */
 	public insertAtHead(element: ItemT): LinkedListElement<ItemT> | null {
+		if (undefinedItemSkip(element, this.allowUndefinedItem, 'LinkedList') || element === null) {
+			return null;
+		}
+
 		const node = this.createElement(element);
 		const head = this.head();
 
@@ -100,7 +119,19 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 		return node;
 	}
 
-	public insertAtTail(element: ItemT): LinkedListElement<ItemT> {
+	/**
+	 * Insert element at tail of list, making provided element
+	 * the new Linked List tail.
+	 *
+	 * @param element
+	 * @returns		The node wrapping element, or null when element is null or
+	 * 				undefined, which are not supported and add nothing.
+	 */
+	public insertAtTail(element: ItemT): LinkedListElement<ItemT> | null {
+		if (undefinedItemSkip(element, this.allowUndefinedItem, 'LinkedList') || element === null) {
+			return null;
+		}
+
 		const node = this.createElement(element);
 		const tail = this.tail();
 
@@ -131,7 +162,8 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	}
 
 	/**
-	 * Insert each provided element at tail.
+	 * Insert each provided element at tail. Null and undefined entries add
+	 * nothing, as for `insertAtTail`.
 	 *
 	 * @param elements
 	 * @returns
@@ -269,7 +301,7 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	 * derived lists that behave the same way.
 	 */
 	protected options(): LinkedListOptions<ItemT> {
-		return this.elements.options();
+		return {...this.elements.options(), allowUndefinedItem: this.allowUndefinedItem};
 	}
 
 	/**
@@ -278,9 +310,12 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	 *
 	 * @remarks
 	 * Like `Map` / `Set`, func receives the list itself as its third argument,
-	 * not an array. Each element's successor is read before func runs, so func
-	 * may remove the current element. Elements inserted during the walk may or
-	 * may not be visited.
+	 * not an array. func may remove the current element or any other element:
+	 * the successor is re-read after func runs while the current element is
+	 * still linked, and the one captured before the call is used once it is
+	 * not. Removing the current element and its captured successor in the same
+	 * call ends the walk. Elements inserted during the walk may or may not be
+	 * visited.
 	 *
 	 * @param func		Called with (element, index, list) walking head to tail.
 	 * @param thisArg	Value used as `this` when calling func, as passed. Like
@@ -290,10 +325,14 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 		let node = this._head;
 		let index = 0;
 
-		while (node) {
+		while (node !== null && node._list === this) {
+			const linkId = node._linkId;
 			const next = node.next();
 			func.call(thisArg, node, index, this);
-			node = next;
+			// The fresh successor when func left the current element linked (the
+			// same node, per link id, not a recycled reissue), the captured one
+			// when func removed it and blanked its links.
+			node = node._list === this && node._linkId === linkId ? node.next() : next;
 			index++;
 		}
 
@@ -307,21 +346,20 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 			return this;
 		}
 
-		let prev = curr.prev();
 		this._tail = curr;
+		let prev: LinkedListElement<ItemT> | null = null;
 
 		while (curr !== null) {
 			const next = curr.next();
 			curr.next(prev);
 			curr.prev(next);
 
-			if (next === null) {
-				this._head = curr;
-			}
-
 			prev = curr;
 			curr = next;
 		}
+
+		// prev is the old tail: the new head.
+		this._head = prev;
 
 		return this;
 	}
@@ -346,7 +384,9 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	}
 
 	/**
-	 * Serialize list values, head to tail, to a JSON string.
+	 * Serialize list values, head to tail, to a JSON string. Elements whose
+	 * value is null are skipped, as in `values()`, so the serialized element
+	 * count can be smaller than `size()`.
 	 * @returns		JSON string, or null when a value cannot be serialized
 	 * 				(e.g. values contain circular references or BigInt values).
 	 */
@@ -372,14 +412,17 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	}
 
 	/**
-	 * Find elements whose values pass every filter, head to tail. Elements
-	 * whose value is null or undefined never match. Each result's `delete()`
-	 * removes its element, and does nothing once that element has been
-	 * removed some other way.
+	 * Find elements whose values pass every filter, head to tail. An empty
+	 * filter array matches nothing. Elements whose value is null or undefined
+	 * never match. Each result's `delete()` removes its element, and does
+	 * nothing once that element has been removed some other way.
 	 *
 	 * @remarks
 	 * Allocates only the returned array and one result (plus its bound
 	 * `delete`) per match. Elements that do not match allocate nothing.
+	 * A filter that removes elements from the list is tolerated the same way
+	 * as a `forEach` callback: the walk follows the fresh successor while the
+	 * current element is still linked.
 	 */
 	public query(
 		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
@@ -390,21 +433,24 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 		let node = this._head;
 
 		// Stops walking as soon as the limit is reached.
-		while (node && resultsArray.length < limit) {
+		while (node !== null && node._list === this && resultsArray.length < limit) {
 			const element = node;
+			const linkId = element._linkId;
+			const next = element.next();
 			const value = element.value();
-			node = element.next();
 
-			if (value == null || !this.queryMatch(filters, value)) {
-				continue;
+			if (value != null && this.queryMatch(filters, value)) {
+				resultsArray.push({
+					element: element,
+					key: queryResultKey,
+					index: queryResultIndex,
+					delete: this.queryDelete.bind(this, element, linkId)
+				});
 			}
 
-			resultsArray.push({
-				element: element,
-				key: queryResultKey,
-				index: queryResultIndex,
-				delete: this.queryDelete.bind(this, element, element._linkId)
-			});
+			// The fresh successor when the filters left the current element
+			// linked, the captured one when a filter removed it.
+			node = element._list === this && element._linkId === linkId ? element.next() : next;
 		}
 
 		return resultsArray;

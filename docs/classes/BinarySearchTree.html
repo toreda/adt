@@ -38,7 +38,7 @@ if its position is no longer valid.</p>
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li><span id="itemt"><span class="tsd-kind-type-parameter">ItemT</span></span></li></ul></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="255">
+<section class="tsd-panel tsd-hierarchy" data-refl="257">
 <h4>Hierarchy (<a href="../hierarchy.html#BinarySearchTree">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">BinarySearchTree</span>
@@ -49,7 +49,7 @@ if its position is no longer valid.</p>
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/Tree.html" class="tsd-signature-type tsd-kind-interface">Tree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L54">binary/search/tree.ts:54</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L54">binary/search/tree.ts:54</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -62,6 +62,7 @@ if its position is no longer valid.</p>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-index-list"><a href="#allowduplicates" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>allow<wbr/>Duplicates</span></a>
+<a href="#allowundefineditem" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>allow<wbr/>Undefined<wbr/>Item</span></a>
 <a href="#comparator" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>comparator</span></a>
 </div></section>
 <section class="tsd-index-section">
@@ -134,7 +135,7 @@ when missing or invalid.</p>
 <h4 class="tsd-anchor-link" id="throws">Throws<a href="#throws" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>When comparator is not a function.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L84">binary/search/tree.ts:84</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L86">binary/search/tree.ts:86</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -144,14 +145,21 @@ when missing or invalid.</p>
 <div class="tsd-comment tsd-typography"><p>Whether items comparing equal to one already in the tree are accepted.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L58">binary/search/tree.ts:58</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L58">binary/search/tree.ts:58</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="allowundefineditem"><code class="tsd-tag">Readonly</code><span>allow<wbr/>Undefined<wbr/>Item</span><a href="#allowundefineditem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">allowUndefinedItem</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+<div class="tsd-comment tsd-typography"><p>Whether an undefined item is skipped as a no-op or throws.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L60">binary/search/tree.ts:60</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="comparator"><code class="tsd-tag">Readonly</code><span>comparator</span><a href="#comparator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">comparator</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/BinarySearchTreeComparator.html" class="tsd-signature-type tsd-kind-interface">BinarySearchTreeComparator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>Orders items. Required at construction, fixed for the tree's lifetime.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L56">binary/search/tree.ts:56</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L56">binary/search/tree.ts:56</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -167,7 +175,7 @@ path that allocates nothing at all.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="BinarySearchTreeIterator.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeIterator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L117">binary/search/tree.ts:117</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L120">binary/search/tree.ts:120</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearelements"><span>clear<wbr/>Elements</span><a href="#clearelements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -180,7 +188,7 @@ links cleared, and are recycled when pooling is on.</p>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">BinarySearchTree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#clearelements">clearElements</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L653">binary/search/tree.ts:653</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L666">binary/search/tree.ts:666</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="contains"><span>contains</span><a href="#contains" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -195,7 +203,7 @@ links cleared, and are recycled when pooling is on.</p>
 <li><span><span class="tsd-kind-parameter">item</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L178">binary/search/tree.ts:178</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L187">binary/search/tree.ts:187</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="depth"><span>depth</span><a href="#depth" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -213,7 +221,7 @@ of this tree.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#depth">depth</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L391">binary/search/tree.ts:391</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L400">binary/search/tree.ts:400</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="filter"><span>filter</span><a href="#filter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -238,7 +246,7 @@ requires.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">BinarySearchTree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L417">binary/search/tree.ts:417</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L426">binary/search/tree.ts:426</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="filtervalues"><code class="tsd-tag">Protected</code><span>filter<wbr/>Values</span><a href="#filtervalues" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -255,7 +263,7 @@ Subclasses build their own <code>filter()</code> result from this.</p>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L428">binary/search/tree.ts:428</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L437">binary/search/tree.ts:437</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="find"><span>find</span><a href="#find" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -272,7 +280,7 @@ do, returns the first in sorted order (the earliest inserted).</p>
 <h4 class="tsd-returns-title">Returns <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Matching node, or null when no item compares equal.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L159">binary/search/tree.ts:159</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L168">binary/search/tree.ts:168</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="foreach"><span>for<wbr/>Each</span><a href="#foreach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -302,7 +310,7 @@ may remove the current element. Elements inserted during the walk may or
 may not be visited.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L478">binary/search/tree.ts:478</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L491">binary/search/tree.ts:491</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="height"><span>height</span><a href="#height" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -317,7 +325,7 @@ allocates nothing.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#height">height</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L354">binary/search/tree.ts:354</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L363">binary/search/tree.ts:363</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="inorder"><span>in<wbr/>Order</span><a href="#inorder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -328,12 +336,12 @@ allocates nothing.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L502">binary/search/tree.ts:502</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L515">binary/search/tree.ts:515</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="insert"><span>insert</span><a href="#insert" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="insert-1"><span class="tsd-kind-call-signature">insert</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">item</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;duplicate_not_allowed&quot;</span><a href="#insert-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="insert-1"><span class="tsd-kind-call-signature">insert</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">item</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/BinarySearchTreeError.html" class="tsd-signature-type tsd-kind-type-alias">BinarySearchTreeError</a> <span class="tsd-signature-symbol">|</span> <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#insert-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Insert item at its sorted position, after any items comparing equal.</p>
 </div>
@@ -341,12 +349,14 @@ allocates nothing.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">item</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;duplicate_not_allowed&quot;</span></h4><p>The node now holding item, or <code>duplicate_not_allowed</code> when
-item compares equal to one already in the tree and
-duplicates are not allowed. Nothing is added in that case.</p>
+<h4 class="tsd-returns-title">Returns <a href="../types/BinarySearchTreeError.html" class="tsd-signature-type tsd-kind-type-alias">BinarySearchTreeError</a> <span class="tsd-signature-symbol">|</span> <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The node now holding item, or an error code when nothing is
+added: <code>undefined_item</code> when item is undefined (throws
+instead when <code>allowUndefinedItem</code> is <code>false</code>), or
+<code>duplicate_not_allowed</code> when item compares equal to one
+already in the tree and duplicates are not allowed.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L127">binary/search/tree.ts:127</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L132">binary/search/tree.ts:132</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="insertarray"><span>insert<wbr/>Array</span><a href="#insertarray" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -362,7 +372,7 @@ allowed, items comparing equal to one already in the tree are skipped.</p>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">items</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L144">binary/search/tree.ts:144</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L153">binary/search/tree.ts:153</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="insertsorted"><code class="tsd-tag">Protected</code><span>insert<wbr/>Sorted</span><a href="#insertsorted" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -379,7 +389,7 @@ Falls back to plain inserts when the tree is not empty.</p>
 <li><span><span class="tsd-kind-parameter">items</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L445">binary/search/tree.ts:445</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L454">binary/search/tree.ts:454</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isempty"><span>is<wbr/>Empty</span><a href="#isempty" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -391,7 +401,7 @@ Falls back to plain inserts when the tree is not empty.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#isempty">isEmpty</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L344">binary/search/tree.ts:344</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L353">binary/search/tree.ts:353</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="levelorder"><span>level<wbr/>Order</span><a href="#levelorder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -402,7 +412,7 @@ Falls back to plain inserts when the tree is not empty.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L563">binary/search/tree.ts:563</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L576">binary/search/tree.ts:576</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="max"><span>max</span><a href="#max" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -415,7 +425,7 @@ last inserted.</p>
 <h4 class="tsd-returns-title">Returns <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Rightmost node, or null when the tree is empty.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L279">binary/search/tree.ts:279</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L288">binary/search/tree.ts:288</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="min"><span>min</span><a href="#min" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -427,7 +437,7 @@ last inserted.</p>
 <h4 class="tsd-returns-title">Returns <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Leftmost node, or null when the tree is empty.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L270">binary/search/tree.ts:270</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L279">binary/search/tree.ts:279</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="options"><code class="tsd-tag">Protected</code><span>options</span><a href="#options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -439,7 +449,7 @@ derived trees that behave the same way.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/BinarySearchTreeOptions.html" class="tsd-signature-type tsd-kind-interface">BinarySearchTreeOptions</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L459">binary/search/tree.ts:459</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L468">binary/search/tree.ts:468</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="postorder"><span>post<wbr/>Order</span><a href="#postorder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -450,7 +460,7 @@ derived trees that behave the same way.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L540">binary/search/tree.ts:540</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L553">binary/search/tree.ts:553</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="predecessor"><span>predecessor</span><a href="#predecessor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -467,7 +477,7 @@ derived trees that behave the same way.</p>
 not part of this tree.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L313">binary/search/tree.ts:313</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L322">binary/search/tree.ts:322</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="preorder"><span>pre<wbr/>Order</span><a href="#preorder" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -479,7 +489,7 @@ Inserting the result into an empty tree rebuilds the same shape.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L518">binary/search/tree.ts:518</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L531">binary/search/tree.ts:531</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="query"><span>query</span><a href="#query" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -504,7 +514,7 @@ so a result stays valid across updates.</p>
 </div></div><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#query">query</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L621">binary/search/tree.ts:621</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L634">binary/search/tree.ts:634</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="remove"><span>remove</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -521,7 +531,7 @@ so a result stays valid across updates.</p>
 compares equal.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L187">binary/search/tree.ts:187</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L196">binary/search/tree.ts:196</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removenode"><span>remove<wbr/>Node</span><a href="#removenode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -540,7 +550,7 @@ afterwards.</p>
 this tree (including a node that was already removed).</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L198">binary/search/tree.ts:198</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L207">binary/search/tree.ts:207</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="reset"><span>reset</span><a href="#reset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -553,7 +563,7 @@ constructor options are kept.</p>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">BinarySearchTree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#reset">reset</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L689">binary/search/tree.ts:689</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L702">binary/search/tree.ts:702</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="root"><span>root</span><a href="#root" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -566,7 +576,7 @@ constructor options are kept.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#root">root</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L262">binary/search/tree.ts:262</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L271">binary/search/tree.ts:271</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -579,7 +589,7 @@ constructor options are kept.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#size">size</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L337">binary/search/tree.ts:337</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L346">binary/search/tree.ts:346</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="stringify"><span>stringify</span><a href="#stringify" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -593,7 +603,7 @@ constructor options are kept.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#stringify">stringify</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L587">binary/search/tree.ts:587</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L600">binary/search/tree.ts:600</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="successor"><span>successor</span><a href="#successor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -610,7 +620,7 @@ constructor options are kept.</p>
 part of this tree.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L288">binary/search/tree.ts:288</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L297">binary/search/tree.ts:297</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="toarray"><span>to<wbr/>Array</span><a href="#toarray" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -621,12 +631,12 @@ part of this tree.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L598">binary/search/tree.ts:598</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L611">binary/search/tree.ts:611</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="update"><span>update</span><a href="#update" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="update-1"><span class="tsd-kind-call-signature">update</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">node</span><span class="tsd-signature-symbol">:</span> <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">item</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;duplicate_not_allowed&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#update-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="update-1"><span class="tsd-kind-call-signature">update</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">node</span><span class="tsd-signature-symbol">:</span> <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">item</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/BinarySearchTreeError.html" class="tsd-signature-type tsd-kind-type-alias">BinarySearchTreeError</a> <span class="tsd-signature-symbol">|</span> <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#update-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Set node's item and keep the tree ordered. For an item changed in place,
 pass the node's own item: <code>tree.update(node, node.value())</code>. When item
@@ -641,14 +651,14 @@ matched it can still <code>delete()</code> it.</p>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">node</span>: <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li>
 <li><span><span class="tsd-kind-parameter">item</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;duplicate_not_allowed&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>node, now holding item. <code>duplicate_not_allowed</code> when item now
+<h4 class="tsd-returns-title">Returns <a href="../types/BinarySearchTreeError.html" class="tsd-signature-type tsd-kind-type-alias">BinarySearchTreeError</a> <span class="tsd-signature-symbol">|</span> <a href="BinarySearchTreeElement.html" class="tsd-signature-type tsd-kind-class">BinarySearchTreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>node, now holding item. <code>duplicate_not_allowed</code> when item now
 compares equal to another item and duplicates are not
 allowed: node is removed and item is no longer in the tree.
 Null when node is null or not part of this tree; nothing
 changes then.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L227">binary/search/tree.ts:227</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L236">binary/search/tree.ts:236</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="values"><span>values</span><a href="#values" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -660,7 +670,7 @@ changes then.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Tree.html">Tree</a>.<a href="../interfaces/Tree.html#values">values</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree.ts#L495">binary/search/tree.ts:495</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree.ts#L508">binary/search/tree.ts:508</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -679,7 +689,7 @@ changes then.</p>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#allowduplicates"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>allow<wbr/>Duplicates</span></a><a href="#comparator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>comparator</span></a></div></details>
+<div><a href="#allowduplicates"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>allow<wbr/>Duplicates</span></a><a href="#allowundefineditem"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>allow<wbr/>Undefined<wbr/>Item</span></a><a href="#comparator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>comparator</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
 <div><a href="#iterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>[iterator]</span></a><a href="#clearelements"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>Elements</span></a><a href="#contains"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>contains</span></a><a href="#depth"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>depth</span></a><a href="#filter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter</span></a><a href="#filtervalues" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter<wbr/>Values</span></a><a href="#find"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find</span></a><a href="#foreach"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a><a href="#height"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>height</span></a><a href="#inorder"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>in<wbr/>Order</span></a><a href="#insert"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>insert</span></a><a href="#insertarray"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>insert<wbr/>Array</span></a><a href="#insertsorted" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>insert<wbr/>Sorted</span></a><a href="#isempty"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a><a href="#levelorder"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>level<wbr/>Order</span></a><a href="#max"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>max</span></a><a href="#min"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>min</span></a><a href="#options" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>options</span></a><a href="#postorder"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>post<wbr/>Order</span></a><a href="#predecessor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>predecessor</span></a><a href="#preorder"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>pre<wbr/>Order</span></a><a href="#query"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query</span></a><a href="#remove"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove</span></a><a href="#removenode"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove<wbr/>Node</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#root"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>root</span></a><a href="#size"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>size</span></a><a href="#stringify"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>stringify</span></a><a href="#successor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>successor</span></a><a href="#toarray"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>to<wbr/>Array</span></a><a href="#update"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>update</span></a><a href="#values"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>values</span></a></div></details></div></details></div>
 <div class="site-menu">

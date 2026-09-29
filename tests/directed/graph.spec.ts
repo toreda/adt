@@ -25,7 +25,7 @@ const build = (
 ): {graph: DirectedGraph<string>; v: Record<string, Vertex>} => {
 	const graph = new DirectedGraph<string>();
 	const v: Record<string, Vertex> = {};
-	const vertex = (name: string): Vertex => (v[name] ??= graph.addVertex(name));
+	const vertex = (name: string): Vertex => (v[name] ??= graph.addVertex(name) as Vertex);
 
 	for (const name of extra) {
 		vertex(name);
@@ -248,7 +248,7 @@ describe('DirectedGraph', () => {
 		it('recycles a removed vertex for a later add', () => {
 			const first = graph.addVertex('a');
 			graph.removeVertex(first);
-			const second = graph.addVertex('b');
+			const second = graph.addVertex('b') as Vertex;
 
 			expect(second).toBe(first);
 			expect(second.value()).toBe('b');
@@ -318,7 +318,7 @@ describe('DirectedGraph', () => {
 
 	describe('vertices', () => {
 		it('addVertex returns the vertex holding the item', () => {
-			const vertex = graph.addVertex('a');
+			const vertex = graph.addVertex('a') as Vertex;
 
 			expect(vertex).toBeInstanceOf(DirectedGraphVertex);
 			expect(vertex.value()).toBe('a');
@@ -335,11 +335,12 @@ describe('DirectedGraph', () => {
 			expect(graph.find('a')).toBe(first);
 		});
 
-		it('stores null and undefined items as given', () => {
+		it('stores null items as given and skips undefined items', () => {
 			const anything = new DirectedGraph<string | null | undefined>([null, undefined, 'a']);
 
-			expect(anything.values()).toEqual([null, undefined, 'a']);
-			expect(anything.find(undefined)).toBe(anything.vertices()[1]);
+			expect(anything.values()).toEqual([null, 'a']);
+			expect(anything.find(null)).toBe(anything.vertices()[0]);
+			expect(anything.find(undefined)).toBeNull();
 		});
 
 		it('addVertexArray ignores non-arrays', () => {
@@ -749,7 +750,7 @@ describe('DirectedGraph', () => {
 				for (let x = 0; x < size; x++) {
 					cells.push([]);
 					for (let y = 0; y < size; y++) {
-						cells[x].push(grid.addVertex({x, y}));
+						cells[x].push(grid.addVertex({x, y}) as DirectedGraphVertex<Cell>);
 						if (x > 0) {
 							grid.addBidirectionalEdge(cells[x - 1][y], cells[x][y]);
 						}

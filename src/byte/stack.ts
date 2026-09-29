@@ -25,21 +25,19 @@ export class ByteStack<ItemT> extends Stack<ItemT> implements ByteDataStructure<
 	 * @param codec		Converts single items to and from bytes. Required, since
 	 * 					items are generic and the stack cannot encode them itself.
 	 * @param data		Items added on creation: an array pushed bottom to top
-	 * 					(the last item becomes the top, like `options.elements`),
-	 * 					or the bytes of an envelope produced by `toBytes()`, which
-	 * 					rebuild the encoded stack. Either way they go on top of
-	 * 					any `options.elements`. Any other input is ignored.
+	 * 					(the last item becomes the top, as for `Stack`), or the
+	 * 					bytes of an envelope produced by `toBytes()`, which
+	 * 					rebuild the encoded stack. Any other input is ignored.
 	 * @param options	Optional config, as for `Stack`.
-	 * @throws			When `codec` is missing either function, when `data` is a
-	 * 					byte array that is not a well formed `ByteEnvelope`, or when
-	 * 					`options.elements` is not an array (as `Stack` does).
+	 * @throws			When `codec` is missing either function, or when `data` is
+	 * 					a byte array that is not a well formed `ByteEnvelope`.
 	 */
 	constructor(
 		codec: ItemCodec<ItemT>,
 		data?: ItemT[] | Uint8Array | null,
 		options?: StackOptions<ItemT> | null
 	) {
-		super(options ?? undefined);
+		super(Array.isArray(data) ? data : null, options);
 
 		if (!itemCodecValid<ItemT>(codec)) {
 			throw new Error('ByteStack requires an ItemCodec with encode and decode functions');
@@ -47,11 +45,7 @@ export class ByteStack<ItemT> extends Stack<ItemT> implements ByteDataStructure<
 
 		this.codec = codec;
 
-		if (Array.isArray(data)) {
-			for (let i = 0; i < data.length; i++) {
-				this.push(data[i]);
-			}
-		} else if (data instanceof Uint8Array) {
+		if (data instanceof Uint8Array) {
 			// Decoded items are top first; push the bottom one first.
 			const items = byteEnvelopeDecode(data, codec);
 
@@ -65,7 +59,7 @@ export class ByteStack<ItemT> extends Stack<ItemT> implements ByteDataStructure<
 	 * Same as `Stack.filter()`, but the new stack keeps this stack's codec.
 	 */
 	public filter(func: StackMethod<ItemT, boolean>, thisArg?: unknown): ByteStack<ItemT> {
-		return this.filterInto(new ByteStack<ItemT>(this.codec), func, thisArg);
+		return this.filterInto(new ByteStack<ItemT>(this.codec, null, this.options()), func, thisArg);
 	}
 
 	/**

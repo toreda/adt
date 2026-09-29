@@ -330,6 +330,32 @@ describe('LinkedList', () => {
 			const result = list.tail()?.value();
 			expect(result).toBe(expectedValue);
 		});
+
+		it('rejects null and undefined items with null instead of linking a node', () => {
+			const target = new LinkedList<number>();
+
+			expect(target.insert(null as any)).toBeNull();
+			expect(target.insert(undefined as any)).toBeNull();
+			expect(target.insertAtHead(null as any)).toBeNull();
+			expect(target.insertAtHead(undefined as any)).toBeNull();
+			expect(target.insertAtTail(null as any)).toBeNull();
+			expect(target.insertAtTail(undefined as any)).toBeNull();
+
+			expect(target.size()).toBe(0);
+			expect(target.head()).toBeNull();
+			expect(target.tail()).toBeNull();
+		});
+
+		it('skips null and undefined entries in insertArray and constructor data', () => {
+			const target = new LinkedList<string>(['a', null, 'b', undefined] as any);
+
+			expect(target.size()).toBe(2);
+			expect(target.values()).toEqual(['a', 'b']);
+
+			target.insertArray(['c', null, undefined] as any);
+			expect(target.size()).toBe(3);
+			expect(target.values()).toEqual(['a', 'b', 'c']);
+		});
 	});
 
 	describe('REMOVING FROM LIST', () => {
@@ -554,6 +580,39 @@ describe('LinkedList', () => {
 				expect(visited).toEqual(expected);
 				expect(list.size()).toBe(0);
 			});
+
+			it('keeps walking when func removes the next element', () => {
+				const target = new LinkedList<string>(['a', 'b', 'c', 'd']);
+				const visited: unknown[] = [];
+
+				target.forEach((e) => {
+					visited.push(e.value());
+					if (e.value() === 'a') {
+						target.removeNode(e.next());
+					}
+				});
+
+				expect(visited).toEqual(['a', 'c', 'd']);
+				expect(target.values()).toEqual(['a', 'c', 'd']);
+			});
+
+			it('keeps walking when the removed next element is recycled by an insert', () => {
+				const target = new LinkedList<string>(['a', 'b', 'c', 'd']);
+				const visited: unknown[] = [];
+
+				target.forEach((e) => {
+					visited.push(e.value());
+					if (e.value() === 'a') {
+						// The pool reissues b's node as the new tail. The walk must
+						// not jump there through the stale successor reference.
+						target.removeNode(e.next());
+						target.insert('e');
+					}
+				});
+
+				expect(visited).toEqual(['a', 'c', 'd', 'e']);
+				expect(target.values()).toEqual(['a', 'c', 'd', 'e']);
+			});
 		});
 
 		it('filter', () => {
@@ -745,6 +804,20 @@ describe('LinkedList', () => {
 
 			expect(results.map((r) => r.element.value())).toEqual([3, 4]);
 			expect(second).toHaveBeenCalledTimes(3);
+		});
+
+		it('keeps matching when a filter removes the next element', () => {
+			const target = new LinkedList<number>([1, 2, 3, 4, 5]);
+
+			const results = target.query((v) => {
+				if (v === 1) {
+					target.removeNode(target.head()?.next() ?? null);
+				}
+				return v % 2 === 1;
+			});
+
+			expect(results.map((r) => r.element.value())).toEqual([1, 3, 5]);
+			expect(target.values()).toEqual([1, 3, 4, 5]);
 		});
 
 		it('shares key and index functions across results', () => {

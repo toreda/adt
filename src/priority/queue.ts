@@ -6,7 +6,8 @@ import {type QueryFilter} from '../query/filter';
 import {type QueryOptions} from '../query/options';
 import {type QueryResult} from '../query/result';
 import type {PriorityQueueState as State} from './queue/state';
-import {isNumber} from '../utility';
+import {booleanValue} from '../boolean/value';
+import {isNumber, undefinedItemSkip} from '../utility';
 
 /** Shared `key()` for every query result. Heap elements have no key. */
 const queryKey = (): string | null => null;
@@ -40,11 +41,14 @@ export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
 	/** Number of live elements. */
 	private _size: number;
 	protected readonly comparator: Comparator<ItemT>;
+	/** Whether an undefined element is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 
 	/**
 	 * @param comparator	Returns true when `a` must be closer to the front than `b`.
 	 * 						Required.
-	 * @param options		Optional config. `elements` are heapified on creation.
+	 * @param options		Optional config. `elements` are heapified on creation,
+	 * 						and undefined entries follow `allowUndefinedItem`.
 	 * @throws				When `comparator` is not a function, or when
 	 * 						`options.elements` is present but not an array.
 	 */
@@ -54,6 +58,7 @@ export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
 		}
 
 		this.comparator = comparator;
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 
 		this._elements = this.parseOptions(options);
 		this._size = this._elements.length;
@@ -93,7 +98,16 @@ export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
 		return highestPriority;
 	}
 
+	/**
+	 * Push element into its priority position. An undefined element is skipped
+	 * as a no-op, or throws when `allowUndefinedItem` is `false`.
+	 * @returns		This queue.
+	 */
 	public push(element: ItemT): PriorityQueue<ItemT> {
+		if (undefinedItemSkip(element, this.allowUndefinedItem, 'PriorityQueue')) {
+			return this;
+		}
+
 		// Reuses a spare slot when there is one; grows the array otherwise.
 		const index = this._size++;
 		this._elements[index] = element;
@@ -153,7 +167,15 @@ export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
 	 * @param thisArg	Value used as `this` when calling func. Defaults to this queue.
 	 */
 	public filter(func: PriorityQueueMethod<ItemT, boolean>, thisArg?: unknown): PriorityQueue<ItemT> {
-		return this.filterInto(new PriorityQueue<ItemT>(this.comparator), func, thisArg);
+		return this.filterInto(new PriorityQueue<ItemT>(this.comparator, this.options()), func, thisArg);
+	}
+
+	/**
+	 * Options equivalent to the ones this queue was built with (without its
+	 * elements), for creating derived queues that behave the same way.
+	 */
+	protected options(): Options<ItemT> {
+		return {allowUndefinedItem: this.allowUndefinedItem};
 	}
 
 	/**
@@ -373,10 +395,19 @@ export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
 		}
 
 		if (!Array.isArray(options.elements)) {
-			throw [Error('state elements must be an array')];
+			throw new Error('PriorityQueue options.elements must be an array');
 		}
 
-		return options.elements.slice();
+		const source = options.elements;
+		const elements: ItemT[] = [];
+
+		for (let i = 0; i < source.length; i++) {
+			if (!undefinedItemSkip(source[i], this.allowUndefinedItem, 'PriorityQueue')) {
+				elements.push(source[i]);
+			}
+		}
+
+		return elements;
 	}
 
 	private queryDelete(element: ItemT): ItemT | null {

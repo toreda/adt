@@ -14,7 +14,8 @@ import type {ObjectPoolConstructor} from '../object/pool/constructor';
 import type {QueryFilter} from '../query/filter';
 import type {QueryOptions} from '../query/options';
 import type {QueryResult} from '../query/result';
-import {isNumber} from '../utility';
+import {booleanValue} from '../boolean/value';
+import {isNumber, undefinedItemSkip} from '../utility';
 
 /**
  * Scratch state for `breadthFirst` / `depthFirst`, reused by every walk of
@@ -124,14 +125,18 @@ export class DirectedGraph<ItemT> implements Graph<
 	private readonly matchVertex: (vertex: DirectedGraphVertex<ItemT>) => void;
 	private matchItem: ItemT | null;
 	private matchResult: DirectedGraphVertex<ItemT> | null;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 
 	/**
 	 * @param data			Items added as vertices in array order on creation, with
-	 * 						no edges. Any other input is ignored.
+	 * 						no edges. Any other input is ignored, and undefined
+	 * 						entries follow `allowUndefinedItem`.
 	 * @param options		Optional config. Each option falls back to its default
 	 * 						when missing or invalid.
 	 */
 	constructor(data?: ItemT[] | null, options?: DirectedGraphOptions<ItemT> | null) {
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 		this._vertices = new Set();
 		this._edges = new Set();
 		this.lastLinkId = 0;
@@ -192,9 +197,15 @@ export class DirectedGraph<ItemT> implements Graph<
 
 	/**
 	 * Add item as a new vertex with no edges.
-	 * @returns		The vertex now holding item.
+	 * @returns		The vertex now holding item, or null when item is undefined,
+	 * 				which adds nothing (and throws instead when
+	 * 				`allowUndefinedItem` is `false`).
 	 */
-	public addVertex(item: ItemT): DirectedGraphVertex<ItemT> {
+	public addVertex(item: ItemT): DirectedGraphVertex<ItemT> | null {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'DirectedGraph')) {
+			return null;
+		}
+
 		const vertex = this.vertexPool.allocate();
 		vertex._value = item;
 		vertex._graph = this;
@@ -205,7 +216,8 @@ export class DirectedGraph<ItemT> implements Graph<
 	}
 
 	/**
-	 * Add each provided item as a new vertex, in array order.
+	 * Add each provided item as a new vertex, in array order. Undefined items
+	 * add no vertex, as for `addVertex`.
 	 * @returns		The new vertices, in the same order. Empty when items is not
 	 * 				an array.
 	 */
@@ -216,7 +228,11 @@ export class DirectedGraph<ItemT> implements Graph<
 
 		const vertices: DirectedGraphVertex<ItemT>[] = [];
 		for (let i = 0; i < items.length; i++) {
-			vertices.push(this.addVertex(items[i]));
+			const vertex = this.addVertex(items[i]);
+
+			if (vertex !== null) {
+				vertices.push(vertex);
+			}
 		}
 
 		return vertices;
@@ -733,7 +749,12 @@ export class DirectedGraph<ItemT> implements Graph<
 
 		for (const vertex of this._vertices) {
 			if (func.call(thisArg, vertex, index, this)) {
-				copies.set(vertex, graph.addVertex(vertex._value as ItemT));
+				// A live vertex never holds undefined, so the copy always exists.
+				const copy = graph.addVertex(vertex._value as ItemT);
+
+				if (copy !== null) {
+					copies.set(vertex, copy);
+				}
 			}
 			index++;
 		}
@@ -755,7 +776,7 @@ export class DirectedGraph<ItemT> implements Graph<
 	 * derived graphs that behave the same way.
 	 */
 	protected options(): DirectedGraphOptions<ItemT> {
-		return this.vertexPool.options();
+		return {...this.vertexPool.options(), allowUndefinedItem: this.allowUndefinedItem};
 	}
 
 	/**

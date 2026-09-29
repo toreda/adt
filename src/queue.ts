@@ -6,7 +6,8 @@ import {QueueIterator} from './queue/iterator';
 import {type QueueMethod} from './queue/method';
 import {type QueueOptions} from './queue/options';
 import type {QueueState} from './queue/state';
-import {isNumber} from './utility';
+import {booleanValue} from './boolean/value';
+import {isNumber, undefinedItemSkip} from './utility';
 
 /** Smallest ring buffer a queue allocates. */
 const MIN_CAPACITY = 16;
@@ -39,13 +40,17 @@ export class Queue<ItemT> implements DataStructure<ItemT> {
 	/** Ring buffer slot holding the front item. */
 	private _front: number;
 	private _size: number;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 
 	/**
 	 * @param options	Optional config. `elements` are copied into the queue
 	 * 					front to rear. A missing or non-array `elements` gives an
-	 * 					empty queue.
+	 * 					empty queue, and undefined entries follow
+	 * 					`allowUndefinedItem`.
 	 */
 	constructor(options?: QueueOptions<ItemT> | null) {
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 		const elements = options?.elements;
 		const count = Array.isArray(elements) ? elements.length : 0;
 
@@ -100,10 +105,15 @@ export class Queue<ItemT> implements DataStructure<ItemT> {
 
 	/**
 	 * Add an item at the rear. Allocates only when the ring buffer is full and
-	 * has to double.
+	 * has to double. An undefined item is skipped as a no-op, or throws when
+	 * `allowUndefinedItem` is `false`.
 	 * @returns		This queue.
 	 */
 	public push(item: ItemT): Queue<ItemT> {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'Queue')) {
+			return this;
+		}
+
 		if (this._size === this._elements.length) {
 			this.grow();
 		}
@@ -185,10 +195,18 @@ export class Queue<ItemT> implements DataStructure<ItemT> {
 	 * 					queue when omitted.
 	 */
 	public filter(func: QueueMethod<ItemT, boolean>, thisArg?: unknown): Queue<ItemT> {
-		const result = new Queue<ItemT>();
+		const result = new Queue<ItemT>(this.options());
 		this.filterInto(result, func, thisArg);
 
 		return result;
+	}
+
+	/**
+	 * Options equivalent to the ones this queue was built with (without its
+	 * items), for creating derived queues that behave the same way.
+	 */
+	protected options(): QueueOptions<ItemT> {
+		return {allowUndefinedItem: this.allowUndefinedItem};
 	}
 
 	/**

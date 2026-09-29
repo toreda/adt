@@ -1,9 +1,15 @@
+import {type DataStructureOptions} from '../data/structure/options';
+
 /**
- * Optional values used by Stack constructor.
+ * Optional config provided to the Stack constructor. Options are always
+ * optional, so nothing here is ever required. Initial elements are the
+ * constructor's `data` argument, not an option.
+ *
+ * The pooling entries from `DataStructureOptions` have no effect: the stack
+ * stores elements directly in its backing array and allocates no element
+ * wrappers.
  *
  * @category Stack
  */
-export interface StackOptions<ItemT> {
-	/** Populates the Stack with these elements upon instantiation, bottom to top. */
-	elements?: Array<ItemT>;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-unused-vars
+export interface StackOptions<ItemT> extends DataStructureOptions {}

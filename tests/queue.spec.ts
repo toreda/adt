@@ -48,7 +48,7 @@ describe('Queue', () => {
 		});
 
 		it('with options', () => {
-			const options: Required<QueueOptions<any>> = {
+			const options: QueueOptions<any> = {
 				elements: [1, 2, 3]
 			};
 			const result = new Queue(options);

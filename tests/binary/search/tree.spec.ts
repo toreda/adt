@@ -222,12 +222,13 @@ describe('BinarySearchTree', () => {
 			expectValid(keyed);
 		});
 
-		it('stores null and undefined items as given', () => {
+		it('stores null items as given and skips undefined items', () => {
 			const anything = new BinarySearchTree<number | null | undefined>(() => 0);
 			anything.insertArray([null, undefined, 3]);
 
-			expect(anything.values()).toEqual([null, undefined, 3]);
-			expect(anything.size()).toBe(3);
+			expect(anything.values()).toEqual([null, 3]);
+			expect(anything.size()).toBe(2);
+			expect(anything.insert(undefined)).toBe('undefined_item');
 		});
 
 		it('insertArray ignores non-arrays', () => {
@@ -777,10 +778,10 @@ describe('BinarySearchTree', () => {
 			expect(tree.toArray().map((node) => node.value())).toEqual([20, 30, 40, 50, 60, 70, 80]);
 		});
 
-		it('in order keeps null and undefined items', () => {
+		it('in order keeps null items and skips undefined items', () => {
 			const loose = new BinarySearchTree<any>(() => 0, [1, null, undefined, 2]);
 
-			expect(loose.inOrder()).toEqual([1, null, undefined, 2]);
+			expect(loose.inOrder()).toEqual([1, null, 2]);
 			expect(loose.values()).toEqual(loose.toArray().map((node) => node.value()));
 		});
 

@@ -11,6 +11,8 @@ import type {DataStructure} from '../data/structure';
 import type {QueryFilter} from '../query/filter';
 import type {QueryOptions} from '../query/options';
 import type {QueryResult} from '../query/result';
+import {booleanValue} from '../boolean/value';
+import {undefinedItemSkip} from '../utility';
 
 /**
  * Uniform grid spatial hash: space is cut into cubic cells of `cellSize`, and
@@ -58,6 +60,8 @@ export class SpatialHash<ItemT> implements DataStructure<ItemT> {
 	public readonly locator: SpatialLocator<ItemT>;
 	/** Edge length of each cubic cell. */
 	public readonly cellSize: number;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 	/** Cell table, element links, and search walks. */
 	private readonly grid: SpatialGrid<ItemT>;
 
@@ -78,6 +82,7 @@ export class SpatialHash<ItemT> implements DataStructure<ItemT> {
 		this.locator = locator;
 		this.grid = new SpatialGrid<ItemT>(locator, options);
 		this.cellSize = this.grid.cellSize;
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 
 		if (Array.isArray(data)) {
 			this.insertArray(data);
@@ -94,11 +99,17 @@ export class SpatialHash<ItemT> implements DataStructure<ItemT> {
 
 	/**
 	 * Insert item at the position its locator returns, in O(1) on average.
-	 * @returns		The element now holding item, or `invalid_position` when the
-	 * 				locator does not return finite x, y, and z coordinates in
-	 * 				range. Nothing is added then.
+	 * @returns		The element now holding item, or `invalid_position` when
+	 * 				item is undefined (throws instead when `allowUndefinedItem`
+	 * 				is `false`; the locator is never called) or when the locator
+	 * 				does not return finite x, y, and z coordinates in range.
+	 * 				Nothing is added then.
 	 */
 	public insert(item: ItemT): SpatialElement<ItemT> | SpatialHashError {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'SpatialHash')) {
+			return 'invalid_position';
+		}
+
 		if (!this.grid.locate(item)) {
 			return 'invalid_position';
 		}
@@ -369,7 +380,7 @@ export class SpatialHash<ItemT> implements DataStructure<ItemT> {
 	 * derived hashes that behave the same way.
 	 */
 	protected options(): SpatialHashOptions {
-		return this.grid.options();
+		return {...this.grid.options(), allowUndefinedItem: this.allowUndefinedItem};
 	}
 
 	/**

@@ -11,7 +11,7 @@ import type {QueryOptions} from '../../query/options';
 import type {QueryResult} from '../../query/result';
 import type {Tree} from '../../tree';
 import {booleanValue} from '../../boolean/value';
-import {isNumber} from '../../utility';
+import {isNumber, undefinedItemSkip} from '../../utility';
 
 /** Shared `key()` for every query result. Module level, so no closure per result. */
 function queryResultKey(): string | null {
@@ -56,6 +56,8 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	public readonly comparator: BinarySearchTreeComparator<ItemT>;
 	/** Whether items comparing equal to one already in the tree are accepted. */
 	public readonly allowDuplicates: boolean;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 	private _root: BinarySearchTreeElement<ItemT> | null;
 	private _size: number;
 	/** Last id handed to a linked node. Only increases, so ids never repeat. */
@@ -92,6 +94,7 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 
 		this.comparator = comparator;
 		this.allowDuplicates = booleanValue(true, options?.allowDuplicates);
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 		this._root = null;
 		this._size = 0;
 		this.lastLinkId = 0;
@@ -120,11 +123,17 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 
 	/**
 	 * Insert item at its sorted position, after any items comparing equal.
-	 * @returns		The node now holding item, or `duplicate_not_allowed` when
-	 * 				item compares equal to one already in the tree and
-	 * 				duplicates are not allowed. Nothing is added in that case.
+	 * @returns		The node now holding item, or an error code when nothing is
+	 * 				added: `undefined_item` when item is undefined (throws
+	 * 				instead when `allowUndefinedItem` is `false`), or
+	 * 				`duplicate_not_allowed` when item compares equal to one
+	 * 				already in the tree and duplicates are not allowed.
 	 */
 	public insert(item: ItemT): BinarySearchTreeElement<ItemT> | BinarySearchTreeError {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'BinarySearchTree')) {
+			return 'undefined_item';
+		}
+
 		if (!this.findSlot(item)) {
 			return 'duplicate_not_allowed';
 		}
@@ -457,7 +466,11 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	 * derived trees that behave the same way.
 	 */
 	protected options(): BinarySearchTreeOptions<ItemT> {
-		return {...this.elements.options(), allowDuplicates: this.allowDuplicates};
+		return {
+			...this.elements.options(),
+			allowDuplicates: this.allowDuplicates,
+			allowUndefinedItem: this.allowUndefinedItem
+		};
 	}
 
 	/**

@@ -12,6 +12,7 @@ import type {QueryFilter} from '../query/filter';
 import type {QueryOptions} from '../query/options';
 import type {QueryResult} from '../query/result';
 import {booleanValue} from '../boolean/value';
+import {undefinedItemSkip} from '../utility';
 
 /**
  * Sparse uniform grid holding at most one item per cell: space is cut into
@@ -63,6 +64,8 @@ export class SpatialMap<ItemT> implements DataStructure<ItemT> {
 	public readonly cellSize: number;
 	/** Whether an item arriving at an occupied cell replaces the occupant. */
 	public readonly overwrite: boolean;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 	/** Cell table, element links, and search walks. */
 	private readonly grid: SpatialGrid<ItemT>;
 
@@ -85,6 +88,7 @@ export class SpatialMap<ItemT> implements DataStructure<ItemT> {
 		this.grid = new SpatialGrid<ItemT>(locator, options);
 		this.cellSize = this.grid.cellSize;
 		this.overwrite = booleanValue(false, options?.overwrite);
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 
 		if (Array.isArray(data)) {
 			this.insertArray(data);
@@ -103,12 +107,18 @@ export class SpatialMap<ItemT> implements DataStructure<ItemT> {
 	 * Insert item into the cell holding the position its locator returns, in
 	 * O(1) on average. With `overwrite`, an item already in that cell is
 	 * removed first.
-	 * @returns		The element now holding item. `invalid_position` when the
-	 * 				locator does not return finite x, y, and z coordinates in
-	 * 				range, or `cell_occupied` when another item holds the cell
-	 * 				and `overwrite` is off. Nothing changes in either case.
+	 * @returns		The element now holding item. `invalid_position` when item
+	 * 				is undefined (throws instead when `allowUndefinedItem` is
+	 * 				`false`; the locator is never called) or when the locator
+	 * 				does not return finite x, y, and z coordinates in range, or
+	 * 				`cell_occupied` when another item holds the cell and
+	 * 				`overwrite` is off. Nothing changes in either case.
 	 */
 	public insert(item: ItemT): SpatialElement<ItemT> | SpatialMapError {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'SpatialMap')) {
+			return 'invalid_position';
+		}
+
 		if (!this.grid.locate(item)) {
 			return 'invalid_position';
 		}
@@ -429,7 +439,11 @@ export class SpatialMap<ItemT> implements DataStructure<ItemT> {
 	 * derived maps that behave the same way.
 	 */
 	protected options(): SpatialMapOptions {
-		return {...this.grid.options(), overwrite: this.overwrite};
+		return {
+			...this.grid.options(),
+			overwrite: this.overwrite,
+			allowUndefinedItem: this.allowUndefinedItem
+		};
 	}
 
 	/**

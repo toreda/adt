@@ -11,7 +11,8 @@ import {TrieIterator} from './trie/iterator';
 import type {TrieKeySelector} from './trie/key/selector';
 import type {TrieMethod} from './trie/method';
 import type {TrieOptions} from './trie/options';
-import {isNumber} from './utility';
+import {booleanValue} from './boolean/value';
+import {isNumber, undefinedItemSkip} from './utility';
 
 /**
  * Shared `key()` for every query result, bound to the matched item's key.
@@ -88,6 +89,8 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	private lastLinkId: number;
 	/** Source of node wrappers, pooled or freshly allocated per options. */
 	private readonly elements: ElementPool<TrieElement<ItemT>>;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 
 	/**
 	 * @param keySelector	Reads each item's key. Required, since items are
@@ -109,6 +112,7 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 		}
 
 		this.keySelector = keySelector;
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 		this._size = 0;
 		this.lastLinkId = 0;
 		// The element class is generic and the pool builds blank nodes with no
@@ -136,10 +140,16 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	 * are created only for the part of the key not already in the trie.
 	 * @returns		The node now holding item. When the key was already stored,
 	 * 				this is the same node, and the item it held is replaced.
-	 * 				`invalid_key` when the key selector does not return a string;
+	 * 				`invalid_key` when item is undefined (throws instead when
+	 * 				`allowUndefinedItem` is `false`; the key selector is never
+	 * 				called) or when the key selector does not return a string;
 	 * 				nothing is added then.
 	 */
 	public insert(item: ItemT): TrieElement<ItemT> | TrieError {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'Trie')) {
+			return 'invalid_key';
+		}
+
 		const key = this.keySelector(item);
 
 		if (typeof key !== 'string') {
@@ -511,7 +521,7 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	 * derived tries that behave the same way.
 	 */
 	protected options(): TrieOptions<ItemT> {
-		return this.elements.options();
+		return {...this.elements.options(), allowUndefinedItem: this.allowUndefinedItem};
 	}
 
 	/**

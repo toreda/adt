@@ -10,16 +10,19 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">BinarySearchTreeError</a></li></ul>
 <h1>Type Alias BinarySearchTreeError</h1></div>
-<div class="tsd-signature"><span class="tsd-kind-type-alias">BinarySearchTreeError</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;duplicate_not_allowed&quot;</span></div>
+<div class="tsd-signature"><span class="tsd-kind-type-alias">BinarySearchTreeError</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;duplicate_not_allowed&quot;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">&quot;undefined_item&quot;</span></div>
 <div class="tsd-comment tsd-typography"><p>Codes returned in place of a node by BinarySearchTree methods that refuse
 an item instead of throwing.</p>
 <ul>
 <li><code>duplicate_not_allowed</code>: the item compares equal to one already in the
 tree, and the tree was built with <code>allowDuplicates: false</code>.</li>
+<li><code>undefined_item</code>: the item is <code>undefined</code>, which is never stored. Only
+returned while <code>allowUndefinedItem</code> is on; when it is <code>false</code>, the insert
+throws instead.</li>
 </ul>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/a4cbc77aaec0e58ad9c79315d8654011f362690f/src/binary/search/tree/error.ts#L10">binary/search/tree/error.ts:10</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/857477624708daf4afa5e883ea59533a97632f7a/src/binary/search/tree/error.ts#L13">binary/search/tree/error.ts:13</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

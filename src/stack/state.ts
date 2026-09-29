@@ -4,7 +4,7 @@
  *
  * @category Stack
  */
-export interface StackState<T> {
-	elements: Array<T>;
+export interface StackState<ItemT> {
+	elements: Array<ItemT>;
 	type: 'Stack';
 }

@@ -59,7 +59,7 @@ export class ByteQueue<ItemT> extends Queue<ItemT> implements ByteDataStructure<
 	 * Same as `Queue.filter()`, but the new queue keeps this queue's codec.
 	 */
 	public filter(func: QueueMethod<ItemT, boolean>, thisArg?: unknown): ByteQueue<ItemT> {
-		const result = new ByteQueue<ItemT>(this.codec);
+		const result = new ByteQueue<ItemT>(this.codec, null, this.options());
 		this.filterInto(result, func, thisArg);
 
 		return result;

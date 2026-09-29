@@ -69,7 +69,11 @@ export class BytePriorityQueue<ItemT> extends PriorityQueue<ItemT> implements By
 	 * codec as well as its comparator.
 	 */
 	public filter(func: PriorityQueueMethod<ItemT, boolean>, thisArg?: unknown): BytePriorityQueue<ItemT> {
-		return this.filterInto(new BytePriorityQueue<ItemT>(this.codec, this.comparator), func, thisArg);
+		return this.filterInto(
+			new BytePriorityQueue<ItemT>(this.codec, this.comparator, null, this.options()),
+			func,
+			thisArg
+		);
 	}
 
 	/**

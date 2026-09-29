@@ -25,4 +25,12 @@ export interface DataStructureOptions {
 	 * start the pool empty and let it grow with demand.
 	 */
 	pool?: ObjectPoolOptions | null;
+	/**
+	 * How an `undefined` item reaching an insert path (a single insert, an
+	 * array insert, or constructor `data`) is handled. By default (`true`) the
+	 * item is skipped as a no-op and never stored. Strictly `false` makes the
+	 * insert throw instead, for callers who need input containing `undefined`
+	 * rejected rather than silently thinned; any other value keeps the default.
+	 */
+	allowUndefinedItem?: boolean;
 }

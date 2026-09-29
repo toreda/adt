@@ -6,7 +6,7 @@ import type {CircularQueueOptions} from './queue/options';
 import type {QueryFilter} from '../query/filter';
 import type {QueryOptions} from '../query/options';
 import type {QueryResult} from '../query/result';
-import {isNumber} from '../utility';
+import {isNumber, undefinedItemSkip} from '../utility';
 
 /** Capacity used when `maxSize` is missing or invalid. */
 const DEFAULT_MAX_SIZE = 25;
@@ -38,6 +38,8 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 	public readonly maxSize: number;
 	/** Whether adding to a full queue overwrites instead of failing. */
 	public readonly overwrite: boolean;
+	/** Whether an undefined item is skipped as a no-op or throws. */
+	public readonly allowUndefinedItem: boolean;
 	/**
 	 * Ring buffer of exactly `maxSize` slots, allocated once. Slots outside the
 	 * live range hold undefined.
@@ -60,6 +62,7 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 		this.maxSize =
 			Number.isInteger(maxSize) && (maxSize as number) >= 1 ? (maxSize as number) : DEFAULT_MAX_SIZE;
 		this.overwrite = booleanValue(false, options?.overwrite);
+		this.allowUndefinedItem = booleanValue(true, options?.allowUndefinedItem);
 		// Filled with push rather than `new Array(maxSize)` so the array is
 		// packed from the start and never holey, whichever slot is written first.
 		this._elements = [];
@@ -115,9 +118,14 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 	 * Takes exactly one item so a call never builds a rest-parameter array.
 	 * Use `pushArray()` to add several.
 	 * @returns		True when the item was added, false when the queue is full
-	 * 				and `overwrite` is off.
+	 * 				and `overwrite` is off, or when item is undefined (skipped
+	 * 				as a no-op; throws when `allowUndefinedItem` is `false`).
 	 */
 	public push(item: ItemT): boolean {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'CircularQueue')) {
+			return false;
+		}
+
 		if (this._size >= this.maxSize) {
 			if (!this.overwrite) {
 				return false;
@@ -138,7 +146,8 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 
 	/**
 	 * Add each item of an array at the rear, in array order, as `push()` does.
-	 * Works for arrays of any length.
+	 * Works for arrays of any length. Undefined items are skipped without
+	 * ending the walk (or throw, when `allowUndefinedItem` is `false`).
 	 * @returns		True when every item was added. False when the queue filled
 	 * 				up with overwrite off (items before that point were added),
 	 * 				or when items is not an array.
@@ -149,6 +158,10 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 		}
 
 		for (let i = 0; i < items.length; i++) {
+			if (undefinedItemSkip(items[i], this.allowUndefinedItem, 'CircularQueue')) {
+				continue;
+			}
+
 			if (!this.push(items[i])) {
 				return false;
 			}
@@ -165,9 +178,14 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 	 * Takes exactly one item so a call never builds a rest-parameter array.
 	 * Use `insertFrontArray()` to add several.
 	 * @returns		True when the item was added, false when the queue is full
-	 * 				and `overwrite` is off.
+	 * 				and `overwrite` is off, or when item is undefined (skipped
+	 * 				as a no-op; throws when `allowUndefinedItem` is `false`).
 	 */
 	public insertFront(item: ItemT): boolean {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'CircularQueue')) {
+			return false;
+		}
+
 		if (this._size >= this.maxSize) {
 			if (!this.overwrite) {
 				return false;
@@ -188,7 +206,9 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 
 	/**
 	 * Add each item of an array at the front, one at a time in array order, as
-	 * `insertFront()` does, so the last item ends up in front.
+	 * `insertFront()` does, so the last item ends up in front. Undefined items
+	 * are skipped without ending the walk (or throw, when `allowUndefinedItem`
+	 * is `false`).
 	 * @returns		True when every item was added. False when the queue filled
 	 * 				up with overwrite off (items before that point were added),
 	 * 				or when items is not an array.
@@ -199,6 +219,10 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 		}
 
 		for (let i = 0; i < items.length; i++) {
+			if (undefinedItemSkip(items[i], this.allowUndefinedItem, 'CircularQueue')) {
+				continue;
+			}
+
 			if (!this.insertFront(items[i])) {
 				return false;
 			}
@@ -300,7 +324,11 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 	 * derived queues that behave the same way.
 	 */
 	protected options(): CircularQueueOptions<ItemT> {
-		return {maxSize: this.maxSize, overwrite: this.overwrite};
+		return {
+			maxSize: this.maxSize,
+			overwrite: this.overwrite,
+			allowUndefinedItem: this.allowUndefinedItem
+		};
 	}
 
 	/**

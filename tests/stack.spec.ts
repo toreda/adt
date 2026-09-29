@@ -1,6 +1,5 @@
 import {Stack} from '../src/stack';
 import {StackIterator} from '../src/stack/iterator';
-import {type StackOptions} from '../src/stack/options';
 
 const repeat = (n: number, f: (n: number) => unknown) => {
 	while (n-- > 0) {
@@ -30,13 +29,12 @@ describe('Stack', () => {
 			expect(result.size()).toBe(0);
 		});
 
-		it('with options', () => {
-			const options: Required<StackOptions<any>> = {
-				elements: [1, 2, 3]
-			};
-			const result = new Stack(options);
+		it('with seed data pushed bottom to top', () => {
+			const result = new Stack([1, 2, 3]);
 			expect(result).toBeInstanceOf(Stack);
 			expect(result.size()).toBe(3);
+			expect(result.top()).toBe(3);
+			expect(result.bottom()).toBe(1);
 		});
 
 		it('stringify stack', () => {
@@ -45,15 +43,15 @@ describe('Stack', () => {
 		});
 
 		it('ignores the removed serializedState option', () => {
-			const result = new Stack({serializedState: '{"type":"Stack","elements":[4]}'} as any);
+			const result = new Stack(null, {serializedState: '{"type":"Stack","elements":[4]}'} as any);
 			expect(result.size()).toBe(0);
 		});
 
-		it('copies the elements option', () => {
-			const elements = [1, 2, 3];
-			const result = new Stack({elements});
+		it('copies the data array', () => {
+			const data = [1, 2, 3];
+			const result = new Stack(data);
 			result.push(4);
-			expect(elements).toEqual([1, 2, 3]);
+			expect(data).toEqual([1, 2, 3]);
 			expect(result.top()).toBe(4);
 		});
 
@@ -72,11 +70,9 @@ describe('Stack', () => {
 			expect(instance.stringify()).toBeNull();
 		});
 
-		it('invalid', () => {
-			expect(() => {
-				const result = new Stack({elements: 'adsf' as any});
-				console.log(result);
-			}).toThrow();
+		it('ignores non-array data instead of throwing', () => {
+			expect(new Stack('adsf' as any).size()).toBe(0);
+			expect(new Stack({elements: [4]} as any).size()).toBe(0);
 		});
 	});
 
@@ -346,7 +342,7 @@ describe('Stack', () => {
 			const a = {id: 'a'};
 			const b = {id: 'b'};
 			const c = {id: 'c'};
-			const stack = new Stack<object>({elements: [a, b, c]});
+			const stack = new Stack<object>([a, b, c]);
 
 			expect(stack.pop()).toBe(c);
 			expect(backingOf(stack)).not.toContain(c);
@@ -358,7 +354,7 @@ describe('Stack', () => {
 
 		it('query delete keeps the length and drops the reference', () => {
 			const x = {id: 'x'};
-			const stack = new Stack<object>({elements: [{id: 1}, x, {id: 2}]});
+			const stack = new Stack<object>([{id: 1}, x, {id: 2}]);
 
 			expect(stack.query((v) => v === x)[0].delete()).toBe(x);
 			expect(stack.size()).toBe(2);
@@ -367,7 +363,7 @@ describe('Stack', () => {
 		});
 
 		it('ignores spare slots in every read', () => {
-			const stack = new Stack<number>({elements: [1, 2, 3, 4, 5]});
+			const stack = new Stack<number>([1, 2, 3, 4, 5]);
 			stack.pop();
 			stack.pop();
 
@@ -418,7 +414,7 @@ describe('Stack', () => {
 		});
 
 		it('state is a snapshot of the live elements', () => {
-			const stack = new Stack<number>({elements: [1, 2, 3]});
+			const stack = new Stack<number>([1, 2, 3]);
 			stack.pop();
 
 			const state = stack.state;

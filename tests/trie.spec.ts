@@ -273,15 +273,16 @@ describe('Trie', () => {
 			expect(nodeCount(any)).toBe(1);
 		});
 
-		it('keeps null and undefined items under a valid key', () => {
+		it('keeps a null item under a valid key and never stores undefined', () => {
 			const entries = new Trie<Entry | null | undefined>(() => 'k');
 
 			entries.insert(null);
 			expect(entries.contains('k')).toBe(true);
 			expect(entries.get('k')).toBeNull();
 
-			entries.insert(undefined);
-			expect(entries.find('k')!.value()).toBeUndefined();
+			// Skipped as a no-op: the stored null item is untouched.
+			expect(entries.insert(undefined)).toBe('invalid_key');
+			expect(entries.get('k')).toBeNull();
 			expect(entries.size()).toBe(1);
 		});
 

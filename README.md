@@ -1882,7 +1882,7 @@ import {Stack} from '@toreda/data-structures';
 // Instantiate
 const myStack = new Stack<string>();
 // Instantiate with starting elements, listed bottom to top
-const myStackWithElements = new Stack<string>({elements: ['a', 'b', 'c']});
+const myStackWithElements = new Stack<string>(['a', 'b', 'c']);
 myStackWithElements.top(); // returns 'c'
 
 // Push elements onto the top of the stack
