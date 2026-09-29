@@ -9,12 +9,15 @@ export {ElementPool} from './element/pool';
 export type {ByteDataStructure} from './byte/data/structure';
 export {ByteEnvelope} from './byte/envelope';
 export {byteEnvelopeDecode} from './byte/envelope/decode';
+export type {ByteGraphEnvelopeEdge} from './byte/envelope/edge';
+export {ByteGraphEnvelope} from './byte/envelope/graph';
 export type {ItemCodec} from './item/codec';
 export {itemCodecValid} from './item/codec/valid';
 export type {ItemDecoder} from './item/decoder';
 export type {ItemEncoder} from './item/encoder';
 
 // Binary Search Tree
+export {ByteBinarySearchTree} from './byte/binary/search/tree';
 export {BinarySearchTree} from './binary/search/tree';
 export type {BinarySearchTreeComparator} from './binary/search/tree/comparator';
 export {BinarySearchTreeElement} from './binary/search/tree/element';
@@ -31,6 +34,7 @@ export type {CircularQueueMethod} from './circular/queue/method';
 export type {CircularQueueOptions} from './circular/queue/options';
 
 // Directed Graph
+export {ByteDirectedGraph} from './byte/directed/graph';
 export {DirectedGraph} from './directed/graph';
 export {DirectedGraphEdge} from './directed/graph/edge';
 export type {DirectedGraphError} from './directed/graph/error';
@@ -44,6 +48,7 @@ export {DirectedGraphVertex} from './directed/graph/vertex';
 // Graph
 export type {Graph} from './graph';
 export type {GraphEdge} from './graph/edge';
+export type {GraphNeighborMethod} from './graph/neighbor/method';
 export type {GraphVertex} from './graph/vertex';
 
 // Linked List
@@ -67,6 +72,7 @@ export type {ObjectPoolOptions} from './object/pool/options';
 export type {ObjectPoolState} from './object/pool/state';
 
 // Oct Tree
+export {ByteOctTree} from './byte/oct/tree';
 export {OctTree} from './oct/tree';
 export type {OctTreeBounds} from './oct/tree/bounds';
 export {OctTreeElement} from './oct/tree/element';
@@ -79,12 +85,15 @@ export type {OctTreeOptions} from './oct/tree/options';
 export type {OctTreePoint} from './oct/tree/point';
 
 // Priority Queue
+export {BytePriorityQueue} from './byte/priority/queue';
 export {PriorityQueue} from './priority/queue';
 export type {PriorityQueueComparator} from './priority/queue/comparator';
+export type {PriorityQueueMethod} from './priority/queue/method';
 export type {PriorityQueueOptions} from './priority/queue/options';
 export type {PriorityQueueState} from './priority/queue/state';
 
 // Quad Tree
+export {ByteQuadTree} from './byte/quad/tree';
 export {QuadTree} from './quad/tree';
 export type {QuadTreeBounds} from './quad/tree/bounds';
 export {QuadTreeElement} from './quad/tree/element';
@@ -97,6 +106,7 @@ export type {QuadTreePoint} from './quad/tree/point';
 export type {QuadTreeQuadrant} from './quad/tree/quadrant';
 
 // Red Black Tree
+export {ByteRedBlackTree} from './byte/red/black/tree';
 export {RedBlackTree} from './red/black/tree';
 export type {RedBlackTreeColor} from './red/black/tree/color';
 export type {RedBlackTreeComparator} from './red/black/tree/comparator';
@@ -107,12 +117,18 @@ export type {RedBlackTreeMethod} from './red/black/tree/method';
 export type {RedBlackTreeOptions} from './red/black/tree/options';
 
 // Queue
+export {ByteQueue} from './byte/queue';
 export {Queue} from './queue';
+export {QueueIterator} from './queue/iterator';
+export type {QueueMethod} from './queue/method';
 export type {QueueOptions} from './queue/options';
 export type {QueueState} from './queue/state';
 
 // Stack
+export {ByteStack} from './byte/stack';
 export {Stack} from './stack';
+export {StackIterator} from './stack/iterator';
+export type {StackMethod} from './stack/method';
 export type {StackOptions} from './stack/options';
 export type {StackState} from './stack/state';
 

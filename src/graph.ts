@@ -1,5 +1,6 @@
 import {type DataStructure} from './data/structure';
 import {type GraphEdge} from './graph/edge';
+import {type GraphNeighborMethod} from './graph/neighbor/method';
 import {type GraphVertex} from './graph/vertex';
 
 /**
@@ -45,10 +46,26 @@ export interface Graph<
 	adjacent(from: VertexT | null, to: VertexT | null): boolean;
 	/**
 	 * Vertices reachable from vertex over one edge.
+	 * @param out	Array to fill instead of allocating a new one. It is emptied
+	 * 				first, and returned. Emptying an array (`length = 0`) frees
+	 * 				its storage in V8, so refilling it allocates whenever vertex
+	 * 				has a neighbor: passing `out` saves only the array object.
+	 * 				On a hot path use `forEachNeighbor()`, which allocates nothing.
 	 * @returns		Neighbors, or an empty array when vertex is null or not part
 	 * 				of this graph.
 	 */
-	neighbors(vertex: VertexT | null): VertexT[];
+	neighbors(vertex: VertexT | null, out?: VertexT[] | null): VertexT[];
+	/**
+	 * Call func once for each edge that can be traveled away from vertex, with
+	 * the vertex it leads to. Allocates nothing. Does nothing when vertex is
+	 * null or not part of this graph.
+	 * @param thisArg	Value used as `this` when calling func, as passed.
+	 */
+	forEachNeighbor(
+		vertex: VertexT | null,
+		func: GraphNeighborMethod<VertexT, EdgeT>,
+		thisArg?: unknown
+	): Graph<ItemT, VertexT, EdgeT>;
 	/**
 	 * Vertices in breadth-first order from start: all vertices one edge away,
 	 * then two, and so on. With start omitted, walks every vertex, starting a

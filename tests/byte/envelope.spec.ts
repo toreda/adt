@@ -39,6 +39,28 @@ describe('ByteEnvelope', () => {
 			expect(envelope.items()).toEqual([new Uint8Array([1, 0]), new Uint8Array([2, 1])]);
 		});
 
+		it('calls the encoder once per item with just the item', () => {
+			const encoder = jest.fn(encodeItem);
+			ByteEnvelope.encode([1, 2], encoder);
+
+			expect(encoder.mock.calls).toEqual([[1], [2]]);
+		});
+
+		it('encode output is not tied to the items array', () => {
+			const items = [1];
+			const envelope = ByteEnvelope.encode(items, encodeItem);
+			items.push(2);
+
+			expect(envelope.size()).toBe(1);
+		});
+
+		it('calls the decoder once per item with just the bytes', () => {
+			const decoder = jest.fn(decodeItem);
+			new ByteEnvelope([new Uint8Array([1, 0]), new Uint8Array([2, 0])]).decode(decoder);
+
+			expect(decoder.mock.calls).toEqual([[new Uint8Array([1, 0])], [new Uint8Array([2, 0])]]);
+		});
+
 		it('decodes each item with the caller helper in order', () => {
 			const envelope = new ByteEnvelope([new Uint8Array([1, 0]), new Uint8Array([2, 1])]);
 
@@ -100,6 +122,21 @@ describe('ByteEnvelope', () => {
 			const view = outer.subarray(4, 4 + inner.length);
 
 			expect(ByteEnvelope.fromBytes(view)?.decode(decodeItem)).toEqual([5, 6]);
+		});
+
+		it('hands decoders standalone item buffers', () => {
+			const bytes = ByteEnvelope.encode([5, 6], encodeItem).toBytes();
+			const [first, second] = (ByteEnvelope.fromBytes(bytes) as ByteEnvelope).items();
+
+			expect(first.byteOffset).toBe(0);
+			expect(first.buffer.byteLength).toBe(2);
+			expect(second.buffer).not.toBe(first.buffer);
+		});
+
+		it('round trips byte for byte', () => {
+			const bytes = ByteEnvelope.encode([0, 7, 300], encodeItem).toBytes();
+
+			expect(ByteEnvelope.fromBytes(bytes)?.toBytes()).toEqual(bytes);
 		});
 
 		it('returned items do not alias the source bytes', () => {

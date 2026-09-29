@@ -2,11 +2,13 @@ import {Stack} from '../src/stack';
 import {StackIterator} from '../src/stack/iterator';
 import {type StackOptions} from '../src/stack/options';
 
-const repeat = (n: number, f: Function) => {
+const repeat = (n: number, f: (n: number) => unknown) => {
 	while (n-- > 0) {
 		f(n);
 	}
 };
+/** The stack's private backing array, including spare slots. */
+const backingOf = <T>(stack: Stack<T>): (T | undefined)[] => (stack as any)._elements;
 const add10Items = (stack: Stack<any>) => repeat(10, (n: number) => stack.push((10 - n) * 10));
 
 describe('Stack', () => {
@@ -29,7 +31,7 @@ describe('Stack', () => {
 		});
 
 		it('with options', () => {
-			const options: Required<Omit<StackOptions<any>, 'serializedState'>> = {
+			const options: Required<StackOptions<any>> = {
 				elements: [1, 2, 3]
 			};
 			const result = new Stack(options);
@@ -38,9 +40,25 @@ describe('Stack', () => {
 		});
 
 		it('stringify stack', () => {
-			const stringified = instance.stringify();
-			expect(stringified).not.toBeNull();
-			expect(new Stack({serializedState: stringified as string})).toEqual(instance);
+			instance.push(1).push(2);
+			expect(instance.stringify()).toBe('{"type":"Stack","elements":[1,2]}');
+		});
+
+		it('ignores the removed serializedState option', () => {
+			const result = new Stack({serializedState: '{"type":"Stack","elements":[4]}'} as any);
+			expect(result.size()).toBe(0);
+		});
+
+		it('copies the elements option', () => {
+			const elements = [1, 2, 3];
+			const result = new Stack({elements});
+			result.push(4);
+			expect(elements).toEqual([1, 2, 3]);
+			expect(result.top()).toBe(4);
+		});
+
+		it('has no toBinary stub', () => {
+			expect((new Stack() as any).toBinary).toBeUndefined();
 		});
 
 		it('stringify returns null for unserializable elements', () => {
@@ -54,34 +72,9 @@ describe('Stack', () => {
 			expect(instance.stringify()).toBeNull();
 		});
 
-		it('with serialized', () => {
-			expect(new Stack({serializedState: ''})).toBeInstanceOf(Stack);
-			const source = new Stack({elements: [2, 3, 4]});
-			const serialized = source.stringify();
-			const result = new Stack({serializedState: serialized});
-			expect(result).toBeInstanceOf(Stack);
-			expect(result.size()).toBe(3);
-			expect(result).toEqual(source);
-		});
-
 		it('invalid', () => {
 			expect(() => {
 				const result = new Stack({elements: 'adsf' as any});
-				console.log(result);
-			}).toThrow();
-
-			expect(() => {
-				const result = new Stack({serializedState: 'null'});
-				console.log(result);
-			}).toThrow();
-
-			expect(() => {
-				const result = new Stack({serializedState: 'in{valid'});
-				console.log(result);
-			}).toThrow();
-
-			expect(() => {
-				const result = new Stack({serializedState: '{"elements": [4]}'});
 				console.log(result);
 			}).toThrow();
 		});
@@ -186,13 +179,43 @@ describe('Stack', () => {
 			});
 		});
 
-		it('forEach index and arr are top first', () => {
+		it('forEach index is top first and third argument is the stack', () => {
 			const expected = [100, 90, 80, 70, 60, 50, 40, 30, 20, 10];
+			const seen: number[] = [];
 
-			instance.forEach((e, i, arr) => {
+			instance.forEach((e, i, stack) => {
 				expect(i).toBe(expected.indexOf(e));
-				expect(arr).toEqual(expected);
+				expect(stack).toBe(instance);
+				expect(stack.at(i)).toBe(e);
+				seen.push(e);
 			});
+
+			expect(seen).toEqual(expected);
+		});
+
+		it('forEach does not copy the backing array', () => {
+			const sliceSpy = jest.spyOn(Array.prototype, 'slice');
+			const reverseSpy = jest.spyOn(Array.prototype, 'reverse');
+
+			try {
+				instance.forEach(() => {});
+				expect(sliceSpy).not.toHaveBeenCalled();
+				expect(reverseSpy).not.toHaveBeenCalled();
+			} finally {
+				sliceSpy.mockRestore();
+				reverseSpy.mockRestore();
+			}
+		});
+
+		it('forEach defaults this to the stack', () => {
+			const seen: unknown[] = [];
+
+			instance.forEach(function (this: unknown) {
+				seen.push(this);
+			});
+
+			expect(seen.length).toBe(instance.size());
+			expect(seen.every((ctx) => ctx === instance)).toBe(true);
 		});
 
 		it('forEach uses thisArg', () => {
@@ -217,6 +240,27 @@ describe('Stack', () => {
 			strings.forEach((e) => {
 				expect(e).toContain('random string - ');
 			});
+		});
+
+		it('filter passes top first index and the stack', () => {
+			const indexes: number[] = [];
+
+			instance.filter((e, i, stack) => {
+				expect(stack).toBe(instance);
+				expect(stack.at(i)).toBe(e);
+				indexes.push(i);
+				return true;
+			});
+
+			expect(indexes).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+		});
+
+		it('filter result is independent of the source', () => {
+			const all = instance.filter(() => true);
+			expect(all.state.elements).toEqual(instance.state.elements);
+			expect(all.state.elements).not.toBe(instance.state.elements);
+			all.pop();
+			expect(instance.size()).toBe(10);
 		});
 
 		it('filter preserves element order', () => {
@@ -248,7 +292,159 @@ describe('Stack', () => {
 		});
 	});
 
+	describe('CLEAR', () => {
+		it('clearElements keeps the backing array', () => {
+			add10Items(instance);
+			const backing = backingOf(instance);
+
+			instance.clearElements();
+			expect(instance.size()).toBe(0);
+			expect(backingOf(instance)).toBe(backing);
+			expect(instance.pop()).toBeNull();
+
+			instance.push(5);
+			expect(instance.top()).toBe(5);
+		});
+
+		it('reset keeps the backing array', () => {
+			add10Items(instance);
+			const backing = backingOf(instance);
+
+			instance.reset();
+			expect(instance.size()).toBe(0);
+			expect(backingOf(instance)).toBe(backing);
+		});
+	});
+
+	describe('CAPACITY', () => {
+		it('pop keeps the backing array at its high-water length', () => {
+			const stack = new Stack<number>();
+			repeat(1000, (n) => stack.push(n));
+
+			for (let i = 0; i < 990; i++) {
+				stack.pop();
+			}
+
+			expect(stack.size()).toBe(10);
+			expect(backingOf(stack).length).toBe(1000);
+		});
+
+		it('clearElements and reset keep the high-water length', () => {
+			const stack = new Stack<number>();
+			repeat(500, (n) => stack.push(n));
+
+			stack.clearElements();
+			expect(stack.size()).toBe(0);
+			expect(backingOf(stack).length).toBe(500);
+
+			repeat(200, (n) => stack.push(n));
+			stack.reset();
+			expect(backingOf(stack).length).toBe(500);
+		});
+
+		it('drops references to popped and cleared elements', () => {
+			const a = {id: 'a'};
+			const b = {id: 'b'};
+			const c = {id: 'c'};
+			const stack = new Stack<object>({elements: [a, b, c]});
+
+			expect(stack.pop()).toBe(c);
+			expect(backingOf(stack)).not.toContain(c);
+			expect(backingOf(stack)[2]).toBeUndefined();
+
+			stack.clearElements();
+			expect(backingOf(stack).every((slot) => slot === undefined)).toBe(true);
+		});
+
+		it('query delete keeps the length and drops the reference', () => {
+			const x = {id: 'x'};
+			const stack = new Stack<object>({elements: [{id: 1}, x, {id: 2}]});
+
+			expect(stack.query((v) => v === x)[0].delete()).toBe(x);
+			expect(stack.size()).toBe(2);
+			expect(backingOf(stack).length).toBe(3);
+			expect(backingOf(stack)).not.toContain(x);
+		});
+
+		it('ignores spare slots in every read', () => {
+			const stack = new Stack<number>({elements: [1, 2, 3, 4, 5]});
+			stack.pop();
+			stack.pop();
+
+			expect(stack.size()).toBe(3);
+			expect(stack.top()).toBe(3);
+			expect(stack.bottom()).toBe(1);
+			expect(stack.at(2)).toBe(1);
+			expect(stack.at(3)).toBeNull();
+			expect(stack.values()).toEqual([3, 2, 1]);
+			expect([...stack]).toEqual([3, 2, 1]);
+			expect(stack.state.elements).toEqual([1, 2, 3]);
+			expect(stack.stringify()).toBe('{"type":"Stack","elements":[1,2,3]}');
+
+			const seen: number[] = [];
+			stack.forEach((v) => {
+				seen.push(v);
+			});
+			expect(seen).toEqual([3, 2, 1]);
+			expect(stack.filter(() => true).values()).toEqual([3, 2, 1]);
+			expect(stack.query(() => true).length).toBe(3);
+
+			stack.reverse();
+			expect(stack.values()).toEqual([1, 2, 3]);
+			expect(backingOf(stack).slice(3)).toEqual([undefined, undefined]);
+		});
+
+		it('gives correct results over repeated fill and drain cycles', () => {
+			const stack = new Stack<number>();
+
+			for (let cycle = 0; cycle < 5; cycle++) {
+				const count = cycle % 2 === 0 ? 50 : 20;
+
+				for (let i = 0; i < count; i++) {
+					stack.push(cycle * 100 + i);
+				}
+
+				expect(stack.size()).toBe(count);
+				expect(stack.top()).toBe(cycle * 100 + count - 1);
+
+				for (let i = count - 1; i >= 0; i--) {
+					expect(stack.pop()).toBe(cycle * 100 + i);
+				}
+
+				expect(stack.pop()).toBeNull();
+				expect(stack.isEmpty()).toBe(true);
+				expect(backingOf(stack).length).toBe(50);
+			}
+		});
+
+		it('state is a snapshot of the live elements', () => {
+			const stack = new Stack<number>({elements: [1, 2, 3]});
+			stack.pop();
+
+			const state = stack.state;
+			expect(state).toEqual({type: 'Stack', elements: [1, 2]});
+
+			state.elements.push(99);
+			expect(stack.size()).toBe(2);
+			expect(stack.state).not.toBe(state);
+		});
+	});
+
 	describe('Iterator', () => {
+		it('reuses one result object per iterator', () => {
+			instance.push(1).push(2);
+			const iter = new StackIterator(instance);
+			const first = iter.next();
+			expect(first.value).toBe(2);
+			const second = iter.next();
+			expect(second).toBe(first);
+			expect(second.value).toBe(1);
+			const done = iter.next();
+			expect(done).toBe(first);
+			expect(done.done).toBe(true);
+			expect(done.value).toBeNull();
+		});
+
 		describe('Iterator for empty stack', () => {
 			it('should not throw when calling iter.next', () => {
 				const iter = new StackIterator(instance);
@@ -274,8 +470,8 @@ describe('Stack', () => {
 				instance.push('string');
 				const iter = new StackIterator(instance);
 				expect(() => {
-					let res = iter.next();
-					res = iter.next();
+					iter.next();
+					iter.next();
 				}).not.toThrow();
 			});
 
@@ -374,6 +570,33 @@ describe('Stack', () => {
 			const results = instance.query(() => true, {limit: 3});
 			expect(results.map((r) => r.element)).toEqual([100, 90, 80]);
 			expect(results.map((r) => r.index())).toEqual([0, 1, 2]);
+		});
+
+		it('an empty filter array matches nothing', () => {
+			expect(instance.query([])).toEqual([]);
+		});
+
+		it('array filters stop at the first failing filter', () => {
+			const second = jest.fn(() => true);
+			const results = instance.query([() => false, second]);
+			expect(results).toEqual([]);
+			expect(second).not.toHaveBeenCalled();
+		});
+
+		it('stops visiting elements once the limit is reached', () => {
+			const filter = jest.fn(() => true);
+			instance.query(filter, {limit: 2});
+			expect(filter).toHaveBeenCalledTimes(2);
+		});
+
+		it('results share one key function', () => {
+			const results = instance.query(() => true, {limit: 2});
+			expect(results[0].key).toBe(results[1].key);
+		});
+
+		it('delete keeps the remaining order', () => {
+			instance.query((v) => v === 50)[0].delete();
+			expect(instance.state.elements).toEqual([10, 20, 30, 40, 60, 70, 80, 90, 100]);
 		});
 
 		it('index is usable with at()', () => {

@@ -8,5 +8,5 @@ import {type DataStructureOptions} from '../../data/structure/options';
  *
  * @category Directed Graph
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unused-vars
 export interface DirectedGraphOptions<ItemT> extends DataStructureOptions {}

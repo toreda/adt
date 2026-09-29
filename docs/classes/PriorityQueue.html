@@ -13,17 +13,34 @@
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>Heap data structure which operates as a Min Heap or Max Heap
 depending on user provided Comparator Function provided.</p>
+<p>The comparator returns true when <code>a</code> must be closer to the front than <code>b</code>.
+Elements only move when one strictly beats the other, so equal priorities
+stay where they are. Every element, including <code>null</code>, is passed to the
+comparator, so a queue that holds <code>null</code> needs a comparator that handles it.</p>
+<p>Push, pop, and query deletes allocate nothing. The backing array never
+shrinks: it stays at the largest size the queue has reached and a separate
+count tracks the live elements, so a queue that fills and drains every frame
+keeps reusing the same storage. Vacated slots are set to <code>undefined</code>, so
+popped elements can still be garbage collected.</p>
+<p>Byte encoding is provided by the <code>BytePriorityQueue</code> subclass, which
+requires an <code>ItemCodec</code> at construction.</p>
 </div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li><span id="itemt"><span class="tsd-kind-type-parameter">ItemT</span></span></li></ul></section>
+<section class="tsd-panel tsd-hierarchy" data-refl="1935">
+<h4>Hierarchy (<a href="../hierarchy.html#PriorityQueue">View Summary</a>)</h4>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">PriorityQueue</span>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><a href="BytePriorityQueue.html" class="tsd-signature-type tsd-kind-class">BytePriorityQueue</a></li></ul></li></ul></section>
 <section class="tsd-panel">
 <h4>Implements</h4>
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/DataStructure.html" class="tsd-signature-type tsd-kind-interface">DataStructure</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L17">priority/queue.ts:17</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L34">priority/queue.ts:34</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -34,9 +51,14 @@ depending on user provided Comparator Function provided.</p>
 <div class="tsd-index-list"><a href="#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a>
 </div></section>
 <section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#comparator" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>comparator</span></a>
+</div></section>
+<section class="tsd-index-section">
 <h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-index-list"><a href="#clearelements" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>Elements</span></a>
 <a href="#filter" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter</span></a>
+<a href="#filterinto" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter<wbr/>Into</span></a>
 <a href="#foreach" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a>
 <a href="#heapify" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>heapify</span></a>
 <a href="#isempty" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a>
@@ -47,7 +69,7 @@ depending on user provided Comparator Function provided.</p>
 <a href="#reset" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a>
 <a href="#size" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>size</span></a>
 <a href="#stringify" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>stringify</span></a>
-<a href="#tobinary" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>to<wbr/>Binary</span></a>
+<a href="#values" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>values</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
@@ -65,11 +87,29 @@ depending on user provided Comparator Function provided.</p>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">comparator</span>: <a href="../interfaces/PriorityQueueComparator.html" class="tsd-signature-type tsd-kind-interface">PriorityQueueComparator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></span></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/PriorityQueueOptions.html" class="tsd-signature-type tsd-kind-interface">PriorityQueueOptions</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">comparator</span>: <a href="../interfaces/PriorityQueueComparator.html" class="tsd-signature-type tsd-kind-interface">PriorityQueueComparator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Returns true when <code>a</code> must be closer to the front than <code>b</code>.
+Required.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/PriorityQueueOptions.html" class="tsd-signature-type tsd-kind-interface">PriorityQueueOptions</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Optional config. <code>elements</code> are heapified on creation.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-throws">
+<h4 class="tsd-anchor-link" id="throws">Throws<a href="#throws" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>When <code>comparator</code> is not a function, or when
+<code>options.elements</code> is present but not an array.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L21">priority/queue.ts:21</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L51">priority/queue.ts:51</a></li></ul></aside></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="comparator"><code class="tsd-tag">Protected</code> <code class="tsd-tag">Readonly</code><span>comparator</span><a href="#comparator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">comparator</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/PriorityQueueComparator.html" class="tsd-signature-type tsd-kind-interface">PriorityQueueComparator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L42">priority/queue.ts:42</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -79,47 +119,93 @@ depending on user provided Comparator Function provided.</p>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="clearelements-1"><span class="tsd-kind-call-signature">clearElements</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#clearelements-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Remove every element. Clears the slots in place and keeps the backing
+array at its length, so refilling the queue reuses its capacity.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#clearelements">clearElements</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L166">priority/queue.ts:166</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L268">priority/queue.ts:268</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="filter"><span>filter</span><a href="#filter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="filter-1"><span class="tsd-kind-call-signature">filter</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/ArrayMethod.html" class="tsd-signature-type tsd-kind-type-alias">ArrayMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#filter-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="filter-1"><span class="tsd-kind-call-signature">filter</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/PriorityQueueMethod.html" class="tsd-signature-type tsd-kind-type-alias">PriorityQueueMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#filter-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Create a new priority queue with the same comparator, holding the
+elements for which func returns true.</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">func</span>: <a href="../types/ArrayMethod.html" class="tsd-signature-type tsd-kind-type-alias">ArrayMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></span></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span></li></ul></div>
+<li><span><span class="tsd-kind-parameter">func</span>: <a href="../types/PriorityQueueMethod.html" class="tsd-signature-type tsd-kind-type-alias">PriorityQueueMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Called with (element, index, queue) in heap array order, where
+queue is this queue. Don't push, pop, or delete from it
+inside func.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span>
+<div class="tsd-comment tsd-typography"><p>Value used as <code>this</code> when calling func. Defaults to this queue.</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L88">priority/queue.ts:88</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L155">priority/queue.ts:155</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="filterinto"><code class="tsd-tag">Protected</code><span>filter<wbr/>Into</span><a href="#filterinto" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-protected">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="filterinto-1"><span class="tsd-kind-call-signature">filterInto</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#filterintoq">Q</a> <span class="tsd-signature-keyword">extends</span> <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">target</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="BytePriorityQueue.html#filterintoq">Q</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/PriorityQueueMethod.html" class="tsd-signature-type tsd-kind-type-alias">PriorityQueueMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="BytePriorityQueue.html#filterintoq">Q</a><a href="#filterinto-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Fill <code>target</code>, which must be empty, with the elements for which func
+returns true, then heapify it. Allocates only the target's array.
+Subclasses build their own <code>filter()</code> result with this.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="filterintoq"><span class="tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">target</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="BytePriorityQueue.html#filterintoq">Q</a></span></li>
+<li><span><span class="tsd-kind-parameter">func</span>: <a href="../types/PriorityQueueMethod.html" class="tsd-signature-type tsd-kind-type-alias">PriorityQueueMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></span></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="BytePriorityQueue.html#filterintoq">Q</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L164">priority/queue.ts:164</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="foreach"><span>for<wbr/>Each</span><a href="#foreach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="foreach-1"><span class="tsd-kind-call-signature">forEach</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/ArrayMethod.html" class="tsd-signature-type tsd-kind-type-alias">ArrayMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#foreach-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="foreach-1"><span class="tsd-kind-call-signature">forEach</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/PriorityQueueMethod.html" class="tsd-signature-type tsd-kind-type-alias">PriorityQueueMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#foreach-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Call func once for each element in heap array order (not priority order).
+Allocates nothing.</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">func</span>: <a href="../types/ArrayMethod.html" class="tsd-signature-type tsd-kind-type-alias">ArrayMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></span></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span></li></ul></div>
+<li><span><span class="tsd-kind-parameter">func</span>: <a href="../types/PriorityQueueMethod.html" class="tsd-signature-type tsd-kind-type-alias">PriorityQueueMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Called with (element, index, queue) where queue is this
+queue. Don't push, pop, or delete from it inside func.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span>
+<div class="tsd-comment tsd-typography"><p>Value used as <code>this</code> when calling func. Defaults to this queue.</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L108">priority/queue.ts:108</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L195">priority/queue.ts:195</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="heapify"><span>heapify</span><a href="#heapify" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="heapify-1"><span class="tsd-kind-call-signature">heapify</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#heapify-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Restore heap order over every element. O(n). Does nothing when the
+elements already form a heap.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L61">priority/queue.ts:61</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L109">priority/queue.ts:109</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isempty"><span>is<wbr/>Empty</span><a href="#isempty" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -130,7 +216,7 @@ depending on user provided Comparator Function provided.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L84">priority/queue.ts:84</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L129">priority/queue.ts:129</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="peek"><span>peek</span><a href="#peek" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -139,16 +225,20 @@ depending on user provided Comparator Function provided.</p>
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L32">priority/queue.ts:32</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L63">priority/queue.ts:63</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="pop"><span>pop</span><a href="#pop" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="pop-1"><span class="tsd-kind-call-signature">pop</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#pop-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
+<div class="tsd-comment tsd-typography"><p>Remove and return the highest priority element. Keeps the backing
+array's length.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Removed element or null when the queue is empty.</p>
+<aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L40">priority/queue.ts:40</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L76">priority/queue.ts:76</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="push"><span>push</span><a href="#push" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -161,13 +251,16 @@ depending on user provided Comparator Function provided.</p>
 <li><span><span class="tsd-kind-parameter">element</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L54">priority/queue.ts:54</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L96">priority/queue.ts:96</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="query"><span>query</span><a href="#query" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="query-1"><span class="tsd-kind-call-signature">query</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">filters</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/QueryFilter.html" class="tsd-signature-type tsd-kind-interface">QueryFilter</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <a href="../interfaces/QueryFilter.html" class="tsd-signature-type tsd-kind-interface">QueryFilter</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">opts</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/QueryOptions.html" class="tsd-signature-type tsd-kind-interface">QueryOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/QueryResult.html" class="tsd-signature-type tsd-kind-interface">QueryResult</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><a href="#query-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Find elements that pass every filter, in heap array order, stopping once
+<code>limit</code> results are found. An empty filter array matches nothing.</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -176,17 +269,19 @@ depending on user provided Comparator Function provided.</p>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/QueryResult.html" class="tsd-signature-type tsd-kind-interface">QueryResult</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#query">query</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L127">priority/queue.ts:127</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L226">priority/queue.ts:226</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="reset"><span>reset</span><a href="#reset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="reset-1"><span class="tsd-kind-call-signature">reset</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#reset-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Same as <code>clearElements()</code>. The comparator is kept.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">PriorityQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#reset">reset</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L172">priority/queue.ts:172</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L278">priority/queue.ts:278</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -197,26 +292,34 @@ depending on user provided Comparator Function provided.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L77">priority/queue.ts:77</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L122">priority/queue.ts:122</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="stringify"><span>stringify</span><a href="#stringify" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="stringify-1"><span class="tsd-kind-call-signature">stringify</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><a href="#stringify-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="stringify-1"><span class="tsd-kind-call-signature">stringify</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#stringify-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<div class="tsd-comment tsd-typography"><p>Serialize the queue to a JSON string shaped as <code>PriorityQueueState</code>,
+elements in heap array order.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>JSON string, or null when the state cannot be serialized
+(e.g. elements contain circular references or BigInt values).</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#stringify">stringify</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L123">priority/queue.ts:123</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L212">priority/queue.ts:212</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
-<h3 class="tsd-anchor-link" id="tobinary"><span>to<wbr/>Binary</span><a href="#tobinary" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<h3 class="tsd-anchor-link" id="values"><span>values</span><a href="#values" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="tobinary-1"><span class="tsd-kind-call-signature">toBinary</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#tobinary-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="values-1"><span class="tsd-kind-call-signature">values</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span><a href="#values-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
+<div class="tsd-comment tsd-typography"><p>Every element in heap array order (not priority order), in a new array.
+Allocates only the returned array.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/priority/queue.ts#L482">priority/queue.ts:482</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/priority/queue.ts#L137">priority/queue.ts:137</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -234,8 +337,10 @@ depending on user provided Comparator Function provided.</p>
 <div class="tsd-accordion-details">
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
+<div><a href="#comparator" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>comparator</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#clearelements"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>Elements</span></a><a href="#filter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter</span></a><a href="#foreach"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a><a href="#heapify"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>heapify</span></a><a href="#isempty"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a><a href="#peek"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>peek</span></a><a href="#pop"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>pop</span></a><a href="#push"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>push</span></a><a href="#query"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#size"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>size</span></a><a href="#stringify"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>stringify</span></a><a href="#tobinary"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>to<wbr/>Binary</span></a></div></details></div></details></div>
+<div><a href="#clearelements"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>Elements</span></a><a href="#filter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter</span></a><a href="#filterinto" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter<wbr/>Into</span></a><a href="#foreach"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a><a href="#heapify"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>heapify</span></a><a href="#isempty"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a><a href="#peek"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>peek</span></a><a href="#pop"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>pop</span></a><a href="#push"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>push</span></a><a href="#query"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#size"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>size</span></a><a href="#stringify"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>stringify</span></a><a href="#values"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>values</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">@toreda/data-structures</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

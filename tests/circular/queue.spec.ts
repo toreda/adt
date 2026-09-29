@@ -9,7 +9,8 @@ const wrapped = (): CircularQueue<string> => {
 	const q = new CircularQueue<string>(['a', 'b', 'c', 'd', 'e'], {maxSize: 5});
 	q.pop();
 	q.pop();
-	q.push('f', 'g');
+	q.push('f');
+	q.push('g');
 	// Physical layout is now [f, g, c, d, e] with the front in slot 2.
 	return q;
 };
@@ -113,11 +114,35 @@ describe('CircularQueue', () => {
 			expect(q.values()).toEqual([1, 2, 3]);
 		});
 
-		it('push adds items until full, then reports failure', () => {
+		it('pushArray adds items until full, then reports failure', () => {
 			const q = new CircularQueue<number>([], {maxSize: 3});
 
-			expect(q.push(1, 2, 3, 4, 5)).toBe(false);
+			expect(q.pushArray([1, 2, 3, 4, 5])).toBe(false);
 			expect(q.values()).toEqual([1, 2, 3]);
+		});
+
+		it('push takes exactly one item', () => {
+			const q = new CircularQueue<number>([], {maxSize: 5});
+
+			expect(q.push.length).toBe(1);
+			expect((q.push as any)(1, 2, 3)).toBe(true);
+			expect(q.values()).toEqual([1]);
+		});
+
+		it('push and pop never replace the ring buffer', () => {
+			const q = new CircularQueue<number>([], {maxSize: 4, overwrite: true});
+			const buffer = bufferOf(q);
+
+			for (let i = 0; i < 50; i++) {
+				q.push(i);
+				if (i % 3 === 0) {
+					q.pop();
+				}
+				q.insertFront(-i);
+			}
+
+			expect(bufferOf(q)).toBe(buffer);
+			expect(buffer.length).toBe(4);
 		});
 
 		it('overwrites the front item when full with overwrite', () => {
@@ -168,13 +193,51 @@ describe('CircularQueue', () => {
 	});
 
 	describe('insertFront', () => {
-		it('inserts items ahead of the current front, last argument in front', () => {
+		it('inserts an item ahead of the current front', () => {
 			const q = new CircularQueue<number>([1, 2, 3], {maxSize: 7});
 
 			expect(q.insertFront(0)).toBe(true);
 			expect(q.values()).toEqual([0, 1, 2, 3]);
-			expect(q.insertFront(-1, -2)).toBe(true);
+		});
+
+		it('takes exactly one item', () => {
+			const q = new CircularQueue<number>([], {maxSize: 5});
+
+			expect(q.insertFront.length).toBe(1);
+			expect((q.insertFront as any)(1, 2, 3)).toBe(true);
+			expect(q.values()).toEqual([1]);
+		});
+
+		it('insertFrontArray inserts one at a time, last item in front', () => {
+			const q = new CircularQueue<number>([1, 2, 3], {maxSize: 7});
+
+			expect(q.insertFrontArray([0, -1, -2])).toBe(true);
 			expect(q.values()).toEqual([-2, -1, 0, 1, 2, 3]);
+			expect(q.insertFrontArray([])).toBe(true);
+			expect(q.size()).toBe(6);
+		});
+
+		it('insertFrontArray stops when full without overwrite', () => {
+			const q = new CircularQueue<number>([1], {maxSize: 3});
+
+			expect(q.insertFrontArray([2, 3, 4, 5])).toBe(false);
+			expect(q.values()).toEqual([3, 2, 1]);
+		});
+
+		it('insertFrontArray overwrites the rear with overwrite', () => {
+			const q = new CircularQueue<number>([1, 2], {maxSize: 3, overwrite: true});
+
+			expect(q.insertFrontArray([3, 4, 5])).toBe(true);
+			expect(q.values()).toEqual([5, 4, 3]);
+		});
+
+		it('insertFrontArray rejects non-arrays', () => {
+			const q = new CircularQueue<number>([1]);
+
+			expect(q.insertFrontArray(null)).toBe(false);
+			expect(q.insertFrontArray(undefined)).toBe(false);
+			expect(q.insertFrontArray('ab' as any)).toBe(false);
+			expect(q.values()).toEqual([1]);
 		});
 
 		it('inserts into an empty queue', () => {
@@ -245,12 +308,12 @@ describe('CircularQueue', () => {
 		it('passes thisArg as given', () => {
 			const q = new CircularQueue<number>([1]);
 			const context = {};
-			let received: unknown = null;
+			const received: unknown[] = [];
 			q.forEach(function (this: unknown) {
-				received = this;
+				received.push(this);
 			}, context);
 
-			expect(received).toBe(context);
+			expect(received[received.length - 1]).toBe(context);
 		});
 
 		it('values and iteration run front to rear', () => {
@@ -266,6 +329,21 @@ describe('CircularQueue', () => {
 
 			expect(iter.next()).toEqual({value: 10, done: false});
 			expect(iter.next()).toEqual({value: null, done: true});
+			expect(iter.next()).toEqual({value: null, done: true});
+		});
+
+		it('iterator reuses one result object', () => {
+			const iter = new CircularQueueIterator(wrapped());
+			const first = iter.next();
+
+			expect(first.value).toBe('c');
+			const second = iter.next();
+			expect(second).toBe(first);
+			expect(second.value).toBe('d');
+			for (let i = 0; i < 4; i++) {
+				expect(iter.next()).toBe(first);
+			}
+			expect(first.done).toBe(true);
 		});
 	});
 
@@ -300,6 +378,53 @@ describe('CircularQueue', () => {
 			expect(q.query([(v) => v > 15, (v) => v < 45]).map((r) => r.element)).toEqual([20, 30, 40]);
 			expect(q.query(() => true, {limit: 2}).map((r) => r.element)).toEqual([10, 20]);
 			expect(q.query([])).toEqual([]);
+		});
+
+		it('stops calling filters once the limit is reached', () => {
+			const q = new CircularQueue<number>([10, 20, 30, 40, 50]);
+			let calls = 0;
+			const results = q.query(
+				() => {
+					calls++;
+					return true;
+				},
+				{limit: 2}
+			);
+
+			expect(results.length).toBe(2);
+			expect(calls).toBe(2);
+		});
+
+		it('stops at the first failing filter in an array', () => {
+			const q = new CircularQueue<number>([1, 2, 3]);
+			let secondCalls = 0;
+			const results = q.query([
+				(v) => v > 1,
+				() => {
+					secondCalls++;
+					return true;
+				}
+			]);
+
+			expect(results.map((r) => r.element)).toEqual([2, 3]);
+			expect(secondCalls).toBe(2);
+		});
+
+		it('ignores an invalid limit', () => {
+			const q = new CircularQueue<number>([1, 2, 3]);
+
+			for (const limit of [0, -1, NaN, 'a', null]) {
+				expect(q.query(() => true, {limit: limit as any}).length).toBe(3);
+			}
+			expect(q.query(() => true, {limit: 1.6}).length).toBe(2);
+		});
+
+		it('results share one key function', () => {
+			const q = new CircularQueue<number>([1, 2]);
+			const [a, b] = q.query(() => true);
+
+			expect(a.key).toBe(b.key);
+			expect(a.key()).toBeNull();
 		});
 
 		it('index is the current position from the front', () => {
@@ -364,6 +489,91 @@ describe('CircularQueue', () => {
 			expect(q.isEmpty()).toBe(true);
 			expect(q.maxSize).toBe(3);
 			expect(q.overwrite).toBe(true);
+		});
+
+		it('reuse the ring buffer and drop item references', () => {
+			const a = {id: 'a'};
+			const b = {id: 'b'};
+			const q = new CircularQueue<object>([a, b], {maxSize: 4});
+			const buffer = bufferOf(q);
+
+			q.clearElements();
+			expect(bufferOf(q)).toBe(buffer);
+			expect(buffer.length).toBe(4);
+			expect(buffer).not.toContain(a);
+			expect(buffer).not.toContain(b);
+
+			q.push(b);
+			q.reset();
+			expect(bufferOf(q)).toBe(buffer);
+			expect(buffer).not.toContain(b);
+		});
+
+		it('clears a wrapped queue', () => {
+			const q = wrapped();
+			q.clearElements();
+
+			expect(bufferOf(q).every((slot) => slot === undefined)).toBe(true);
+			expect(q.pushArray(['x', 'y'])).toBe(true);
+			expect(q.values()).toEqual(['x', 'y']);
+		});
+	});
+
+	describe('ring buffer', () => {
+		it('preallocates maxSize packed slots at construction', () => {
+			const buffer = bufferOf(new CircularQueue<number>([], {maxSize: 6}));
+
+			expect(buffer.length).toBe(6);
+			for (let i = 0; i < 6; i++) {
+				expect(i in buffer).toBe(true);
+				expect(buffer[i]).toBeUndefined();
+			}
+		});
+
+		it('insertFront on an empty queue writes the last slot without growing the buffer', () => {
+			const q = new CircularQueue<number>([], {maxSize: 5});
+			q.insertFront(1);
+
+			expect(bufferOf(q)).toEqual([undefined, undefined, undefined, undefined, 1]);
+			expect(q.front()).toBe(1);
+			expect(q.rear()).toBe(1);
+		});
+
+		it('wraps slots correctly with maxSize 1', () => {
+			const q = new CircularQueue<number>([], {maxSize: 1, overwrite: true});
+
+			expect(q.push(1)).toBe(true);
+			expect(q.push(2)).toBe(true);
+			expect(q.insertFront(3)).toBe(true);
+			expect(q.values()).toEqual([3]);
+			expect(q.getIndex(-1)).toBe(3);
+			expect(q.pop()).toBe(3);
+			expect(q.pop()).toBeNull();
+		});
+
+		it('keeps every position correct across wraps in both directions', () => {
+			const q = new CircularQueue<number>([], {maxSize: 5});
+			const model: number[] = [];
+
+			for (let i = 0; i < 200; i++) {
+				const op = (i * 7) % 6;
+				if (op < 3 && !q.isFull()) {
+					q.push(i);
+					model.push(i);
+				} else if (op === 3 && !q.isFull()) {
+					q.insertFront(i);
+					model.unshift(i);
+				} else {
+					expect(q.pop()).toBe(model.length ? model.shift() : null);
+				}
+
+				expect(q.values()).toEqual(model);
+				expect(q.front()).toBe(model.length ? model[0] : null);
+				expect(q.rear()).toBe(model.length ? model[model.length - 1] : null);
+				for (let p = -model.length; p < model.length; p++) {
+					expect(q.getIndex(p)).toBe(model[p < 0 ? p + model.length : p]);
+				}
+			}
 		});
 	});
 });

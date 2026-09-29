@@ -18,12 +18,20 @@ one graph, and a graph using only bidirectional edges behaves as an
 undirected graph.</p>
 <p>Adjacency is kept per vertex in hash maps, so adding and removing an edge,
 and checking whether two vertices are adjacent, take O(1). Removing a vertex
-takes O(d), where d is the number of edges touching it. Traversals, cycle
-detection, and <code>stringify()</code> take O(V + E), and <code>findPath()</code> takes
-O(E log V). Every walk is iterative, so long paths never overflow the call
-stack.</p>
+takes O(d), where d is the number of edges touching it. Traversals and
+<code>stringify()</code> take O(V + E), cycle detection takes O((V + E) α(V)) (α is
+the inverse Ackermann function, below 5 for any real graph), and
+<code>findPath()</code> takes O(E log V). Every walk is iterative, so long paths never
+overflow the call stack.</p>
 <p>Vertex and edge wrappers are pooled by default (see <code>DataStructureOptions</code>),
-so once the pools have grown, adding vertices and edges allocates nothing.</p>
+so once the pools have grown, adding and removing vertices and edges creates
+no new wrappers. <code>forEach</code>, <code>forEachNeighbor</code>, <code>find</code>, and <code>edge</code> allocate
+nothing in steady state. <code>neighbors</code>, <code>outEdges</code>, <code>inEdges</code>, and
+<code>findPath</code> accept an output array or path to reuse. They overwrite it by
+index and cut it to the result count, so its storage is reused while the
+count stays the same; V8 trims an array's storage when its length shrinks,
+so a larger count after a smaller one still allocates. Use
+<code>forEachNeighbor</code> on a hot path.</p>
 </div>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
@@ -34,17 +42,27 @@ handles; <code>find()</code> locates the first vertex holding an item in O(V).</
 be traveled in a direction an existing edge already covers adds nothing and
 returns the <code>edge_exists</code> error code instead of throwing. Weights must be
 finite numbers of 0 or more, since <code>findPath()</code> relies on that.</p>
+<p>Adjacency lives in JavaScript <code>Map</code> and <code>Set</code> objects. Their backing tables
+belong to the engine, which may resize them as edges come and go (V8 grows
+and shrinks them, and replaces them on <code>clear()</code>); that storage is not
+pooled.</p>
 </div></div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li><span id="itemt"><span class="tsd-kind-type-parameter">ItemT</span></span></li></ul></section>
+<section class="tsd-panel tsd-hierarchy" data-refl="763">
+<h4>Hierarchy (<a href="../hierarchy.html#DirectedGraph">View Summary</a>)</h4>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">DirectedGraph</span>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><a href="ByteDirectedGraph.html" class="tsd-signature-type tsd-kind-class">ByteDirectedGraph</a></li></ul></li></ul></section>
 <section class="tsd-panel">
 <h4>Implements</h4>
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/Graph.html" class="tsd-signature-type tsd-kind-interface">Graph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="DirectedGraphEdge.html" class="tsd-signature-type tsd-kind-class">DirectedGraphEdge</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L58">directed/graph.ts:58</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L85">directed/graph.ts:85</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -70,9 +88,11 @@ finite numbers of 0 or more, since <code>findPath()</code> relies on that.</p>
 <a href="#edgecount" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>edge<wbr/>Count</span></a>
 <a href="#edges" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>edges</span></a>
 <a href="#filter" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter</span></a>
+<a href="#filterinto" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter<wbr/>Into</span></a>
 <a href="#find" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find</span></a>
 <a href="#findpath" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Path</span></a>
 <a href="#foreach" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a>
+<a href="#foreachneighbor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each<wbr/>Neighbor</span></a>
 <a href="#hascycle" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Cycle</span></a>
 <a href="#isempty" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a>
 <a href="#neighbors" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>neighbors</span></a>
@@ -84,6 +104,7 @@ finite numbers of 0 or more, since <code>findPath()</code> relies on that.</p>
 <a href="#size" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>size</span></a>
 <a href="#stringify" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>stringify</span></a>
 <a href="#values" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>values</span></a>
+<a href="#vertexindexes" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>vertex<wbr/>Indexes</span></a>
 <a href="#vertices" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>vertices</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -112,7 +133,7 @@ when missing or invalid.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L78">directed/graph.ts:78</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L133">directed/graph.ts:133</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -122,11 +143,12 @@ when missing or invalid.</p>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="iterator-1"><span class="tsd-kind-call-signature">&quot;[iterator]&quot;</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphIterator.html" class="tsd-signature-type tsd-kind-class">DirectedGraphIterator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#iterator-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Iterate vertex items in insertion order.</p>
+<div class="tsd-comment tsd-typography"><p>Iterate vertex items in insertion order. Creates an iterator per loop;
+<code>forEach()</code> is the non-allocating alternative.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="DirectedGraphIterator.html" class="tsd-signature-type tsd-kind-class">DirectedGraphIterator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L101">directed/graph.ts:101</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L188">directed/graph.ts:188</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addbidirectionaledge"><span>add<wbr/>Bidirectional<wbr/>Edge</span><a href="#addbidirectionaledge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -151,7 +173,7 @@ traveled between them in either direction, <code>invalid_weight</code>
 when weight is not a finite number of 0 or more.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L194">directed/graph.ts:194</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L286">directed/graph.ts:286</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addedge"><span>add<wbr/>Edge</span><a href="#addedge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -176,7 +198,7 @@ traveled from <code>from</code> to <code>to</code>, <code>invalid_weight</code> 
 not a finite number of 0 or more.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L168">directed/graph.ts:168</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L260">directed/graph.ts:260</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addvertex"><span>add<wbr/>Vertex</span><a href="#addvertex" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -192,7 +214,7 @@ not a finite number of 0 or more.</p>
 <h4 class="tsd-returns-title">Returns <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The vertex now holding item.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L109">directed/graph.ts:109</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L196">directed/graph.ts:196</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="addvertexarray"><span>add<wbr/>Vertex<wbr/>Array</span><a href="#addvertexarray" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -209,7 +231,7 @@ not a finite number of 0 or more.</p>
 an array.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L124">directed/graph.ts:124</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L211">directed/graph.ts:211</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="adjacent"><span>adjacent</span><a href="#adjacent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -226,7 +248,7 @@ an array.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#adjacent">adjacent</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L261">directed/graph.ts:261</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L354">directed/graph.ts:354</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="breadthfirst"><span>breadth<wbr/>First</span><a href="#breadthfirst" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -237,7 +259,8 @@ an array.</p>
 every vertex one edge away, then two, and so on. Each vertex's neighbors
 are visited in edge insertion order. With start omitted, walks every
 vertex, starting a new walk from each vertex not yet reached, in
-insertion order.</p>
+insertion order. Allocates only the returned array: visited vertices are
+marked in place.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -248,20 +271,22 @@ part of this graph.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#breadthfirst">breadthFirst</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L355">directed/graph.ts:355</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L508">directed/graph.ts:508</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearelements"><span>clear<wbr/>Elements</span><a href="#clearelements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="clearelements-1"><span class="tsd-kind-call-signature">clearElements</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#clearelements-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Unlink and drop every vertex and edge. Wrappers removed this way have
-their links cleared, and are recycled when pooling is on.</p>
+<div class="tsd-comment tsd-typography"><p>Unlink and drop every vertex and edge, in O(V + E). Each wrapper is
+blanked as it is dropped (links, ownership, and vertex items cleared),
+and recycled when pooling is on. Walks the graph's own sets without
+copying them.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#clearelements">clearElements</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L733">directed/graph.ts:733</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L857">directed/graph.ts:857</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="contains"><span>contains</span><a href="#contains" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -276,7 +301,7 @@ their links cleared, and are recycled when pooling is on.</p>
 <li><span><span class="tsd-kind-parameter">item</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L293">directed/graph.ts:293</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L448">directed/graph.ts:448</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="depthfirst"><span>depth<wbr/>First</span><a href="#depthfirst" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -287,7 +312,9 @@ their links cleared, and are recycled when pooling is on.</p>
 everything reachable through its first unvisited neighbor, then its next,
 and so on, in edge insertion order. The order matches a recursive walk,
 but uses an explicit stack. With start omitted, walks every vertex,
-starting a new walk from each vertex not yet reached, in insertion order.</p>
+starting a new walk from each vertex not yet reached, in insertion order.
+Allocates only the returned array once the graph's reused stack has
+grown: visited vertices are marked in place.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -298,7 +325,7 @@ part of this graph.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#depthfirst">depthFirst</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L391">directed/graph.ts:391</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L523">directed/graph.ts:523</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="edge"><span>edge</span><a href="#edge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -318,7 +345,7 @@ or not part of this graph.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#edge">edge</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L245">directed/graph.ts:245</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L338">directed/graph.ts:338</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="edgecount"><span>edge<wbr/>Count</span><a href="#edgecount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -330,19 +357,19 @@ or not part of this graph.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#edgecount">edgeCount</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L308">directed/graph.ts:308</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L463">directed/graph.ts:463</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="edges"><span>edges</span><a href="#edges" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="edges-1"><span class="tsd-kind-call-signature">edges</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphEdge.html" class="tsd-signature-type tsd-kind-class">DirectedGraphEdge</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><a href="#edges-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Every edge, in insertion order.</p>
+<div class="tsd-comment tsd-typography"><p>Every edge, in insertion order, as a new array.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="DirectedGraphEdge.html" class="tsd-signature-type tsd-kind-class">DirectedGraphEdge</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#edges">edges</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L329">directed/graph.ts:329</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L484">directed/graph.ts:484</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="filter"><span>filter</span><a href="#filter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -365,7 +392,29 @@ The new graph uses this graph's options. O(V + E).</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L609">directed/graph.ts:609</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L713">directed/graph.ts:713</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="filterinto"><code class="tsd-tag">Protected</code><span>filter<wbr/>Into</span><a href="#filterinto" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-protected">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="filterinto-1"><span class="tsd-kind-call-signature">filterInto</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#filterintographt">GraphT</a> <span class="tsd-signature-keyword">extends</span> <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">graph</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="ByteDirectedGraph.html#filterintographt">GraphT</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/DirectedGraphMethod.html" class="tsd-signature-type tsd-kind-type-alias">DirectedGraphMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="ByteDirectedGraph.html#filterintographt">GraphT</a><a href="#filterinto-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Fill graph, which must be empty, as <code>filter()</code> describes. Lets subclasses
+return their own type from <code>filter()</code>.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="filterintographt"><span class="tsd-kind-type-parameter">GraphT</span> <span class="tsd-signature-keyword">extends</span> <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">graph</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="ByteDirectedGraph.html#filterintographt">GraphT</a></span></li>
+<li><span><span class="tsd-kind-parameter">func</span>: <a href="../types/DirectedGraphMethod.html" class="tsd-signature-type tsd-kind-type-alias">DirectedGraphMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></span></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="ByteDirectedGraph.html#filterintographt">GraphT</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L721">directed/graph.ts:721</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="find"><span>find</span><a href="#find" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -374,7 +423,7 @@ The new graph uses this graph's options. O(V + E).</p>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>First vertex, in insertion order, whose item is item. Items are matched
 like <code>Array.prototype.includes</code>: by identity, with NaN matching NaN.
-O(V).</p>
+O(V), and allocates nothing.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -383,15 +432,20 @@ O(V).</p>
 <h4 class="tsd-returns-title">Returns <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Matching vertex, or null when no vertex holds item.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L280">directed/graph.ts:280</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L431">directed/graph.ts:431</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="findpath"><span>find<wbr/>Path</span><a href="#findpath" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="findpath-1"><span class="tsd-kind-call-signature">findPath</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">start</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">goal</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">heuristic</span><span class="tsd-signature-symbol">?:</span> <a href="../types/DirectedGraphHeuristic.html" class="tsd-signature-type tsd-kind-type-alias">DirectedGraphHeuristic</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/DirectedGraphPath.html" class="tsd-signature-type tsd-kind-interface">DirectedGraphPath</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#findpath-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="findpath-1"><span class="tsd-kind-call-signature">findPath</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">start</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">goal</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">heuristic</span><span class="tsd-signature-symbol">?:</span> <a href="../types/DirectedGraphHeuristic.html" class="tsd-signature-type tsd-kind-type-alias">DirectedGraphHeuristic</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">out</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/DirectedGraphPath.html" class="tsd-signature-type tsd-kind-interface">DirectedGraphPath</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/DirectedGraphPath.html" class="tsd-signature-type tsd-kind-interface">DirectedGraphPath</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#findpath-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Cheapest path from start to goal, found with A* search in O(E log V).
 Edges are followed in their direction of travel and cost their weight.</p>
+<p>The graph keeps its search state (open set, pooled queue entries, and
+per-vertex scratch fields) between calls, so once it has grown to the
+largest search so far, a search allocates only the returned path. With
+<code>out</code>, it allocates nothing unless out's arrays must grow (see <code>out</code>). The
+heuristic runs at most once per vertex per search.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -402,21 +456,34 @@ Edges are followed in their direction of travel and cost their weight.</p>
 <div class="tsd-comment tsd-typography"><p>Estimated cost from a vertex to goal. It must never
 overestimate, or the path found may not be the
 cheapest. Omitted, every estimate is 0 and the search
-runs as Dijkstra's algorithm.</p>
+runs as Dijkstra's algorithm. It must not change the
+graph. A <code>findPath</code> call on the same graph from inside
+the heuristic returns null.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">out</span>: <a href="../interfaces/DirectedGraphPath.html" class="tsd-signature-type tsd-kind-interface">DirectedGraphPath</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span>
+<div class="tsd-comment tsd-typography"><p>Path to fill instead of allocating one: its arrays are
+overwritten by index and cut to the path length, and
+its cost set. Left unchanged when null is returned. V8
+trims an array's storage when its length shrinks, so
+a longer path after a shorter one grows the arrays
+again; a path no longer than the previous one reuses
+their storage.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../interfaces/DirectedGraphPath.html" class="tsd-signature-type tsd-kind-interface">DirectedGraphPath</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>The path, a path of just start when start is goal, or null
-when goal cannot be reached or either vertex is null or not
-part of this graph.</p>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/DirectedGraphPath.html" class="tsd-signature-type tsd-kind-interface">DirectedGraphPath</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>The path (out, when provided), a path of just start when start
+is goal, or null when goal cannot be reached or either vertex
+is null or not part of this graph.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L546">directed/graph.ts:546</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L688">directed/graph.ts:688</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="foreach"><span>for<wbr/>Each</span><a href="#foreach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="foreach-1"><span class="tsd-kind-call-signature">forEach</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/DirectedGraphMethod.html" class="tsd-signature-type tsd-kind-type-alias">DirectedGraphMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#foreach-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Call func for each vertex in insertion order.</p>
+<div class="tsd-comment tsd-typography"><p>Call func for each vertex in insertion order. Allocates nothing: the
+non-allocating way to visit every vertex (iteration creates an iterator
+per loop).</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -436,7 +503,37 @@ not an array. func may remove the current vertex. Vertices added during
 the walk are visited.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L651">directed/graph.ts:651</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L770">directed/graph.ts:770</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="foreachneighbor"><span>for<wbr/>Each<wbr/>Neighbor</span><a href="#foreachneighbor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="foreachneighbor-1"><span class="tsd-kind-call-signature">forEachNeighbor</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">vertex</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/GraphNeighborMethod.html" class="tsd-signature-type tsd-kind-type-alias">GraphNeighborMethod</a><span class="tsd-signature-symbol">&lt;</span><br/>        <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>        <a href="DirectedGraphEdge.html" class="tsd-signature-type tsd-kind-class">DirectedGraphEdge</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#foreachneighbor-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Call func with (neighbor, edge) once for each edge that can be traveled
+away from vertex, in edge insertion order. Allocates nothing: the
+non-allocating way to visit neighbors, e.g. for per-frame AI queries.
+Does nothing when vertex is null or not part of this graph.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">vertex</span>: <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li>
+<li><span><span class="tsd-kind-parameter">func</span>: <a href="../types/GraphNeighborMethod.html" class="tsd-signature-type tsd-kind-type-alias">GraphNeighborMethod</a><span class="tsd-signature-symbol">&lt;</span><a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a href="DirectedGraphEdge.html" class="tsd-signature-type tsd-kind-class">DirectedGraphEdge</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></span></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span>
+<div class="tsd-comment tsd-typography"><p>Value used as <code>this</code> when calling func, as passed. Like
+<code>Array.prototype.forEach</code>, <code>this</code> is undefined when omitted.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks-2">Remarks<a href="#remarks-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>func may remove edges of vertex, which are then not visited if not yet
+reached. Edges added to vertex during the walk are visited. func must
+not remove vertex itself.</p>
+</div></div><aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#foreachneighbor">forEachNeighbor</a></p>
+<ul>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L401">directed/graph.ts:401</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="hascycle"><span>has<wbr/>Cycle</span><a href="#hascycle" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -448,21 +545,22 @@ without using any edge twice, following each edge in a direction it can
 be traveled. Loops count, as do two one-way edges in opposite directions.
 A single bidirectional edge does not, since going back over it uses it
 twice. Works for any mix of edge kinds and for disconnected graphs, in
-O(V + E).</p>
+O((V + E) α(V)), effectively O(V + E).</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-2">Remarks<a href="#remarks-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A plain depth-first search gives wrong answers once one-way and
+<h4 class="tsd-anchor-link" id="remarks-3">Remarks<a href="#remarks-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>A plain depth-first search gives wrong answers once one-way and
 bidirectional edges are mixed. Instead, vertices joined by bidirectional
-edges are merged into groups. Those edges form a cycle by themselves
-unless every group is a tree. Otherwise there is a cycle exactly when a
-one-way edge stays within one group, or the one-way edges between groups
-form a directed cycle, found with Kahn's algorithm.</p>
+edges are merged into groups with union-find (union by size and path
+compression). Those edges form a cycle by themselves unless every group
+is a tree. Otherwise there is a cycle exactly when a one-way edge stays
+within one group, or the one-way edges between groups form a directed
+cycle, found with Kahn's algorithm.</p>
 </div></div><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#hascycle">hasCycle</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L438">directed/graph.ts:438</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L544">directed/graph.ts:544</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isempty"><span>is<wbr/>Empty</span><a href="#isempty" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -474,25 +572,35 @@ form a directed cycle, found with Kahn's algorithm.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#isempty">isEmpty</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L315">directed/graph.ts:315</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L470">directed/graph.ts:470</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="neighbors"><span>neighbors</span><a href="#neighbors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="neighbors-1"><span class="tsd-kind-call-signature">neighbors</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">vertex</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><a href="#neighbors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="neighbors-1"><span class="tsd-kind-call-signature">neighbors</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">vertex</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">out</span><span class="tsd-signature-symbol">?:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><a href="#neighbors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Vertices reachable from vertex over one edge, in edge insertion order.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">vertex</span>: <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><p>Neighbors, or an empty array when vertex is null or not part
-of this graph.</p>
+<li><span><span class="tsd-kind-parameter">vertex</span>: <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">out</span>: <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span>
+<div class="tsd-comment tsd-typography"><p>Array to fill instead of allocating a new one. It is
+overwritten by index and cut to the result count (emptied
+when vertex is not part of this graph), so its storage is
+reused while the count stays the same. V8 frees an array's
+storage when its length drops to 0 and trims it when the
+length shrinks, so a larger count after a smaller one still
+allocates. On a hot path use <code>forEachNeighbor()</code>, which
+allocates nothing.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><p>out when provided, otherwise a new array. Empty when vertex
+is null or not part of this graph.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#neighbors">neighbors</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L270">directed/graph.ts:270</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L371">directed/graph.ts:371</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="options"><code class="tsd-tag">Protected</code><span>options</span><a href="#options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -504,7 +612,7 @@ derived graphs that behave the same way.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/DirectedGraphOptions.html" class="tsd-signature-type tsd-kind-interface">DirectedGraphOptions</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L635">directed/graph.ts:635</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L752">directed/graph.ts:752</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="query"><span>query</span><a href="#query" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -513,7 +621,9 @@ derived graphs that behave the same way.</p>
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Find vertices whose items pass every filter, in insertion order. Each
 result's <code>delete()</code> removes its vertex along with its edges, and does
-nothing once that vertex has been removed some other way.</p>
+nothing once that vertex has been removed some other way. Allocates the
+result array and one result object per match; filters are checked
+without per-vertex closures. An empty filter array matches nothing.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -523,15 +633,17 @@ nothing once that vertex has been removed some other way.</p>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/QueryResult.html" class="tsd-signature-type tsd-kind-interface">QueryResult</a><span class="tsd-signature-symbol">&lt;</span><a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#query">query</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L696">directed/graph.ts:696</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L823">directed/graph.ts:823</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removeedge"><span>remove<wbr/>Edge</span><a href="#removeedge" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="removeedge-1"><span class="tsd-kind-call-signature">removeEdge</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">edge</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphEdge.html" class="tsd-signature-type tsd-kind-class">DirectedGraphEdge</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#removeedge-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Remove edge in O(1). Its vertices stay in the graph. With pooling on, the
-edge is recycled and must not be used afterwards.</p>
+<div class="tsd-comment tsd-typography"><p>Remove edge in O(1). Its vertices stay in the graph. The edge's endpoints
+and ownership are cleared. With pooling on, the edge is also recycled
+and must not be used afterwards; with pooling off it keeps its weight and
+direction.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -541,14 +653,17 @@ edge is recycled and must not be used afterwards.</p>
 this graph (including an edge that was already removed).</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L216">directed/graph.ts:216</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L310">directed/graph.ts:310</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="removevertex"><span>remove<wbr/>Vertex</span><a href="#removevertex" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="removevertex-1"><span class="tsd-kind-call-signature">removeVertex</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">vertex</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#removevertex-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Remove vertex and every edge touching it.</p>
+<div class="tsd-comment tsd-typography"><p>Remove vertex and every edge touching it, in O(d) for d such edges. The
+vertex is blanked (item, edges, and ownership cleared) and, with pooling
+on, recycled; it must not be used afterwards. Creates no arrays, sets, or
+iterators.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -558,7 +673,7 @@ this graph (including an edge that was already removed).</p>
 this graph (including a vertex that was already removed).</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L137">directed/graph.ts:137</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L232">directed/graph.ts:232</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="reset"><span>reset</span><a href="#reset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -571,7 +686,7 @@ are kept.</p>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">DirectedGraph</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#reset">reset</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L757">directed/graph.ts:757</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L871">directed/graph.ts:871</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -584,7 +699,7 @@ are kept.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#size">size</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L301">directed/graph.ts:301</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L456">directed/graph.ts:456</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="stringify"><span>stringify</span><a href="#stringify" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -600,31 +715,43 @@ that list: <code>{&quot;from&quot;: 0, &quot;to&quot;: 1, &quot;weight&quot;: 1,
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#stringify">stringify</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L669">directed/graph.ts:669</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L796">directed/graph.ts:796</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="values"><span>values</span><a href="#values" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="values-1"><span class="tsd-kind-call-signature">values</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span><a href="#values-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Item of every vertex, in insertion order.</p>
+<div class="tsd-comment tsd-typography"><p>Item of every vertex, in insertion order, as a new array.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#values">values</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L336">directed/graph.ts:336</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L491">directed/graph.ts:491</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-protected">
+<h3 class="tsd-anchor-link" id="vertexindexes"><code class="tsd-tag">Protected</code><span>vertex<wbr/>Indexes</span><a href="#vertexindexes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-protected">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="vertexindexes-1"><span class="tsd-kind-call-signature">vertexIndexes</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><a href="#vertexindexes-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Index of every vertex in insertion order, as written by <code>stringify()</code>
+and byte forms of the graph.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L881">directed/graph.ts:881</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="vertices"><span>vertices</span><a href="#vertices" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="vertices-1"><span class="tsd-kind-call-signature">vertices</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><a href="#vertices-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Every vertex, in insertion order.</p>
+<div class="tsd-comment tsd-typography"><p>Every vertex, in insertion order, as a new array.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/Graph.html">Graph</a>.<a href="../interfaces/Graph.html#vertices">vertices</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph.ts#L322">directed/graph.ts:322</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph.ts#L477">directed/graph.ts:477</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -643,7 +770,7 @@ that list: <code>{&quot;from&quot;: 0, &quot;to&quot;: 1, &quot;weight&quot;: 1,
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
 <div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#iterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>[iterator]</span></a><a href="#addbidirectionaledge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Bidirectional<wbr/>Edge</span></a><a href="#addedge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Edge</span></a><a href="#addvertex"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Vertex</span></a><a href="#addvertexarray"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Vertex<wbr/>Array</span></a><a href="#adjacent"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>adjacent</span></a><a href="#breadthfirst"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>breadth<wbr/>First</span></a><a href="#clearelements"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>Elements</span></a><a href="#contains"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>contains</span></a><a href="#depthfirst"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>depth<wbr/>First</span></a><a href="#edge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>edge</span></a><a href="#edgecount"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>edge<wbr/>Count</span></a><a href="#edges"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>edges</span></a><a href="#filter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter</span></a><a href="#find"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find</span></a><a href="#findpath"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Path</span></a><a href="#foreach"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a><a href="#hascycle"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Cycle</span></a><a href="#isempty"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a><a href="#neighbors"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>neighbors</span></a><a href="#options" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>options</span></a><a href="#query"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query</span></a><a href="#removeedge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove<wbr/>Edge</span></a><a href="#removevertex"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove<wbr/>Vertex</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#size"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>size</span></a><a href="#stringify"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>stringify</span></a><a href="#values"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>values</span></a><a href="#vertices"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>vertices</span></a></div></details></div></details></div>
+<div><a href="#iterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>[iterator]</span></a><a href="#addbidirectionaledge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Bidirectional<wbr/>Edge</span></a><a href="#addedge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Edge</span></a><a href="#addvertex"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Vertex</span></a><a href="#addvertexarray"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Vertex<wbr/>Array</span></a><a href="#adjacent"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>adjacent</span></a><a href="#breadthfirst"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>breadth<wbr/>First</span></a><a href="#clearelements"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>Elements</span></a><a href="#contains"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>contains</span></a><a href="#depthfirst"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>depth<wbr/>First</span></a><a href="#edge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>edge</span></a><a href="#edgecount"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>edge<wbr/>Count</span></a><a href="#edges"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>edges</span></a><a href="#filter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter</span></a><a href="#filterinto" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter<wbr/>Into</span></a><a href="#find"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find</span></a><a href="#findpath"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>find<wbr/>Path</span></a><a href="#foreach"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a><a href="#foreachneighbor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each<wbr/>Neighbor</span></a><a href="#hascycle"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>has<wbr/>Cycle</span></a><a href="#isempty"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a><a href="#neighbors"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>neighbors</span></a><a href="#options" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>options</span></a><a href="#query"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query</span></a><a href="#removeedge"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove<wbr/>Edge</span></a><a href="#removevertex"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove<wbr/>Vertex</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#size"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>size</span></a><a href="#stringify"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>stringify</span></a><a href="#values"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>values</span></a><a href="#vertexindexes" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>vertex<wbr/>Indexes</span></a><a href="#vertices"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>vertices</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">@toreda/data-structures</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

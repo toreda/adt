@@ -16,6 +16,11 @@ rear and removed from the front in O(1).</p>
 <p>Every traversal (<code>forEach</code>, <code>filter</code>, <code>query</code>, iteration, <code>getIndex</code>) runs
 from the front to the rear, and position 0 is the front. Positions are
 logical: they never depend on where an item sits in the ring buffer.</p>
+<p>The ring buffer holds <code>maxSize</code> slots, allocated once at construction and
+reused for the queue's lifetime: <code>push</code>, <code>pop</code>, <code>insertFront</code>, <code>peek</code>,
+<code>getIndex</code>, <code>forEach</code>, <code>clearElements</code>, and <code>reset</code> never allocate.
+<code>forEach</code> is the non-allocating way to walk the queue; <code>for...of</code> allocates
+one iterator per loop.</p>
 <p>Byte encoding is provided by the <code>ByteCircularQueue</code> subclass, which requires
 an <code>ItemCodec</code> at construction.</p>
 </div></section>
@@ -23,7 +28,7 @@ an <code>ItemCodec</code> at construction.</p>
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li><span id="itemt"><span class="tsd-kind-type-parameter">ItemT</span></span></li></ul></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="387">
+<section class="tsd-panel tsd-hierarchy" data-refl="538">
 <h4>Hierarchy (<a href="../hierarchy.html#CircularQueue">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">CircularQueue</span>
@@ -34,7 +39,7 @@ an <code>ItemCodec</code> at construction.</p>
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/DataStructure.html" class="tsd-signature-type tsd-kind-interface">DataStructure</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L27">circular/queue.ts:27</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L36">circular/queue.ts:36</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -59,6 +64,7 @@ an <code>ItemCodec</code> at construction.</p>
 <a href="#front" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>front</span></a>
 <a href="#getindex" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Index</span></a>
 <a href="#insertfront" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>insert<wbr/>Front</span></a>
+<a href="#insertfrontarray" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>insert<wbr/>Front<wbr/>Array</span></a>
 <a href="#isempty" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a>
 <a href="#isfull" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Full</span></a>
 <a href="#options" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>options</span></a>
@@ -101,7 +107,7 @@ when missing or invalid.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">CircularQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L46">circular/queue.ts:46</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L58">circular/queue.ts:58</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -111,14 +117,14 @@ when missing or invalid.</p>
 <div class="tsd-comment tsd-typography"><p>Capacity of the queue. Fixed at construction.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L29">circular/queue.ts:29</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L38">circular/queue.ts:38</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="overwrite"><code class="tsd-tag">Readonly</code><span>overwrite</span><a href="#overwrite" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">overwrite</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p>Whether adding to a full queue overwrites instead of failing.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L31">circular/queue.ts:31</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L40">circular/queue.ts:40</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -132,19 +138,20 @@ when missing or invalid.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="CircularQueueIterator.html" class="tsd-signature-type tsd-kind-class">CircularQueueIterator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L63">circular/queue.ts:63</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L80">circular/queue.ts:80</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearelements"><span>clear<wbr/>Elements</span><a href="#clearelements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="clearelements-1"><span class="tsd-kind-call-signature">clearElements</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">CircularQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#clearelements-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Remove every item. Options are kept.</p>
+<div class="tsd-comment tsd-typography"><p>Remove every item. Options are kept. The ring buffer is cleared in place
+and reused, so refilling the queue allocates nothing.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">CircularQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#clearelements">clearElements</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L334">circular/queue.ts:334</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L411">circular/queue.ts:411</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="filter"><span>filter</span><a href="#filter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -166,7 +173,7 @@ true, in queue order. The new queue uses this queue's options.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">CircularQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L218">circular/queue.ts:218</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L276">circular/queue.ts:276</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="filtervalues"><code class="tsd-tag">Protected</code><span>filter<wbr/>Values</span><a href="#filtervalues" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -183,14 +190,15 @@ own <code>filter()</code> result from this.</p>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L226">circular/queue.ts:226</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L284">circular/queue.ts:284</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="foreach"><span>for<wbr/>Each</span><a href="#foreach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="foreach-1"><span class="tsd-kind-call-signature">forEach</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/CircularQueueMethod.html" class="tsd-signature-type tsd-kind-type-alias">CircularQueueMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">CircularQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><a href="#foreach-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Call func for each item, front to rear.</p>
+<div class="tsd-comment tsd-typography"><p>Call func for each item, front to rear. Allocates nothing, so prefer it
+over <code>for...of</code> on a hot path.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -210,7 +218,7 @@ not an array. Items are visited by position, so adding or removing items
 during the walk shifts which items are visited.</p>
 </div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L258">circular/queue.ts:258</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L319">circular/queue.ts:319</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="front"><span>front</span><a href="#front" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -222,7 +230,7 @@ during the walk shifts which items are visited.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Front item, or null when the queue is empty.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L156">circular/queue.ts:156</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L214">circular/queue.ts:214</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="getindex"><span>get<wbr/>Index</span><a href="#getindex" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -240,26 +248,49 @@ and negative positions count back from the rear, so -1 is the rear.</p>
 outside the queue.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L182">circular/queue.ts:182</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L240">circular/queue.ts:240</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="insertfront"><span>insert<wbr/>Front</span><a href="#insertfront" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="insertfront-1"><span class="tsd-kind-call-signature">insertFront</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">items</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#insertfront-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="insertfront-1"><span class="tsd-kind-call-signature">insertFront</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">item</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#insertfront-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Add items at the front, one at a time in argument order, so the last
-argument ends up in front. When the queue is full, each further item
-overwrites the rear item if <code>overwrite</code> is on, and is not added otherwise.</p>
+<div class="tsd-comment tsd-typography"><p>Add one item at the front. When the queue is full, the item overwrites
+the rear item if <code>overwrite</code> is on, and is not added otherwise.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">items</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
+<li><span><span class="tsd-kind-parameter">item</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>True when the item was added, false when the queue is full
+and <code>overwrite</code> is off.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks-1">Remarks<a href="#remarks-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Takes exactly one item so a call never builds a rest-parameter array.
+Use <code>insertFrontArray()</code> to add several.</p>
+</div></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L170">circular/queue.ts:170</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="insertfrontarray"><span>insert<wbr/>Front<wbr/>Array</span><a href="#insertfrontarray" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="insertfrontarray-1"><span class="tsd-kind-call-signature">insertFrontArray</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">items</span><span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#insertfrontarray-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Add each item of an array at the front, one at a time in array order, as
+<code>insertFront()</code> does, so the last item ends up in front.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">items</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>True when every item was added. False when the queue filled
-up with overwrite off; items before that point were added.</p>
+up with overwrite off (items before that point were added),
+or when items is not an array.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L131">circular/queue.ts:131</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L196">circular/queue.ts:196</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isempty"><span>is<wbr/>Empty</span><a href="#isempty" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -268,7 +299,7 @@ up with overwrite off; items before that point were added.</p>
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L203">circular/queue.ts:203</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L261">circular/queue.ts:261</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isfull"><span>is<wbr/>Full</span><a href="#isfull" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -277,7 +308,7 @@ up with overwrite off; items before that point were added.</p>
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L207">circular/queue.ts:207</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L265">circular/queue.ts:265</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected">
 <h3 class="tsd-anchor-link" id="options"><code class="tsd-tag">Protected</code><span>options</span><a href="#options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -289,7 +320,7 @@ derived queues that behave the same way.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/CircularQueueOptions.html" class="tsd-signature-type tsd-kind-interface">CircularQueueOptions</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L242">circular/queue.ts:242</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L302">circular/queue.ts:302</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="peek"><span>peek</span><a href="#peek" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -301,7 +332,7 @@ derived queues that behave the same way.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Front item, or null when the queue is empty.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L71">circular/queue.ts:71</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L88">circular/queue.ts:88</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="pop"><span>pop</span><a href="#pop" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -313,44 +344,49 @@ derived queues that behave the same way.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Removed item, or null when the queue is empty.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L79">circular/queue.ts:79</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L96">circular/queue.ts:96</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="push"><span>push</span><a href="#push" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="push-1"><span class="tsd-kind-call-signature">push</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">items</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#push-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="push-1"><span class="tsd-kind-call-signature">push</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">item</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#push-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Add items at the rear, in argument order. When the queue is full, each
-further item overwrites the front item if <code>overwrite</code> is on, and is not
-added otherwise.</p>
+<div class="tsd-comment tsd-typography"><p>Add one item at the rear. When the queue is full, the item overwrites the
+front item if <code>overwrite</code> is on, and is not added otherwise.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">items</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>True when every item was added. False when the queue filled
-up with overwrite off; items before that point were added.</p>
-<aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">item</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>True when the item was added, false when the queue is full
+and <code>overwrite</code> is off.</p>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-remarks">
+<h4 class="tsd-anchor-link" id="remarks-2">Remarks<a href="#remarks-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Takes exactly one item so a call never builds a rest-parameter array.
+Use <code>pushArray()</code> to add several.</p>
+</div></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L100">circular/queue.ts:100</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L120">circular/queue.ts:120</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="pusharray"><span>push<wbr/>Array</span><a href="#pusharray" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="pusharray-1"><span class="tsd-kind-call-signature">pushArray</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">items</span><span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#pusharray-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Add each item of an array at the rear, as <code>push()</code> does. Unlike spreading
-an array into <code>push()</code>, works for arrays of any length.</p>
+<div class="tsd-comment tsd-typography"><p>Add each item of an array at the rear, in array order, as <code>push()</code> does.
+Works for arrays of any length.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">items</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>True when every item was added, false when one was not or
-when items is not an array.</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>True when every item was added. False when the queue filled
+up with overwrite off (items before that point were added),
+or when items is not an array.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L110">circular/queue.ts:110</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L146">circular/queue.ts:146</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="query"><span>query</span><a href="#query" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -369,13 +405,13 @@ is the item's current position from the front, found when called. Its
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/QueryResult.html" class="tsd-signature-type tsd-kind-interface">QueryResult</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography">
 <div class="tsd-tag-remarks">
-<h4 class="tsd-anchor-link" id="remarks-1">Remarks<a href="#remarks-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Results find their item again by identity when <code>index()</code> or <code>delete()</code>
+<h4 class="tsd-anchor-link" id="remarks-3">Remarks<a href="#remarks-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Results find their item again by identity when <code>index()</code> or <code>delete()</code>
 runs. When the same value is queued more than once, they act on the
 first occurrence from the front.</p>
 </div></div><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#query">query</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L302">circular/queue.ts:302</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L363">circular/queue.ts:363</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="rear"><span>rear</span><a href="#rear" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -387,7 +423,7 @@ first occurrence from the front.</p>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Rear item, or null when the queue is empty.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L168">circular/queue.ts:168</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L226">circular/queue.ts:226</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="reset"><span>reset</span><a href="#reset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -400,7 +436,7 @@ kept.</p>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">CircularQueue</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#reset">reset</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L346">circular/queue.ts:346</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L427">circular/queue.ts:427</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -411,7 +447,7 @@ kept.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L199">circular/queue.ts:199</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L257">circular/queue.ts:257</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="stringify"><span>stringify</span><a href="#stringify" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -425,7 +461,7 @@ kept.</p>
 <aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#stringify">stringify</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L284">circular/queue.ts:284</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L345">circular/queue.ts:345</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="values"><span>values</span><a href="#values" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -436,7 +472,7 @@ kept.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue.ts#L269">circular/queue.ts:269</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue.ts#L330">circular/queue.ts:330</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -457,7 +493,7 @@ kept.</p>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
 <div><a href="#maxsize"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>max<wbr/>Size</span></a><a href="#overwrite"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>overwrite</span></a></div></details>
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
-<div><a href="#iterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>[iterator]</span></a><a href="#clearelements"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>Elements</span></a><a href="#filter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter</span></a><a href="#filtervalues" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter<wbr/>Values</span></a><a href="#foreach"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a><a href="#front"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>front</span></a><a href="#getindex"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Index</span></a><a href="#insertfront"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>insert<wbr/>Front</span></a><a href="#isempty"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a><a href="#isfull"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Full</span></a><a href="#options" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>options</span></a><a href="#peek"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>peek</span></a><a href="#pop"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>pop</span></a><a href="#push"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>push</span></a><a href="#pusharray"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>push<wbr/>Array</span></a><a href="#query"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query</span></a><a href="#rear"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>rear</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#size"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>size</span></a><a href="#stringify"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>stringify</span></a><a href="#values"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>values</span></a></div></details></div></details></div>
+<div><a href="#iterator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>[iterator]</span></a><a href="#clearelements"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clear<wbr/>Elements</span></a><a href="#filter"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter</span></a><a href="#filtervalues" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>filter<wbr/>Values</span></a><a href="#foreach"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>for<wbr/>Each</span></a><a href="#front"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>front</span></a><a href="#getindex"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Index</span></a><a href="#insertfront"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>insert<wbr/>Front</span></a><a href="#insertfrontarray"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>insert<wbr/>Front<wbr/>Array</span></a><a href="#isempty"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Empty</span></a><a href="#isfull"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Full</span></a><a href="#options" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>options</span></a><a href="#peek"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>peek</span></a><a href="#pop"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>pop</span></a><a href="#push"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>push</span></a><a href="#pusharray"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>push<wbr/>Array</span></a><a href="#query"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query</span></a><a href="#rear"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>rear</span></a><a href="#reset"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>reset</span></a><a href="#size"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>size</span></a><a href="#stringify"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>stringify</span></a><a href="#values"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>values</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">@toreda/data-structures</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

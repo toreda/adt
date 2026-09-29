@@ -22,6 +22,49 @@ describe('DirectedGraphVertex', () => {
 		expect(a).toEqual(new DirectedGraphVertex<string>());
 	});
 
+	it('cleanObj also resets walk and search scratch fields', () => {
+		const graph = new DirectedGraph<string>();
+		const [a, b] = graph.addVertexArray(['a', 'b']);
+		graph.addEdge(a, b, 2);
+		graph.depthFirst(a);
+		graph.findPath(a, b, () => 1);
+
+		expect(b._searchVia).not.toBeNull();
+		expect(b._walkId).not.toBe(0);
+		b.cleanObj();
+
+		expect(b).toEqual(new DirectedGraphVertex<string>());
+	});
+
+	it('cleanObj leaves empty edge maps untouched', () => {
+		const vertex = new DirectedGraphVertex<string>('a');
+		const clear = jest.spyOn(Map.prototype, 'clear');
+
+		try {
+			vertex.cleanObj();
+			expect(clear).not.toHaveBeenCalled();
+		} finally {
+			clear.mockRestore();
+		}
+	});
+
+	it('neighbors, outEdges, and inEdges fill a given array', () => {
+		const graph = new DirectedGraph<string>();
+		const [a, b, c] = graph.addVertexArray(['a', 'b', 'c']);
+		const ab = graph.addEdge(a, b) as DirectedGraphEdge<string>;
+		const ca = graph.addBidirectionalEdge(c, a) as DirectedGraphEdge<string>;
+		const vertices: DirectedGraphVertex<string>[] = [c, c, c];
+		const edges: DirectedGraphEdge<string>[] = [];
+
+		expect(a.neighbors(vertices)).toBe(vertices);
+		expect(vertices).toEqual([b, c]);
+		expect(a.outEdges(edges)).toBe(edges);
+		expect(edges).toEqual([ab, ca]);
+		expect(a.inEdges(edges)).toBe(edges);
+		expect(edges).toEqual([ca]);
+		expect(a.neighbors(null)).toEqual([b, c]);
+	});
+
 	it('accepts any value, linked or not', () => {
 		const graph = new DirectedGraph<string>(['a']);
 		const vertex = graph.vertices()[0];

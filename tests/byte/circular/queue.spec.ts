@@ -70,7 +70,8 @@ describe('ByteCircularQueue', () => {
 			const source = new ByteCircularQueue(codec, [1, 2, 3, 4], {maxSize: 4});
 			source.pop();
 			source.pop();
-			source.push(5, 6);
+			source.push(5);
+			source.push(6);
 
 			const envelope = source.toByteEnvelope();
 

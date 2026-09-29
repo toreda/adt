@@ -104,15 +104,31 @@ export class RedBlackTreeElement<T> implements TreeElement<T>, ObjectPoolInstanc
 		return this._parent;
 	}
 
-	/** Existing children, left before right. */
-	public children(): RedBlackTreeElement<T>[] {
-		const result: RedBlackTreeElement<T>[] = [];
+	/**
+	 * Existing children, left before right.
+	 *
+	 * @remarks
+	 * Allocates a new array per call unless `out` is given. `out` is
+	 * overwritten by index and then cut to the child count, so its storage is
+	 * reused while the count stays the same. V8 frees an array's storage when
+	 * its length drops to 0 and trims it when the length shrinks, so a leaf
+	 * after a parent, or a larger count after a smaller one, still allocates.
+	 * On a hot path, read `left()` / `right()` instead, which allocate nothing.
+	 *
+	 * @param out	Optional array to fill and return instead of a new one.
+	 */
+	public children(out?: RedBlackTreeElement<T>[]): RedBlackTreeElement<T>[] {
+		const result: RedBlackTreeElement<T>[] = Array.isArray(out) ? out : [];
+		let count = 0;
 
 		if (this._left) {
-			result.push(this._left);
+			result[count++] = this._left;
 		}
 		if (this._right) {
-			result.push(this._right);
+			result[count++] = this._right;
+		}
+		if (result.length !== count) {
+			result.length = count;
 		}
 
 		return result;

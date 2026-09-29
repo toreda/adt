@@ -5,26 +5,40 @@ import {DirectedGraphIterator} from './graph/iterator';
 import type {DirectedGraphMethod} from './graph/method';
 import type {DirectedGraphOptions} from './graph/options';
 import type {DirectedGraphPath} from './graph/path';
+import {DirectedGraphSearch} from './graph/search';
 import {DirectedGraphVertex} from './graph/vertex';
 import {ElementPool} from '../element/pool';
 import type {Graph} from '../graph';
+import type {GraphNeighborMethod} from '../graph/neighbor/method';
 import type {ObjectPoolConstructor} from '../object/pool/constructor';
-import {PriorityQueue} from '../priority/queue';
 import type {QueryFilter} from '../query/filter';
 import type {QueryOptions} from '../query/options';
 import type {QueryResult} from '../query/result';
 import {isNumber} from '../utility';
 
-/** Open set entry for `findPath`. */
-interface SearchEntry<ItemT> {
-	vertex: DirectedGraphVertex<ItemT>;
-	/** Cost of the cheapest known path from start to vertex. */
-	cost: number;
-	/** cost plus the heuristic estimate from vertex to goal. */
-	estimate: number;
-	/** Push order, so entries with equal estimates pop first in, first out. */
-	order: number;
+/**
+ * Scratch state for `breadthFirst` / `depthFirst`, reused by every walk of
+ * one graph. Walks call no caller code, so one instance per graph is enough.
+ */
+interface WalkState<ItemT> {
+	/** Id of the running walk. A vertex is visited when its `_walkId` matches. */
+	id: number;
+	/** Output of the running walk. Doubles as the breadth-first queue. */
+	order: DirectedGraphVertex<ItemT>[];
+	/**
+	 * Depth-first stack, used up to `stackTop`. Slots are overwritten and
+	 * nulled rather than pushed and popped, because V8 trims an array's
+	 * storage as it shrinks, so capacity is kept across walks.
+	 */
+	readonly stack: (DirectedGraphVertex<ItemT> | null)[];
+	stackTop: number;
+	/** Depth-first neighbor buffer, used up to `scratchCount`, capacity kept. */
+	readonly scratch: (DirectedGraphVertex<ItemT> | null)[];
+	scratchCount: number;
 }
+
+/** Placeholder output for a walk that is not running. Never written to. */
+const noVertices: never[] = [];
 
 /**
  * Graph of vertices joined by weighted edges. Each edge is either one-way
@@ -35,13 +49,21 @@ interface SearchEntry<ItemT> {
  *
  * Adjacency is kept per vertex in hash maps, so adding and removing an edge,
  * and checking whether two vertices are adjacent, take O(1). Removing a vertex
- * takes O(d), where d is the number of edges touching it. Traversals, cycle
- * detection, and `stringify()` take O(V + E), and `findPath()` takes
- * O(E log V). Every walk is iterative, so long paths never overflow the call
- * stack.
+ * takes O(d), where d is the number of edges touching it. Traversals and
+ * `stringify()` take O(V + E), cycle detection takes O((V + E) α(V)) (α is
+ * the inverse Ackermann function, below 5 for any real graph), and
+ * `findPath()` takes O(E log V). Every walk is iterative, so long paths never
+ * overflow the call stack.
  *
  * Vertex and edge wrappers are pooled by default (see `DataStructureOptions`),
- * so once the pools have grown, adding vertices and edges allocates nothing.
+ * so once the pools have grown, adding and removing vertices and edges creates
+ * no new wrappers. `forEach`, `forEachNeighbor`, `find`, and `edge` allocate
+ * nothing in steady state. `neighbors`, `outEdges`, `inEdges`, and
+ * `findPath` accept an output array or path to reuse. They overwrite it by
+ * index and cut it to the result count, so its storage is reused while the
+ * count stays the same; V8 trims an array's storage when its length shrinks,
+ * so a larger count after a smaller one still allocates. Use
+ * `forEachNeighbor` on a hot path.
  *
  * @remarks
  * A graph does not compare or order its items: vertices are handles, and one
@@ -53,11 +75,18 @@ interface SearchEntry<ItemT> {
  * returns the `edge_exists` error code instead of throwing. Weights must be
  * finite numbers of 0 or more, since `findPath()` relies on that.
  *
+ * Adjacency lives in JavaScript `Map` and `Set` objects. Their backing tables
+ * belong to the engine, which may resize them as edges come and go (V8 grows
+ * and shrinks them, and replaces them on `clear()`); that storage is not
+ * pooled.
+ *
  * @category Directed Graph
  */
-export class DirectedGraph<ItemT>
-	implements Graph<ItemT, DirectedGraphVertex<ItemT>, DirectedGraphEdge<ItemT>>
-{
+export class DirectedGraph<ItemT> implements Graph<
+	ItemT,
+	DirectedGraphVertex<ItemT>,
+	DirectedGraphEdge<ItemT>
+> {
 	/** Every linked vertex, in insertion order. */
 	private readonly _vertices: Set<DirectedGraphVertex<ItemT>>;
 	/** Every linked edge, in insertion order. */
@@ -68,6 +97,32 @@ export class DirectedGraph<ItemT>
 	private readonly vertexPool: ElementPool<DirectedGraphVertex<ItemT>>;
 	/** Source of edge wrappers, pooled or freshly allocated per options. */
 	private readonly edgePool: ElementPool<DirectedGraphEdge<ItemT>>;
+	/** Traversal scratch state, see `WalkState`. */
+	private readonly walk: WalkState<ItemT>;
+	/** `findPath` state, created by the first search. */
+	private search: DirectedGraphSearch<ItemT> | null;
+
+	/**
+	 * Callbacks handed to `Set` / `Map` `forEach` by the methods below, created
+	 * once per graph so walks allocate no closure per call. Each reads its
+	 * arguments from the matching fields, which the calling method saves and
+	 * restores around the walk so nested calls stay correct.
+	 */
+	private readonly visitVertex: (vertex: DirectedGraphVertex<ItemT>) => void;
+	private eachFunc: DirectedGraphMethod<ItemT, void> | null;
+	private eachThis: unknown;
+	private eachIndex: number;
+
+	private readonly visitNeighbor: (
+		edge: DirectedGraphEdge<ItemT>,
+		neighbor: DirectedGraphVertex<ItemT>
+	) => void;
+	private neighborFunc: GraphNeighborMethod<DirectedGraphVertex<ItemT>, DirectedGraphEdge<ItemT>> | null;
+	private neighborThis: unknown;
+
+	private readonly matchVertex: (vertex: DirectedGraphVertex<ItemT>) => void;
+	private matchItem: ItemT | null;
+	private matchResult: DirectedGraphVertex<ItemT> | null;
 
 	/**
 	 * @param data			Items added as vertices in array order on creation, with
@@ -89,6 +144,37 @@ export class DirectedGraph<ItemT>
 			DirectedGraphEdge as ObjectPoolConstructor<DirectedGraphEdge<ItemT>>,
 			options
 		);
+		this.walk = {id: 0, order: noVertices, stack: [], stackTop: 0, scratch: [], scratchCount: 0};
+		this.search = null;
+
+		this.eachFunc = null;
+		this.eachThis = undefined;
+		this.eachIndex = 0;
+		this.visitVertex = (vertex): void => {
+			const index = this.eachIndex++;
+			(this.eachFunc as DirectedGraphMethod<ItemT, void>).call(this.eachThis, vertex, index, this);
+		};
+
+		this.neighborFunc = null;
+		this.neighborThis = undefined;
+		this.visitNeighbor = (edge, neighbor): void => {
+			(
+				this.neighborFunc as GraphNeighborMethod<DirectedGraphVertex<ItemT>, DirectedGraphEdge<ItemT>>
+			).call(this.neighborThis, neighbor, edge);
+		};
+
+		this.matchItem = null;
+		this.matchResult = null;
+		this.matchVertex = (vertex): void => {
+			if (this.matchResult !== null) {
+				return;
+			}
+
+			const item = this.matchItem;
+			if (vertex._value === item || (item !== item && vertex._value !== vertex._value)) {
+				this.matchResult = vertex;
+			}
+		};
 
 		if (Array.isArray(data)) {
 			this.addVertexArray(data);
@@ -96,7 +182,8 @@ export class DirectedGraph<ItemT>
 	}
 
 	/**
-	 * Iterate vertex items in insertion order.
+	 * Iterate vertex items in insertion order. Creates an iterator per loop;
+	 * `forEach()` is the non-allocating alternative.
 	 */
 	[Symbol.iterator](): DirectedGraphIterator<ItemT> {
 		return new DirectedGraphIterator<ItemT>(this._vertices.values());
@@ -126,11 +213,19 @@ export class DirectedGraph<ItemT>
 			return [];
 		}
 
-		return items.map((item) => this.addVertex(item));
+		const vertices: DirectedGraphVertex<ItemT>[] = [];
+		for (let i = 0; i < items.length; i++) {
+			vertices.push(this.addVertex(items[i]));
+		}
+
+		return vertices;
 	}
 
 	/**
-	 * Remove vertex and every edge touching it.
+	 * Remove vertex and every edge touching it, in O(d) for d such edges. The
+	 * vertex is blanked (item, edges, and ownership cleared) and, with pooling
+	 * on, recycled; it must not be used afterwards. Creates no arrays, sets, or
+	 * iterators.
 	 * @returns		The removed item, or null when vertex is null or not part of
 	 * 				this graph (including a vertex that was already removed).
 	 */
@@ -140,17 +235,14 @@ export class DirectedGraph<ItemT>
 		}
 
 		const value = vertex._value as ItemT;
-		// Collected first: removing an edge edits the maps being read. A Set,
-		// since an edge traveled both ways is listed in both maps.
-		const edges = new Set([...vertex._out.values(), ...vertex._in.values()]);
-
-		for (const edge of edges) {
-			this.removeEdge(edge);
-		}
+		// Deleting entries during Map.forEach is safe: deleted entries are not
+		// visited. An edge traveled both ways is listed in both maps and is gone
+		// from _in by the time that map is walked.
+		vertex._out.forEach(this.removeEdge, this);
+		vertex._in.forEach(this.removeEdge, this);
 
 		this._vertices.delete(vertex);
-		this.unlinkVertex(vertex);
-		this.vertexPool.release(vertex);
+		this.dropVertex(vertex);
 
 		return value;
 	}
@@ -208,8 +300,10 @@ export class DirectedGraph<ItemT>
 	}
 
 	/**
-	 * Remove edge in O(1). Its vertices stay in the graph. With pooling on, the
-	 * edge is recycled and must not be used afterwards.
+	 * Remove edge in O(1). Its vertices stay in the graph. The edge's endpoints
+	 * and ownership are cleared. With pooling on, the edge is also recycled
+	 * and must not be used afterwards; with pooling off it keeps its weight and
+	 * direction.
 	 * @returns		True when removed, false when edge is null or not part of
 	 * 				this graph (including an edge that was already removed).
 	 */
@@ -230,8 +324,7 @@ export class DirectedGraph<ItemT>
 		}
 
 		this._edges.delete(edge);
-		this.unlinkEdge(edge);
-		this.edgePool.release(edge);
+		this.dropEdge(edge);
 
 		return true;
 	}
@@ -264,27 +357,89 @@ export class DirectedGraph<ItemT>
 
 	/**
 	 * Vertices reachable from vertex over one edge, in edge insertion order.
-	 * @returns		Neighbors, or an empty array when vertex is null or not part
-	 * 				of this graph.
+	 * @param out	Array to fill instead of allocating a new one. It is
+	 * 				overwritten by index and cut to the result count (emptied
+	 * 				when vertex is not part of this graph), so its storage is
+	 * 				reused while the count stays the same. V8 frees an array's
+	 * 				storage when its length drops to 0 and trims it when the
+	 * 				length shrinks, so a larger count after a smaller one still
+	 * 				allocates. On a hot path use `forEachNeighbor()`, which
+	 * 				allocates nothing.
+	 * @returns		out when provided, otherwise a new array. Empty when vertex
+	 * 				is null or not part of this graph.
 	 */
-	public neighbors(vertex: DirectedGraphVertex<ItemT> | null): DirectedGraphVertex<ItemT>[] {
-		return this.isPartOfGraph(vertex) ? vertex.neighbors() : [];
+	public neighbors(
+		vertex: DirectedGraphVertex<ItemT> | null,
+		out?: DirectedGraphVertex<ItemT>[] | null
+	): DirectedGraphVertex<ItemT>[] {
+		if (this.isPartOfGraph(vertex)) {
+			return vertex.neighbors(out);
+		}
+
+		if (Array.isArray(out)) {
+			out.length = 0;
+			return out;
+		}
+
+		return [];
+	}
+
+	/**
+	 * Call func with (neighbor, edge) once for each edge that can be traveled
+	 * away from vertex, in edge insertion order. Allocates nothing: the
+	 * non-allocating way to visit neighbors, e.g. for per-frame AI queries.
+	 * Does nothing when vertex is null or not part of this graph.
+	 *
+	 * @remarks
+	 * func may remove edges of vertex, which are then not visited if not yet
+	 * reached. Edges added to vertex during the walk are visited. func must
+	 * not remove vertex itself.
+	 *
+	 * @param thisArg	Value used as `this` when calling func, as passed. Like
+	 * 					`Array.prototype.forEach`, `this` is undefined when omitted.
+	 */
+	public forEachNeighbor(
+		vertex: DirectedGraphVertex<ItemT> | null,
+		func: GraphNeighborMethod<DirectedGraphVertex<ItemT>, DirectedGraphEdge<ItemT>>,
+		thisArg?: unknown
+	): DirectedGraph<ItemT> {
+		if (!this.isPartOfGraph(vertex)) {
+			return this;
+		}
+
+		const prevFunc = this.neighborFunc;
+		const prevThis = this.neighborThis;
+		this.neighborFunc = func;
+		this.neighborThis = thisArg;
+
+		try {
+			vertex._out.forEach(this.visitNeighbor);
+		} finally {
+			this.neighborFunc = prevFunc;
+			this.neighborThis = prevThis;
+		}
+
+		return this;
 	}
 
 	/**
 	 * First vertex, in insertion order, whose item is item. Items are matched
 	 * like `Array.prototype.includes`: by identity, with NaN matching NaN.
-	 * O(V).
+	 * O(V), and allocates nothing.
 	 * @returns		Matching vertex, or null when no vertex holds item.
 	 */
 	public find(item: ItemT): DirectedGraphVertex<ItemT> | null {
-		for (const vertex of this._vertices) {
-			if (vertex._value === item || (item !== item && vertex._value !== vertex._value)) {
-				return vertex;
-			}
-		}
+		// Set.forEach cannot stop early, but visitors after the match return
+		// at once, and it needs no iterator.
+		this.matchItem = item;
+		this.matchResult = null;
+		this._vertices.forEach(this.matchVertex);
 
-		return null;
+		const result = this.matchResult;
+		this.matchItem = null;
+		this.matchResult = null;
+
+		return result;
 	}
 
 	/**
@@ -317,28 +472,25 @@ export class DirectedGraph<ItemT>
 	}
 
 	/**
-	 * Every vertex, in insertion order.
+	 * Every vertex, in insertion order, as a new array.
 	 */
 	public vertices(): DirectedGraphVertex<ItemT>[] {
 		return Array.from(this._vertices);
 	}
 
 	/**
-	 * Every edge, in insertion order.
+	 * Every edge, in insertion order, as a new array.
 	 */
 	public edges(): DirectedGraphEdge<ItemT>[] {
 		return Array.from(this._edges);
 	}
 
 	/**
-	 * Item of every vertex, in insertion order.
+	 * Item of every vertex, in insertion order, as a new array.
 	 */
 	public values(): ItemT[] {
 		const values: ItemT[] = [];
-
-		for (const vertex of this._vertices) {
-			values.push(vertex._value as ItemT);
-		}
+		this._vertices.forEach(pushVertexValue, values);
 
 		return values;
 	}
@@ -348,35 +500,13 @@ export class DirectedGraph<ItemT>
 	 * every vertex one edge away, then two, and so on. Each vertex's neighbors
 	 * are visited in edge insertion order. With start omitted, walks every
 	 * vertex, starting a new walk from each vertex not yet reached, in
-	 * insertion order.
+	 * insertion order. Allocates only the returned array: visited vertices are
+	 * marked in place.
 	 * @returns		Visited vertices, or an empty array when start is null or not
 	 * 				part of this graph.
 	 */
 	public breadthFirst(start?: DirectedGraphVertex<ItemT> | null): DirectedGraphVertex<ItemT>[] {
-		const visited = new Set<DirectedGraphVertex<ItemT>>();
-		const order: DirectedGraphVertex<ItemT>[] = [];
-
-		for (const root of this.walkRoots(start)) {
-			if (visited.has(root)) {
-				continue;
-			}
-
-			visited.add(root);
-			const first = order.length;
-			order.push(root);
-
-			// order doubles as the queue: everything from first on is this walk.
-			for (let i = first; i < order.length; i++) {
-				for (const next of order[i]._out.keys()) {
-					if (!visited.has(next)) {
-						visited.add(next);
-						order.push(next);
-					}
-				}
-			}
-		}
-
-		return order;
+		return this.runWalk(start, breadthFromRoot);
 	}
 
 	/**
@@ -385,38 +515,13 @@ export class DirectedGraph<ItemT>
 	 * and so on, in edge insertion order. The order matches a recursive walk,
 	 * but uses an explicit stack. With start omitted, walks every vertex,
 	 * starting a new walk from each vertex not yet reached, in insertion order.
+	 * Allocates only the returned array once the graph's reused stack has
+	 * grown: visited vertices are marked in place.
 	 * @returns		Visited vertices, or an empty array when start is null or not
 	 * 				part of this graph.
 	 */
 	public depthFirst(start?: DirectedGraphVertex<ItemT> | null): DirectedGraphVertex<ItemT>[] {
-		const visited = new Set<DirectedGraphVertex<ItemT>>();
-		const order: DirectedGraphVertex<ItemT>[] = [];
-		const stack: DirectedGraphVertex<ItemT>[] = [];
-
-		for (const root of this.walkRoots(start)) {
-			stack.push(root);
-
-			while (stack.length > 0) {
-				const vertex = stack.pop() as DirectedGraphVertex<ItemT>;
-
-				if (visited.has(vertex)) {
-					continue;
-				}
-
-				visited.add(vertex);
-				order.push(vertex);
-
-				// Pushed in reverse, so the first neighbor is popped first.
-				const neighbors = vertex.neighbors();
-				for (let i = neighbors.length - 1; i >= 0; i--) {
-					if (!visited.has(neighbors[i])) {
-						stack.push(neighbors[i]);
-					}
-				}
-			}
-		}
-
-		return order;
+		return this.runWalk(start, depthFromRoot);
 	}
 
 	/**
@@ -425,19 +530,22 @@ export class DirectedGraph<ItemT>
 	 * be traveled. Loops count, as do two one-way edges in opposite directions.
 	 * A single bidirectional edge does not, since going back over it uses it
 	 * twice. Works for any mix of edge kinds and for disconnected graphs, in
-	 * O(V + E).
+	 * O((V + E) α(V)), effectively O(V + E).
 	 *
 	 * @remarks
 	 * A plain depth-first search gives wrong answers once one-way and
 	 * bidirectional edges are mixed. Instead, vertices joined by bidirectional
-	 * edges are merged into groups. Those edges form a cycle by themselves
-	 * unless every group is a tree. Otherwise there is a cycle exactly when a
-	 * one-way edge stays within one group, or the one-way edges between groups
-	 * form a directed cycle, found with Kahn's algorithm.
+	 * edges are merged into groups with union-find (union by size and path
+	 * compression). Those edges form a cycle by themselves unless every group
+	 * is a tree. Otherwise there is a cycle exactly when a one-way edge stays
+	 * within one group, or the one-way edges between groups form a directed
+	 * cycle, found with Kahn's algorithm.
 	 */
 	public hasCycle(): boolean {
-		// Union-find over bidirectional edges. Roots have no entry.
+		// Union-find over bidirectional edges. Roots have no parent entry, and
+		// groups of one vertex have no size entry.
 		const parents = new Map<DirectedGraphVertex<ItemT>, DirectedGraphVertex<ItemT>>();
+		const sizes = new Map<DirectedGraphVertex<ItemT>, number>();
 		const findRoot = (vertex: DirectedGraphVertex<ItemT>): DirectedGraphVertex<ItemT> => {
 			let root = vertex;
 			let parent = parents.get(root);
@@ -471,10 +579,23 @@ export class DirectedGraph<ItemT>
 				return true;
 			}
 
-			parents.set(rootFrom, rootTo);
+			// Union by size keeps every tree O(log V) deep before compression.
+			const sizeFrom = sizes.get(rootFrom) ?? 1;
+			const sizeTo = sizes.get(rootTo) ?? 1;
+
+			if (sizeFrom < sizeTo) {
+				parents.set(rootFrom, rootTo);
+				sizes.set(rootTo, sizeFrom + sizeTo);
+				sizes.delete(rootFrom);
+			} else {
+				parents.set(rootTo, rootFrom);
+				sizes.set(rootFrom, sizeFrom + sizeTo);
+				sizes.delete(rootTo);
+			}
 		}
 
 		// One-way edges between groups, and how many point into each group.
+		// Only groups with outgoing arcs get a target list.
 		const arcs = new Map<DirectedGraphVertex<ItemT>, DirectedGraphVertex<ItemT>[]>();
 		const incoming = new Map<DirectedGraphVertex<ItemT>, number>();
 
@@ -518,7 +639,13 @@ export class DirectedGraph<ItemT>
 			const group = ready.pop() as DirectedGraphVertex<ItemT>;
 			dropped++;
 
-			for (const target of arcs.get(group) ?? []) {
+			const targets = arcs.get(group);
+			if (targets === undefined) {
+				continue;
+			}
+
+			for (let i = 0; i < targets.length; i++) {
+				const target = targets[i];
 				const count = (incoming.get(target) as number) - 1;
 				incoming.set(target, count);
 
@@ -535,67 +662,44 @@ export class DirectedGraph<ItemT>
 	 * Cheapest path from start to goal, found with A* search in O(E log V).
 	 * Edges are followed in their direction of travel and cost their weight.
 	 *
+	 * The graph keeps its search state (open set, pooled queue entries, and
+	 * per-vertex scratch fields) between calls, so once it has grown to the
+	 * largest search so far, a search allocates only the returned path. With
+	 * `out`, it allocates nothing unless out's arrays must grow (see `out`). The
+	 * heuristic runs at most once per vertex per search.
+	 *
 	 * @param heuristic		Estimated cost from a vertex to goal. It must never
 	 * 						overestimate, or the path found may not be the
 	 * 						cheapest. Omitted, every estimate is 0 and the search
-	 * 						runs as Dijkstra's algorithm.
-	 * @returns		The path, a path of just start when start is goal, or null
-	 * 				when goal cannot be reached or either vertex is null or not
-	 * 				part of this graph.
+	 * 						runs as Dijkstra's algorithm. It must not change the
+	 * 						graph. A `findPath` call on the same graph from inside
+	 * 						the heuristic returns null.
+	 * @param out			Path to fill instead of allocating one: its arrays are
+	 * 						overwritten by index and cut to the path length, and
+	 * 						its cost set. Left unchanged when null is returned. V8
+	 * 						trims an array's storage when its length shrinks, so
+	 * 						a longer path after a shorter one grows the arrays
+	 * 						again; a path no longer than the previous one reuses
+	 * 						their storage.
+	 * @returns		The path (out, when provided), a path of just start when start
+	 * 				is goal, or null when goal cannot be reached or either vertex
+	 * 				is null or not part of this graph.
 	 */
 	public findPath(
 		start: DirectedGraphVertex<ItemT> | null,
 		goal: DirectedGraphVertex<ItemT> | null,
-		heuristic?: DirectedGraphHeuristic<ItemT> | null
+		heuristic?: DirectedGraphHeuristic<ItemT> | null,
+		out?: DirectedGraphPath<ItemT> | null
 	): DirectedGraphPath<ItemT> | null {
 		if (!this.isPartOfGraph(start) || !this.isPartOfGraph(goal)) {
 			return null;
 		}
 
-		const estimate = (vertex: DirectedGraphVertex<ItemT>): number => {
-			if (typeof heuristic !== 'function') {
-				return 0;
-			}
-
-			const result = heuristic(vertex, goal);
-			return Number.isFinite(result) && result > 0 ? result : 0;
-		};
-
-		// Cheapest known cost to reach each vertex, and the edge that reached it.
-		const costs = new Map<DirectedGraphVertex<ItemT>, number>([[start, 0]]);
-		const via = new Map<DirectedGraphVertex<ItemT>, DirectedGraphEdge<ItemT>>();
-		const open = new PriorityQueue<SearchEntry<ItemT>>(
-			(a, b) => a.estimate < b.estimate || (a.estimate === b.estimate && a.order < b.order)
-		);
-		let order = 0;
-
-		open.push({vertex: start, cost: 0, estimate: estimate(start), order: order++});
-
-		while (!open.isEmpty()) {
-			const entry = open.pop() as SearchEntry<ItemT>;
-
-			// A cheaper path to this vertex was found after this entry was queued.
-			if (entry.cost > (costs.get(entry.vertex) as number)) {
-				continue;
-			}
-
-			if (entry.vertex === goal) {
-				return this.buildPath(start, goal, via, entry.cost);
-			}
-
-			for (const [next, edge] of entry.vertex._out) {
-				const cost = entry.cost + edge._weight;
-				const known = costs.get(next);
-
-				if (known === undefined || cost < known) {
-					costs.set(next, cost);
-					via.set(next, edge);
-					open.push({vertex: next, cost, estimate: cost + estimate(next), order: order++});
-				}
-			}
+		if (this.search === null) {
+			this.search = new DirectedGraphSearch<ItemT>();
 		}
 
-		return null;
+		return this.search.run(start, goal, heuristic, out);
 	}
 
 	/**
@@ -607,14 +711,27 @@ export class DirectedGraph<ItemT>
 	 * 					`Array.prototype.filter`, `this` is undefined when omitted.
 	 */
 	public filter(func: DirectedGraphMethod<ItemT, boolean>, thisArg?: unknown): DirectedGraph<ItemT> {
-		const graph = new DirectedGraph<ItemT>(null, this.options());
-		const copies = new Map<DirectedGraphVertex<ItemT>, DirectedGraphVertex<ItemT>>();
+		return this.filterInto(new DirectedGraph<ItemT>(null, this.options()), func, thisArg);
+	}
 
-		this.forEach((vertex, index, source) => {
-			if (func.call(thisArg, vertex, index, source)) {
+	/**
+	 * Fill graph, which must be empty, as `filter()` describes. Lets subclasses
+	 * return their own type from `filter()`.
+	 */
+	protected filterInto<GraphT extends DirectedGraph<ItemT>>(
+		graph: GraphT,
+		func: DirectedGraphMethod<ItemT, boolean>,
+		thisArg?: unknown
+	): GraphT {
+		const copies = new Map<DirectedGraphVertex<ItemT>, DirectedGraphVertex<ItemT>>();
+		let index = 0;
+
+		for (const vertex of this._vertices) {
+			if (func.call(thisArg, vertex, index, this)) {
 				copies.set(vertex, graph.addVertex(vertex._value as ItemT));
 			}
-		});
+			index++;
+		}
 
 		for (const edge of this._edges) {
 			const from = copies.get(edge._from as DirectedGraphVertex<ItemT>);
@@ -637,7 +754,9 @@ export class DirectedGraph<ItemT>
 	}
 
 	/**
-	 * Call func for each vertex in insertion order.
+	 * Call func for each vertex in insertion order. Allocates nothing: the
+	 * non-allocating way to visit every vertex (iteration creates an iterator
+	 * per loop).
 	 *
 	 * @remarks
 	 * Like `Map` / `Set`, func receives the graph itself as its third argument,
@@ -649,11 +768,19 @@ export class DirectedGraph<ItemT>
 	 * 					`Array.prototype.forEach`, `this` is undefined when omitted.
 	 */
 	public forEach(func: DirectedGraphMethod<ItemT, void>, thisArg?: unknown): DirectedGraph<ItemT> {
-		let index = 0;
+		const prevFunc = this.eachFunc;
+		const prevThis = this.eachThis;
+		const prevIndex = this.eachIndex;
+		this.eachFunc = func;
+		this.eachThis = thisArg;
+		this.eachIndex = 0;
 
-		for (const vertex of this._vertices) {
-			func.call(thisArg, vertex, index, this);
-			index++;
+		try {
+			this._vertices.forEach(this.visitVertex);
+		} finally {
+			this.eachFunc = prevFunc;
+			this.eachThis = prevThis;
+			this.eachIndex = prevIndex;
 		}
 
 		return this;
@@ -667,19 +794,17 @@ export class DirectedGraph<ItemT>
 	 * 				(e.g. items contain circular references or BigInt values).
 	 */
 	public stringify(): string | null {
-		const indexes = new Map<DirectedGraphVertex<ItemT>, number>();
-		let index = 0;
+		const indexes = this.vertexIndexes();
+		const edges: {from: number; to: number; weight: number; bidirectional: boolean}[] = [];
 
-		for (const vertex of this._vertices) {
-			indexes.set(vertex, index++);
+		for (const edge of this._edges) {
+			edges.push({
+				from: indexes.get(edge._from as DirectedGraphVertex<ItemT>) as number,
+				to: indexes.get(edge._to as DirectedGraphVertex<ItemT>) as number,
+				weight: edge._weight,
+				bidirectional: edge._bidirectional
+			});
 		}
-
-		const edges = this.edges().map((edge) => ({
-			from: indexes.get(edge._from as DirectedGraphVertex<ItemT>),
-			to: indexes.get(edge._to as DirectedGraphVertex<ItemT>),
-			weight: edge._weight,
-			bidirectional: edge._bidirectional
-		}));
 
 		try {
 			return JSON.stringify({type: 'DirectedGraph', vertices: this.values(), edges});
@@ -691,34 +816,31 @@ export class DirectedGraph<ItemT>
 	/**
 	 * Find vertices whose items pass every filter, in insertion order. Each
 	 * result's `delete()` removes its vertex along with its edges, and does
-	 * nothing once that vertex has been removed some other way.
+	 * nothing once that vertex has been removed some other way. Allocates the
+	 * result array and one result object per match; filters are checked
+	 * without per-vertex closures. An empty filter array matches nothing.
 	 */
 	public query(
 		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
 		opts?: QueryOptions
 	): QueryResult<DirectedGraphVertex<ItemT>, ItemT>[] {
 		const resultsArray: QueryResult<DirectedGraphVertex<ItemT>, ItemT>[] = [];
-		const options = this.queryOptions(opts);
+		const limit = queryLimit(opts);
 
 		for (const vertex of this._vertices) {
 			// Stops walking as soon as the limit is reached.
-			if (resultsArray.length >= options.limit) {
+			if (resultsArray.length >= limit) {
 				break;
 			}
 
-			const value = vertex._value as ItemT;
-			const take = Array.isArray(filters)
-				? filters.length > 0 && filters.every((filter) => filter(value))
-				: filters(value);
-
-			if (!take) {
+			if (!queryMatch(filters, vertex._value as ItemT)) {
 				continue;
 			}
 
 			resultsArray.push({
 				element: vertex,
-				key: (): string | null => null,
-				index: (): number | null => null,
+				key: returnNull,
+				index: returnNull,
 				delete: this.queryDelete.bind(this, vertex, vertex._linkId)
 			});
 		}
@@ -727,25 +849,17 @@ export class DirectedGraph<ItemT>
 	}
 
 	/**
-	 * Unlink and drop every vertex and edge. Wrappers removed this way have
-	 * their links cleared, and are recycled when pooling is on.
+	 * Unlink and drop every vertex and edge, in O(V + E). Each wrapper is
+	 * blanked as it is dropped (links, ownership, and vertex items cleared),
+	 * and recycled when pooling is on. Walks the graph's own sets without
+	 * copying them.
 	 */
 	public clearElements(): DirectedGraph<ItemT> {
-		const edges = this.edges();
-		const vertices = this.vertices();
-
-		for (const edge of edges) {
-			this.unlinkEdge(edge);
-		}
-
-		for (const vertex of vertices) {
-			this.unlinkVertex(vertex);
-		}
-
+		// Methods passed with thisArg: no closure or iterator per call.
+		this._edges.forEach(this.dropEdge, this);
+		this._vertices.forEach(this.dropVertex, this);
 		this._edges.clear();
 		this._vertices.clear();
-		this.edgePool.releaseAll(edges);
-		this.vertexPool.releaseAll(vertices);
 
 		return this;
 	}
@@ -758,6 +872,21 @@ export class DirectedGraph<ItemT>
 		this.clearElements();
 
 		return this;
+	}
+
+	/**
+	 * Index of every vertex in insertion order, as written by `stringify()`
+	 * and byte forms of the graph.
+	 */
+	protected vertexIndexes(): Map<DirectedGraphVertex<ItemT>, number> {
+		const indexes = new Map<DirectedGraphVertex<ItemT>, number>();
+		let index = 0;
+
+		for (const vertex of this._vertices) {
+			indexes.set(vertex, index++);
+		}
+
+		return indexes;
 	}
 
 	/**
@@ -797,65 +926,67 @@ export class DirectedGraph<ItemT>
 	}
 
 	/**
-	 * Walk the via edges back from goal to start, then reverse them into a
-	 * path. An edge traveled both ways may have been crossed from `_to` to
-	 * `_from`, so each step takes whichever end is not the current vertex.
+	 * Run a breadth-first or depth-first walk from start, or from every vertex
+	 * when start is omitted, with a fresh walk id so earlier marks count as
+	 * unvisited.
 	 */
-	private buildPath(
-		start: DirectedGraphVertex<ItemT>,
-		goal: DirectedGraphVertex<ItemT>,
-		via: Map<DirectedGraphVertex<ItemT>, DirectedGraphEdge<ItemT>>,
-		cost: number
-	): DirectedGraphPath<ItemT> {
-		const vertices: DirectedGraphVertex<ItemT>[] = [goal];
-		const edges: DirectedGraphEdge<ItemT>[] = [];
-		let curr = goal;
+	private runWalk(
+		start: DirectedGraphVertex<ItemT> | null | undefined,
+		fromRoot: (this: WalkState<ItemT>, root: DirectedGraphVertex<ItemT>) => void
+	): DirectedGraphVertex<ItemT>[] {
+		const order: DirectedGraphVertex<ItemT>[] = [];
 
-		while (curr !== start) {
-			const edge = via.get(curr) as DirectedGraphEdge<ItemT>;
-			curr = (edge._to === curr ? edge._from : edge._to) as DirectedGraphVertex<ItemT>;
-			edges.push(edge);
-			vertices.push(curr);
+		if (start !== undefined && !this.isPartOfGraph(start)) {
+			return order;
 		}
 
-		return {vertices: vertices.reverse(), edges: edges.reverse(), cost};
-	}
+		const walk = this.walk;
+		walk.id++;
+		walk.order = order;
 
-	/**
-	 * Vertices each walk starts from: every vertex when start is omitted,
-	 * start alone when it is part of this graph, and none otherwise.
-	 */
-	private walkRoots(start?: DirectedGraphVertex<ItemT> | null): Iterable<DirectedGraphVertex<ItemT>> {
 		if (start === undefined) {
-			return this._vertices;
+			this._vertices.forEach(fromRoot, walk);
+		} else {
+			fromRoot.call(walk, start);
 		}
 
-		return this.isPartOfGraph(start) ? [start] : [];
+		walk.order = noVertices;
+
+		return order;
 	}
 
 	/**
-	 * Clear vertex's edges and ownership. Needed even when pooling is off,
-	 * where release does not blank the vertex.
+	 * Drop a vertex that is no longer linked. With pooling on, release blanks
+	 * it via `cleanObj()` and recycles it. With pooling off it is blanked here,
+	 * so it keeps no item or edges alive. Blanking a vertex whose maps are
+	 * already empty allocates nothing.
 	 */
-	private unlinkVertex(vertex: DirectedGraphVertex<ItemT>): void {
-		vertex._out.clear();
-		vertex._in.clear();
-		vertex._graph = null;
-		vertex._linkId = 0;
+	private dropVertex(vertex: DirectedGraphVertex<ItemT>): void {
+		if (this.vertexPool.enabled()) {
+			this.vertexPool.release(vertex);
+		} else {
+			vertex.cleanObj();
+		}
 	}
 
 	/**
-	 * Clear edge's endpoints and ownership. Needed even when pooling is off,
-	 * where release does not blank the edge. The weight and direction are kept
-	 * until the edge is recycled.
+	 * Drop an edge that is no longer linked. With pooling on, release blanks
+	 * it via `cleanObj()` and recycles it. With pooling off only its endpoints
+	 * and ownership are cleared; the weight and direction stay readable.
 	 */
-	private unlinkEdge(edge: DirectedGraphEdge<ItemT>): void {
-		edge._from = null;
-		edge._to = null;
-		edge._graph = null;
+	private dropEdge(edge: DirectedGraphEdge<ItemT>): void {
+		if (this.edgePool.enabled()) {
+			this.edgePool.release(edge);
+		} else {
+			edge._from = null;
+			edge._to = null;
+			edge._graph = null;
+		}
 	}
 
-	private isPartOfGraph(vertex: DirectedGraphVertex<ItemT> | null | undefined): vertex is DirectedGraphVertex<ItemT> {
+	private isPartOfGraph(
+		vertex: DirectedGraphVertex<ItemT> | null | undefined
+	): vertex is DirectedGraphVertex<ItemT> {
 		return !!vertex && vertex._graph === this;
 	}
 
@@ -871,16 +1002,120 @@ export class DirectedGraph<ItemT>
 
 		return this.removeVertex(vertex);
 	}
+}
 
-	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {
-		const options: Required<QueryOptions> = {
-			limit: Infinity
-		};
+/** Shared `key` / `index` for query results, which have neither. */
+function returnNull(): null {
+	return null;
+}
 
-		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
-			options.limit = Math.round(opts.limit);
+/** Numeric query limit: a number of 1 or more, rounded, else no limit. */
+function queryLimit(opts?: QueryOptions): number {
+	const limit = opts?.limit;
+
+	if (limit && isNumber(limit) && limit >= 1) {
+		return Math.round(limit);
+	}
+
+	return Infinity;
+}
+
+/**
+ * True when value passes filters: the single filter, or every filter of a
+ * non-empty array. A plain loop, so no closure is created per vertex.
+ */
+function queryMatch<ItemT>(filters: QueryFilter<ItemT> | QueryFilter<ItemT>[], value: ItemT): boolean {
+	if (!Array.isArray(filters)) {
+		return filters(value);
+	}
+
+	if (filters.length === 0) {
+		return false;
+	}
+
+	for (let i = 0; i < filters.length; i++) {
+		if (!filters[i](value)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/** `Set.forEach` callback appending each vertex's item to the array passed as `this`. */
+function pushVertexValue<ItemT>(this: ItemT[], vertex: DirectedGraphVertex<ItemT>): void {
+	this.push(vertex._value as ItemT);
+}
+
+/**
+ * `Map.forEach` callback for `breadthFromRoot`: queue each unvisited
+ * neighbor, with the walk state as `this`.
+ */
+function visitBreadth<ItemT>(
+	this: WalkState<ItemT>,
+	_edge: DirectedGraphEdge<ItemT>,
+	next: DirectedGraphVertex<ItemT>
+): void {
+	if (next._walkId !== this.id) {
+		next._walkId = this.id;
+		this.order.push(next);
+	}
+}
+
+/** Breadth-first walk from root, appending to the walk's order. */
+function breadthFromRoot<ItemT>(this: WalkState<ItemT>, root: DirectedGraphVertex<ItemT>): void {
+	if (root._walkId === this.id) {
+		return;
+	}
+
+	root._walkId = this.id;
+	const order = this.order;
+	const first = order.length;
+	order.push(root);
+
+	// order doubles as the queue: everything from first on is this walk.
+	for (let i = first; i < order.length; i++) {
+		order[i]._out.forEach(visitBreadth, this);
+	}
+}
+
+/** `Map.forEach` callback writing each neighbor into the walk's scratch buffer. */
+function writeNeighbor<ItemT>(
+	this: WalkState<ItemT>,
+	_edge: DirectedGraphEdge<ItemT>,
+	next: DirectedGraphVertex<ItemT>
+): void {
+	this.scratch[this.scratchCount++] = next;
+}
+
+/** Depth-first walk from root, appending to the walk's order. */
+function depthFromRoot<ItemT>(this: WalkState<ItemT>, root: DirectedGraphVertex<ItemT>): void {
+	const stack = this.stack;
+	const scratch = this.scratch;
+	stack[this.stackTop++] = root;
+
+	while (this.stackTop > 0) {
+		const vertex = stack[--this.stackTop] as DirectedGraphVertex<ItemT>;
+		stack[this.stackTop] = null;
+
+		if (vertex._walkId === this.id) {
+			continue;
 		}
 
-		return options;
+		vertex._walkId = this.id;
+		this.order.push(vertex);
+
+		// Pushed in reverse, so the first neighbor is popped first.
+		this.scratchCount = 0;
+		vertex._out.forEach(writeNeighbor, this);
+		for (let i = this.scratchCount - 1; i >= 0; i--) {
+			const next = scratch[i] as DirectedGraphVertex<ItemT>;
+			scratch[i] = null;
+
+			if (next._walkId !== this.id) {
+				stack[this.stackTop++] = next;
+			}
+		}
+		this.scratchCount = 0;
 	}
 }

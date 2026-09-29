@@ -12,15 +12,81 @@ import {type QueryResult} from '../query/result';
 import type {ObjectPoolState as State} from './pool/state';
 
 /**
+ * Key of the slot each pooled object keeps: its index in `state.used` while in
+ * use, `-1` while free. Defined non-enumerable on every object the pool
+ * constructs, so it never shows up in `Object.keys`, JSON, or equality checks.
+ * Objects the pool did not construct never carry it, which is how release
+ * tells them apart.
+ */
+const SLOT: unique symbol = Symbol('ObjectPool.slot');
+
+interface Slotted {
+	[SLOT]?: number;
+}
+
+/** Shared `key()` for every query result. Pools have no keys. */
+const queryKeyNull = (): string | null => null;
+
+/**
+ * Slot of `object` in `pool.state.used`, or null when `object` is not in use in
+ * `pool`. O(1).
+ */
+function objectPoolSlot<T extends Instance>(
+	pool: ObjectPool<T>,
+	object: T | null | undefined
+): number | null {
+	if (object == null) {
+		return null;
+	}
+
+	const slot = (object as unknown as Slotted)[SLOT];
+
+	if (typeof slot !== 'number' || slot < 0 || slot >= pool.state.usedCount) {
+		return null;
+	}
+
+	return pool.state.used[slot] === object ? slot : null;
+}
+
+/**
+ * Query match on an `ObjectPool`. One instance per match; its methods live on
+ * the prototype, so a match allocates nothing beyond itself.
+ */
+class ObjectPoolQueryResult<T extends Instance> implements QueryResult<T> {
+	public readonly element: T;
+	public readonly key: () => string | null = queryKeyNull;
+	private readonly pool: ObjectPool<T>;
+
+	constructor(pool: ObjectPool<T>, element: T) {
+		this.pool = pool;
+		this.element = element;
+	}
+
+	public index(): number | null {
+		return objectPoolSlot(this.pool, this.element);
+	}
+
+	public delete(): T | null {
+		return this.pool.release(this.element) ? this.element : null;
+	}
+}
+
+/**
+ * Pool of reusable object instances. `allocate()` and `release()` are O(1) and
+ * allocate nothing once the pool has grown: free objects sit on a stack, and
+ * each in-use object keeps its own slot in `state.used`, so a release never
+ * searches or compacts. Release moves the last in-use object into the freed
+ * slot, so in-use order is not allocation order.
+ *
+ * `release()` only accepts objects this pool handed out that are still in use.
+ * Double releases and objects from elsewhere are ignored, so the pool never
+ * holds an object twice and never grows past `maxSize`.
  *
  * @category Object Pool
  */
 export class ObjectPool<T extends Instance> implements DataStructure<T> {
 	public readonly state: State<T>;
 	private readonly objectClass: Constructor<T>;
-	private wastedSpace: number = 0;
-	/** Slot of each in-use object in `state.used`, so release is O(1). */
-	private readonly usedIndex: Map<T, number> = new Map();
 
 	constructor(objectClass: Constructor<T>, options?: Options) {
 		if (typeof objectClass !== 'function') {
@@ -34,6 +100,10 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 		this.increaseCapacity(this.state.startSize);
 	}
 
+	/**
+	 * Iterate in-use objects. Allocates one iterator per loop, which reuses a
+	 * single result object. `forEach` is the non-allocating path.
+	 */
 	[Symbol.iterator](): ObjectPoolIterator<T> {
 		return new ObjectPoolIterator<T>(this);
 	}
@@ -42,23 +112,28 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 	 * Allocate a single object instance. Pool size will increase when
 	 * no instances are available for allocation, unless the pool is
 	 * already at it's maximum size defined by ObjectPool's config.
+	 * O(1), and allocates nothing unless the pool grows.
 	 * @returns				Object instance of type T if available.
 	 *						null when an instance can't be allocated.
 	 */
 	public allocate(): T | null {
-		if (this.state.autoIncrease && this.isAboveThreshold(1)) {
-			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor) || 1;
-			this.increaseCapacity(maxSize - this.state.objectCount);
+		const state = this.state;
+
+		if (state.autoIncrease && this.isAboveThreshold(1)) {
+			this.grow();
 		}
 
-		const result = this.state.pool.pop();
-
-		if (result == null) {
+		if (state.freeCount === 0) {
 			return null;
 		}
 
-		this.state.used.push(result);
-		this.usedIndex.set(result, this.state.used.length - 1);
+		state.freeCount--;
+		const result = state.pool[state.freeCount] as T;
+		state.pool[state.freeCount] = null;
+
+		(result as unknown as Slotted)[SLOT] = state.usedCount;
+		state.used[state.usedCount] = result;
+		state.usedCount++;
 
 		return result;
 	}
@@ -69,7 +144,8 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 	 * available, unless pool has reached it's maximum size as defined by
 	 * the ObjectPool config.
 	 * @param n				Number of object instances to allocate.
-	 * @returns				Array of allocated object instances.
+	 * @returns				Array of allocated object instances. Shorter than
+	 *						`n` when the pool cannot supply them all.
 	 */
 	public allocateMultiple(n: number = 1): Array<T> {
 		let num: number;
@@ -80,51 +156,66 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 		}
 
 		while (this.state.autoIncrease && this.isAboveThreshold(num)) {
-			// `|| 1` as in allocate(): an empty pool would otherwise never grow.
-			const maxSize = Math.ceil(this.state.objectCount * this.state.increaseFactor) || 1;
-			this.increaseCapacity(maxSize - this.state.objectCount);
+			const before = this.state.objectCount;
+			this.grow();
+
+			// At maxSize growth adds nothing, and the loop would never exit.
+			if (this.state.objectCount === before) {
+				break;
+			}
 		}
 
 		const result: Array<T> = [];
 
-		for (let i = 0; i < num && this.state.pool.length; i++) {
+		for (let i = 0; i < num && this.state.freeCount > 0; i++) {
 			// allocate can't return null here because the availability is checked before calling
-			const item = this.allocate() as T;
-			result.push(item);
+			result.push(this.allocate() as T);
 		}
 
 		return result;
 	}
 
 	/**
-	 * Release object instance back to the pool for reuse later.
+	 * Release object instance back to the pool for reuse later. The object is
+	 * cleaned with `cleanObj()` and must not be used afterwards. O(1), and
+	 * allocates nothing.
+	 *
+	 * Objects that are not currently in use in this pool (already released, or
+	 * never allocated from it) are ignored and left untouched.
 	 *
 	 * @param object			Target pool object to be released.
-	 * @returns					void
+	 * @returns					true when the object was released, false when it
+	 *							was ignored.
 	 */
-	public release(object: T): void {
-		if (typeof object.cleanObj !== 'function') {
-			return;
+	public release(object: T): boolean {
+		const slot = objectPoolSlot(this, object);
+
+		if (slot === null) {
+			return false;
 		}
 
-		const index = this.usedIndex.get(object);
-		if (index !== undefined) {
-			this.usedIndex.delete(object);
+		const state = this.state;
+		state.usedCount--;
+		const last = state.used[state.usedCount] as T;
 
-			if (this.state.used[index] === object) {
-				this.state.used[index] = null;
-				this.wastedSpace++;
-			}
+		if (last !== object) {
+			state.used[slot] = last;
+			(last as unknown as Slotted)[SLOT] = slot;
 		}
 
-		if (this.shouldCleanUsed()) {
-			this.cleanUsed();
-		}
+		state.used[state.usedCount] = null;
+		(object as unknown as Slotted)[SLOT] = -1;
 
 		object.cleanObj();
 		this.store(object);
+
+		return true;
 	}
 
+	/**
+	 * Release each object in `objects`. `null` entries and objects not in use
+	 * in this pool are skipped. Allocates nothing.
+	 */
 	public releaseMultiple(objects: Array<T | null>): void {
 		for (let i = 0; i < objects.length; i++) {
 			const obj = objects[i];
@@ -133,12 +224,13 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 
 			this.release(obj);
 		}
-
-		this.cleanUsed();
 	}
 
+	/**
+	 * Number of objects currently in use.
+	 */
 	public size(): number {
-		return this.state.used.length - this.wastedSpace;
+		return this.state.usedCount;
 	}
 
 	public utilization(allocationsPending: number = 0): number {
@@ -151,7 +243,7 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 			num = 0;
 		}
 
-		const freeObj = this.state.pool.length - num;
+		const freeObj = this.state.freeCount - num;
 		return (this.state.objectCount - freeObj) / this.state.objectCount;
 	}
 
@@ -168,224 +260,209 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 		}
 
 		for (let i = 0; i < n && this.state.objectCount < this.state.maxSize; i++) {
-			this.store(new this.objectClass(...this.state.instanceArgs));
+			const object = new this.objectClass(...this.state.instanceArgs);
+			Object.defineProperty(object, SLOT, {value: -1, writable: true, enumerable: false});
+			this.store(object);
 			this.state.objectCount++;
 		}
 	}
 
+	/**
+	 * Call `func` on each in-use object. Allocates nothing. Walks from the last
+	 * slot down, so `func` may release the object it was given. Releasing any
+	 * other object during the walk can skip or repeat objects.
+	 *
+	 * @param func			Called with the object, its slot in `state.used`, and
+	 *						`state.used`. Slots from `size()` on hold `null`.
+	 * @param thisArg		`this` inside `func`. Defaults to the pool.
+	 */
 	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): ObjectPool<T> {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
-		if (thisArg) {
-			boundThis = thisArg as this;
+		const boundThis = thisArg ? thisArg : this;
+		const used = this.state.used as T[];
+
+		for (let i = this.state.usedCount - 1; i >= 0; i--) {
+			// func may have released several objects, shrinking the in-use range.
+			if (i >= this.state.usedCount) {
+				continue;
+			}
+
+			func.call(boundThis, used[i], i, used);
 		}
-
-		this.state.used
-			.filter((elem) => elem != null)
-			.forEach((elem, idx) => {
-				if (elem === undefined || elem === null) {
-					return;
-				}
-
-				func.call(boundThis, elem, idx, this.state.pool);
-			}, boundThis);
 
 		return this;
 	}
 
+	/**
+	 * New array of the in-use objects in slot order, or of `func`'s result for
+	 * each. Allocates only the returned array.
+	 */
 	public map(): T[];
 	public map<U>(func: ArrayMethod<T, U>, thisArg?: unknown): U[];
 	public map<U>(func?: ArrayMethod<T, U>, thisArg?: unknown): U[] | T[] {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
-		if (thisArg) {
-			boundThis = thisArg as this;
-		}
-
-		const filtered = this.state.used.filter((elem) => elem != null) as T[];
+		const boundThis = thisArg ? thisArg : this;
+		const used = this.state.used as T[];
+		const count = this.state.usedCount;
 
 		if (func == null) {
-			return filtered;
+			const copy: T[] = new Array(count);
+			for (let i = 0; i < count; i++) {
+				copy[i] = used[i];
+			}
+
+			return copy;
 		}
 
-		const mapped = filtered.map((elem, idx) => {
-			return func.call(boundThis, elem, idx, filtered);
-		});
+		const mapped: U[] = new Array(count);
+		for (let i = 0; i < count; i++) {
+			mapped[i] = func.call(boundThis, used[i], i, used);
+		}
 
 		return mapped;
 	}
 
+	/**
+	 * The pool's config and object count as a JSON string. Objects are not
+	 * included.
+	 */
 	public stringify(): string {
-		const state = {...this.state};
+		const state = this.state;
 
-		state.pool = [];
-		state.used = [];
-
-		const serialized = JSON.stringify(state);
-
-		return serialized;
-	}
-
-	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
-		const resultsArray: QueryResult<T>[] = [];
-		const options = this.queryOptions(opts);
-
-		this.forEach((element: T) => {
-			let take = false;
-
-			if (resultsArray.length >= options.limit) {
-				return false;
-			}
-
-			if (Array.isArray(filters)) {
-				take =
-					!!filters.length &&
-					filters.every((filter) => {
-						return filter(element);
-					});
-			} else {
-				take = filters(element);
-			}
-
-			if (!take) {
-				return false;
-			}
-
-			const result: QueryResult<T> = {} as QueryResult<T>;
-			result.element = element;
-			result.key = (): string | null => null;
-			result.index = this.queryIndex.bind(this, element);
-			result.delete = this.queryDelete.bind(this, result);
-			resultsArray.push(result);
+		return JSON.stringify({
+			type: state.type,
+			autoIncrease: state.autoIncrease,
+			increaseBreakPoint: state.increaseBreakPoint,
+			increaseFactor: state.increaseFactor,
+			instanceArgs: state.instanceArgs,
+			maxSize: state.maxSize,
+			objectCount: state.objectCount,
+			startSize: state.startSize
 		});
-
-		return resultsArray;
-	}
-
-	public clearElements(): ObjectPool<T> {
-		const used = this.map();
-		this.state.used = [];
-		this.usedIndex.clear();
-
-		this.releaseMultiple(used);
-
-		return this;
-	}
-
-	public reset(): ObjectPool<T> {
-		this.state.pool = [];
-		this.state.used = [];
-		this.usedIndex.clear();
-		this.state.objectCount = 0;
-		this.wastedSpace = 0;
-
-		this.increaseCapacity(this.state.startSize);
-
-		return this;
-	}
-
-	private isAboveThreshold(allocationsPending: number): boolean {
-		return this.utilization(allocationsPending) > this.state.increaseBreakPoint;
-	}
-
-	private store(object: T): void {
-		this.state.pool.push(object);
 	}
 
 	/**
-	 * Compact once at least half of `used` is released slots. Each compaction
-	 * costs O(used) but frees at least that many slots, so release stays
-	 * amortized O(1) and `used` never exceeds twice the in-use count.
+	 * In-use objects matching every filter, up to `opts.limit`. Allocates the
+	 * result array and one result per match. The walk itself allocates nothing.
 	 */
-	private shouldCleanUsed(): boolean {
-		return this.wastedSpace * 2 >= this.state.used.length;
-	}
+	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
+		const results: QueryResult<T>[] = [];
 
-	private cleanUsed(): void {
-		this.state.used = this.state.used.filter((obj) => {
-			return obj != null;
-		});
-
-		// Compaction moves objects, so their slots are rebuilt.
-		this.usedIndex.clear();
-		for (let i = 0; i < this.state.used.length; i++) {
-			this.usedIndex.set(this.state.used[i] as T, i);
+		if (Array.isArray(filters) && filters.length === 0) {
+			return results;
 		}
 
-		this.wastedSpace = 0;
+		const limit = this.queryLimit(opts);
+		const used = this.state.used as T[];
+
+		for (let i = 0; i < this.state.usedCount && results.length < limit; i++) {
+			const element = used[i];
+
+			if (this.queryMatch(filters, element)) {
+				results.push(new ObjectPoolQueryResult<T>(this, element));
+			}
+		}
+
+		return results;
+	}
+
+	/**
+	 * Release every in-use object. Each is cleaned with `cleanObj()`. Capacity
+	 * is kept. Allocates nothing.
+	 */
+	public clearElements(): ObjectPool<T> {
+		const state = this.state;
+
+		for (let i = 0; i < state.usedCount; i++) {
+			const object = state.used[i] as T;
+			state.used[i] = null;
+			(object as unknown as Slotted)[SLOT] = -1;
+			object.cleanObj();
+			this.store(object);
+		}
+
+		state.usedCount = 0;
+
+		return this;
+	}
+
+	/**
+	 * Release every in-use object, then shrink or refill the pool to
+	 * `startSize` objects. Objects kept are reused, not reconstructed.
+	 */
+	public reset(): ObjectPool<T> {
+		const state = this.state;
+
+		this.clearElements();
+
+		while (state.freeCount > state.startSize) {
+			state.freeCount--;
+			state.pool[state.freeCount] = null;
+			state.objectCount--;
+		}
+
+		state.pool.length = state.freeCount;
+		state.used.length = 0;
+
+		this.increaseCapacity(state.startSize - state.objectCount);
+
+		return this;
+	}
+
+	/**
+	 * Same test as `utilization(allocationsPending) > increaseBreakPoint`, but
+	 * multiplied out instead of divided. `utilization()` returns a fractional
+	 * number to its caller, which V8 boxes on the heap, and this runs on every
+	 * `allocate()` when `autoIncrease` is on.
+	 */
+	private isAboveThreshold(allocationsPending: number): boolean {
+		const state = this.state;
+
+		if (state.objectCount === 0) {
+			return true;
+		}
+
+		const inUse = state.objectCount - state.freeCount + allocationsPending;
+
+		return inUse > state.increaseBreakPoint * state.objectCount;
+	}
+
+	/**
+	 * Grow by `increaseFactor`, capped at `maxSize`.
+	 */
+	private grow(): void {
+		// `|| 1`: an empty pool would otherwise never grow.
+		const target = Math.ceil(this.state.objectCount * this.state.increaseFactor) || 1;
+		this.increaseCapacity(target - this.state.objectCount);
+	}
+
+	private store(object: T): void {
+		this.state.pool[this.state.freeCount] = object;
+		this.state.freeCount++;
+	}
+
+	private queryMatch(filters: QueryFilter<T> | QueryFilter<T>[], element: T): boolean {
+		if (!Array.isArray(filters)) {
+			return filters(element);
+		}
+
+		for (let f = 0; f < filters.length; f++) {
+			if (!filters[f](element)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private queryLimit(opts?: QueryOptions): number {
+		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
+			return Math.round(opts.limit);
+		}
+
+		return Infinity;
 	}
 
 	private parseOptions(options?: Options): State<T> {
-		const fromSerial = this.parseOptionsSerialized(options);
-		const finalState = this.parseOptionsOverrides(fromSerial, options);
-
-		return finalState;
-	}
-
-	private parseOptionsSerialized(options?: Options): State<T> {
 		const state: State<T> = this.getDefaultState();
-
-		if (!options) {
-			return state;
-		}
-
-		let result: State<T> | null = null;
-
-		if (typeof options.serializedState === 'string') {
-			const parsed = this.parseSerializedString(options.serializedState);
-
-			if (Array.isArray(parsed)) {
-				throw parsed;
-			}
-
-			result = parsed;
-		}
-
-		if (result) {
-			state.autoIncrease = result.autoIncrease;
-			state.increaseBreakPoint = result.increaseBreakPoint;
-			state.increaseFactor = result.increaseFactor;
-			state.instanceArgs = result.instanceArgs;
-			state.maxSize = result.maxSize;
-			state.startSize = result.objectCount;
-		}
-
-		return state;
-	}
-
-	private parseSerializedString(state: string): State<T> | Error[] | null {
-		if (typeof state !== 'string' || state === '') {
-			return null;
-		}
-
-		let result: State<T> | Error[] | null = null;
-		let errors: Error[] = [];
-
-		try {
-			const parsed = JSON.parse(state);
-
-			if (parsed) {
-				errors = this.getStateErrors(parsed);
-			}
-
-			if (errors.length || !parsed) {
-				throw new Error('state is not a valid ObjectPoolState');
-			}
-
-			result = parsed;
-		} catch (e: unknown) {
-			if (e instanceof Error) {
-				errors.push(e);
-			}
-
-			result = errors;
-		}
-
-		return result;
-	}
-
-	private parseOptionsOverrides(stateArg: State<T>, options?: Options): State<T> {
-		const state: State<T> = stateArg;
 
 		if (!options) {
 			return state;
@@ -464,7 +541,9 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 		const state: State<T> = {
 			type: 'ObjectPool',
 			pool: [],
+			freeCount: 0,
 			used: [],
+			usedCount: 0,
 			autoIncrease: false,
 			startSize: 1,
 			objectCount: 0,
@@ -475,23 +554,6 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 		};
 
 		return state;
-	}
-
-	private getStateErrors(state: State<T>): Error[] {
-		const errors: Error[] = [];
-
-		errors.push(...this.getStateErrorsAutoIncrease(state.autoIncrease));
-		errors.push(...this.getStateErrorsIncreaseBreakPoint(state.increaseBreakPoint));
-		errors.push(...this.getStateErrorsIncreaseFactor(state.increaseFactor));
-		errors.push(...this.getStateErrorsInstanceArgs(state.instanceArgs));
-		errors.push(...this.getStateErrorsMaxSize(state.maxSize));
-		errors.push(...this.getStateErrorsObjectCount(state.objectCount));
-		errors.push(...this.getStateErrorsPool(state.pool));
-		errors.push(...this.getStateErrorsStartSize(state.startSize));
-		errors.push(...this.getStateErrorsType(state.type));
-		errors.push(...this.getStateErrorsUsed(state.used));
-
-		return errors;
 	}
 
 	private getStateErrorsAutoIncrease(data: unknown): Error[] {
@@ -544,26 +606,6 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 		return errors;
 	}
 
-	private getStateErrorsObjectCount(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !isInteger(data) || data < 0) {
-			errors.push(Error('state objectCount must be an integer >= 0'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsPool(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !Array.isArray(data)) {
-			errors.push(Error('state pool must be an array'));
-		}
-
-		return errors;
-	}
-
 	private getStateErrorsStartSize(data: unknown): Error[] {
 		const errors: Error[] = [];
 
@@ -572,57 +614,5 @@ export class ObjectPool<T extends Instance> implements DataStructure<T> {
 		}
 
 		return errors;
-	}
-
-	private getStateErrorsType(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || data !== 'ObjectPool') {
-			errors.push(Error('state type must be ObjectPool'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsUsed(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !Array.isArray(data)) {
-			errors.push(Error('state used must be an array'));
-		}
-
-		return errors;
-	}
-
-	private queryDelete(query: QueryResult<T>): T | null {
-		if (query.index() == null) {
-			return null;
-		}
-
-		this.release(query.element);
-
-		return query.element;
-	}
-
-	private queryIndex(query: T): number | null {
-		const index = this.usedIndex.get(query);
-
-		if (index === undefined || this.state.used[index] !== query) {
-			return null;
-		}
-
-		return index;
-	}
-
-	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {
-		const options: Required<QueryOptions> = {
-			limit: Infinity
-		};
-
-		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
-			options.limit = Math.round(opts.limit);
-		}
-
-		return options;
 	}
 }

@@ -11,6 +11,9 @@ import {isNumber} from '../utility';
 /** Capacity used when `maxSize` is missing or invalid. */
 const DEFAULT_MAX_SIZE = 25;
 
+/** Shared `key()` for every query result. Queue items have no keys. */
+const queryKeyNull = (): string | null => null;
+
 /**
  * Fixed capacity FIFO queue backed by a ring buffer. Items are added at the
  * rear and removed from the front in O(1).
@@ -18,6 +21,12 @@ const DEFAULT_MAX_SIZE = 25;
  * Every traversal (`forEach`, `filter`, `query`, iteration, `getIndex`) runs
  * from the front to the rear, and position 0 is the front. Positions are
  * logical: they never depend on where an item sits in the ring buffer.
+ *
+ * The ring buffer holds `maxSize` slots, allocated once at construction and
+ * reused for the queue's lifetime: `push`, `pop`, `insertFront`, `peek`,
+ * `getIndex`, `forEach`, `clearElements`, and `reset` never allocate.
+ * `forEach` is the non-allocating way to walk the queue; `for...of` allocates
+ * one iterator per loop.
  *
  * Byte encoding is provided by the `ByteCircularQueue` subclass, which requires
  * an `ItemCodec` at construction.
@@ -29,8 +38,11 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 	public readonly maxSize: number;
 	/** Whether adding to a full queue overwrites instead of failing. */
 	public readonly overwrite: boolean;
-	/** Ring buffer. Slots outside the live range hold undefined. */
-	private _elements: Array<ItemT | undefined>;
+	/**
+	 * Ring buffer of exactly `maxSize` slots, allocated once. Slots outside the
+	 * live range hold undefined.
+	 */
+	private readonly _elements: Array<ItemT | undefined>;
 	/** Ring buffer slot holding the front item. */
 	private _front: number;
 	private _size: number;
@@ -48,7 +60,12 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 		this.maxSize =
 			Number.isInteger(maxSize) && (maxSize as number) >= 1 ? (maxSize as number) : DEFAULT_MAX_SIZE;
 		this.overwrite = booleanValue(false, options?.overwrite);
+		// Filled with push rather than `new Array(maxSize)` so the array is
+		// packed from the start and never holey, whichever slot is written first.
 		this._elements = [];
+		for (let i = 0; i < this.maxSize; i++) {
+			this._elements.push(undefined);
+		}
 		this._front = 0;
 		this._size = 0;
 
@@ -84,36 +101,55 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 		const item = this._elements[this._front] as ItemT;
 		// Drop the reference so a popped item can be garbage collected.
 		this._elements[this._front] = undefined;
-		this._front = this.wrap(this._front + 1);
+		this._front = this.slot(1);
 		this._size--;
 
 		return item;
 	}
 
 	/**
-	 * Add items at the rear, in argument order. When the queue is full, each
-	 * further item overwrites the front item if `overwrite` is on, and is not
-	 * added otherwise.
-	 * @returns		True when every item was added. False when the queue filled
-	 * 				up with overwrite off; items before that point were added.
+	 * Add one item at the rear. When the queue is full, the item overwrites the
+	 * front item if `overwrite` is on, and is not added otherwise.
+	 *
+	 * @remarks
+	 * Takes exactly one item so a call never builds a rest-parameter array.
+	 * Use `pushArray()` to add several.
+	 * @returns		True when the item was added, false when the queue is full
+	 * 				and `overwrite` is off.
 	 */
-	public push(...items: ItemT[]): boolean {
-		return this.pushArray(items);
+	public push(item: ItemT): boolean {
+		if (this._size >= this.maxSize) {
+			if (!this.overwrite) {
+				return false;
+			}
+
+			// Full, so the slot after the rear is the front slot: overwrite the
+			// front item and move the front forward.
+			this._elements[this._front] = item;
+			this._front = this.slot(1);
+			return true;
+		}
+
+		this._elements[this.slot(this._size)] = item;
+		this._size++;
+
+		return true;
 	}
 
 	/**
-	 * Add each item of an array at the rear, as `push()` does. Unlike spreading
-	 * an array into `push()`, works for arrays of any length.
-	 * @returns		True when every item was added, false when one was not or
-	 * 				when items is not an array.
+	 * Add each item of an array at the rear, in array order, as `push()` does.
+	 * Works for arrays of any length.
+	 * @returns		True when every item was added. False when the queue filled
+	 * 				up with overwrite off (items before that point were added),
+	 * 				or when items is not an array.
 	 */
 	public pushArray(items?: ItemT[] | null): boolean {
 		if (!Array.isArray(items)) {
 			return false;
 		}
 
-		for (const item of items) {
-			if (!this.pushOne(item)) {
+		for (let i = 0; i < items.length; i++) {
+			if (!this.push(items[i])) {
 				return false;
 			}
 		}
@@ -122,28 +158,50 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 	}
 
 	/**
-	 * Add items at the front, one at a time in argument order, so the last
-	 * argument ends up in front. When the queue is full, each further item
-	 * overwrites the rear item if `overwrite` is on, and is not added otherwise.
-	 * @returns		True when every item was added. False when the queue filled
-	 * 				up with overwrite off; items before that point were added.
+	 * Add one item at the front. When the queue is full, the item overwrites
+	 * the rear item if `overwrite` is on, and is not added otherwise.
+	 *
+	 * @remarks
+	 * Takes exactly one item so a call never builds a rest-parameter array.
+	 * Use `insertFrontArray()` to add several.
+	 * @returns		True when the item was added, false when the queue is full
+	 * 				and `overwrite` is off.
 	 */
-	public insertFront(...items: ItemT[]): boolean {
-		for (const item of items) {
-			if (this.isFull()) {
-				if (!this.overwrite) {
-					return false;
-				}
-
-				// Full, so the slot before the front is the rear slot.
-				this._front = this.wrap(this._front - 1);
-				this._elements[this._front] = item;
-				continue;
+	public insertFront(item: ItemT): boolean {
+		if (this._size >= this.maxSize) {
+			if (!this.overwrite) {
+				return false;
 			}
 
-			this._front = this.wrap(this._front - 1);
+			// Full, so the slot before the front is the rear slot.
+			this._front = this.slot(-1);
 			this._elements[this._front] = item;
-			this._size++;
+			return true;
+		}
+
+		this._front = this.slot(-1);
+		this._elements[this._front] = item;
+		this._size++;
+
+		return true;
+	}
+
+	/**
+	 * Add each item of an array at the front, one at a time in array order, as
+	 * `insertFront()` does, so the last item ends up in front.
+	 * @returns		True when every item was added. False when the queue filled
+	 * 				up with overwrite off (items before that point were added),
+	 * 				or when items is not an array.
+	 */
+	public insertFrontArray(items?: ItemT[] | null): boolean {
+		if (!Array.isArray(items)) {
+			return false;
+		}
+
+		for (let i = 0; i < items.length; i++) {
+			if (!this.insertFront(items[i])) {
+				return false;
+			}
 		}
 
 		return true;
@@ -226,11 +284,13 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 	protected filterValues(func: CircularQueueMethod<ItemT, boolean>, thisArg?: unknown): ItemT[] {
 		const values: ItemT[] = [];
 
-		this.forEach((item, index, queue) => {
-			if (func.call(thisArg, item, index, queue)) {
+		for (let i = 0; i < this._size; i++) {
+			const item = this._elements[this.slot(i)] as ItemT;
+
+			if (func.call(thisArg, item, i, this)) {
 				values.push(item);
 			}
-		});
+		}
 
 		return values;
 	}
@@ -244,7 +304,8 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 	}
 
 	/**
-	 * Call func for each item, front to rear.
+	 * Call func for each item, front to rear. Allocates nothing, so prefer it
+	 * over `for...of` on a hot path.
 	 *
 	 * @remarks
 	 * Like `Map` / `Set`, func receives the queue itself as its third argument,
@@ -304,14 +365,29 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 		opts?: QueryOptions
 	): QueryResult<ItemT>[] {
 		const resultsArray: QueryResult<ItemT>[] = [];
-		const options = this.queryOptions(opts);
+		const limit = this.queryLimit(opts);
+		const many = Array.isArray(filters);
+
+		// An empty filter array matches nothing.
+		if (many && filters.length === 0) {
+			return resultsArray;
+		}
 
 		// Stops walking as soon as the limit is reached.
-		for (let i = 0; i < this._size && resultsArray.length < options.limit; i++) {
+		for (let i = 0; i < this._size && resultsArray.length < limit; i++) {
 			const item = this._elements[this.slot(i)] as ItemT;
-			const take = Array.isArray(filters)
-				? filters.length > 0 && filters.every((filter) => filter(item))
-				: filters(item);
+			let take = true;
+
+			if (many) {
+				for (let f = 0; f < filters.length; f++) {
+					if (!filters[f](item)) {
+						take = false;
+						break;
+					}
+				}
+			} else {
+				take = filters(item);
+			}
 
 			if (!take) {
 				continue;
@@ -319,7 +395,7 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 
 			resultsArray.push({
 				element: item,
-				key: (): string | null => null,
+				key: queryKeyNull,
 				index: this.indexOf.bind(this, item),
 				delete: this.queryDelete.bind(this, item)
 			});
@@ -329,10 +405,15 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 	}
 
 	/**
-	 * Remove every item. Options are kept.
+	 * Remove every item. Options are kept. The ring buffer is cleared in place
+	 * and reused, so refilling the queue allocates nothing.
 	 */
 	public clearElements(): CircularQueue<ItemT> {
-		this._elements = [];
+		// Slots outside the live range already hold undefined.
+		for (let i = 0; i < this._size; i++) {
+			this._elements[this.slot(i)] = undefined;
+		}
+
 		this._front = 0;
 		this._size = 0;
 
@@ -349,34 +430,23 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 		return this;
 	}
 
-	private pushOne(item: ItemT): boolean {
-		if (this.isFull()) {
-			if (!this.overwrite) {
-				return false;
-			}
-
-			// Full, so the slot after the rear is the front slot: overwrite the
-			// front item and move the front forward.
-			this._elements[this._front] = item;
-			this._front = this.wrap(this._front + 1);
-			return true;
-		}
-
-		this._elements[this.slot(this._size)] = item;
-		this._size++;
-
-		return true;
-	}
-
 	/**
-	 * Ring buffer slot of the item at position from the front.
+	 * Ring buffer slot of the item at position from the front. Position is
+	 * always within [-1, maxSize], so the front plus position lies within
+	 * [-1, 2 * maxSize) and one conditional add or subtract replaces a modulo.
 	 */
 	private slot(position: number): number {
-		return this.wrap(this._front + position);
-	}
+		const n = this._front + position;
 
-	private wrap(n: number): number {
-		return ((n % this.maxSize) + this.maxSize) % this.maxSize;
+		if (n >= this.maxSize) {
+			return n - this.maxSize;
+		}
+
+		if (n < 0) {
+			return n + this.maxSize;
+		}
+
+		return n;
 	}
 
 	/**
@@ -415,15 +485,17 @@ export class CircularQueue<ItemT> implements DataStructure<ItemT> {
 		return item;
 	}
 
-	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {
-		const options: Required<QueryOptions> = {
-			limit: Infinity
-		};
+	/**
+	 * Maximum number of query results: `opts.limit` rounded, when it is a
+	 * number of at least 1, otherwise unlimited.
+	 */
+	private queryLimit(opts?: QueryOptions): number {
+		const limit = opts?.limit;
 
-		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
-			options.limit = Math.round(opts.limit);
+		if (limit && isNumber(limit) && limit >= 1) {
+			return Math.round(limit);
 		}
 
-		return options;
+		return Infinity;
 	}
 }

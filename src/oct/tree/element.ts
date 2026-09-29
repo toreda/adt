@@ -147,22 +147,36 @@ export class OctTreeElement<T> implements TreeElement<T>, ObjectPoolInstance {
 		return this._parent;
 	}
 
-	/** Existing children, in octant order. */
-	public children(): OctTreeElement<T>[] {
-		const result: OctTreeElement<T>[] = [];
+	/**
+	 * Existing children, in octant order. Allocates a new array unless out is
+	 * given; on a hot path, use `child(octant)`, which allocates nothing.
+	 * @param out	Optional array to fill instead. Its previous contents are
+	 * 				replaced and its length set to the child count. The array
+	 * 				object is reused, but V8 shrinks its storage when the length
+	 * 				drops, so a later call with more children can allocate
+	 * 				storage again. For zero allocation use `child(octant)`.
+	 * @returns		out when given, otherwise a new array.
+	 */
+	public children(out?: OctTreeElement<T>[] | null): OctTreeElement<T>[] {
+		const result: OctTreeElement<T>[] = Array.isArray(out) ? out : [];
+		let count = 0;
 
-		for (const child of this._children) {
+		for (let octant = 0; octant < 8; octant++) {
+			const child = this._children[octant];
+
 			if (child) {
-				result.push(child);
+				result[count++] = child;
 			}
 		}
+
+		result.length = count;
 
 		return result;
 	}
 
 	public isLeaf(): boolean {
-		for (const child of this._children) {
-			if (child) {
+		for (let octant = 0; octant < 8; octant++) {
+			if (this._children[octant]) {
 				return false;
 			}
 		}

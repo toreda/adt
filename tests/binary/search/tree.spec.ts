@@ -147,8 +147,29 @@ describe('BinarySearchTree', () => {
 			plain.removeNode(first);
 
 			expect(plain.insert(2)).not.toBe(first);
-			expect(first.value()).toBe(1);
+			expect(first.value()).toBeNull();
 			expect(first._tree).toBeNull();
+		});
+
+		it('blanks a removed node with pooling disabled but still returns its item', () => {
+			const plain = new BinarySearchTree<number>(byNumber, [50, 30, 70, 20, 40], {
+				disableElementPooling: true
+			});
+			const inner = plain.find(30)!;
+			const leaf = plain.find(20)!;
+
+			expect(plain.removeNode(inner)).toBe(30);
+			expect(plain.remove(20)).toBe(20);
+
+			for (const node of [inner, leaf]) {
+				expect(node.value()).toBeNull();
+				expect(node._tree).toBeNull();
+				expect(node._linkId).toBe(0);
+				expect(node.parent()).toBeNull();
+				expect(node.isLeaf()).toBe(true);
+			}
+			expect(plain.values()).toEqual([40, 50, 70]);
+			expectValid(plain);
 		});
 
 		it('behaves the same with pooling disabled', () => {
@@ -522,6 +543,99 @@ describe('BinarySearchTree', () => {
 			expect(unique.values()).toEqual([50, 70, 90]);
 		});
 
+		it('relinks the same node when the item moves, keeping its identity and link id', () => {
+			const cases: [number, number][] = [
+				[50, 10],
+				[50, 90],
+				[30, 65],
+				[20, 85],
+				[80, 5],
+				[40, 55]
+			];
+
+			for (const [from, to] of cases) {
+				const numbers = new BinarySearchTree<number>(byNumber, [50, 30, 70, 20, 40, 60, 80]);
+				const node = numbers.find(from)!;
+				const linkId = node._linkId;
+				const inUse = poolOf(numbers)!.size();
+
+				expect(numbers.update(node, to)).toBe(node);
+				expect(node._tree).toBe(numbers);
+				expect(node._linkId).toBe(linkId);
+				expect(numbers.find(to)).toBe(node);
+				expect(numbers.size()).toBe(7);
+				expect(poolOf(numbers)!.size()).toBe(inUse);
+				expectValid(numbers);
+			}
+		});
+
+		it('moving an item neither releases nor allocates a node', () => {
+			const numbers = new BinarySearchTree<number>(byNumber, [50, 30, 70, 20, 40, 60, 80]);
+			const nodes = new Set(numbers.toArray());
+
+			for (let i = 0; i < 100; i++) {
+				const node = numbers.min()!;
+				numbers.update(node, (numbers.max()!.value() as number) + 1);
+			}
+
+			expect(new Set(numbers.toArray())).toEqual(nodes);
+			expect(numbers.size()).toBe(7);
+			expectValid(numbers);
+		});
+
+		it('query delete handles keep working after the item moves', () => {
+			const numbers = new BinarySearchTree<number>(byNumber, [50, 30, 70, 20, 40]);
+			const [match] = numbers.query((v) => v === 30);
+
+			numbers.update(match.element, 90);
+
+			expect(match.delete()).toBe(90);
+			expect(numbers.values()).toEqual([20, 40, 50, 70]);
+			expectValid(numbers);
+		});
+
+		it('moves correctly with pooling disabled', () => {
+			const plain = new BinarySearchTree<number>(byNumber, [50, 30, 70, 20, 40, 60, 80], {
+				disableElementPooling: true
+			});
+			const node = plain.find(30)!;
+
+			const linkId = node._linkId;
+
+			expect(plain.update(node, 75)).toBe(node);
+			expect(node.value()).toBe(75);
+			expect(node._tree).toBe(plain);
+			expect(node._linkId).toBe(linkId);
+			expect(plain.values()).toEqual([20, 40, 50, 60, 70, 75, 80]);
+			expectValid(plain);
+		});
+
+		it('blanks a node dropped by a duplicate-rejected move with pooling disabled', () => {
+			const plain = new BinarySearchTree<number>(byNumber, [50, 30, 70, 20], {
+				allowDuplicates: false,
+				disableElementPooling: true
+			});
+			const node = plain.find(20)!;
+
+			expect(plain.update(node, 70)).toBe('duplicate_not_allowed');
+			expect(node.value()).toBeNull();
+			expect(node._tree).toBeNull();
+			expect(plain.values()).toEqual([30, 50, 70]);
+			expectValid(plain);
+		});
+
+		it('moving into a duplicate when duplicates are disabled drops and recycles the node', () => {
+			const unique = new BinarySearchTree<number>(byNumber, [50, 30, 70, 20], {allowDuplicates: false});
+			const node = unique.find(20)!;
+
+			expect(unique.update(node, 70)).toBe('duplicate_not_allowed');
+			expect(node._tree).toBeNull();
+			expect(unique.size()).toBe(3);
+			expect(poolOf(unique)!.size()).toBe(3);
+			expect(unique.insert(10)).toBe(node);
+			expectValid(unique);
+		});
+
 		it('returns null and changes nothing for null or foreign nodes', () => {
 			const numbers = new BinarySearchTree<number>(byNumber, [1, 2]);
 			const foreign = new BinarySearchTreeElement<number>(5);
@@ -583,6 +697,38 @@ describe('BinarySearchTree', () => {
 			expect(tree.depth(null)).toBeNull();
 			expect(tree.depth(new BinarySearchTreeElement(40))).toBeNull();
 		});
+
+		it('height matches a reference computation on many shapes', () => {
+			const reference = (node: BinarySearchTreeElement<number> | null): number =>
+				node ? 1 + Math.max(reference(node.left()), reference(node.right())) : -1;
+			let seed = 7;
+			const random = (): number => {
+				seed = (seed * 16807) % 2147483647;
+				return seed % 1000;
+			};
+
+			for (let round = 0; round < 50; round++) {
+				const shaped = new BinarySearchTree<number>(byNumber);
+				const count = round * 3;
+				for (let i = 0; i < count; i++) {
+					shaped.insert(random());
+				}
+
+				expect(shaped.height()).toBe(reference(shaped.root()));
+			}
+		});
+
+		it('height handles lopsided and deep trees', () => {
+			expect(new BinarySearchTree(byNumber, [5, 4, 3, 2, 1]).height()).toBe(4);
+			expect(new BinarySearchTree(byNumber, [1, 2, 3, 4, 5]).height()).toBe(4);
+			expect(new BinarySearchTree(byNumber, [3, 1, 2, 5, 4]).height()).toBe(2);
+
+			// Equal items built balanced form one right chain, in O(n log n).
+			const count = 50000;
+			const deep = new BinarySearchTree<number>(() => 0);
+			(deep as any).insertSorted(new Array(count).fill(0));
+			expect(deep.height()).toBe(count - 1);
+		});
 	});
 
 	describe('traversal', () => {
@@ -630,6 +776,31 @@ describe('BinarySearchTree', () => {
 		it('toArray returns nodes in sorted order', () => {
 			expect(tree.toArray().map((node) => node.value())).toEqual([20, 30, 40, 50, 60, 70, 80]);
 		});
+
+		it('in order keeps null and undefined items', () => {
+			const loose = new BinarySearchTree<any>(() => 0, [1, null, undefined, 2]);
+
+			expect(loose.inOrder()).toEqual([1, null, undefined, 2]);
+			expect(loose.values()).toEqual(loose.toArray().map((node) => node.value()));
+		});
+
+		it('iterator reuses one result object across next() calls', () => {
+			const it = tree[Symbol.iterator]();
+			const first = it.next();
+
+			expect(first.value).toBe(20);
+			expect(first.done).toBe(false);
+			expect(it.next()).toBe(first);
+			expect(first.value).toBe(30);
+
+			for (let i = 0; i < 5; i++) {
+				it.next();
+			}
+			const end = it.next();
+			expect(end).toBe(first);
+			expect(end.done).toBe(true);
+			expect(end.value).toBeNull();
+		});
 	});
 
 	describe('forEach', () => {
@@ -653,6 +824,7 @@ describe('BinarySearchTree', () => {
 			const context = {};
 			let received: unknown = null;
 			tree.forEach(function (this: unknown) {
+				// eslint-disable-next-line @typescript-eslint/no-this-alias
 				received = this;
 			}, context);
 
@@ -728,6 +900,37 @@ describe('BinarySearchTree', () => {
 			expect(copy.height()).toBe(count - 1);
 		});
 
+		it('builds the balanced shape with correct parent links', () => {
+			for (let i = 1; i <= 15; i++) {
+				tree.insert(i);
+			}
+			const copy = tree.filter(() => true);
+
+			expect(copy.levelOrder()).toEqual([8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15]);
+			expectValid(copy);
+		});
+
+		it('builds a large balanced tree without recursion', () => {
+			const count = 100000;
+			const source = new BinarySearchTree<number>(byNumber);
+			// Balanced source so building it stays fast.
+			(source as any).insertSorted(new Array(count).fill(0).map((_, i) => i));
+			const copy = source.filter(() => true);
+
+			expect(copy.size()).toBe(count);
+			expect(copy.height()).toBe(Math.floor(Math.log2(count)));
+			expect(copy.min()?.value()).toBe(0);
+			expect(copy.max()?.value()).toBe(count - 1);
+		});
+
+		it('builds a one or two item tree', () => {
+			tree.insertArray([1, 2]);
+
+			expect(tree.filter((e) => e.value() === 2).levelOrder()).toEqual([2]);
+			expect(tree.filter(() => true).levelOrder()).toEqual([1, 2]);
+			expectValid(tree.filter(() => true));
+		});
+
 		it('returns an empty tree when nothing matches', () => {
 			tree.insertArray([1, 2]);
 
@@ -766,6 +969,28 @@ describe('BinarySearchTree', () => {
 			expect(match.delete()).toBeNull();
 			expect(tree.values()).toEqual([20, 40, 50, 70]);
 			expectValid(tree);
+		});
+
+		it('shares key and index functions across results', () => {
+			const results = tree.query(() => true);
+
+			expect(results.length).toBe(5);
+			expect(results[0].key).toBe(results[4].key);
+			expect(results[0].index).toBe(results[4].index);
+			expect(results[4].key()).toBeNull();
+			expect(results[4].index()).toBeNull();
+		});
+
+		it('stops checking filters in an array at the first failure', () => {
+			const second = jest.fn(() => true);
+			tree.query([(v) => v > 45, second]);
+
+			expect(second).toHaveBeenCalledTimes(2);
+		});
+
+		it('rounds a fractional limit', () => {
+			expect(tree.query(() => true, {limit: 2.4}).length).toBe(2);
+			expect(tree.query(() => true, {limit: 2.6}).length).toBe(3);
 		});
 
 		it('stale delete does not remove the item that reused its node', () => {
@@ -811,6 +1036,50 @@ describe('BinarySearchTree', () => {
 				expect(node.parent()).toBeNull();
 				expect(node.isLeaf()).toBe(true);
 			}
+		});
+
+		it('returns every node to the pool and reuses them afterwards', () => {
+			const pooled = new BinarySearchTree<number>(byNumber, [50, 30, 70, 20, 40, 60, 80, 10]);
+			const nodes = new Set(pooled.toArray());
+
+			pooled.clearElements();
+			expect(poolOf(pooled)!.size()).toBe(0);
+
+			pooled.insertArray([1, 2, 3, 4, 5, 6, 7, 8]);
+			expect(new Set(pooled.toArray())).toEqual(nodes);
+			expectValid(pooled);
+		});
+
+		it('unlinks every node with pooling disabled', () => {
+			const plain = new BinarySearchTree<number>(byNumber, [50, 30, 70, 20, 40, 60, 80], {
+				disableElementPooling: true
+			});
+			const nodes = plain.toArray();
+			plain.clearElements();
+
+			for (const node of nodes) {
+				expect(node._tree).toBeNull();
+				expect(node._linkId).toBe(0);
+				expect(node.parent()).toBeNull();
+				expect(node.isLeaf()).toBe(true);
+				expect(node.value()).toBeNull();
+			}
+			expect(plain.size()).toBe(0);
+			expect(plain.root()).toBeNull();
+		});
+
+		it('clears a deep degenerate tree without building an array', () => {
+			// Equal items built balanced form one right chain, in O(n log n).
+			const count = 50000;
+			const deep = new BinarySearchTree<number>(() => 0);
+			(deep as any).insertSorted(new Array(count).fill(0));
+			const toArray = jest.spyOn(deep, 'toArray');
+
+			deep.clearElements();
+
+			expect(toArray).not.toHaveBeenCalled();
+			expect(deep.size()).toBe(0);
+			expect(poolOf(deep)!.size()).toBe(0);
 		});
 
 		it('reset keeps the comparator and returns the tree', () => {

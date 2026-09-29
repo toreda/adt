@@ -731,5 +731,889 @@ describe('QuadTree', () => {
 			unique.insert({x: 1, y: 1});
 			expect(unique.size()).toBe(1);
 		});
+
+		it('releases every node back to the pool', () => {
+			const pooled = new QuadTree<Pt>(byPoint, randomPoints(200, 18));
+			const nodes = pooled.toArray();
+			expect(poolOf(pooled)!.size()).toBe(200);
+
+			pooled.clearElements();
+
+			expect(poolOf(pooled)!.size()).toBe(0);
+			expect(nodes.every((n) => n._tree === null && n.value() === null && n.isLeaf())).toBe(true);
+			expect(pooled.insert({x: 1, y: 1})).toBeInstanceOf(QuadTreeElement);
+			expectValid(pooled);
+		});
+
+		it('unlinks every node when pooling is off', () => {
+			const unpooled = new QuadTree<Pt>(byPoint, randomPoints(200, 19), {disableElementPooling: true});
+			const nodes = unpooled.toArray();
+			unpooled.clearElements();
+
+			expect(unpooled.root()).toBeNull();
+			expect(
+				nodes.every((n) => n._tree === null && n._linkId === 0 && n.parent() === null && n.isLeaf())
+			).toBe(true);
+		});
+	});
+
+	describe('HOT PATH', () => {
+		/** Internal scratch state must be empty between calls, holding no nodes. */
+		const expectScratchClean = (target: QuadTree<any>): void => {
+			const internal = target as any;
+
+			expect(internal.stackTop).toBe(0);
+			expect(internal.stackNodes.every((n: unknown) => n === null)).toBe(true);
+			expect(internal.eachTop).toBe(0);
+			expect(internal.eachNodes.every((n: unknown) => n === null)).toBe(true);
+			expect(internal.slotParent).toBeNull();
+		};
+
+		/**
+		 * Reference for relinking removal: the tree built by inserting every
+		 * item outside node's subtree in pre-order, then node's descendants in
+		 * pre-order. This is the shape the old two-array implementation built.
+		 */
+		const expectedAfterRemoval = (source: QuadTree<Pt>, node: QuadTreeElement<Pt>): Pt[] => {
+			const inside = new Set<QuadTreeElement<Pt>>();
+			const stack = [node];
+
+			while (stack.length) {
+				const curr = stack.pop()!;
+				inside.add(curr);
+				stack.push(...curr.children());
+			}
+
+			const all = source.toArray();
+			const outside = all.filter((n) => !inside.has(n)).map((n) => n.value()!);
+			const orphans = all.filter((n) => inside.has(n) && n !== node).map((n) => n.value()!);
+
+			return new QuadTree<Pt>(byPoint, [...outside, ...orphans]).preOrder();
+		};
+
+		describe('withinBounds with an out array', () => {
+			it('fills and returns the given array, replacing its contents', () => {
+				tree.insertArray(randomPoints(300, 20));
+				const out: QuadTreeElement<Pt>[] = [tree.root()!, tree.root()!, tree.root()!];
+				const bounds = {minX: 10, minY: 10, maxX: 60, maxY: 40};
+
+				const result = tree.withinBounds(bounds, out);
+
+				expect(result).toBe(out);
+				expect(out).toEqual(tree.withinBounds(bounds));
+			});
+
+			it('shrinks the array when fewer nodes match, and empties it on invalid bounds', () => {
+				tree.insertArray(randomPoints(300, 21));
+				const out: QuadTreeElement<Pt>[] = [];
+
+				tree.withinBounds({minX: 0, minY: 0, maxX: 100, maxY: 100}, out);
+				expect(out.length).toBe(300);
+
+				tree.withinBounds({minX: 0, minY: 0, maxX: 10, maxY: 10}, out);
+				expect(out).toEqual(tree.withinBounds({minX: 0, minY: 0, maxX: 10, maxY: 10}));
+
+				expect(tree.withinBounds({minX: 5, minY: 0, maxX: 1, maxY: 1}, out)).toBe(out);
+				expect(out.length).toBe(0);
+			});
+
+			it('ignores a non-array out and returns a new array', () => {
+				tree.insert({x: 1, y: 1});
+
+				expect(tree.withinBounds({minX: 0, minY: 0, maxX: 2, maxY: 2}, 'nope' as any).length).toBe(1);
+				expect(tree.withinBounds({minX: 0, minY: 0, maxX: 2, maxY: 2}, null).length).toBe(1);
+			});
+
+			it('empties out for an empty tree', () => {
+				const out = [new QuadTreeElement<Pt>()];
+
+				expect(tree.withinBounds({minX: 0, minY: 0, maxX: 1, maxY: 1}, out)).toBe(out);
+				expect(out.length).toBe(0);
+			});
+		});
+
+		describe('withinRadius with an out array', () => {
+			it('fills and returns the given array, matching a brute force scan', () => {
+				const points = randomPoints(300, 22);
+				tree.insertArray(points);
+				const out: QuadTreeElement<Pt>[] = [];
+				const random = seeded(23);
+
+				for (let i = 0; i < 30; i++) {
+					const center = {x: random() * 100, y: random() * 100};
+					const radius = random() * 30;
+					const expected = points
+						.filter((p) => distance(p, center) <= radius)
+						.map((p) => p.id!)
+						.sort((a, b) => a - b);
+
+					expect(tree.withinRadius(center, radius, out)).toBe(out);
+					expect(ids(out)).toEqual(expected);
+				}
+			});
+
+			it('empties out on invalid input', () => {
+				tree.insertArray(randomPoints(20, 24));
+				const out = tree.withinRadius({x: 50, y: 50}, 100);
+				expect(out.length).toBe(20);
+
+				expect(tree.withinRadius({x: 50, y: 50}, -1, out)).toBe(out);
+				expect(out.length).toBe(0);
+			});
+		});
+
+		it('searches leave the scratch stacks empty and do not grow them once warm', () => {
+			tree.insertArray(randomPoints(500, 25));
+			const internal = tree as any;
+			const random = seeded(26);
+			const out: QuadTreeElement<Pt>[] = [];
+
+			const run = (): void => {
+				for (let i = 0; i < 50; i++) {
+					const point = {x: random() * 100, y: random() * 100};
+					tree.nearest(point);
+					tree.withinRadius(point, 15, out);
+					tree.withinBounds(
+						{minX: point.x, minY: point.y, maxX: point.x + 20, maxY: point.y + 20},
+						out
+					);
+				}
+			};
+
+			run();
+			expectScratchClean(tree);
+			const nodesLength = internal.stackNodes.length;
+			const regionsLength = internal.stackRegions.length;
+
+			run();
+			expect(internal.stackNodes.length).toBe(nodesLength);
+			expect(internal.stackRegions.length).toBe(regionsLength);
+			expectScratchClean(tree);
+		});
+
+		it('nearest matches a brute force scan across mixed calls', () => {
+			const points = randomPoints(300, 27);
+			tree.insertArray(points);
+			const random = seeded(28);
+
+			for (let i = 0; i < 100; i++) {
+				const target = {x: random() * 140 - 20, y: random() * 140 - 20};
+				// Interleave another region walk to check stack state is reset.
+				tree.withinRadius(target, 10);
+				const best = Math.min(...points.map((p) => distance(p, target)));
+
+				expect(distance(tree.nearest(target)!.value()!, target)).toBe(best);
+			}
+		});
+
+		describe('removal relinking', () => {
+			it('removing a leaf moves no other node', () => {
+				tree.insertArray(randomPoints(200, 29));
+				const nodes = tree.toArray();
+				const leaf = nodes.find((n) => n.isLeaf() && n.parent() !== null)!;
+				const parents = nodes.map((n) => n.parent());
+
+				expect(tree.removeNode(leaf)).not.toBeNull();
+
+				nodes.forEach((n, i) => {
+					if (n !== leaf) {
+						expect(n.parent()).toBe(parents[i]);
+					}
+				});
+				expectValid(tree);
+				expectScratchClean(tree);
+			});
+
+			it('removing an inner node relinks its subtree in pre-order', () => {
+				const points = randomPoints(300, 30);
+				const random = seeded(31);
+
+				for (let round = 0; round < 20; round++) {
+					tree.reset();
+					tree.insertArray(points);
+					const nodes = tree.toArray();
+					const inner = nodes.filter((n) => !n.isLeaf());
+					const node = inner[Math.floor(random() * inner.length)];
+					const expected = expectedAfterRemoval(tree, node);
+
+					tree.removeNode(node);
+
+					expect(tree.preOrder()).toEqual(expected);
+					expectValid(tree);
+					expectScratchClean(tree);
+				}
+			});
+
+			it('moving a leaf with update relinks nothing else', () => {
+				tree.insertArray(randomPoints(200, 32));
+				const nodes = tree.toArray();
+				const leaf = nodes.find((n) => n.isLeaf() && n.parent() !== null)!;
+				const others = nodes.filter((n) => n !== leaf);
+				const parents = others.map((n) => n.parent());
+				const item = leaf.value()!;
+				item.x = 250;
+				item.y = 250;
+
+				expect(tree.update(leaf, item)).toBe(leaf);
+
+				others.forEach((n, i) => expect(n.parent()).toBe(parents[i]));
+				expect(tree.find({x: 250, y: 250})).toBe(leaf);
+				expectValid(tree);
+			});
+
+			it('moving an inner node with update keeps every handle valid', () => {
+				const points = randomPoints(200, 33);
+				const nodes = points.map((p) => tree.insert(p) as QuadTreeElement<Pt>);
+				const random = seeded(34);
+
+				for (let i = 0; i < 200; i++) {
+					const node = nodes[Math.floor(random() * nodes.length)];
+					const item = node.value()!;
+					item.x = Math.round(random() * 100);
+					item.y = Math.round(random() * 100);
+
+					expect(tree.update(node, item)).toBe(node);
+				}
+
+				expect(tree.size()).toBe(200);
+				expectValid(tree);
+				expectScratchClean(tree);
+			});
+		});
+
+		describe('duplicate check folded into the descent', () => {
+			it('rejects a duplicate of a node deep in the tree', () => {
+				const unique = new QuadTree<Pt>(byPoint, [], {allowDuplicates: false});
+				unique.insertArray(randomPoints(300, 35));
+				const deepest = unique
+					.toArray()
+					.reduce((a, b) => (unique.depth(b)! > unique.depth(a)! ? b : a));
+				const size = unique.size();
+
+				expect(unique.insert({x: deepest.x(), y: deepest.y()})).toBe('duplicate_not_allowed');
+				expect(unique.size()).toBe(size);
+				expectValid(unique);
+				expectScratchClean(unique);
+			});
+
+			it('update to an occupied position deep in the tree removes the node', () => {
+				const unique = new QuadTree<Pt>(byPoint, [], {allowDuplicates: false});
+				unique.insertArray(randomPoints(300, 36));
+				const nodes = unique.toArray();
+				const deepest = nodes.reduce((a, b) => (unique.depth(b)! > unique.depth(a)! ? b : a));
+				const mover = nodes[0];
+				const item = mover.value()!;
+				item.x = deepest.x();
+				item.y = deepest.y();
+				const size = unique.size();
+
+				expect(unique.update(mover, item)).toBe('duplicate_not_allowed');
+				expect(unique.size()).toBe(size - 1);
+				expect(mover._tree).toBeNull();
+				expect(unique.find({x: item.x, y: item.y})).toBe(deepest);
+				expectValid(unique);
+			});
+
+			it('insert with duplicates rejected keeps every unique position', () => {
+				const unique = new QuadTree<Pt>(byPoint, [], {allowDuplicates: false});
+				const points = randomPoints(500, 37, 20);
+				unique.insertArray(points);
+				const positions = new Set(points.map((p) => `${p.x},${p.y}`));
+
+				expect(unique.size()).toBe(positions.size);
+				expectValid(unique);
+			});
+		});
+
+		describe('forEach', () => {
+			it('reuses its scratch arrays and leaves them empty', () => {
+				tree.insertArray(randomPoints(300, 38));
+				const internal = tree as any;
+				let count = 0;
+
+				tree.forEach(() => count++);
+				const length = internal.eachNodes.length;
+				tree.forEach(() => count++);
+
+				expect(count).toBe(600);
+				expect(internal.eachNodes.length).toBe(length);
+				expectScratchClean(tree);
+			});
+
+			it('supports a nested forEach from func', () => {
+				tree.insertArray(randomPoints(20, 39));
+				const pairs: string[] = [];
+
+				tree.forEach((outer, i) => {
+					tree.forEach((inner, j) => {
+						pairs.push(`${i}:${j}`);
+						expect(inner._tree).toBe(tree);
+					});
+					expect(outer._tree).toBe(tree);
+				});
+
+				expect(pairs.length).toBe(400);
+				expect(new Set(pairs).size).toBe(400);
+				expectScratchClean(tree);
+			});
+
+			it('resets its scratch state when func throws', () => {
+				tree.insertArray(randomPoints(20, 40));
+
+				expect(() =>
+					tree.forEach((_elem, idx) => {
+						if (idx === 5) {
+							throw new Error('stop');
+						}
+					})
+				).toThrow('stop');
+				expectScratchClean(tree);
+
+				let count = 0;
+				tree.forEach(() => count++);
+				expect(count).toBe(20);
+			});
+
+			it('visits moved elements once and skips removed ones', () => {
+				tree.insertArray(randomPoints(100, 41));
+				const nodes = tree.toArray();
+				const seen = new Set<QuadTreeElement<Pt>>();
+				let visits = 0;
+
+				tree.forEach((elem, idx) => {
+					visits++;
+					seen.add(elem);
+					// Move this element and remove one far ahead.
+					const item = elem.value()!;
+					item.x = 100 - item.x;
+					tree.update(elem, item);
+
+					const later = nodes[nodes.length - 1 - idx];
+					if (idx < 25 && later._tree === tree) {
+						tree.removeNode(later);
+					}
+				});
+
+				expect(visits).toBe(75);
+				expect(seen.size).toBe(75);
+				expect(tree.size()).toBe(75);
+				expectValid(tree);
+			});
+		});
+
+		describe('iterator', () => {
+			it('reuses one result object', () => {
+				tree.insertArray(randomPoints(5, 42));
+				const iterator = tree[Symbol.iterator]();
+				const first = iterator.next();
+				const second = iterator.next();
+
+				expect(second).toBe(first);
+				expect(first.done).toBe(false);
+			});
+
+			it('yields every item then done, repeatedly', () => {
+				const points = randomPoints(50, 43);
+				tree.insertArray(points);
+				const iterator = tree[Symbol.iterator]();
+				const values: Pt[] = [];
+
+				for (let r = iterator.next(); !r.done; r = iterator.next()) {
+					values.push(r.value!);
+				}
+
+				expect(values).toEqual(tree.preOrder());
+				expect(iterator.next().done).toBe(true);
+				expect(iterator.next().value).toBeNull();
+			});
+
+			it('ends instead of yielding a removed node with pooling on', () => {
+				// Root 0 then 1 (NE of root) then 2 (NE of 1).
+				tree.insertArray([
+					{x: 0, y: 0, id: 0},
+					{x: 1, y: 1, id: 1},
+					{x: 2, y: 2, id: 2}
+				]);
+				const seen: Array<Pt | null> = [];
+
+				for (const item of tree) {
+					seen.push(item);
+
+					if (item!.id === 0) {
+						tree.remove(tree.find({x: 1, y: 1})!.value()!);
+					}
+				}
+
+				// Node 1 was due next and is gone: no stray null, no removed item.
+				expect(seen.map((v) => v?.id)).toEqual([0]);
+			});
+
+			it('ends instead of yielding a removed item with pooling off', () => {
+				const unpooled = new QuadTree<Pt>(byPoint, [], {disableElementPooling: true});
+				const removed = {x: 1, y: 1, id: 1};
+				unpooled.insertArray([{x: 0, y: 0, id: 0}, removed, {x: 2, y: 2, id: 2}]);
+				const seen: Array<Pt | null> = [];
+
+				for (const item of unpooled) {
+					seen.push(item);
+
+					if (item!.id === 0) {
+						unpooled.remove(removed);
+					}
+				}
+
+				expect(seen).not.toContain(removed);
+				expect(seen).not.toContain(null);
+			});
+
+			it('ends when the node due next was recycled for another item', () => {
+				tree.insertArray([
+					{x: 0, y: 0, id: 0},
+					{x: 1, y: 1, id: 1}
+				]);
+				const iterator = tree[Symbol.iterator]();
+				iterator.next();
+
+				const due = tree.find({x: 1, y: 1})!;
+				tree.removeNode(due);
+				// Recycled with a new link id, holding a different item.
+				expect(tree.insert({x: 5, y: 5, id: 9})).toBe(due);
+
+				expect(iterator.next().done).toBe(true);
+			});
+		});
+
+		describe('height', () => {
+			it('matches a recursive depth scan', () => {
+				const random = seeded(44);
+
+				for (let round = 0; round < 10; round++) {
+					tree.reset();
+					tree.insertArray(randomPoints(Math.floor(random() * 300) + 1, round + 100));
+					const expected = Math.max(...tree.toArray().map((n) => tree.depth(n)!));
+
+					expect(tree.height()).toBe(expected);
+				}
+			});
+
+			it('handles a chain', () => {
+				for (let i = 0; i < 50; i++) {
+					tree.insert({x: i, y: i});
+				}
+
+				expect(tree.height()).toBe(49);
+			});
+		});
+
+		describe('traversals keep the scratch stack clean', () => {
+			it('postOrder and levelOrder', () => {
+				tree.insertArray(randomPoints(100, 45));
+
+				expect(tree.postOrder().length).toBe(100);
+				expectScratchClean(tree);
+				expect(tree.levelOrder().length).toBe(100);
+				expectScratchClean(tree);
+				expect(tree.values()).toEqual(tree.toArray().map((n) => n.value()));
+			});
+		});
+
+		describe('query', () => {
+			it('shares key and index functions across results', () => {
+				tree.insertArray(randomPoints(10, 46));
+				const [a, b] = tree.query(() => true);
+
+				expect(a.key).toBe(b.key);
+				expect(a.index).toBe(b.index);
+			});
+
+			it('rounds limit and ignores invalid ones', () => {
+				tree.insertArray(randomPoints(10, 47));
+
+				expect(tree.query(() => true, {limit: 2.4}).length).toBe(2);
+				expect(tree.query(() => true, {limit: 0}).length).toBe(10);
+				expect(tree.query(() => true, {limit: NaN}).length).toBe(10);
+				expect(tree.query(() => true, {limit: '3' as any}).length).toBe(10);
+			});
+
+			it('stops at the first failing filter', () => {
+				tree.insertArray(randomPoints(10, 48));
+				const second = jest.fn(() => true);
+
+				expect(tree.query([() => false, second])).toEqual([]);
+				expect(second).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('children with an out array', () => {
+			it('fills and returns the given array', () => {
+				tree.insertArray([
+					{x: 0, y: 0},
+					{x: 1, y: 1},
+					{x: -1, y: -1}
+				]);
+				const root = tree.root()!;
+				const out: QuadTreeElement<Pt>[] = [root, root, root, root];
+
+				expect(root.children(out)).toBe(out);
+				expect(out).toEqual([root.child(0), root.child(3)]);
+				expect(root.child(0)!.children(out)).toEqual([]);
+				expect(root.children()).toEqual([root.child(0), root.child(3)]);
+			});
+		});
+
+		describe('forEachWithinBounds and forEachWithinRadius', () => {
+			type El = QuadTreeElement<Pt>;
+
+			const visitBounds = (target: QuadTree<Pt>, bounds: any): El[] => {
+				const seen: El[] = [];
+				target.forEachWithinBounds(bounds, (element) => {
+					seen.push(element);
+				});
+				return seen;
+			};
+
+			const visitRadius = (target: QuadTree<Pt>, point: any, radius: any): El[] => {
+				const seen: El[] = [];
+				target.forEachWithinRadius(point, radius, (element) => {
+					seen.push(element);
+				});
+				return seen;
+			};
+
+			const randomBounds = (random: () => number): any => {
+				const x1 = Math.round(random() * 100);
+				const x2 = Math.round(random() * 100);
+				const y1 = Math.round(random() * 100);
+				const y2 = Math.round(random() * 100);
+				return {
+					minX: Math.min(x1, x2),
+					minY: Math.min(y1, y2),
+					maxX: Math.max(x1, x2),
+					maxY: Math.max(y1, y2)
+				};
+			};
+
+			it('visit the same nodes in the same order as the array methods, on random data', () => {
+				tree.insertArray(randomPoints(400, 60));
+				const random = seeded(61);
+
+				for (let i = 0; i < 40; i++) {
+					const bounds = randomBounds(random);
+					const expected = tree.withinBounds(bounds);
+					const indexes: number[] = [];
+					const seen: El[] = [];
+
+					const returned = tree.forEachWithinBounds(bounds, (element, index, owner) => {
+						expect(owner).toBe(tree);
+						seen.push(element);
+						indexes.push(index);
+					});
+
+					expect(returned).toBe(tree);
+					expect(seen).toEqual(expected);
+					expect(indexes).toEqual(expected.map((_, idx) => idx));
+
+					const center = {x: random() * 120 - 10, y: random() * 120 - 10};
+					const radius = random() * 35;
+					const expectedRadius = tree.withinRadius(center, radius);
+					const radiusIndexes: number[] = [];
+					const seenRadius: El[] = [];
+
+					const returnedRadius = tree.forEachWithinRadius(
+						center,
+						radius,
+						(element, index, owner) => {
+							expect(owner).toBe(tree);
+							seenRadius.push(element);
+							radiusIndexes.push(index);
+						}
+					);
+
+					expect(returnedRadius).toBe(tree);
+					expect(seenRadius).toEqual(expectedRadius);
+					expect(radiusIndexes).toEqual(expectedRadius.map((_, idx) => idx));
+				}
+
+				expectScratchClean(tree);
+			});
+
+			it('match a brute force scan', () => {
+				const points = randomPoints(300, 62);
+				tree.insertArray(points);
+				const center = {x: 40, y: 55};
+				const byId = (nodes: El[]): number[] => ids(nodes);
+
+				expect(byId(visitRadius(tree, center, 20))).toEqual(
+					points.filter((p) => distance(p, center) <= 20).map((p) => p.id!)
+				);
+				expect(byId(visitBounds(tree, {minX: 10, minY: 20, maxX: 50, maxY: 70}))).toEqual(
+					points.filter((p) => p.x >= 10 && p.x <= 50 && p.y >= 20 && p.y <= 70).map((p) => p.id!)
+				);
+			});
+
+			it('call func with thisArg as this, and undefined when omitted', () => {
+				tree.insertArray(randomPoints(20, 63));
+				const context = {name: 'ctx'};
+				const bounds = {minX: 0, minY: 0, maxX: 100, maxY: 100};
+				const thisValues: unknown[] = [];
+				const record = function (this: unknown): void {
+					thisValues.push(this);
+				};
+
+				tree.forEachWithinBounds(bounds, record, context);
+				tree.forEachWithinRadius({x: 50, y: 50}, 200, record, context);
+				expect(thisValues.length).toBe(40);
+				expect(thisValues.every((value) => value === context)).toBe(true);
+
+				thisValues.length = 0;
+				tree.forEachWithinBounds(bounds, record);
+				tree.forEachWithinRadius({x: 50, y: 50}, 200, record);
+				expect(thisValues.length).toBe(40);
+				expect(thisValues.every((value) => value === undefined)).toBe(true);
+			});
+
+			it('visit nothing on invalid bounds, point, or radius', () => {
+				tree.insertArray(randomPoints(50, 64));
+				const func = jest.fn();
+				const badBounds = [
+					null,
+					undefined,
+					'bounds',
+					{},
+					{minX: 0, minY: 0, maxX: 10},
+					{minX: NaN, minY: 0, maxX: 10, maxY: 10},
+					{minX: 0, minY: 0, maxX: Infinity, maxY: 10},
+					{minX: 20, minY: 0, maxX: 10, maxY: 10},
+					{minX: 0, minY: 20, maxX: 10, maxY: 10},
+					{minX: '0', minY: 0, maxX: 10, maxY: 10}
+				];
+				const badPoints = [
+					null,
+					undefined,
+					5,
+					{x: 1},
+					{x: NaN, y: 1},
+					{x: 1, y: -Infinity},
+					{x: '1', y: 1}
+				];
+				const badRadii = [-1, NaN, Infinity, -Infinity, '5', null, undefined];
+
+				for (const bounds of badBounds) {
+					expect(tree.forEachWithinBounds(bounds as any, func)).toBe(tree);
+				}
+
+				for (const point of badPoints) {
+					expect(tree.forEachWithinRadius(point as any, 10, func)).toBe(tree);
+				}
+
+				for (const radius of badRadii) {
+					expect(tree.forEachWithinRadius({x: 50, y: 50}, radius as any, func)).toBe(tree);
+				}
+
+				expect(func).not.toHaveBeenCalled();
+				expectScratchClean(tree);
+			});
+
+			it('visit nothing on an empty tree', () => {
+				const func = jest.fn();
+
+				expect(tree.forEachWithinBounds({minX: -1e9, minY: -1e9, maxX: 1e9, maxY: 1e9}, func)).toBe(
+					tree
+				);
+				expect(tree.forEachWithinRadius({x: 0, y: 0}, 1e9, func)).toBe(tree);
+				expect(func).not.toHaveBeenCalled();
+				expectScratchClean(tree);
+			});
+
+			it('radius 0 visits only nodes exactly at point', () => {
+				tree.insertArray([
+					{x: 5, y: 5, id: 0},
+					{x: 5, y: 5, id: 1},
+					{x: 5, y: 6, id: 2}
+				]);
+
+				expect(ids(visitRadius(tree, {x: 5, y: 5}, 0))).toEqual([0, 1]);
+			});
+
+			describe('mutation from func', () => {
+				for (const pooling of [true, false]) {
+					const label = pooling ? 'pooling on' : 'pooling off';
+					const make = (): QuadTree<Pt> =>
+						new QuadTree<Pt>(byPoint, randomPoints(300, 65), {disableElementPooling: !pooling});
+					const bounds = {minX: 20, minY: 20, maxX: 70, maxY: 70};
+					const center = {x: 45, y: 45};
+
+					it(`func may remove each visited match (${label})`, () => {
+						const target = make();
+						const expected = target.withinBounds(bounds).map((n) => n.value()!);
+						const seen: Pt[] = [];
+
+						target.forEachWithinBounds(bounds, (element, index, owner) => {
+							seen.push(element.value()!);
+							expect(owner.removeNode(element)).toBe(seen[index]);
+						});
+
+						expect(seen).toEqual(expected);
+						expect(target.size()).toBe(300 - expected.length);
+						expect(target.withinBounds(bounds)).toEqual([]);
+						expectValid(target);
+						expectScratchClean(target);
+					});
+
+					it(`skips matches removed before they are reached (${label})`, () => {
+						const target = make();
+						const expected = target.withinRadius(center, 20);
+						expect(expected.length).toBeGreaterThan(4);
+						const victim = expected[expected.length - 1];
+						const victimItem = victim.value()!;
+						const seen: Pt[] = [];
+
+						target.forEachWithinRadius(center, 20, (element, index) => {
+							seen.push(element.value()!);
+
+							if (index === 0) {
+								target.removeNode(victim);
+								// With pooling on this recycles the victim's node for
+								// a new item inside the radius; it must not be visited.
+								target.insert({x: center.x, y: center.y, id: -1});
+							}
+						});
+
+						expect(seen).toEqual(expected.slice(0, -1).map((n) => n.value()!));
+						expect(seen).not.toContain(victimItem);
+						expect(seen.some((p) => p.id === -1)).toBe(false);
+						expectValid(target);
+						expectScratchClean(target);
+					});
+
+					it(`visits moved matches once and never visits inserted items (${label})`, () => {
+						const target = make();
+						const expected = target.withinBounds(bounds).map((n) => n.value()!);
+						const seen: Pt[] = [];
+
+						target.forEachWithinBounds(bounds, (element) => {
+							const item = element.value()!;
+							seen.push(item);
+							// Move every match out of bounds, and add a new match.
+							item.x += 200;
+							target.update(element, item);
+							target.insert({x: 50, y: 50, id: -1});
+						});
+
+						expect(seen).toEqual(expected);
+						expect(target.size()).toBe(300 + expected.length);
+						expect(target.withinBounds(bounds).every((n) => n.value()!.id === -1)).toBe(true);
+						expectValid(target);
+						expectScratchClean(target);
+					});
+
+					it(`stops visiting once func clears the tree (${label})`, () => {
+						const target = make();
+						const func = jest.fn(() => {
+							target.clearElements();
+						});
+
+						target.forEachWithinRadius(center, 30, func);
+
+						expect(func).toHaveBeenCalledTimes(1);
+						expect(target.size()).toBe(0);
+						expectScratchClean(target);
+					});
+				}
+			});
+
+			describe('scratch state', () => {
+				it('nested visitors and queries from func see correct results', () => {
+					tree.insertArray(randomPoints(300, 66));
+					const outer = {minX: 30, minY: 30, maxX: 40, maxY: 40};
+					const inner = {minX: 0, minY: 0, maxX: 60, maxY: 60};
+					const expectedInner = tree.withinBounds(inner);
+					const expectedOuter = tree.withinBounds(outer);
+					const expectedRadius = tree.withinRadius({x: 10, y: 80}, 15);
+					const seen: El[] = [];
+
+					tree.forEachWithinBounds(outer, (element) => {
+						seen.push(element);
+						expect(visitBounds(tree, inner)).toEqual(expectedInner);
+						expect(visitRadius(tree, {x: 10, y: 80}, 15)).toEqual(expectedRadius);
+						expect(tree.withinBounds(inner)).toEqual(expectedInner);
+						expect(tree.withinRadius({x: 10, y: 80}, 15)).toEqual(expectedRadius);
+						const near = tree.nearest({x: element.x(), y: element.y()})!;
+						expect([near.x(), near.y()]).toEqual([element.x(), element.y()]);
+
+						let count = 0;
+						tree.forEach(() => {
+							count++;
+						});
+						expect(count).toBe(300);
+					});
+
+					expect(seen).toEqual(expectedOuter);
+					expectScratchClean(tree);
+				});
+
+				it('sequential calls of different sizes do not see earlier matches', () => {
+					tree.insertArray(randomPoints(300, 67));
+					const big = {minX: 0, minY: 0, maxX: 100, maxY: 100};
+					const small = {minX: 0, minY: 0, maxX: 15, maxY: 15};
+
+					expect(visitBounds(tree, big)).toEqual(tree.withinBounds(big));
+					expect(visitBounds(tree, small)).toEqual(tree.withinBounds(small));
+					expect(visitRadius(tree, {x: 50, y: 50}, 100)).toEqual(
+						tree.withinRadius({x: 50, y: 50}, 100)
+					);
+					expect(visitRadius(tree, {x: 90, y: 5}, 5)).toEqual(tree.withinRadius({x: 90, y: 5}, 5));
+					expect(visitBounds(tree, {minX: 5, minY: 0, maxX: 1, maxY: 1})).toEqual([]);
+					expectScratchClean(tree);
+				});
+
+				it('releases the snapshot when func throws', () => {
+					tree.insertArray(randomPoints(100, 68));
+					const bounds = {minX: 0, minY: 0, maxX: 100, maxY: 100};
+					const error = new Error('stop');
+
+					expect(() =>
+						tree.forEachWithinBounds(bounds, () => {
+							throw error;
+						})
+					).toThrow(error);
+					expectScratchClean(tree);
+
+					expect(() =>
+						tree.forEachWithinRadius({x: 50, y: 50}, 30, () => {
+							throw error;
+						})
+					).toThrow(error);
+					expectScratchClean(tree);
+
+					expect(visitBounds(tree, bounds)).toEqual(tree.withinBounds(bounds));
+				});
+
+				it('do not grow the scratch arrays once warm', () => {
+					tree.insertArray(randomPoints(500, 69));
+					const internal = tree as any;
+					const random = seeded(70);
+					const func = (): void => {};
+
+					tree.forEachWithinBounds({minX: 0, minY: 0, maxX: 100, maxY: 100}, func);
+					tree.forEachWithinRadius({x: 50, y: 50}, 200, func);
+					const eachLength = internal.eachNodes.length;
+					const idsLength = internal.eachLinkIds.length;
+					const stackLength = internal.stackNodes.length;
+					const regionsLength = internal.stackRegions.length;
+
+					for (let i = 0; i < 50; i++) {
+						tree.forEachWithinBounds(randomBounds(random), func);
+						tree.forEachWithinRadius({x: random() * 100, y: random() * 100}, random() * 40, func);
+					}
+
+					expect(internal.eachNodes.length).toBe(eachLength);
+					expect(internal.eachLinkIds.length).toBe(idsLength);
+					expect(internal.stackNodes.length).toBe(stackLength);
+					expect(internal.stackRegions.length).toBe(regionsLength);
+					expectScratchClean(tree);
+				});
+			});
+		});
 	});
 });

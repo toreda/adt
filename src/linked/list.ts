@@ -10,6 +10,16 @@ import type {QueryOptions} from '../query/options';
 import type {QueryResult} from '../query/result';
 import {isNumber} from '../utility';
 
+/** Shared `key()` for every query result. Module level, so no closure per result. */
+function queryResultKey(): string | null {
+	return null;
+}
+
+/** Shared `index()` for every query result. Module level, so no closure per result. */
+function queryResultIndex(): number | null {
+	return null;
+}
+
 /**
  * Doubly linked list. Elements wrap each item and expose `prev()` / `next()`
  * links so callers can walk the list in either direction.
@@ -51,6 +61,11 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 		}
 	}
 
+	/**
+	 * Iterate values head to tail. Each loop creates one iterator; its
+	 * `next()` reuses a single result object. `forEach` is the path that
+	 * allocates nothing at all.
+	 */
 	[Symbol.iterator](): LinkedListIterator<ItemT> {
 		return new LinkedListIterator<ItemT>(this);
 	}
@@ -161,21 +176,24 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 		}
 
 		this._size--;
-		this.unlink(node);
-		this.elements.release(node);
+		this.drop(node);
 
 		return value;
 	}
 
+	/**
+	 * Remove each node in array order, as `removeNode` does.
+	 * @returns		Removed values that are not null or undefined, in array order.
+	 */
 	public removeNodes(nodes: Array<LinkedListElement<ItemT> | null>): ItemT[] {
 		const deleted: ItemT[] = [];
 
-		nodes.forEach((node) => {
-			const result = this.removeNode(node);
+		for (let i = 0; i < nodes.length; i++) {
+			const result = this.removeNode(nodes[i]);
 			if (result != null) {
 				deleted.push(result);
 			}
-		});
+		}
 
 		return deleted;
 	}
@@ -314,13 +332,15 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	 */
 	public values(): ItemT[] {
 		const values: ItemT[] = [];
+		let node = this._head;
 
-		this.forEach((element) => {
-			const value = element.value();
+		while (node) {
+			const value = node.value();
 			if (value !== null) {
 				values.push(value);
 			}
-		});
+			node = node.next();
+		}
 
 		return values;
 	}
@@ -351,34 +371,38 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 		return result;
 	}
 
+	/**
+	 * Find elements whose values pass every filter, head to tail. Elements
+	 * whose value is null or undefined never match. Each result's `delete()`
+	 * removes its element, and does nothing once that element has been
+	 * removed some other way.
+	 *
+	 * @remarks
+	 * Allocates only the returned array and one result (plus its bound
+	 * `delete`) per match. Elements that do not match allocate nothing.
+	 */
 	public query(
 		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
 		opts?: QueryOptions
 	): QueryResult<LinkedListElement<ItemT>, ItemT>[] {
 		const resultsArray: QueryResult<LinkedListElement<ItemT>, ItemT>[] = [];
-		const options = this.queryOptions(opts);
+		const limit = this.queryLimit(opts);
 		let node = this._head;
 
 		// Stops walking as soon as the limit is reached.
-		while (node && resultsArray.length < options.limit) {
+		while (node && resultsArray.length < limit) {
 			const element = node;
 			const value = element.value();
 			node = element.next();
 
-			const take =
-				value != null &&
-				(Array.isArray(filters)
-					? filters.length > 0 && filters.every((filter) => filter(value))
-					: filters(value));
-
-			if (!take) {
+			if (value == null || !this.queryMatch(filters, value)) {
 				continue;
 			}
 
 			resultsArray.push({
 				element: element,
-				key: (): string | null => null,
-				index: (): number | null => null,
+				key: queryResultKey,
+				index: queryResultIndex,
 				delete: this.queryDelete.bind(this, element, element._linkId)
 			});
 		}
@@ -391,16 +415,18 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	 * `prev()` / `next()` links cleared, and are recycled when pooling is on.
 	 */
 	public clearElements(): LinkedList<ItemT> {
-		const nodes = this.toArray();
-
-		for (const node of nodes) {
-			this.unlink(node);
-		}
+		let node = this._head;
 
 		this._head = null;
 		this._tail = null;
 		this._size = 0;
-		this.elements.releaseAll(nodes);
+
+		// Walks the links and drops each node directly; builds no array.
+		while (node) {
+			const next = node.next();
+			this.drop(node);
+			node = next;
+		}
 
 		return this;
 	}
@@ -429,14 +455,17 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 	}
 
 	/**
-	 * Clear node's links and ownership. Needed even when pooling is off, where
-	 * release does not blank the node.
+	 * Blank a node that has left the list and hand it back to the element
+	 * pool. With pooling on, release blanks it through `cleanObj()`; with
+	 * pooling off, release does nothing, so the node is blanked here. Either
+	 * way a removed node no longer holds its item.
 	 */
-	private unlink(node: LinkedListElement<ItemT>): void {
-		node.prev(null);
-		node.next(null);
-		node._list = null;
-		node._linkId = 0;
+	private drop(node: LinkedListElement<ItemT>): void {
+		if (this.elements.enabled()) {
+			this.elements.release(node);
+		} else {
+			node.cleanObj();
+		}
 	}
 
 	private isPartOfList(node: LinkedListElement<ItemT>): boolean {
@@ -456,15 +485,39 @@ export class LinkedList<ItemT> implements DataStructure<ItemT> {
 		return this.removeNode(element);
 	}
 
-	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {
-		const options: Required<QueryOptions> = {
-			limit: Infinity
-		};
-
-		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
-			options.limit = Math.round(opts.limit);
+	/**
+	 * Whether value passes every filter. An empty filter array matches
+	 * nothing. Plain loop, so no closure is created per element.
+	 */
+	private queryMatch(filters: QueryFilter<ItemT> | QueryFilter<ItemT>[], value: ItemT): boolean {
+		if (!Array.isArray(filters)) {
+			return filters(value);
 		}
 
-		return options;
+		if (filters.length === 0) {
+			return false;
+		}
+
+		for (let i = 0; i < filters.length; i++) {
+			if (!filters[i](value)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Maximum number of query results: opts.limit rounded when it is a number
+	 * of at least 1, otherwise unlimited.
+	 */
+	private queryLimit(opts?: QueryOptions): number {
+		const limit = opts?.limit;
+
+		if (limit && isNumber(limit) && limit >= 1) {
+			return Math.round(limit);
+		}
+
+		return Infinity;
 	}
 }

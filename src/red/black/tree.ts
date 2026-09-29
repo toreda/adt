@@ -22,11 +22,19 @@ import {isNumber} from '../../utility';
  * 2 log2(n + 1), whatever order items arrive in.
  *
  * Search, insert, and removal take O(log n) in the worst case. Insert makes at
- * most two rotations and removal at most three. Every walk is iterative.
+ * most two rotations and removal at most three. Every walk, and the balanced
+ * build behind `filter()`, is iterative.
  *
  * Node wrappers are pooled by default (see `DataStructureOptions`). Removal
  * and rotation relink nodes instead of copying values between them, so a node
  * handed out by `insert()` keeps holding its item until that item is removed.
+ * A removed node is blanked whether pooling is on or off, so it never keeps
+ * its item alive.
+ *
+ * Hot path: insert, find, remove, update, navigation, `height()`, and
+ * `forEach()` allocate nothing beyond the pooled node an insert takes.
+ * `for...of` allocates one iterator per loop; `forEach()` is the
+ * non-allocating walk.
  *
  * @remarks
  * Duplicates are allowed by default: an item comparing equal to existing ones
@@ -55,6 +63,10 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	private lastLinkId: number;
 	/** Source of node wrappers, pooled or freshly allocated per options. */
 	private readonly elements: ElementPool<RedBlackTreeElement<ItemT>>;
+	/** Parent of the spot found by the last `findSlot()`, null for the root. */
+	private slotParent: RedBlackTreeElement<ItemT> | null;
+	/** Whether the spot found by the last `findSlot()` is a left child. */
+	private slotLeft: boolean;
 
 	/**
 	 * @param comparator	Orders items. Required, since items are generic and the
@@ -80,6 +92,8 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 		this._root = null;
 		this._size = 0;
 		this.lastLinkId = 0;
+		this.slotParent = null;
+		this.slotLeft = false;
 		// The element class is generic and the pool builds blank nodes with no
 		// value, so any ItemT instantiation is valid here.
 		this.elements = new ElementPool(
@@ -93,7 +107,9 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	}
 
 	/**
-	 * Iterate items in sorted order, smallest first.
+	 * Iterate items in sorted order, smallest first. Allocates one iterator
+	 * per loop, which then reuses a single result object for every step. Use
+	 * `forEach()` for a walk that allocates nothing.
 	 */
 	[Symbol.iterator](): RedBlackTreeIterator<ItemT> {
 		return new RedBlackTreeIterator<ItemT>(this);
@@ -107,37 +123,15 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	 * 				duplicates are not allowed. Nothing is added in that case.
 	 */
 	public insert(item: ItemT): RedBlackTreeElement<ItemT> | RedBlackTreeError {
-		let parent: RedBlackTreeElement<ItemT> | null = null;
-		let curr = this._root;
-		let goLeft = false;
-
-		while (curr) {
-			const result = this.comparator(item, curr._value as ItemT);
-
-			if (result === 0 && !this.allowDuplicates) {
-				return 'duplicate_not_allowed';
-			}
-
-			parent = curr;
-			goLeft = result < 0;
-			curr = goLeft ? curr._left : curr._right;
+		if (!this.findSlot(item)) {
+			return 'duplicate_not_allowed';
 		}
 
 		// Allocated only once the item is known to be accepted.
 		const node = this.createElement(item);
-		node._parent = parent;
-		node._color = 'red';
-
-		if (!parent) {
-			this._root = node;
-		} else if (goLeft) {
-			parent._left = node;
-		} else {
-			parent._right = node;
-		}
 
 		++this._size;
-		this.insertFixup(node);
+		this.linkAtSlot(node);
 
 		return node;
 	}
@@ -210,52 +204,10 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 		}
 
 		const value = node._value as ItemT;
-		const left = node._left;
-		const right = node._right;
-		// Color of the node that leaves its position, and the child moving into
-		// that position along with its new parent. The child may be null, so its
-		// parent is tracked separately.
-		let removedColor = node._color;
-		let child: RedBlackTreeElement<ItemT> | null;
-		let childParent: RedBlackTreeElement<ItemT> | null;
 
-		if (!left) {
-			child = right;
-			childParent = node._parent;
-			this.transplant(node, right);
-		} else if (!right) {
-			child = left;
-			childParent = node._parent;
-			this.transplant(node, left);
-		} else {
-			// Two children: the in-order successor takes node's place and color,
-			// so the successor's old position is the one that loses a node.
-			const successor = this.subtreeMin(right);
-			removedColor = successor._color;
-			child = successor._right;
-
-			if (successor._parent === node) {
-				childParent = successor;
-			} else {
-				childParent = successor._parent;
-				this.transplant(successor, successor._right);
-				successor._right = right;
-				right._parent = successor;
-			}
-
-			this.transplant(node, successor);
-			successor._left = left;
-			left._parent = successor;
-			successor._color = node._color;
-		}
-
-		if (removedColor === 'black') {
-			this.removeFixup(child, childParent);
-		}
-
+		this.detach(node);
 		this._size--;
-		this.unlink(node);
-		this.elements.release(node);
+		this.discard(node);
 
 		return value;
 	}
@@ -263,15 +215,17 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	/**
 	 * Set node's item and keep the tree ordered. For an item changed in place,
 	 * pass the node's own item: `tree.update(node, node.value())`. When item
-	 * still belongs at node's position, nothing moves. Otherwise node is
-	 * removed and item inserted again as a new element. Both take O(log n).
+	 * still belongs at node's position, nothing moves. Otherwise the same node
+	 * is detached and relinked at item's new position, after any items
+	 * comparing equal, and the tree is rebalanced. Both take O(log n) and
+	 * allocate nothing: the node is never released or reallocated, so it stays
+	 * valid, and query results that matched it can still `delete()` it.
 	 *
-	 * @returns		The node now holding item: node itself when it stayed in
-	 * 				place, otherwise the new element, and node must not be used
-	 * 				again. `duplicate_not_allowed` when item now compares equal
-	 * 				to another item and duplicates are not allowed: node is
-	 * 				removed and item is no longer in the tree. Null when node is
-	 * 				null or not part of this tree; nothing changes then.
+	 * @returns		node, now holding item. `duplicate_not_allowed` when item now
+	 * 				compares equal to another item and duplicates are not
+	 * 				allowed: node is removed and item is no longer in the tree.
+	 * 				Null when node is null or not part of this tree; nothing
+	 * 				changes then.
 	 */
 	public update(
 		node: RedBlackTreeElement<ItemT> | null,
@@ -283,12 +237,29 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 
 		node._value = item;
 
-		if (!this.positionValid(node)) {
-			this.removeNode(node);
-			return this.insert(item);
+		// Items are in sorted order along the in-order walk and every other node
+		// is correctly placed, so the two neighbors decide whether item still
+		// fits here and, when it does, whether it now equals one of them. Each
+		// neighbor is found once, in O(log n).
+		const prev = this.predecessor(node);
+		const next = this.successor(node);
+		const prevOrder = prev === null ? -1 : this.comparator(prev._value as ItemT, item);
+		const nextOrder = next === null ? -1 : this.comparator(item, next._value as ItemT);
+
+		if (prevOrder > 0 || nextOrder > 0) {
+			this.detach(node);
+
+			if (!this.findSlot(item)) {
+				this._size--;
+				this.discard(node);
+				return 'duplicate_not_allowed';
+			}
+
+			this.linkAtSlot(node);
+			return node;
 		}
 
-		if (!this.allowDuplicates && this.hasEqualNeighbor(node)) {
+		if (!this.allowDuplicates && (prevOrder === 0 || nextOrder === 0)) {
 			this.removeNode(node);
 			return 'duplicate_not_allowed';
 		}
@@ -388,31 +359,13 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	}
 
 	/**
-	 * Number of edges on the longest root to leaf path, found with a level
-	 * order walk in O(n). Never more than 2 log2(n + 1).
+	 * Number of edges on the longest root to leaf path, found in O(n) by
+	 * walking parent links. Allocates nothing. Never more than
+	 * 2 log2(n + 1).
 	 * @returns		Height, 0 for a lone root, or -1 when the tree is empty.
 	 */
 	public height(): number {
-		let level: RedBlackTreeElement<ItemT>[] = this._root ? [this._root] : [];
-		let height = -1;
-
-		while (level.length > 0) {
-			const next: RedBlackTreeElement<ItemT>[] = [];
-
-			for (const node of level) {
-				if (node._left) {
-					next.push(node._left);
-				}
-				if (node._right) {
-					next.push(node._right);
-				}
-			}
-
-			level = next;
-			height++;
-		}
-
-		return height;
+		return this.depthFirst(null, false);
 	}
 
 	/**
@@ -479,12 +432,20 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	 */
 	protected filterValues(func: RedBlackTreeMethod<ItemT, boolean>, thisArg?: unknown): ItemT[] {
 		const values: ItemT[] = [];
+		let node = this.min();
+		let index = 0;
 
-		this.forEach((elem, idx, tree) => {
-			if (func.call(thisArg, elem, idx, tree)) {
-				values.push(elem._value as ItemT);
+		// Successor found before func runs, as in forEach.
+		while (node) {
+			const next = this.successor(node);
+
+			if (func.call(thisArg, node, index, this)) {
+				values.push(node._value as ItemT);
 			}
-		});
+
+			node = next;
+			index++;
+		}
 
 		return values;
 	}
@@ -509,7 +470,7 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 		const full = Number.isInteger(Math.log2(count + 1));
 		const redDepth = full ? -1 : deepest;
 
-		this._root = this.buildBalanced(items, 0, count - 1, null, 0, redDepth);
+		this._root = this.buildBalanced(items, redDepth);
 		this._size = count;
 	}
 
@@ -523,8 +484,9 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 
 	/**
 	 * Call func for each element in sorted order, by following successor
-	 * links. No array of elements is built, so the traversal itself allocates
-	 * nothing.
+	 * links. No array of elements or iterator is built, so the traversal
+	 * itself allocates nothing. This is the walk to use on a hot path; pass a
+	 * function created once rather than a new closure per call.
 	 *
 	 * @remarks
 	 * Like `Map` / `Set`, func receives the tree itself as its third argument,
@@ -562,64 +524,50 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	 * Every item in sorted order: left subtree, node, right subtree.
 	 */
 	public inOrder(): ItemT[] {
-		return this.toArray().map((node) => node._value as ItemT);
-	}
-
-	/**
-	 * Every item with each node before its subtrees: node, left, right.
-	 */
-	public preOrder(): ItemT[] {
 		const values: ItemT[] = [];
-		const stack: RedBlackTreeElement<ItemT>[] = this._root ? [this._root] : [];
+		let node = this.min();
 
-		while (stack.length > 0) {
-			const node = stack.pop() as RedBlackTreeElement<ItemT>;
+		while (node) {
 			values.push(node._value as ItemT);
-
-			if (node._right) {
-				stack.push(node._right);
-			}
-			if (node._left) {
-				stack.push(node._left);
-			}
+			node = this.successor(node);
 		}
 
 		return values;
 	}
 
 	/**
+	 * Every item with each node before its subtrees: node, left, right.
+	 * Allocates only the returned array.
+	 */
+	public preOrder(): ItemT[] {
+		const values: ItemT[] = [];
+		this.depthFirst(values, false);
+
+		return values;
+	}
+
+	/**
 	 * Every item with each node after its subtrees: left, right, node.
+	 * Allocates only the returned array.
 	 */
 	public postOrder(): ItemT[] {
-		// Walk node, right, left, then reverse to get left, right, node.
 		const values: ItemT[] = [];
-		const stack: RedBlackTreeElement<ItemT>[] = this._root ? [this._root] : [];
+		this.depthFirst(values, true);
 
-		while (stack.length > 0) {
-			const node = stack.pop() as RedBlackTreeElement<ItemT>;
-			values.push(node._value as ItemT);
-
-			if (node._left) {
-				stack.push(node._left);
-			}
-			if (node._right) {
-				stack.push(node._right);
-			}
-		}
-
-		return values.reverse();
+		return values;
 	}
 
 	/**
 	 * Every item level by level from the root, left to right within a level.
+	 * Allocates only the returned array, which doubles as the walk's queue.
 	 */
 	public levelOrder(): ItemT[] {
-		const values: ItemT[] = [];
-		const queue: RedBlackTreeElement<ItemT>[] = this._root ? [this._root] : [];
+		// Each slot holds a node while queued, and is swapped for that node's
+		// item once its children are queued behind it.
+		const queue: unknown[] = this._root ? [this._root] : [];
 
 		for (let i = 0; i < queue.length; i++) {
-			const node = queue[i];
-			values.push(node._value as ItemT);
+			const node = queue[i] as RedBlackTreeElement<ItemT>;
 
 			if (node._left) {
 				queue.push(node._left);
@@ -627,9 +575,11 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 			if (node._right) {
 				queue.push(node._right);
 			}
+
+			queue[i] = node._value;
 		}
 
-		return values;
+		return queue as ItemT[];
 	}
 
 	/**
@@ -664,35 +614,34 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	/**
 	 * Find elements whose items pass every filter, in sorted order. Each
 	 * result's `delete()` removes its element, and does nothing once that
-	 * element has been removed some other way.
+	 * element has been removed some other way. An empty filter array matches
+	 * nothing. Allocates only the returned array and, per match, the result
+	 * object and its `delete()` handle.
 	 */
 	public query(
 		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
 		opts?: QueryOptions
 	): QueryResult<RedBlackTreeElement<ItemT>, ItemT>[] {
 		const resultsArray: QueryResult<RedBlackTreeElement<ItemT>, ItemT>[] = [];
-		const options = this.queryOptions(opts);
+		const limit = queryLimit(opts);
 		let node = this.min();
 
 		// Stops walking as soon as the limit is reached.
-		while (node && resultsArray.length < options.limit) {
+		while (node && resultsArray.length < limit) {
 			const element = node;
-			const value = element._value as ItemT;
 			node = this.successor(element);
 
-			const take = Array.isArray(filters)
-				? filters.length > 0 && filters.every((filter) => filter(value))
-				: filters(value);
-
-			if (!take) {
+			if (!queryMatches(filters, element._value as ItemT)) {
 				continue;
 			}
 
+			const linkId = element._linkId;
+
 			resultsArray.push({
 				element: element,
-				key: (): string | null => null,
-				index: (): number | null => null,
-				delete: this.queryDelete.bind(this, element, element._linkId)
+				key: queryNullKey,
+				index: queryNullIndex,
+				delete: (): ItemT | null => this.queryDelete(element, linkId)
 			});
 		}
 
@@ -700,19 +649,41 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	}
 
 	/**
-	 * Unlink and drop every element. Elements removed this way have their
-	 * links cleared, and are recycled when pooling is on.
+	 * Unlink and drop every element in O(n). Elements removed this way are
+	 * blanked, and are recycled when pooling is on. Walks the links directly,
+	 * so nothing is allocated.
 	 */
 	public clearElements(): RedBlackTree<ItemT> {
-		const nodes = this.toArray();
+		let node = this._root;
 
-		for (const node of nodes) {
-			this.unlink(node);
+		// Descend to a leaf, detach and drop it, then continue from its parent,
+		// which becomes a leaf once both its children are gone.
+		while (node) {
+			if (node._left) {
+				node = node._left;
+				continue;
+			}
+			if (node._right) {
+				node = node._right;
+				continue;
+			}
+
+			const parent = node._parent;
+
+			if (parent) {
+				if (parent._left === node) {
+					parent._left = null;
+				} else {
+					parent._right = null;
+				}
+			}
+
+			this.discard(node);
+			node = parent;
 		}
 
 		this._root = null;
 		this._size = 0;
-		this.elements.releaseAll(nodes);
 
 		return this;
 	}
@@ -741,30 +712,219 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	}
 
 	/**
-	 * Link items[first..last] into a subtree under parent and return its root.
-	 * Each subtree is topped by its middle item, so recursion depth is
-	 * O(log n). Nodes at redDepth are red and all others black.
+	 * Walk from the root to where item would be inserted, after any items
+	 * comparing equal, and store the spot in `slotParent` / `slotLeft`.
+	 * @returns		False, leaving the slot unset, when item compares equal to
+	 * 				an item in the tree and duplicates are not allowed.
 	 */
-	private buildBalanced(
-		items: ItemT[],
-		first: number,
-		last: number,
-		parent: RedBlackTreeElement<ItemT> | null,
-		depth: number,
-		redDepth: number
-	): RedBlackTreeElement<ItemT> | null {
-		if (first > last) {
+	private findSlot(item: ItemT): boolean {
+		let parent: RedBlackTreeElement<ItemT> | null = null;
+		let curr = this._root;
+		let goLeft = false;
+
+		while (curr) {
+			const result = this.comparator(item, curr._value as ItemT);
+
+			if (result === 0 && !this.allowDuplicates) {
+				return false;
+			}
+
+			parent = curr;
+			goLeft = result < 0;
+			curr = goLeft ? curr._left : curr._right;
+		}
+
+		this.slotParent = parent;
+		this.slotLeft = goLeft;
+
+		return true;
+	}
+
+	/**
+	 * Link an unlinked node, owned by this tree, as a red leaf at the spot found
+	 * by the last `findSlot()`, then rebalance. Does not change the size.
+	 */
+	private linkAtSlot(node: RedBlackTreeElement<ItemT>): void {
+		const parent = this.slotParent;
+		node._parent = parent;
+		node._left = null;
+		node._right = null;
+		node._color = 'red';
+
+		if (!parent) {
+			this._root = node;
+		} else if (this.slotLeft) {
+			parent._left = node;
+		} else {
+			parent._right = node;
+		}
+
+		// Drop the reference so the tree never retains a removed node.
+		this.slotParent = null;
+		this.insertFixup(node);
+	}
+
+	/**
+	 * Unlink node from the tree structure and rebalance. Its item, ownership,
+	 * and link id are kept, so the caller can relink or discard it; its links
+	 * are cleared and its color reset to red, as on a blank node. Does not
+	 * change the size.
+	 */
+	private detach(node: RedBlackTreeElement<ItemT>): void {
+		const left = node._left;
+		const right = node._right;
+		// Color of the node that leaves its position, and the child moving into
+		// that position along with its new parent. The child may be null, so its
+		// parent is tracked separately.
+		let removedColor = node._color;
+		let child: RedBlackTreeElement<ItemT> | null;
+		let childParent: RedBlackTreeElement<ItemT> | null;
+
+		if (!left) {
+			child = right;
+			childParent = node._parent;
+			this.transplant(node, right);
+		} else if (!right) {
+			child = left;
+			childParent = node._parent;
+			this.transplant(node, left);
+		} else {
+			// Two children: the in-order successor takes node's place and color,
+			// so the successor's old position is the one that loses a node.
+			const successor = this.subtreeMin(right);
+			removedColor = successor._color;
+			child = successor._right;
+
+			if (successor._parent === node) {
+				childParent = successor;
+			} else {
+				childParent = successor._parent;
+				this.transplant(successor, successor._right);
+				successor._right = right;
+				right._parent = successor;
+			}
+
+			this.transplant(node, successor);
+			successor._left = left;
+			left._parent = successor;
+			successor._color = node._color;
+		}
+
+		if (removedColor === 'black') {
+			this.removeFixup(child, childParent);
+		}
+
+		node._left = null;
+		node._right = null;
+		node._parent = null;
+		node._color = 'red';
+	}
+
+	/**
+	 * Link every item into a balanced tree and return its root. Each subtree
+	 * is topped by the middle item of its range. Nodes at redDepth are red and
+	 * all others black. Iterative: pending ranges wait on an explicit stack
+	 * that never holds more than O(log n) entries.
+	 */
+	private buildBalanced(items: ItemT[], redDepth: number): RedBlackTreeElement<ItemT> | null {
+		if (items.length === 0) {
 			return null;
 		}
 
-		const middle = first + Math.floor((last - first) / 2);
-		const node = this.createElement(items[middle]);
-		node._parent = parent;
-		node._color = depth === redDepth ? 'red' : 'black';
-		node._left = this.buildBalanced(items, first, middle - 1, node, depth + 1, redDepth);
-		node._right = this.buildBalanced(items, middle + 1, last, node, depth + 1, redDepth);
+		// Each pending range is a (first, last, depth) triple in bounds, plus
+		// the node it hangs from and which side it hangs on.
+		const bounds: number[] = [0, items.length - 1, 0];
+		const parents: (RedBlackTreeElement<ItemT> | null)[] = [null];
+		const onLeft: boolean[] = [false];
+		let root: RedBlackTreeElement<ItemT> | null = null;
 
-		return node;
+		while (parents.length > 0) {
+			const parent = parents.pop() as RedBlackTreeElement<ItemT> | null;
+			const isLeft = onLeft.pop() as boolean;
+			const depth = bounds.pop() as number;
+			const last = bounds.pop() as number;
+			const first = bounds.pop() as number;
+
+			const middle = first + Math.floor((last - first) / 2);
+			const node = this.createElement(items[middle]);
+			node._parent = parent;
+			node._color = depth === redDepth ? 'red' : 'black';
+
+			if (!parent) {
+				root = node;
+			} else if (isLeft) {
+				parent._left = node;
+			} else {
+				parent._right = node;
+			}
+
+			if (middle < last) {
+				bounds.push(middle + 1, last, depth + 1);
+				parents.push(node);
+				onLeft.push(false);
+			}
+			if (first < middle) {
+				bounds.push(first, middle - 1, depth + 1);
+				parents.push(node);
+				onLeft.push(true);
+			}
+		}
+
+		return root;
+	}
+
+	/**
+	 * Depth-first walk over parent links. Holds no stack, so it allocates
+	 * nothing itself. Pushes each item into out before its subtrees (pre
+	 * order), or after them when post is true (post order). Pass null for out
+	 * to only measure the height.
+	 * @returns		Height of the tree, or -1 when empty.
+	 */
+	private depthFirst(out: ItemT[] | null, post: boolean): number {
+		let node = this._root;
+		let prev: RedBlackTreeElement<ItemT> | null = null;
+		let depth = 0;
+		let height = -1;
+
+		while (node) {
+			if (prev === node._parent) {
+				// Arrived from the parent: first visit. Descend left, else right.
+				if (out !== null && !post) {
+					out.push(node._value as ItemT);
+				}
+				if (depth > height) {
+					height = depth;
+				}
+				if (node._left) {
+					prev = node;
+					node = node._left;
+					depth++;
+					continue;
+				}
+				if (node._right) {
+					prev = node;
+					node = node._right;
+					depth++;
+					continue;
+				}
+			} else if (prev === node._left && node._right) {
+				// Left subtree done, right subtree next.
+				prev = node;
+				node = node._right;
+				depth++;
+				continue;
+			}
+
+			// Both subtrees done: last visit, then back up.
+			if (out !== null && post) {
+				out.push(node._value as ItemT);
+			}
+			prev = node;
+			node = node._parent;
+			depth--;
+		}
+
+		return height;
 	}
 
 	/**
@@ -975,38 +1135,6 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 		}
 	}
 
-	/**
-	 * Check that node's item still fits where node sits, assuming every other
-	 * node is correctly placed. Items are in sorted order along the in-order
-	 * walk, so comparing against the neighbors on each side is enough. O(log n).
-	 */
-	private positionValid(node: RedBlackTreeElement<ItemT>): boolean {
-		const value = node._value as ItemT;
-		const prev = this.predecessor(node);
-		const next = this.successor(node);
-
-		return (
-			(prev === null || this.comparator(prev._value as ItemT, value) <= 0) &&
-			(next === null || this.comparator(value, next._value as ItemT) <= 0)
-		);
-	}
-
-	/**
-	 * Whether an item next to node in sorted order compares equal to node's.
-	 * Only meaningful for a correctly placed node, where every equal item is
-	 * adjacent to it.
-	 */
-	private hasEqualNeighbor(node: RedBlackTreeElement<ItemT>): boolean {
-		const value = node._value as ItemT;
-		const prev = this.predecessor(node);
-		const next = this.successor(node);
-
-		return (
-			(prev !== null && this.comparator(prev._value as ItemT, value) === 0) ||
-			(next !== null && this.comparator(next._value as ItemT, value) === 0)
-		);
-	}
-
 	private subtreeMin(node: RedBlackTreeElement<ItemT>): RedBlackTreeElement<ItemT> {
 		let curr = node;
 
@@ -1028,16 +1156,17 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 	}
 
 	/**
-	 * Clear node's links, color, and ownership. Needed even when pooling is
-	 * off, where release does not blank the node.
+	 * Drop a node that has left the tree: blank its item, links, color, and
+	 * ownership, and recycle it when pooling is on. The pool blanks the nodes
+	 * it takes back; with pooling off the node is blanked here. Either way a
+	 * removed node the caller still holds never keeps its item alive.
 	 */
-	private unlink(node: RedBlackTreeElement<ItemT>): void {
-		node._left = null;
-		node._right = null;
-		node._parent = null;
-		node._color = 'red';
-		node._tree = null;
-		node._linkId = 0;
+	private discard(node: RedBlackTreeElement<ItemT>): void {
+		if (this.elements.enabled()) {
+			this.elements.release(node);
+		} else {
+			node.cleanObj();
+		}
 	}
 
 	private isPartOfTree(node: RedBlackTreeElement<ItemT>): boolean {
@@ -1056,16 +1185,43 @@ export class RedBlackTree<ItemT> implements Tree<ItemT, RedBlackTreeElement<Item
 
 		return this.removeNode(element);
 	}
+}
 
-	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {
-		const options: Required<QueryOptions> = {
-			limit: Infinity
-		};
+/** Shared `key()` for every query result: tree matches have no key. */
+function queryNullKey(): string | null {
+	return null;
+}
 
-		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
-			options.limit = Math.round(opts.limit);
-		}
+/** Shared `index()` for every query result: tree matches have no index. */
+function queryNullIndex(): number | null {
+	return null;
+}
 
-		return options;
+/**
+ * Whether value passes filters: the single filter, or every filter in a
+ * non-empty array. A plain loop, so no closure is created per value.
+ */
+function queryMatches<ItemT>(filters: QueryFilter<ItemT> | QueryFilter<ItemT>[], value: ItemT): boolean {
+	if (!Array.isArray(filters)) {
+		return filters(value);
 	}
+
+	if (filters.length === 0) {
+		return false;
+	}
+
+	for (let i = 0; i < filters.length; i++) {
+		if (!filters[i](value)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/** Result limit from query options: the rounded limit when at least 1, else Infinity. */
+function queryLimit(opts?: QueryOptions | null): number {
+	const limit = opts?.limit;
+
+	return limit && isNumber(limit) && limit >= 1 ? Math.round(limit) : Infinity;
 }

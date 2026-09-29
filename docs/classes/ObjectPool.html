@@ -10,6 +10,16 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="" aria-current="page">ObjectPool</a></li></ul>
 <h1>Class ObjectPool&lt;T&gt;</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>Pool of reusable object instances. <code>allocate()</code> and <code>release()</code> are O(1) and
+allocate nothing once the pool has grown: free objects sit on a stack, and
+each in-use object keeps its own slot in <code>state.used</code>, so a release never
+searches or compacts. Release moves the last in-use object into the freed
+slot, so in-use order is not allocation order.</p>
+<p><code>release()</code> only accepts objects this pool handed out that are still in use.
+Double releases and objects from elsewhere are ignored, so the pool never
+holds an object twice and never grows past <code>maxSize</code>.</p>
+</div></section>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
@@ -19,7 +29,7 @@
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/DataStructure.html" class="tsd-signature-type tsd-kind-interface">DataStructure</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L18">object/pool.ts:18</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L87">object/pool.ts:87</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -57,7 +67,7 @@
 <h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="constructorobjectpool"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">ObjectPool</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#constructorobjectpoolt">T</a> <span class="tsd-signature-keyword">extends</span> <a href="../interfaces/ObjectPoolInstance.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolInstance</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">objectClass</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ObjectPoolConstructor</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ObjectPoolOptions.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">ObjectPool</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#constructorobjectpool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="constructorobjectpool"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">ObjectPool</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#constructorobjectpoolt">T</a> <span class="tsd-signature-keyword">extends</span> <a href="../interfaces/ObjectPoolInstance.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolInstance</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">objectClass</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/ObjectPoolConstructor.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolConstructor</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/ObjectPoolOptions.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">ObjectPool</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#constructorobjectpool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -66,11 +76,11 @@
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">objectClass</span>: <span class="tsd-signature-type">ObjectPoolConstructor</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></span></li>
+<li><span><span class="tsd-kind-parameter">objectClass</span>: <a href="../interfaces/ObjectPoolConstructor.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolConstructor</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></span></li>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/ObjectPoolOptions.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolOptions</a></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ObjectPool</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L25">object/pool.ts:25</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L91">object/pool.ts:91</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -78,7 +88,7 @@
 <h3 class="tsd-anchor-link" id="state"><code class="tsd-tag">Readonly</code><span>state</span><a href="#state" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">state</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/ObjectPoolState.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolState</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L19">object/pool.ts:19</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L88">object/pool.ts:88</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -86,11 +96,14 @@
 <h3 class="tsd-anchor-link" id="iterator"><span>[iterator]</span><a href="#iterator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="iterator-1"><span class="tsd-kind-call-signature">&quot;[iterator]&quot;</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ObjectPoolIterator</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#iterator-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="iterator-1"><span class="tsd-kind-call-signature">&quot;[iterator]&quot;</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="ObjectPoolIterator.html" class="tsd-signature-type tsd-kind-class">ObjectPoolIterator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#iterator-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">ObjectPoolIterator</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<div class="tsd-comment tsd-typography"><p>Iterate in-use objects. Allocates one iterator per loop, which reuses a
+single result object. <code>forEach</code> is the non-allocating path.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="ObjectPoolIterator.html" class="tsd-signature-type tsd-kind-class">ObjectPoolIterator</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L37">object/pool.ts:37</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L107">object/pool.ts:107</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="allocate"><span>allocate</span><a href="#allocate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -99,13 +112,14 @@
 <div class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Allocate a single object instance. Pool size will increase when
 no instances are available for allocation, unless the pool is
-already at it's maximum size defined by ObjectPool's config.</p>
+already at it's maximum size defined by ObjectPool's config.
+O(1), and allocates nothing unless the pool grows.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Object instance of type T if available.
 null when an instance can't be allocated.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L48">object/pool.ts:48</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L119">object/pool.ts:119</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="allocatemultiple"><span>allocate<wbr/>Multiple</span><a href="#allocatemultiple" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -123,34 +137,47 @@ the ObjectPool config.</p>
 <li><span><span class="tsd-kind-parameter">n</span>: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 1</span></span>
 <div class="tsd-comment tsd-typography"><p>Number of object instances to allocate.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span></h4><p>Array of allocated object instances.</p>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span></h4><p>Array of allocated object instances. Shorter than
+<code>n</code> when the pool cannot supply them all.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L74">object/pool.ts:74</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L150">object/pool.ts:150</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clearelements"><span>clear<wbr/>Elements</span><a href="#clearelements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="clearelements-1"><span class="tsd-kind-call-signature">clearElements</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">ObjectPool</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#clearelements-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Release every in-use object. Each is cleaned with <code>cleanObj()</code>. Capacity
+is kept. Allocates nothing.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ObjectPool</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#clearelements">clearElements</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L265">object/pool.ts:265</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L371">object/pool.ts:371</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="foreach"><span>for<wbr/>Each</span><a href="#foreach" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="foreach-1"><span class="tsd-kind-call-signature">forEach</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/ArrayMethod.html" class="tsd-signature-type tsd-kind-type-alias">ArrayMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">ObjectPool</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#foreach-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Call <code>func</code> on each in-use object. Allocates nothing. Walks from the last
+slot down, so <code>func</code> may release the object it was given. Releasing any
+other object during the walk can skip or repeat objects.</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">func</span>: <a href="../types/ArrayMethod.html" class="tsd-signature-type tsd-kind-type-alias">ArrayMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></span></li>
-<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span></li></ul></div>
+<li><span><span class="tsd-kind-parameter">func</span>: <a href="../types/ArrayMethod.html" class="tsd-signature-type tsd-kind-type-alias">ArrayMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Called with the object, its slot in <code>state.used</code>, and
+<code>state.used</code>. Slots from <code>size()</code> on hold <code>null</code>.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span>
+<div class="tsd-comment tsd-typography"><p><code>this</code> inside <code>func</code>. Defaults to the pool.</p>
+</div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ObjectPool</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L176">object/pool.ts:176</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L279">object/pool.ts:279</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="increasecapacity"><span>increase<wbr/>Capacity</span><a href="#increasecapacity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -169,19 +196,25 @@ n will result in many memory allocations at once.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L165">object/pool.ts:165</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L257">object/pool.ts:257</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="map"><span>map</span><a href="#map" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="map-1"><span class="tsd-kind-call-signature">map</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span><a href="#map-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>New array of the in-use objects in slot order, or of <code>func</code>'s result for
+each. Allocates only the returned array.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L196">object/pool.ts:196</a></li></ul></aside></div></li>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L299">object/pool.ts:299</a></li></ul></aside></div></li>
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="map-2"><span class="tsd-kind-call-signature">map</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#mapu">U</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">func</span><span class="tsd-signature-symbol">:</span> <a href="../types/ArrayMethod.html" class="tsd-signature-type tsd-kind-type-alias">ArrayMethod</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapu">U</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">thisArg</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapu">U</a><span class="tsd-signature-symbol">[]</span><a href="#map-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>New array of the in-use objects in slot order, or of <code>func</code>'s result for
+each. Allocates only the returned array.</p>
+</div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
@@ -193,13 +226,16 @@ n will result in many memory allocations at once.</p>
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">thisArg</span>: <span class="tsd-signature-type">unknown</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapu">U</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L197">object/pool.ts:197</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L300">object/pool.ts:300</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="query"><span>query</span><a href="#query" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="query-1"><span class="tsd-kind-call-signature">query</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">filters</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/QueryFilter.html" class="tsd-signature-type tsd-kind-interface">QueryFilter</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <a href="../interfaces/QueryFilter.html" class="tsd-signature-type tsd-kind-interface">QueryFilter</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">opts</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/QueryOptions.html" class="tsd-signature-type tsd-kind-interface">QueryOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/QueryResult.html" class="tsd-signature-type tsd-kind-interface">QueryResult</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><a href="#query-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>In-use objects matching every filter, up to <code>opts.limit</code>. Allocates the
+result array and one result per match. The walk itself allocates nothing.</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -208,14 +244,18 @@ n will result in many memory allocations at once.</p>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/QueryResult.html" class="tsd-signature-type tsd-kind-interface">QueryResult</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#query">query</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L229">object/pool.ts:229</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L346">object/pool.ts:346</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="release"><span>release</span><a href="#release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="release-1"><span class="tsd-kind-call-signature">release</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">object</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#release-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="release-1"><span class="tsd-kind-call-signature">release</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">object</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#release-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Release object instance back to the pool for reuse later.</p>
+<div class="tsd-comment tsd-typography"><p>Release object instance back to the pool for reuse later. The object is
+cleaned with <code>cleanObj()</code> and must not be used afterwards. O(1), and
+allocates nothing.</p>
+<p>Objects that are not currently in use in this pool (already released, or
+never allocated from it) are ignored and left untouched.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -223,52 +263,64 @@ n will result in many memory allocations at once.</p>
 <li><span><span class="tsd-kind-parameter">object</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a></span>
 <div class="tsd-comment tsd-typography"><p>Target pool object to be released.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><p>void</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><p>true when the object was released, false when it
+was ignored.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L105">object/pool.ts:105</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L190">object/pool.ts:190</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="releasemultiple"><span>release<wbr/>Multiple</span><a href="#releasemultiple" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="releasemultiple-1"><span class="tsd-kind-call-signature">releaseMultiple</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">objects</span><span class="tsd-signature-symbol">:</span> (<a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span>)<span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#releasemultiple-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Release each object in <code>objects</code>. <code>null</code> entries and objects not in use
+in this pool are skipped. Allocates nothing.</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><span class="tsd-kind-parameter">objects</span>: (<a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span>)<span class="tsd-signature-symbol">[]</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L128">object/pool.ts:128</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L219">object/pool.ts:219</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="reset"><span>reset</span><a href="#reset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="reset-1"><span class="tsd-kind-call-signature">reset</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">ObjectPool</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#reset-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Release every in-use object, then shrink or refill the pool to
+<code>startSize</code> objects. Objects kept are reused, not reconstructed.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ObjectPool</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#reset">reset</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L275">object/pool.ts:275</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L391">object/pool.ts:391</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="size-1"><span class="tsd-kind-call-signature">size</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#size-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Number of objects currently in use.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L140">object/pool.ts:140</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L232">object/pool.ts:232</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="stringify"><span>stringify</span><a href="#stringify" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="stringify-1"><span class="tsd-kind-call-signature">stringify</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><a href="#stringify-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>The pool's config and object count as a JSON string. Objects are not
+included.</p>
+</div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/DataStructure.html">DataStructure</a>.<a href="../interfaces/DataStructure.html#stringify">stringify</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L218">object/pool.ts:218</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L327">object/pool.ts:327</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="utilization"><span>utilization</span><a href="#utilization" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -281,7 +333,7 @@ n will result in many memory allocations at once.</p>
 <li><span><span class="tsd-kind-parameter">allocationsPending</span>: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/object/pool.ts#L144">object/pool.ts:144</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/object/pool.ts#L236">object/pool.ts:236</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

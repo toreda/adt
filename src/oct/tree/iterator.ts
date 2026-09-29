@@ -1,31 +1,56 @@
 import type {OctTree} from '../tree';
 import type {OctTreeElement} from './element';
 import {type IterableType} from '../../iterable/type';
-import {iterableMakeType} from '../../iterable/helpers';
 
 /**
  * Iterates OctTree items in pre-order, each node before its octants, by
- * following parent and child links. Holds no stack, so memory use is constant.
+ * following parent and child links. Holds no stack, so memory use is constant,
+ * and `next()` allocates nothing: it returns the same result object each call,
+ * so read `value` before calling `next()` again.
  *
- * @category Oct Tree
+ * @remarks
+ * Not safe under mutation. Removal relinks whole subtrees, so removing or
+ * moving items during iteration can skip or repeat items. The next node is
+ * found ahead of time; when it has been removed (or recycled for another
+ * item) by the time `next()` runs, iteration ends instead of yielding it. Use
+ * `OctTree.forEach()` to change the tree while walking it.
+ *
+ * @category Quad Tree
  */
 export class OctTreeIterator<ItemT> implements Iterator<ItemT | null> {
 	private readonly tree: OctTree<ItemT>;
 	private item: OctTreeElement<ItemT> | null;
+	/** Link id item had when it was found, so a recycled node is caught. */
+	private linkId: number;
+	/** Returned by every `next()` call, so iterating allocates nothing. */
+	private readonly result: IterableType<ItemT | null>;
 
 	constructor(tree: OctTree<ItemT>) {
 		this.tree = tree;
 		this.item = tree.root();
+		this.linkId = this.item !== null ? this.item._linkId : 0;
+		this.result = {value: null, done: false};
 	}
 
 	public next(): IterableType<ItemT | null> {
-		if (!this.item) {
-			return iterableMakeType(null, true);
+		const item = this.item;
+		const result = this.result;
+
+		if (!item || item._tree !== this.tree || item._linkId !== this.linkId) {
+			this.item = null;
+			result.value = null;
+			result.done = true;
+
+			return result;
 		}
 
-		const value = this.item._value;
-		this.item = this.tree.preOrderNext(this.item);
+		const next = this.tree.preOrderNext(item);
+		this.item = next;
+		this.linkId = next !== null ? next._linkId : 0;
 
-		return iterableMakeType(value, false);
+		result.value = item._value;
+		result.done = false;
+
+		return result;
 	}
 }

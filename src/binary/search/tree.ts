@@ -13,6 +13,16 @@ import type {Tree} from '../../tree';
 import {booleanValue} from '../../boolean/value';
 import {isNumber} from '../../utility';
 
+/** Shared `key()` for every query result. Module level, so no closure per result. */
+function queryResultKey(): string | null {
+	return null;
+}
+
+/** Shared `index()` for every query result. Module level, so no closure per result. */
+function queryResultIndex(): number | null {
+	return null;
+}
+
 /**
  * Unbalanced binary search tree ordered by a caller supplied comparator. Every
  * node's left subtree holds smaller items and its right subtree holds equal or
@@ -20,12 +30,14 @@ import {isNumber} from '../../utility';
  *
  * Search, insert, and removal take O(h), where h is the tree's height: O(log n)
  * on average for items inserted in random order, O(n) when items arrive
- * already sorted. Every walk is iterative, so a degenerate tree never
- * overflows the call stack.
+ * already sorted. Every walk is iterative, including the balanced build used
+ * by `filter()`, so a degenerate tree never overflows the call stack.
  *
  * Node wrappers are pooled by default (see `DataStructureOptions`). Removal relinks
  * nodes instead of copying values between them, so a node handed out by
- * `insert()` keeps holding its item until that item is removed.
+ * `insert()` keeps holding its item until that item is removed. A removed
+ * node is blanked whether pooling is on or off, so it never keeps its item
+ * alive.
  *
  * @remarks
  * Duplicates are allowed by default, as in the textbook BST: an item comparing
@@ -50,6 +62,14 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	private lastLinkId: number;
 	/** Source of node wrappers, pooled or freshly allocated per options. */
 	private readonly elements: ElementPool<BinarySearchTreeElement<ItemT>>;
+	/**
+	 * Result of the last `findSlot()`: node the item should hang from, or null
+	 * for an empty tree. Instance fields rather than a returned object, so a
+	 * search allocates nothing. Cleared by `linkAtSlot()`.
+	 */
+	private slotParent: BinarySearchTreeElement<ItemT> | null;
+	/** Result of the last `findSlot()`: whether the item goes left of `slotParent`. */
+	private slotLeft: boolean;
 
 	/**
 	 * @param comparator	Orders items. Required, since items are generic and the
@@ -75,6 +95,8 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 		this._root = null;
 		this._size = 0;
 		this.lastLinkId = 0;
+		this.slotParent = null;
+		this.slotLeft = false;
 		// The element class is generic and the pool builds blank nodes with no
 		// value, so any ItemT instantiation is valid here.
 		this.elements = new ElementPool(
@@ -88,7 +110,9 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	}
 
 	/**
-	 * Iterate items in sorted order, smallest first.
+	 * Iterate items in sorted order, smallest first. Each loop creates one
+	 * iterator; its `next()` reuses a single result object. `forEach` is the
+	 * path that allocates nothing at all.
 	 */
 	[Symbol.iterator](): BinarySearchTreeIterator<ItemT> {
 		return new BinarySearchTreeIterator<ItemT>(this);
@@ -101,33 +125,13 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	 * 				duplicates are not allowed. Nothing is added in that case.
 	 */
 	public insert(item: ItemT): BinarySearchTreeElement<ItemT> | BinarySearchTreeError {
-		let parent: BinarySearchTreeElement<ItemT> | null = null;
-		let curr = this._root;
-		let goLeft = false;
-
-		while (curr) {
-			const result = this.comparator(item, curr._value as ItemT);
-
-			if (result === 0 && !this.allowDuplicates) {
-				return 'duplicate_not_allowed';
-			}
-
-			parent = curr;
-			goLeft = result < 0;
-			curr = goLeft ? curr._left : curr._right;
+		if (!this.findSlot(item)) {
+			return 'duplicate_not_allowed';
 		}
 
 		// Allocated only once the item is known to be accepted.
 		const node = this.createElement(item);
-		node._parent = parent;
-
-		if (!parent) {
-			this._root = node;
-		} else if (goLeft) {
-			parent._left = node;
-		} else {
-			parent._right = node;
-		}
+		this.linkAtSlot(node);
 
 		++this._size;
 		return node;
@@ -197,31 +201,10 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 		}
 
 		const value = node._value as ItemT;
-		const left = node._left;
-		const right = node._right;
 
-		if (!left) {
-			this.transplant(node, right);
-		} else if (!right) {
-			this.transplant(node, left);
-		} else {
-			// Two children: the in-order successor takes node's place.
-			const successor = this.subtreeMin(right);
-
-			if (successor._parent !== node) {
-				this.transplant(successor, successor._right);
-				successor._right = right;
-				right._parent = successor;
-			}
-
-			this.transplant(node, successor);
-			successor._left = left;
-			left._parent = successor;
-		}
-
+		this.detach(node);
 		this._size--;
-		this.unlink(node);
-		this.elements.release(node);
+		this.drop(node);
 
 		return value;
 	}
@@ -229,15 +212,17 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	/**
 	 * Set node's item and keep the tree ordered. For an item changed in place,
 	 * pass the node's own item: `tree.update(node, node.value())`. When item
-	 * still belongs at node's position, nothing moves. Otherwise node is
-	 * removed and item inserted again as a new element. Both take O(h).
+	 * still belongs at node's position, nothing moves. Otherwise the same node
+	 * is detached and relinked at item's new position, after any items
+	 * comparing equal. Both take O(h) and allocate nothing: the node is never
+	 * released or reallocated, so it stays valid, and query results that
+	 * matched it can still `delete()` it.
 	 *
-	 * @returns		The node now holding item: node itself when it stayed in
-	 * 				place, otherwise the new element, and node must not be used
-	 * 				again. `duplicate_not_allowed` when item now compares equal
-	 * 				to another item and duplicates are not allowed: node is
-	 * 				removed and item is no longer in the tree. Null when node is
-	 * 				null or not part of this tree; nothing changes then.
+	 * @returns		node, now holding item. `duplicate_not_allowed` when item now
+	 * 				compares equal to another item and duplicates are not
+	 * 				allowed: node is removed and item is no longer in the tree.
+	 * 				Null when node is null or not part of this tree; nothing
+	 * 				changes then.
 	 */
 	public update(
 		node: BinarySearchTreeElement<ItemT> | null,
@@ -250,8 +235,16 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 		node._value = item;
 
 		if (!this.positionValid(node)) {
-			this.removeNode(node);
-			return this.insert(item);
+			this.detach(node);
+
+			if (!this.findSlot(item)) {
+				this._size--;
+				this.drop(node);
+				return 'duplicate_not_allowed';
+			}
+
+			this.linkAtSlot(node);
+			return node;
 		}
 
 		if (!this.allowDuplicates && this.hasEqualNeighbor(node)) {
@@ -353,28 +346,38 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	}
 
 	/**
-	 * Number of edges on the longest root to leaf path, found with a level
-	 * order walk in O(n).
+	 * Number of edges on the longest root to leaf path, found in O(n) by a
+	 * depth-first walk over parent links. Holds no stack or queue, so it
+	 * allocates nothing.
 	 * @returns		Height, 0 for a lone root, or -1 when the tree is empty.
 	 */
 	public height(): number {
-		let level: BinarySearchTreeElement<ItemT>[] = this._root ? [this._root] : [];
 		let height = -1;
+		let depth = 0;
+		let prev: BinarySearchTreeElement<ItemT> | null = null;
+		let node = this._root;
 
-		while (level.length > 0) {
-			const next: BinarySearchTreeElement<ItemT>[] = [];
+		while (node) {
+			let next: BinarySearchTreeElement<ItemT> | null;
 
-			for (const node of level) {
-				if (node._left) {
-					next.push(node._left);
+			if (prev === node._parent) {
+				// Arrived from above: first visit.
+				if (depth > height) {
+					height = depth;
 				}
-				if (node._right) {
-					next.push(node._right);
-				}
+
+				next = node._left ? node._left : node._right ? node._right : node._parent;
+			} else if (prev === node._left && node._right) {
+				// Back from the left subtree, with a right one still to walk.
+				next = node._right;
+			} else {
+				// Both subtrees done.
+				next = node._parent;
 			}
 
-			level = next;
-			height++;
+			depth += next === node._parent ? -1 : 1;
+			prev = node;
+			node = next;
 		}
 
 		return height;
@@ -445,7 +448,7 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 			return;
 		}
 
-		this._root = this.buildBalanced(items, 0, items.length - 1, null);
+		this._root = this.buildBalanced(items);
 		this._size = items.length;
 	}
 
@@ -497,7 +500,15 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	 * Every item in sorted order: left subtree, node, right subtree.
 	 */
 	public inOrder(): ItemT[] {
-		return this.toArray().map((node) => node._value as ItemT);
+		const values: ItemT[] = [];
+		let node = this.min();
+
+		while (node) {
+			values.push(node._value as ItemT);
+			node = this.successor(node);
+		}
+
+		return values;
 	}
 
 	/**
@@ -600,34 +611,34 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	/**
 	 * Find elements whose items pass every filter, in sorted order. Each
 	 * result's `delete()` removes its element, and does nothing once that
-	 * element has been removed some other way.
+	 * element has been removed some other way. `update()` keeps the element,
+	 * so a result stays valid across updates.
+	 *
+	 * @remarks
+	 * Allocates only the returned array and one result (plus its bound
+	 * `delete`) per match. Elements that do not match allocate nothing.
 	 */
 	public query(
 		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
 		opts?: QueryOptions
 	): QueryResult<BinarySearchTreeElement<ItemT>, ItemT>[] {
 		const resultsArray: QueryResult<BinarySearchTreeElement<ItemT>, ItemT>[] = [];
-		const options = this.queryOptions(opts);
+		const limit = this.queryLimit(opts);
 		let node = this.min();
 
 		// Stops walking as soon as the limit is reached.
-		while (node && resultsArray.length < options.limit) {
+		while (node && resultsArray.length < limit) {
 			const element = node;
-			const value = element._value as ItemT;
 			node = this.successor(element);
 
-			const take = Array.isArray(filters)
-				? filters.length > 0 && filters.every((filter) => filter(value))
-				: filters(value);
-
-			if (!take) {
+			if (!this.queryMatch(filters, element._value as ItemT)) {
 				continue;
 			}
 
 			resultsArray.push({
 				element: element,
-				key: (): string | null => null,
-				index: (): number | null => null,
+				key: queryResultKey,
+				index: queryResultIndex,
 				delete: this.queryDelete.bind(this, element, element._linkId)
 			});
 		}
@@ -640,15 +651,33 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	 * links cleared, and are recycled when pooling is on.
 	 */
 	public clearElements(): BinarySearchTree<ItemT> {
-		const nodes = this.toArray();
-
-		for (const node of nodes) {
-			this.unlink(node);
-		}
+		let node = this._root;
 
 		this._root = null;
 		this._size = 0;
-		this.elements.releaseAll(nodes);
+
+		// Walks down to a leaf, cuts it from its parent, drops it, and resumes
+		// from the parent. O(n), and builds no array.
+		while (node) {
+			if (node._left) {
+				node = node._left;
+			} else if (node._right) {
+				node = node._right;
+			} else {
+				const parent = node._parent;
+
+				if (parent) {
+					if (parent._left === node) {
+						parent._left = null;
+					} else {
+						parent._right = null;
+					}
+				}
+
+				this.drop(node);
+				node = parent;
+			}
+		}
 
 		return this;
 	}
@@ -677,40 +706,136 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	}
 
 	/**
-	 * Link items[first..last] into a subtree under parent and return its root.
-	 * Each subtree is topped by its middle item, moved left to the first of any
-	 * run of equal items so that no equal item lands in a left subtree. Runs of
-	 * equal items therefore form right chains, and the tree is balanced apart
-	 * from those. Right children are linked in a loop and only left subtrees
-	 * recurse, each at most half its parent's range, so recursion depth stays
-	 * O(log n) even when every item is equal.
+	 * Link sorted items into a balanced tree and return its root. Each subtree
+	 * is topped by its middle item, moved left to the first of any run of
+	 * equal items so that no equal item lands in a left subtree. Runs of equal
+	 * items therefore form right chains, and the tree is balanced apart from
+	 * those.
+	 *
+	 * Iterative, with no recursion: a range's top node and its chain of right
+	 * children are linked in a loop, and each non-empty left range is pushed
+	 * as pending work together with the node it hangs from. The pending lists
+	 * are the only allocation besides the nodes, and stay O(log^2 n) long.
 	 */
-	private buildBalanced(
-		items: ItemT[],
-		first: number,
-		last: number,
-		parent: BinarySearchTreeElement<ItemT> | null
-	): BinarySearchTreeElement<ItemT> | null {
-		let top: BinarySearchTreeElement<ItemT> | null = null;
-		let prev: BinarySearchTreeElement<ItemT> | null = null;
+	private buildBalanced(items: ItemT[]): BinarySearchTreeElement<ItemT> | null {
+		let root: BinarySearchTreeElement<ItemT> | null = null;
+		// Pending ranges as flat (first, last) pairs, and the node each range's
+		// subtree hangs from as a left child (null for the root range).
+		const ranges: number[] = [0, items.length - 1];
+		const parents: Array<BinarySearchTreeElement<ItemT> | null> = [null];
 
-		while (first <= last) {
-			const middle = this.firstEqual(items, first, first + Math.floor((last - first) / 2));
-			const node = this.createElement(items[middle]);
-			node._parent = prev ? prev : parent;
-			node._left = this.buildBalanced(items, first, middle - 1, node);
+		while (parents.length > 0) {
+			const parent = parents.pop() as BinarySearchTreeElement<ItemT> | null;
+			const last = ranges.pop() as number;
+			let first = ranges.pop() as number;
+			let prev: BinarySearchTreeElement<ItemT> | null = null;
 
-			if (prev) {
-				prev._right = node;
-			} else {
-				top = node;
+			while (first <= last) {
+				const middle = this.firstEqual(items, first, first + Math.floor((last - first) / 2));
+				const node = this.createElement(items[middle]);
+
+				if (prev) {
+					prev._right = node;
+					node._parent = prev;
+				} else if (parent) {
+					parent._left = node;
+					node._parent = parent;
+				} else {
+					root = node;
+				}
+
+				if (first < middle) {
+					ranges.push(first, middle - 1);
+					parents.push(node);
+				}
+
+				prev = node;
+				first = middle + 1;
 			}
-
-			prev = node;
-			first = middle + 1;
 		}
 
-		return top;
+		return root;
+	}
+
+	/**
+	 * Walk from the root to where item would be inserted, after any items
+	 * comparing equal, and store the spot in `slotParent` / `slotLeft`.
+	 * @returns		False, leaving the slot unset, when item compares equal to
+	 * 				an item in the tree and duplicates are not allowed.
+	 */
+	private findSlot(item: ItemT): boolean {
+		let parent: BinarySearchTreeElement<ItemT> | null = null;
+		let curr = this._root;
+		let goLeft = false;
+
+		while (curr) {
+			const result = this.comparator(item, curr._value as ItemT);
+
+			if (result === 0 && !this.allowDuplicates) {
+				return false;
+			}
+
+			parent = curr;
+			goLeft = result < 0;
+			curr = goLeft ? curr._left : curr._right;
+		}
+
+		this.slotParent = parent;
+		this.slotLeft = goLeft;
+
+		return true;
+	}
+
+	/**
+	 * Link an unlinked node, owned by this tree, as a leaf at the spot found by
+	 * the last `findSlot()`. Does not change the size.
+	 */
+	private linkAtSlot(node: BinarySearchTreeElement<ItemT>): void {
+		const parent = this.slotParent;
+		node._parent = parent;
+
+		if (!parent) {
+			this._root = node;
+		} else if (this.slotLeft) {
+			parent._left = node;
+		} else {
+			parent._right = node;
+		}
+
+		// Drop the reference so the tree never retains a removed node.
+		this.slotParent = null;
+	}
+
+	/**
+	 * Unlink node from the tree structure. Its item, ownership, and link id are
+	 * kept, so the caller can relink or drop it. Does not change the size.
+	 */
+	private detach(node: BinarySearchTreeElement<ItemT>): void {
+		const left = node._left;
+		const right = node._right;
+
+		if (!left) {
+			this.transplant(node, right);
+		} else if (!right) {
+			this.transplant(node, left);
+		} else {
+			// Two children: the in-order successor takes node's place.
+			const successor = this.subtreeMin(right);
+
+			if (successor._parent !== node) {
+				this.transplant(successor, successor._right);
+				successor._right = right;
+				right._parent = successor;
+			}
+
+			this.transplant(node, successor);
+			successor._left = left;
+			left._parent = successor;
+		}
+
+		node._left = null;
+		node._right = null;
+		node._parent = null;
 	}
 
 	/**
@@ -828,15 +953,19 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 	}
 
 	/**
-	 * Clear node's links and ownership. Needed even when pooling is off, where
-	 * release does not blank the node.
+	 * Drop a node that has left the tree: blank its item, links, and
+	 * ownership, and recycle it when pooling is on. The pool blanks the nodes
+	 * it takes back; with pooling off the node is blanked here. Either way a
+	 * removed node the caller still holds never keeps its item alive. Callers
+	 * read any value they return before dropping. Not used by `update()`'s
+	 * move, which relinks the same node.
 	 */
-	private unlink(node: BinarySearchTreeElement<ItemT>): void {
-		node._left = null;
-		node._right = null;
-		node._parent = null;
-		node._tree = null;
-		node._linkId = 0;
+	private drop(node: BinarySearchTreeElement<ItemT>): void {
+		if (this.elements.enabled()) {
+			this.elements.release(node);
+		} else {
+			node.cleanObj();
+		}
 	}
 
 	private isPartOfTree(node: BinarySearchTreeElement<ItemT>): boolean {
@@ -856,15 +985,39 @@ export class BinarySearchTree<ItemT> implements Tree<ItemT, BinarySearchTreeElem
 		return this.removeNode(element);
 	}
 
-	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {
-		const options: Required<QueryOptions> = {
-			limit: Infinity
-		};
-
-		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
-			options.limit = Math.round(opts.limit);
+	/**
+	 * Whether value passes every filter. An empty filter array matches
+	 * nothing. Plain loop, so no closure is created per element.
+	 */
+	private queryMatch(filters: QueryFilter<ItemT> | QueryFilter<ItemT>[], value: ItemT): boolean {
+		if (!Array.isArray(filters)) {
+			return filters(value);
 		}
 
-		return options;
+		if (filters.length === 0) {
+			return false;
+		}
+
+		for (let i = 0; i < filters.length; i++) {
+			if (!filters[i](value)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Maximum number of query results: opts.limit rounded when it is a number
+	 * of at least 1, otherwise unlimited.
+	 */
+	private queryLimit(opts?: QueryOptions): number {
+		const limit = opts?.limit;
+
+		if (limit && isNumber(limit) && limit >= 1) {
+			return Math.round(limit);
+		}
+
+		return Infinity;
 	}
 }

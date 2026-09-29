@@ -25,7 +25,7 @@ spatial, balanced), so they belong to each implementation, not this base.</p>
 <li><span id="elementt"><span class="tsd-kind-type-parameter">ElementT</span> <span class="tsd-signature-keyword">extends</span> <a href="TreeElement.html" class="tsd-signature-type tsd-kind-interface">TreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> = <a href="TreeElement.html" class="tsd-signature-type tsd-kind-interface">TreeElement</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></span>
 <div class="tsd-comment tsd-typography"><p>Node type the tree hands out.</p>
 </div></li></ul></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="1634">
+<section class="tsd-panel tsd-hierarchy" data-refl="3100">
 <h4>Hierarchy (<a href="../hierarchy.html#Tree">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="DataStructure.html" class="tsd-signature-type tsd-kind-interface">DataStructure</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span>
@@ -35,9 +35,11 @@ spatial, balanced), so they belong to each implementation, not this base.</p>
 <h4>Implemented by</h4>
 <ul class="tsd-hierarchy">
 <li><a href="../classes/BinarySearchTree.html" class="tsd-signature-type tsd-kind-class">BinarySearchTree</a></li>
+<li><a href="../classes/OctTree.html" class="tsd-signature-type tsd-kind-class">OctTree</a></li>
+<li><a href="../classes/QuadTree.html" class="tsd-signature-type tsd-kind-class">QuadTree</a></li>
 <li><a href="../classes/RedBlackTree.html" class="tsd-signature-type tsd-kind-class">RedBlackTree</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/tree.ts#L14">tree.ts:14</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/tree.ts#L14">tree.ts:14</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -68,7 +70,7 @@ spatial, balanced), so they belong to each implementation, not this base.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="DataStructure.html">DataStructure</a>.<a href="DataStructure.html#clearelements">clearElements</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/data/structure.ts#L14">data/structure.ts:14</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/data/structure.ts#L14">data/structure.ts:14</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="depth"><span>depth</span><a href="#depth" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -84,7 +86,7 @@ spatial, balanced), so they belong to each implementation, not this base.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>Depth, or null when element is null or not part of this tree.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/tree.ts#L30">tree.ts:30</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/tree.ts#L30">tree.ts:30</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="height"><span>height</span><a href="#height" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -96,7 +98,7 @@ holding only a root has height 0, and an empty tree has height -1.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/tree.ts#L25">tree.ts:25</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/tree.ts#L25">tree.ts:25</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isempty"><span>is<wbr/>Empty</span><a href="#isempty" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -107,7 +109,7 @@ holding only a root has height 0, and an empty tree has height -1.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/tree.ts#L20">tree.ts:20</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/tree.ts#L20">tree.ts:20</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="query"><span>query</span><a href="#query" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -122,7 +124,7 @@ holding only a root has height 0, and an empty tree has height -1.</p>
 <h4 class="tsd-returns-title">Returns <a href="QueryResult.html" class="tsd-signature-type tsd-kind-interface">QueryResult</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span> <span class="tsd-signature-symbol">|</span> <a href="QueryResult.html" class="tsd-signature-type tsd-kind-interface">QueryResult</a><span class="tsd-signature-symbol">&lt;</span><a href="Element.html" class="tsd-signature-type tsd-kind-interface">Element</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="DataStructure.html">DataStructure</a>.<a href="DataStructure.html#query">query</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/data/structure.ts#L17">data/structure.ts:17</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/data/structure.ts#L17">data/structure.ts:17</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="reset"><span>reset</span><a href="#reset" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -132,7 +134,7 @@ holding only a root has height 0, and an empty tree has height -1.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="DataStructure.html">DataStructure</a>.<a href="DataStructure.html#reset">reset</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/data/structure.ts#L15">data/structure.ts:15</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/data/structure.ts#L15">data/structure.ts:15</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="root"><span>root</span><a href="#root" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -143,7 +145,7 @@ holding only a root has height 0, and an empty tree has height -1.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#elementt">ElementT</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/tree.ts#L16">tree.ts:16</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/tree.ts#L16">tree.ts:16</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -154,7 +156,7 @@ holding only a root has height 0, and an empty tree has height -1.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/tree.ts#L18">tree.ts:18</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/tree.ts#L18">tree.ts:18</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="stringify"><span>stringify</span><a href="#stringify" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -164,7 +166,7 @@ holding only a root has height 0, and an empty tree has height -1.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="DataStructure.html">DataStructure</a>.<a href="DataStructure.html#stringify">stringify</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/data/structure.ts#L16">data/structure.ts:16</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/data/structure.ts#L16">data/structure.ts:16</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="values"><span>values</span><a href="#values" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -175,7 +177,7 @@ holding only a root has height 0, and an empty tree has height -1.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/tree.ts#L32">tree.ts:32</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/tree.ts#L32">tree.ts:32</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

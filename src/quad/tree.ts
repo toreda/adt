@@ -16,6 +16,11 @@ import type {Tree} from '../tree';
 import {booleanValue} from '../boolean/value';
 import {isNumber} from '../utility';
 
+/** Shared by every query result: a quadtree has no keys. */
+const queryNoKey = (): string | null => null;
+/** Shared by every query result: a quadtree has no indexes. */
+const queryNoIndex = (): number | null => null;
+
 /**
  * Point quadtree: each node holds one item at a position on the plane, read
  * by a caller supplied locator, and splits the plane around that position
@@ -31,12 +36,20 @@ import {isNumber} from '../utility';
  * node handed out by `insert()` keeps holding its item until that item is
  * removed.
  *
+ * Once the pool and the tree's internal scratch arrays have grown, `insert()`,
+ * `remove()`, `removeNode()`, `update()`, `find()`, `nearest()`, and
+ * `forEach()`, `forEachWithinBounds()`, and `forEachWithinRadius()` allocate
+ * nothing. `withinBounds()` and `withinRadius()` allocate their result array,
+ * and may still allocate when passed an array to fill (see their `out`
+ * parameter); the `forEachWithin*` visitors are the zero-allocation queries.
+ *
  * @remarks
  * The tree is not self-balancing: its shape depends on insertion order, so
  * depth ranges from O(log n) for well spread input to O(n) for input sorted
  * along both axes. Removing a node relinks every node in its subtree, which
  * is the conventional point quadtree deletion. It costs O(k * depth) for a
- * subtree of k nodes, and removing the root relinks the whole tree.
+ * subtree of k nodes, and removing the root relinks the whole tree. Removing
+ * or moving a leaf relinks nothing.
  *
  * Duplicates are allowed by default: an item at exactly the position of
  * existing ones is placed in their north-east quadrant, below them. With
@@ -60,6 +73,33 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	private lastLinkId: number;
 	/** Source of node wrappers, pooled or freshly allocated per options. */
 	private readonly elements: ElementPool<QuadTreeElement<ItemT>>;
+	/**
+	 * Node stack reused by every internal walk that runs no caller code
+	 * (searches, relinking, traversals). Entries at and above `stackTop` are
+	 * null. Indexed instead of pushed and popped, since shrinking an array's
+	 * length can free its storage and make the next walk allocate it again.
+	 */
+	private readonly stackNodes: (QuadTreeElement<ItemT> | null)[];
+	/** Number of nodes on `stackNodes`. */
+	private stackTop: number;
+	/**
+	 * Region of each stacked node, four entries per `stackNodes` slot: minX,
+	 * minY, maxX, maxY. Used by `nearest()` and `withinRadius()`.
+	 */
+	private readonly stackRegions: number[];
+	/**
+	 * Snapshot of the nodes `forEach()` and the `forEachWithin*` visitors
+	 * walk, and their link ids. Separate from `stackNodes` because func may
+	 * call anything, including another visitor, which stacks its own snapshot
+	 * above this one.
+	 */
+	private readonly eachNodes: (QuadTreeElement<ItemT> | null)[];
+	private readonly eachLinkIds: number[];
+	/** Number of snapshot entries in use by running `forEach()` and visitor calls. */
+	private eachTop: number;
+	/** Parent and quadrant found by the last `findSlot()`. */
+	private slotParent: QuadTreeElement<ItemT> | null;
+	private slotQuadrant: QuadTreeQuadrant;
 
 	/**
 	 * @param locator	Reads an item's position. Required, since items are
@@ -91,6 +131,14 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 			QuadTreeElement as ObjectPoolConstructor<QuadTreeElement<ItemT>>,
 			options
 		);
+		this.stackNodes = [];
+		this.stackTop = 0;
+		this.stackRegions = [];
+		this.eachNodes = [];
+		this.eachLinkIds = [];
+		this.eachTop = 0;
+		this.slotParent = null;
+		this.slotQuadrant = 0;
 
 		if (Array.isArray(data)) {
 			this.insertArray(data);
@@ -98,7 +146,14 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	}
 
 	/**
-	 * Iterate items in pre-order, each node before its quadrants.
+	 * Iterate items in pre-order, each node before its quadrants. Allocates one
+	 * iterator per loop; `forEach()` is the non-allocating walk.
+	 *
+	 * @remarks
+	 * Not safe under mutation. Removal relinks whole subtrees, so removing or
+	 * moving items during the loop can skip or repeat items. When the node due
+	 * next was removed, iteration ends early. Use `forEach()` to change the
+	 * tree while walking it.
 	 */
 	[Symbol.iterator](): QuadTreeIterator<ItemT> {
 		return new QuadTreeIterator<ItemT>(this);
@@ -120,13 +175,17 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 			return 'invalid_position';
 		}
 
-		if (!this.allowDuplicates && this.findAt(point.x, point.y)) {
+		const x = point.x;
+		const y = point.y;
+
+		// One descent both checks for a duplicate and finds the new leaf's slot.
+		if (!this.findSlot(x, y, !this.allowDuplicates)) {
 			return 'duplicate_not_allowed';
 		}
 
 		// Allocated only once the item is known to be accepted.
-		const node = this.createElement(item, point.x, point.y);
-		this.link(node);
+		const node = this.createElement(item, x, y);
+		this.attach(node);
 		++this._size;
 
 		return node;
@@ -142,8 +201,8 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 			return;
 		}
 
-		for (const item of items) {
-			this.insert(item);
+		for (let i = 0; i < items.length; i++) {
+			this.insert(items[i]);
 		}
 	}
 
@@ -182,6 +241,8 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 			return null;
 		}
 
+		const x = point.x;
+		const y = point.y;
 		let curr = this._root;
 
 		while (curr) {
@@ -189,7 +250,7 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 				return this.removeNode(curr);
 			}
 
-			curr = curr._children[this.quadrantOf(curr, point.x, point.y)];
+			curr = curr._children[this.quadrantOf(curr, x, y)];
 		}
 
 		return null;
@@ -198,8 +259,8 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	/**
 	 * Unlink node from the tree and return its value. Every node in node's
 	 * subtree is relinked from its position, in O(k * depth) for a subtree of
-	 * k nodes. Those nodes keep their items. With pooling on, the removed node
-	 * is recycled and must not be used afterwards.
+	 * k nodes; a leaf relinks nothing. Those nodes keep their items. With
+	 * pooling on, the removed node is recycled and must not be used afterwards.
 	 * @returns		The removed value, or null when node is null or not part of
 	 * 				this tree (including a node that was already removed).
 	 */
@@ -212,8 +273,7 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 
 		this.detach(node);
 		this._size--;
-		this.unlink(node);
-		this.elements.release(node);
+		this.dropNode(node);
 
 		return value;
 	}
@@ -223,6 +283,7 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	 * changed in place, pass the node's own item: `tree.update(node,
 	 * node.value())`. When the position is unchanged, nothing moves. Otherwise
 	 * node is unlinked as in `removeNode()` and relinked at the new position.
+	 * Moving a leaf relinks no other node.
 	 *
 	 * @returns		node, which keeps holding item. `invalid_position` when the
 	 * 				locator does not return finite x and y coordinates for item,
@@ -248,20 +309,25 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 
 		node._value = item;
 
-		if (point.x === node._x && point.y === node._y) {
+		const x = point.x;
+		const y = point.y;
+
+		if (x === node._x && y === node._y) {
 			return node;
 		}
 
-		// node still sits at its old position, so any match here is another node.
-		if (!this.allowDuplicates && this.findAt(point.x, point.y)) {
-			this.removeNode(node);
+		this.detach(node);
+
+		// node is out of the tree now, so any match found here is another node.
+		if (!this.findSlot(x, y, !this.allowDuplicates)) {
+			this._size--;
+			this.dropNode(node);
 			return 'duplicate_not_allowed';
 		}
 
-		this.detach(node);
-		node._x = point.x;
-		node._y = point.y;
-		this.link(node);
+		node._x = x;
+		node._y = y;
+		this.attach(node);
 
 		return node;
 	}
@@ -276,114 +342,174 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 
 	/**
 	 * Nodes whose positions lie inside bounds, edges included, in pre-order.
-	 * Quadrants lying wholly outside bounds are skipped.
-	 * @returns		Matching nodes, or an empty array when bounds has a
-	 * 				non-finite value or a min greater than its max.
+	 * Quadrants lying wholly outside bounds are skipped. Shares its walk with
+	 * `forEachWithinBounds()`, so both find the same nodes in the same order.
+	 * @param out	Optional array to fill instead of allocating a new one. Its
+	 * 				previous contents are replaced and its length set to the
+	 * 				match count. The array object is reused, but V8 shrinks its
+	 * 				storage when the length drops, so a later call with more
+	 * 				matches can allocate storage again. For zero allocation use
+	 * 				`forEachWithinBounds()`.
+	 * @returns		out when given, otherwise a new array, holding the matching
+	 * 				nodes. Empty when bounds has a non-finite value or a min
+	 * 				greater than its max.
 	 */
-	public withinBounds(bounds: QuadTreeBounds): QuadTreeElement<ItemT>[] {
-		const result: QuadTreeElement<ItemT>[] = [];
-
-		if (!this.isBounds(bounds)) {
-			return result;
-		}
-
-		const {minX, minY, maxX, maxY} = bounds;
-		const stack: QuadTreeElement<ItemT>[] = this._root ? [this._root] : [];
-
-		while (stack.length > 0) {
-			const node = stack.pop() as QuadTreeElement<ItemT>;
-
-			if (node._x >= minX && node._x <= maxX && node._y >= minY && node._y <= maxY) {
-				result.push(node);
-			}
-
-			// Pushed in reverse so quadrants are visited in order.
-			for (let quadrant = 3; quadrant >= 0; quadrant--) {
-				const child = node._children[quadrant];
-
-				if (!child) {
-					continue;
-				}
-
-				// Each ancestor already ruled out its own side, so checking only
-				// this node's split is exact.
-				const west = (quadrant & 1) !== 0;
-				const south = (quadrant & 2) !== 0;
-				const xOverlaps = west ? minX < node._x : maxX >= node._x;
-				const yOverlaps = south ? minY < node._y : maxY >= node._y;
-
-				if (xOverlaps && yOverlaps) {
-					stack.push(child);
-				}
-			}
-		}
+	public withinBounds(
+		bounds: QuadTreeBounds,
+		out?: QuadTreeElement<ItemT>[] | null
+	): QuadTreeElement<ItemT>[] {
+		const result: QuadTreeElement<ItemT>[] = Array.isArray(out) ? out : [];
+		result.length = this.collectWithinBounds(bounds, result, 0);
 
 		return result;
 	}
 
 	/**
-	 * Nodes whose positions lie within radius of point, boundary included, in
-	 * pre-order. Quadrants lying wholly beyond radius are skipped.
-	 * @returns		Matching nodes, or an empty array when point does not have
-	 * 				finite x and y coordinates or radius is not a finite number
-	 * 				of at least 0.
+	 * Call func once for each node whose position lies inside bounds, edges
+	 * included, in the order `withinBounds()` returns them (pre-order). The
+	 * zero-allocation form of `withinBounds()`: it reuses the tree's scratch
+	 * arrays, so once they have grown a call allocates nothing. Visits nothing
+	 * when the tree is empty, or bounds has a non-finite value or a min greater
+	 * than its max.
+	 *
+	 * @remarks
+	 * Safe under mutation, like `forEach()`: every match is collected before
+	 * func first runs, and func is then called over that snapshot. func may
+	 * insert, remove, update, or clear: removed matches not yet visited are
+	 * skipped, moved matches are still visited once (even when no longer
+	 * inside bounds), and inserted items are not visited. func may run any
+	 * other query on this tree, including another visitor. When func throws,
+	 * the snapshot is released and the error propagates.
+	 *
+	 * @param func		Called with (element, index, tree). index counts visited
+	 * 					matches from 0.
+	 * @param thisArg	Value used as `this` when calling func, as passed. Like
+	 * 					`Array.prototype.forEach`, `this` is undefined when omitted.
+	 * @returns			This tree, like `forEach()`.
 	 */
-	public withinRadius(point: QuadTreePoint, radius: number): QuadTreeElement<ItemT>[] {
-		const result: QuadTreeElement<ItemT>[] = [];
+	public forEachWithinBounds(
+		bounds: QuadTreeBounds,
+		func: QuadTreeMethod<ItemT, void>,
+		thisArg?: unknown
+	): QuadTree<ItemT> {
+		const start = this.eachTop;
+		const end = this.collectWithinBounds(bounds, this.eachNodes, start);
+		this.visitSnapshot(start, end, func, thisArg);
 
-		if (!this.isPoint(point) || !Number.isFinite(radius) || radius < 0) {
-			return result;
-		}
+		return this;
+	}
 
-		const limit = radius * radius;
-
-		this.walkRegions(point, (node, regionDistance) => {
-			if (regionDistance > limit) {
-				return false;
-			}
-
-			if (this.distanceSquared(node, point) <= limit) {
-				result.push(node);
-			}
-
-			return true;
-		});
+	/**
+	 * Nodes whose positions lie within radius of point, boundary included.
+	 * Quadrants lying wholly beyond radius are skipped. The quadrant holding
+	 * point is searched first, so results are not in pre-order. Shares its
+	 * walk with `forEachWithinRadius()`, so both find the same nodes in the
+	 * same order.
+	 * @param out	Optional array to fill instead of allocating a new one. Its
+	 * 				previous contents are replaced and its length set to the
+	 * 				match count. The array object is reused, but V8 shrinks its
+	 * 				storage when the length drops, so a later call with more
+	 * 				matches can allocate storage again. For zero allocation use
+	 * 				`forEachWithinRadius()`.
+	 * @returns		out when given, otherwise a new array, holding the matching
+	 * 				nodes. Empty when point does not have finite x and y
+	 * 				coordinates or radius is not a finite number of at least 0.
+	 */
+	public withinRadius(
+		point: QuadTreePoint,
+		radius: number,
+		out?: QuadTreeElement<ItemT>[] | null
+	): QuadTreeElement<ItemT>[] {
+		const result: QuadTreeElement<ItemT>[] = Array.isArray(out) ? out : [];
+		result.length = this.collectWithinRadius(point, radius, result, 0);
 
 		return result;
+	}
+
+	/**
+	 * Call func once for each node whose position lies within radius of point,
+	 * boundary included, in the order `withinRadius()` returns them (the
+	 * quadrant holding point first, not pre-order). The zero-allocation form of
+	 * `withinRadius()`: it reuses the tree's scratch arrays, so once they have
+	 * grown a call allocates nothing. Visits nothing when the tree is empty,
+	 * point does not have finite x and y coordinates, or radius is not a finite
+	 * number of at least 0.
+	 *
+	 * @remarks
+	 * Safe under mutation, like `forEach()`: every match is collected before
+	 * func first runs, and func is then called over that snapshot. func may
+	 * insert, remove, update, or clear: removed matches not yet visited are
+	 * skipped, moved matches are still visited once (even when no longer
+	 * within radius), and inserted items are not visited. func may run any
+	 * other query on this tree, including another visitor. When func throws,
+	 * the snapshot is released and the error propagates.
+	 *
+	 * @param func		Called with (element, index, tree). index counts visited
+	 * 					matches from 0.
+	 * @param thisArg	Value used as `this` when calling func, as passed. Like
+	 * 					`Array.prototype.forEach`, `this` is undefined when omitted.
+	 * @returns			This tree, like `forEach()`.
+	 */
+	public forEachWithinRadius(
+		point: QuadTreePoint,
+		radius: number,
+		func: QuadTreeMethod<ItemT, void>,
+		thisArg?: unknown
+	): QuadTree<ItemT> {
+		const start = this.eachTop;
+		const end = this.collectWithinRadius(point, radius, this.eachNodes, start);
+		this.visitSnapshot(start, end, func, thisArg);
+
+		return this;
 	}
 
 	/**
 	 * Node whose position is nearest to point by straight-line distance.
 	 * Quadrants that cannot hold anything nearer than the best match so far
 	 * are skipped. When several nodes are equally near, returns one of them.
+	 * Allocates nothing once the tree's scratch stacks have grown.
 	 * @returns		Nearest node, or null when the tree is empty or point does
 	 * 				not have finite x and y coordinates.
 	 */
 	public nearest(point: QuadTreePoint): QuadTreeElement<ItemT> | null {
-		if (!this.isPoint(point)) {
+		if (!this._root || !this.isPoint(point)) {
 			return null;
 		}
 
+		const px = point.x;
+		const py = point.y;
+		const regions = this.stackRegions;
 		let best: QuadTreeElement<ItemT> | null = null;
 		let bestDistance = Infinity;
 
-		this.walkRegions(point, (node, regionDistance) => {
-			if (regionDistance >= bestDistance) {
-				return false;
+		this.pushRegion(this._root, -Infinity, -Infinity, Infinity, Infinity);
+
+		while (this.stackTop > 0) {
+			const top = this.stackTop - 1;
+			const base = top * 4;
+			const minX = regions[base];
+			const minY = regions[base + 1];
+			const maxX = regions[base + 2];
+			const maxY = regions[base + 3];
+			const node = this.popNode();
+			const dx = Math.max(minX - px, 0, px - maxX);
+			const dy = Math.max(minY - py, 0, py - maxY);
+
+			if (dx * dx + dy * dy >= bestDistance) {
+				continue;
 			}
 
-			const distance = this.distanceSquared(node, point);
+			const distance = this.distanceSquared(node, px, py);
 
 			if (distance < bestDistance) {
 				best = node;
 				bestDistance = distance;
 			}
 
-			return true;
-		});
+			this.pushChildRegions(node, px, py, minX, minY, maxX, maxY);
+		}
 
-		// Assigned inside the callback, which control flow analysis cannot see.
-		return best as QuadTreeElement<ItemT> | null;
+		return best;
 	}
 
 	/**
@@ -415,27 +541,43 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	}
 
 	/**
-	 * Number of edges on the longest root to leaf path, found with a level
-	 * order walk in O(n).
+	 * Number of edges on the longest root to leaf path, found by following
+	 * links in O(n). Allocates nothing.
 	 * @returns		Height, 0 for a lone root, or -1 when the tree is empty.
 	 */
 	public height(): number {
-		let level: QuadTreeElement<ItemT>[] = this._root ? [this._root] : [];
+		let node = this._root;
+		let depth = 0;
 		let height = -1;
 
-		while (level.length > 0) {
-			const next: QuadTreeElement<ItemT>[] = [];
-
-			for (const node of level) {
-				for (const child of node._children) {
-					if (child) {
-						next.push(child);
-					}
-				}
+		while (node) {
+			if (depth > height) {
+				height = depth;
 			}
 
-			level = next;
-			height++;
+			const child = this.firstChild(node, 0);
+
+			if (child) {
+				node = child;
+				depth++;
+				continue;
+			}
+
+			// Climb until an ancestor has a later non-empty quadrant.
+			let next: QuadTreeElement<ItemT> | null = null;
+
+			while (node._parent) {
+				next = this.firstChild(node._parent, node._quadrant + 1);
+
+				if (next) {
+					break;
+				}
+
+				node = node._parent;
+				depth--;
+			}
+
+			node = next;
 		}
 
 		return height;
@@ -503,7 +645,9 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	}
 
 	/**
-	 * Call func for each element in pre-order.
+	 * Call func for each element in pre-order. The non-allocating way to walk
+	 * the tree: it reuses internal scratch arrays, so once they have grown to
+	 * the tree's size a call allocates nothing.
 	 *
 	 * @remarks
 	 * Like `Map` / `Set`, func receives the tree itself as its third argument,
@@ -511,29 +655,23 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	 * snapshot of the elements taken before func first runs. func may remove
 	 * or update any element: removed elements not yet visited are skipped,
 	 * and moved ones are still visited once. Elements inserted during the walk
-	 * are not visited.
+	 * are not visited. func may also start another `forEach()` on this tree.
 	 *
 	 * @param func		Called with (element, index, tree) in pre-order.
 	 * @param thisArg	Value used as `this` when calling func, as passed. Like
 	 * 					`Array.prototype.forEach`, `this` is undefined when omitted.
 	 */
 	public forEach(func: QuadTreeMethod<ItemT, void>, thisArg?: unknown): QuadTree<ItemT> {
-		const nodes = this.toArray();
-		const linkIds = nodes.map((node) => node._linkId);
-		let index = 0;
+		const nodes = this.eachNodes;
+		// A forEach started by func stacks its snapshot above this one.
+		const start = this.eachTop;
+		let end = start;
 
-		for (let i = 0; i < nodes.length; i++) {
-			const node = nodes[i];
-
-			// A removed node may have been recycled for a later insert, which
-			// gives it a new link id.
-			if (node._tree !== this || node._linkId !== linkIds[i]) {
-				continue;
-			}
-
-			func.call(thisArg, node, index, this);
-			index++;
+		for (let node = this._root; node; node = this.nextInPreOrder(node)) {
+			nodes[end++] = node;
 		}
+
+		this.visitSnapshot(start, end, func, thisArg);
 
 		return this;
 	}
@@ -550,7 +688,13 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	 * Every item with each node before its quadrants, in quadrant order.
 	 */
 	public preOrder(): ItemT[] {
-		return this.toArray().map((node) => node._value as ItemT);
+		const values: ItemT[] = [];
+
+		for (let node = this._root; node; node = this.nextInPreOrder(node)) {
+			values.push(node._value as ItemT);
+		}
+
+		return values;
 	}
 
 	/**
@@ -559,15 +703,20 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	public postOrder(): ItemT[] {
 		// Walk node, then quadrants last to first, and reverse the result.
 		const values: ItemT[] = [];
-		const stack: QuadTreeElement<ItemT>[] = this._root ? [this._root] : [];
 
-		while (stack.length > 0) {
-			const node = stack.pop() as QuadTreeElement<ItemT>;
+		if (this._root) {
+			this.pushNode(this._root);
+		}
+
+		while (this.stackTop > 0) {
+			const node = this.popNode();
 			values.push(node._value as ItemT);
 
-			for (const child of node._children) {
+			for (let quadrant = 0; quadrant < 4; quadrant++) {
+				const child = node._children[quadrant];
+
 				if (child) {
-					stack.push(child);
+					this.pushNode(child);
 				}
 			}
 		}
@@ -581,15 +730,25 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	 */
 	public levelOrder(): ItemT[] {
 		const values: ItemT[] = [];
-		const queue: QuadTreeElement<ItemT>[] = this._root ? [this._root] : [];
+		// The scratch stack serves as the queue: entries are appended at the end
+		// and read from the front.
+		const queue = this.stackNodes;
+		let tail = 0;
 
-		for (let i = 0; i < queue.length; i++) {
-			const node = queue[i];
+		if (this._root) {
+			queue[tail++] = this._root;
+		}
+
+		for (let head = 0; head < tail; head++) {
+			const node = queue[head] as QuadTreeElement<ItemT>;
+			queue[head] = null;
 			values.push(node._value as ItemT);
 
-			for (const child of node._children) {
+			for (let quadrant = 0; quadrant < 4; quadrant++) {
+				const child = node._children[quadrant];
+
 				if (child) {
-					queue.push(child);
+					queue[tail++] = child;
 				}
 			}
 		}
@@ -615,11 +774,9 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	 */
 	public toArray(): QuadTreeElement<ItemT>[] {
 		const result: QuadTreeElement<ItemT>[] = [];
-		let node = this._root;
 
-		while (node) {
+		for (let node = this._root; node; node = this.nextInPreOrder(node)) {
 			result.push(node);
-			node = this.nextInPreOrder(node);
 		}
 
 		return result;
@@ -628,35 +785,33 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	/**
 	 * Find elements whose items pass every filter, in pre-order. Each result's
 	 * `delete()` removes its element, and does nothing once that element has
-	 * been removed some other way.
+	 * been removed some other way. Allocates the result array and one result
+	 * per match.
 	 */
 	public query(
 		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
 		opts?: QueryOptions
 	): QueryResult<QuadTreeElement<ItemT>, ItemT>[] {
 		const resultsArray: QueryResult<QuadTreeElement<ItemT>, ItemT>[] = [];
-		const options = this.queryOptions(opts);
+		const limit = this.queryLimit(opts);
 		let node = this._root;
 
 		// Stops walking as soon as the limit is reached.
-		while (node && resultsArray.length < options.limit) {
+		while (node && resultsArray.length < limit) {
 			const element = node;
-			const value = element._value as ItemT;
 			node = this.nextInPreOrder(element);
 
-			const take = Array.isArray(filters)
-				? filters.length > 0 && filters.every((filter) => filter(value))
-				: filters(value);
-
-			if (!take) {
+			if (!this.queryMatch(filters, element._value as ItemT)) {
 				continue;
 			}
 
+			const linkId = element._linkId;
+
 			resultsArray.push({
 				element: element,
-				key: (): string | null => null,
-				index: (): number | null => null,
-				delete: this.queryDelete.bind(this, element, element._linkId)
+				key: queryNoKey,
+				index: queryNoIndex,
+				delete: (): ItemT | null => this.queryDelete(element, linkId)
 			});
 		}
 
@@ -665,18 +820,33 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 
 	/**
 	 * Unlink and drop every element. Elements removed this way have their
-	 * links cleared, and are recycled when pooling is on.
+	 * links cleared, and are recycled when pooling is on. Walks the links
+	 * directly, releasing leaves bottom up, and allocates nothing.
 	 */
 	public clearElements(): QuadTree<ItemT> {
-		const nodes = this.toArray();
-
-		for (const node of nodes) {
-			this.unlink(node);
-		}
+		let node = this._root;
 
 		this._root = null;
 		this._size = 0;
-		this.elements.releaseAll(nodes);
+
+		while (node) {
+			const child = this.firstChild(node, 0);
+
+			if (child) {
+				node = child;
+				continue;
+			}
+
+			// node is a leaf now: cut it from its parent and drop it.
+			const parent = node._parent;
+
+			if (parent) {
+				parent._children[node._quadrant] = null;
+			}
+
+			this.dropNode(node);
+			node = parent;
+		}
 
 		return this;
 	}
@@ -689,6 +859,160 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 		this.clearElements();
 
 		return this;
+	}
+
+	/**
+	 * Write every node inside bounds, in pre-order, into `into` from index
+	 * start on. The one walk behind `withinBounds()` and
+	 * `forEachWithinBounds()`. Runs no caller code, so it may use `stackNodes`.
+	 * @returns		Index after the last node written; start when nothing
+	 * 				matches or bounds is invalid.
+	 */
+	private collectWithinBounds(
+		bounds: QuadTreeBounds,
+		into: (QuadTreeElement<ItemT> | null)[],
+		start: number
+	): number {
+		let count = start;
+
+		if (!this._root || !this.isBounds(bounds)) {
+			return count;
+		}
+
+		const minX = bounds.minX;
+		const minY = bounds.minY;
+		const maxX = bounds.maxX;
+		const maxY = bounds.maxY;
+
+		this.pushNode(this._root);
+
+		while (this.stackTop > 0) {
+			const node = this.popNode();
+
+			if (node._x >= minX && node._x <= maxX && node._y >= minY && node._y <= maxY) {
+				into[count++] = node;
+			}
+
+			// Pushed in reverse so quadrants are visited in order.
+			for (let quadrant = 3; quadrant >= 0; quadrant--) {
+				const child = node._children[quadrant];
+
+				if (!child) {
+					continue;
+				}
+
+				// Each ancestor already ruled out its own side, so checking only
+				// this node's split is exact.
+				const west = (quadrant & 1) !== 0;
+				const south = (quadrant & 2) !== 0;
+				const xOverlaps = west ? minX < node._x : maxX >= node._x;
+				const yOverlaps = south ? minY < node._y : maxY >= node._y;
+
+				if (xOverlaps && yOverlaps) {
+					this.pushNode(child);
+				}
+			}
+		}
+
+		return count;
+	}
+
+	/**
+	 * Write every node within radius of point into `into` from index start
+	 * on, the quadrant holding point first. The one walk behind
+	 * `withinRadius()` and `forEachWithinRadius()`. Runs no caller code, so it
+	 * may use `stackNodes` and `stackRegions`.
+	 * @returns		Index after the last node written; start when nothing
+	 * 				matches or point or radius is invalid.
+	 */
+	private collectWithinRadius(
+		point: QuadTreePoint,
+		radius: number,
+		into: (QuadTreeElement<ItemT> | null)[],
+		start: number
+	): number {
+		let count = start;
+
+		if (!this._root || !this.isPoint(point) || !Number.isFinite(radius) || radius < 0) {
+			return count;
+		}
+
+		const px = point.x;
+		const py = point.y;
+		const limit = radius * radius;
+		const regions = this.stackRegions;
+
+		this.pushRegion(this._root, -Infinity, -Infinity, Infinity, Infinity);
+
+		while (this.stackTop > 0) {
+			const top = this.stackTop - 1;
+			const base = top * 4;
+			const minX = regions[base];
+			const minY = regions[base + 1];
+			const maxX = regions[base + 2];
+			const maxY = regions[base + 3];
+			const node = this.popNode();
+			const dx = Math.max(minX - px, 0, px - maxX);
+			const dy = Math.max(minY - py, 0, py - maxY);
+
+			if (dx * dx + dy * dy > limit) {
+				continue;
+			}
+
+			if (this.distanceSquared(node, px, py) <= limit) {
+				into[count++] = node;
+			}
+
+			this.pushChildRegions(node, px, py, minX, minY, maxX, maxY);
+		}
+
+		return count;
+	}
+
+	/**
+	 * Call func for each node in `eachNodes` from start to end that is still
+	 * linked to this tree under the id it had when written there. Claims that
+	 * range of the snapshot for the call, so func may start another visitor,
+	 * which stacks above it, and releases it afterwards even when func throws.
+	 */
+	private visitSnapshot(
+		start: number,
+		end: number,
+		func: QuadTreeMethod<ItemT, void>,
+		thisArg: unknown
+	): void {
+		const nodes = this.eachNodes;
+		const linkIds = this.eachLinkIds;
+
+		for (let i = start; i < end; i++) {
+			linkIds[i] = (nodes[i] as QuadTreeElement<ItemT>)._linkId;
+		}
+
+		this.eachTop = end;
+
+		try {
+			let index = 0;
+
+			for (let i = start; i < end; i++) {
+				const node = nodes[i] as QuadTreeElement<ItemT>;
+
+				// A removed node may have been recycled for a later insert, which
+				// gives it a new link id.
+				if (node._tree !== this || node._linkId !== linkIds[i]) {
+					continue;
+				}
+
+				func.call(thisArg, node, index, this);
+				index++;
+			}
+		} finally {
+			// Drop the references so removed nodes are not kept alive.
+			for (let i = start; i < end; i++) {
+				nodes[i] = null;
+			}
+
+			this.eachTop = start;
+		}
 	}
 
 	/**
@@ -707,41 +1031,70 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	}
 
 	/**
-	 * Hang node, which must have no parent or children, as a new leaf at its
-	 * stored position. Does not change the size.
+	 * Descend to the empty slot a new leaf at (x, y) belongs in and store it
+	 * in `slotParent` / `slotQuadrant` for `attach()`.
+	 * @param unique	When true, stop at a node already at exactly (x, y).
+	 * 					Every node at that position lies on the path, since equal
+	 * 					coordinates always descend the same way.
+	 * @returns			False when unique is true and (x, y) is occupied.
 	 */
-	private link(node: QuadTreeElement<ItemT>): void {
+	private findSlot(x: number, y: number, unique: boolean): boolean {
 		let parent: QuadTreeElement<ItemT> | null = null;
 		let curr = this._root;
 		let quadrant: QuadTreeQuadrant = 0;
 
 		while (curr) {
+			if (unique && curr._x === x && curr._y === y) {
+				return false;
+			}
+
 			parent = curr;
-			quadrant = this.quadrantOf(curr, node._x, node._y);
+			quadrant = this.quadrantOf(curr, x, y);
 			curr = curr._children[quadrant];
 		}
 
+		this.slotParent = parent;
+		this.slotQuadrant = quadrant;
+
+		return true;
+	}
+
+	/**
+	 * Hang node, which must have no parent or children, in the slot the last
+	 * `findSlot()` found. Does not change the size.
+	 */
+	private attach(node: QuadTreeElement<ItemT>): void {
+		const parent = this.slotParent;
+
 		node._parent = parent;
-		node._quadrant = quadrant;
+		node._quadrant = this.slotQuadrant;
 
 		if (parent) {
-			parent._children[quadrant] = node;
+			parent._children[this.slotQuadrant] = node;
 		} else {
 			this._root = node;
 		}
+
+		this.slotParent = null;
+	}
+
+	/**
+	 * Hang node, which must have no parent or children, as a new leaf at its
+	 * stored position. Does not change the size.
+	 */
+	private link(node: QuadTreeElement<ItemT>): void {
+		this.findSlot(node._x, node._y, false);
+		this.attach(node);
 	}
 
 	/**
 	 * Cut node out of the tree, leaving it with no parent or children, and
-	 * relink every node of its subtree from its stored position. Relinking in
-	 * pre-order keeps each relinked node's own split ahead of its former
-	 * descendants. Does not change the size or node's ownership.
+	 * relink every node of its subtree from its stored position. A leaf needs
+	 * no relinking. Otherwise the subtree is relinked in one pre-order pass
+	 * over the scratch stack, which keeps each relinked node's own split ahead
+	 * of its former descendants. Does not change the size or node's ownership.
 	 */
 	private detach(node: QuadTreeElement<ItemT>): void {
-		const orphans = this.subtree(node);
-		// The first entry is node itself.
-		orphans.shift();
-
 		const parent = node._parent;
 
 		if (parent) {
@@ -750,93 +1103,99 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 			this._root = null;
 		}
 
-		this.clearLinks(node);
-
-		for (const orphan of orphans) {
-			this.clearLinks(orphan);
+		if (node.isLeaf()) {
+			node._parent = null;
+			node._quadrant = 0;
+			return;
 		}
 
-		for (const orphan of orphans) {
+		this.pushChildren(node);
+		this.clearLinks(node);
+
+		// The cut subtree is unreachable from the root, and each orphan's links
+		// are cleared before it is relinked, so no relink descends into it.
+		while (this.stackTop > 0) {
+			const orphan = this.popNode();
+			this.pushChildren(orphan);
+			this.clearLinks(orphan);
 			this.link(orphan);
 		}
 	}
 
-	/**
-	 * Every node in node's subtree, node first, in pre-order.
-	 */
-	private subtree(node: QuadTreeElement<ItemT>): QuadTreeElement<ItemT>[] {
-		const result: QuadTreeElement<ItemT>[] = [];
-		const stack: QuadTreeElement<ItemT>[] = [node];
+	/** Push node's children last quadrant first, so they pop in quadrant order. */
+	private pushChildren(node: QuadTreeElement<ItemT>): void {
+		for (let quadrant = 3; quadrant >= 0; quadrant--) {
+			const child = node._children[quadrant];
 
-		while (stack.length > 0) {
-			const curr = stack.pop() as QuadTreeElement<ItemT>;
-			result.push(curr);
-
-			for (let quadrant = 3; quadrant >= 0; quadrant--) {
-				const child = curr._children[quadrant];
-
-				if (child) {
-					stack.push(child);
-				}
+			if (child) {
+				this.pushNode(child);
 			}
 		}
+	}
 
-		return result;
+	private pushNode(node: QuadTreeElement<ItemT>): void {
+		this.stackNodes[this.stackTop++] = node;
+	}
+
+	/** Pop the top node, clearing its slot so it is not kept alive. */
+	private popNode(): QuadTreeElement<ItemT> {
+		const top = --this.stackTop;
+		const node = this.stackNodes[top] as QuadTreeElement<ItemT>;
+		this.stackNodes[top] = null;
+
+		return node;
+	}
+
+	/** Push node with the region of the plane its subtree covers. */
+	private pushRegion(
+		node: QuadTreeElement<ItemT>,
+		minX: number,
+		minY: number,
+		maxX: number,
+		maxY: number
+	): void {
+		// Slots fill in order, so each write lands inside or right at the end
+		// of the array and never leaves a hole.
+		const base = this.stackTop * 4;
+		const regions = this.stackRegions;
+
+		regions[base] = minX;
+		regions[base + 1] = minY;
+		regions[base + 2] = maxX;
+		regions[base + 3] = maxY;
+		this.pushNode(node);
 	}
 
 	/**
-	 * Depth first walk that tracks the region of the plane each node's
-	 * subtree covers. visit receives each node with the squared distance from
-	 * point to its region, and returns false to skip that node and its
-	 * subtree. The quadrant holding point is visited first, so near matches
-	 * are found early.
+	 * Push node's children with the part of node's region each covers. The
+	 * quadrant holding (px, py) is pushed last, so it is searched first and
+	 * near matches are found early.
 	 */
-	private walkRegions(
-		point: QuadTreePoint,
-		visit: (node: QuadTreeElement<ItemT>, regionDistance: number) => boolean
+	private pushChildRegions(
+		node: QuadTreeElement<ItemT>,
+		px: number,
+		py: number,
+		minX: number,
+		minY: number,
+		maxX: number,
+		maxY: number
 	): void {
-		if (!this._root) {
-			return;
+		const home = this.quadrantOf(node, px, py);
+
+		for (let quadrant = 3; quadrant >= 0; quadrant--) {
+			if (quadrant !== home) {
+				this.pushChildRegion(node, quadrant, minX, minY, maxX, maxY);
+			}
 		}
 
-		const nodes: QuadTreeElement<ItemT>[] = [this._root];
-		// Four entries per node: minX, minY, maxX, maxY of its region.
-		const regions: number[] = [-Infinity, -Infinity, Infinity, Infinity];
-
-		while (nodes.length > 0) {
-			const node = nodes.pop() as QuadTreeElement<ItemT>;
-			const maxY = regions.pop() as number;
-			const maxX = regions.pop() as number;
-			const minY = regions.pop() as number;
-			const minX = regions.pop() as number;
-
-			const dx = Math.max(minX - point.x, 0, point.x - maxX);
-			const dy = Math.max(minY - point.y, 0, point.y - maxY);
-
-			if (!visit(node, dx * dx + dy * dy)) {
-				continue;
-			}
-
-			// Pushed last, so popped first.
-			const home = this.quadrantOf(node, point.x, point.y);
-
-			for (let quadrant = 3; quadrant >= 0; quadrant--) {
-				if (quadrant !== home) {
-					this.pushRegion(nodes, regions, node, quadrant, minX, minY, maxX, maxY);
-				}
-			}
-
-			this.pushRegion(nodes, regions, node, home, minX, minY, maxX, maxY);
-		}
+		this.pushChildRegion(node, home, minX, minY, maxX, maxY);
 	}
 
 	/**
 	 * Push node's child in quadrant, with the part of node's region that
 	 * quadrant covers. No-op when that quadrant is empty.
 	 */
-	private pushRegion(
-		nodes: QuadTreeElement<ItemT>[],
-		regions: number[],
+	private pushChildRegion(
 		node: QuadTreeElement<ItemT>,
 		quadrant: number,
 		minX: number,
@@ -853,8 +1212,8 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 		const west = (quadrant & 1) !== 0;
 		const south = (quadrant & 2) !== 0;
 
-		nodes.push(child);
-		regions.push(
+		this.pushRegion(
+			child,
 			west ? minX : node._x,
 			south ? minY : node._y,
 			west ? node._x : maxX,
@@ -889,9 +1248,9 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 		return null;
 	}
 
-	private distanceSquared(node: QuadTreeElement<ItemT>, point: QuadTreePoint): number {
-		const dx = node._x - point.x;
-		const dy = node._y - point.y;
+	private distanceSquared(node: QuadTreeElement<ItemT>, x: number, y: number): number {
+		const dx = node._x - x;
+		const dy = node._y - y;
 
 		return dx * dx + dy * dy;
 	}
@@ -923,31 +1282,40 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 		);
 	}
 
-	/**
-	 * Node after node in pre-order: its first child, or else the next
-	 * non-empty quadrant of the nearest ancestor that has one.
-	 */
-	private nextInPreOrder(node: QuadTreeElement<ItemT>): QuadTreeElement<ItemT> | null {
-		for (const child of node._children) {
+	/** node's first child in quadrant from or later, or null when there is none. */
+	private firstChild(node: QuadTreeElement<ItemT>, from: number): QuadTreeElement<ItemT> | null {
+		for (let quadrant = from; quadrant < 4; quadrant++) {
+			const child = node._children[quadrant];
+
 			if (child) {
 				return child;
 			}
 		}
 
+		return null;
+	}
+
+	/**
+	 * Node after node in pre-order: its first child, or else the next
+	 * non-empty quadrant of the nearest ancestor that has one.
+	 */
+	private nextInPreOrder(node: QuadTreeElement<ItemT>): QuadTreeElement<ItemT> | null {
+		const child = this.firstChild(node, 0);
+
+		if (child) {
+			return child;
+		}
+
 		let curr = node;
 
 		while (curr._parent) {
-			const parent = curr._parent;
+			const sibling = this.firstChild(curr._parent, curr._quadrant + 1);
 
-			for (let quadrant = curr._quadrant + 1; quadrant < 4; quadrant++) {
-				const sibling = parent._children[quadrant];
-
-				if (sibling) {
-					return sibling;
-				}
+			if (sibling) {
+				return sibling;
 			}
 
-			curr = parent;
+			curr = curr._parent;
 		}
 
 		return null;
@@ -964,8 +1332,8 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 	}
 
 	/**
-	 * Clear node's links, position, and ownership. Needed even when pooling is
-	 * off, where release does not blank the node.
+	 * Clear node's links, position, and ownership. Needed when pooling is off,
+	 * where release does not blank the node.
 	 */
 	private unlink(node: QuadTreeElement<ItemT>): void {
 		this.clearLinks(node);
@@ -975,8 +1343,41 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 		node._linkId = 0;
 	}
 
+	/**
+	 * Hand a node that is already out of the tree back to the element pool.
+	 * With pooling on, release blanks every field, so it is not cleared twice.
+	 */
+	private dropNode(node: QuadTreeElement<ItemT>): void {
+		if (this.elements.enabled()) {
+			this.elements.release(node);
+		} else {
+			this.unlink(node);
+		}
+	}
+
 	private isPartOfTree(node: QuadTreeElement<ItemT>): boolean {
 		return node._tree === this;
+	}
+
+	/** Whether value passes filters: every one of them, and at least one. */
+	private queryMatch(filters: QueryFilter<ItemT> | QueryFilter<ItemT>[], value: ItemT): boolean {
+		if (!Array.isArray(filters)) {
+			return filters(value);
+		}
+
+		if (filters.length === 0) {
+			return false;
+		}
+
+		for (let i = 0; i < filters.length; i++) {
+			const filter = filters[i];
+
+			if (!filter(value)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -992,15 +1393,14 @@ export class QuadTree<ItemT> implements Tree<ItemT, QuadTreeElement<ItemT>> {
 		return this.removeNode(element);
 	}
 
-	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {
-		const options: Required<QueryOptions> = {
-			limit: Infinity
-		};
+	/** Result cap from opts: a rounded number of at least 1, or Infinity. */
+	private queryLimit(opts?: QueryOptions): number {
+		const limit = opts?.limit;
 
-		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
-			options.limit = Math.round(opts.limit);
+		if (limit && isNumber(limit) && limit >= 1) {
+			return Math.round(limit);
 		}
 
-		return options;
+		return Infinity;
 	}
 }

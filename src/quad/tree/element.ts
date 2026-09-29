@@ -130,15 +130,29 @@ export class QuadTreeElement<T> implements TreeElement<T>, ObjectPoolInstance {
 		return this._parent;
 	}
 
-	/** Existing children, in quadrant order. */
-	public children(): QuadTreeElement<T>[] {
-		const result: QuadTreeElement<T>[] = [];
+	/**
+	 * Existing children, in quadrant order. Allocates a new array unless out
+	 * is given; on a hot path, use `child(quadrant)`, which allocates nothing.
+	 * @param out	Optional array to fill instead. Its previous contents are
+	 * 				replaced and its length set to the child count. The array
+	 * 				object is reused, but V8 shrinks its storage when the length
+	 * 				drops, so a later call with more children can allocate
+	 * 				storage again. For zero allocation use `child(quadrant)`.
+	 * @returns		out when given, otherwise a new array.
+	 */
+	public children(out?: QuadTreeElement<T>[] | null): QuadTreeElement<T>[] {
+		const result: QuadTreeElement<T>[] = Array.isArray(out) ? out : [];
+		let count = 0;
 
-		for (const child of this._children) {
+		for (let quadrant = 0; quadrant < 4; quadrant++) {
+			const child = this._children[quadrant];
+
 			if (child) {
-				result.push(child);
+				result[count++] = child;
 			}
 		}
+
+		result.length = count;
 
 		return result;
 	}

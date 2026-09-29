@@ -52,7 +52,8 @@ export class ElementPool<ElementT extends ObjectPoolInstance> {
 	/**
 	 * A blank element: recycled from the pool when one is available, otherwise
 	 * newly constructed. Falling back keeps the data structure working even if the pool
-	 * is capped or disabled.
+	 * is capped or disabled. Elements built by the fallback are never pooled:
+	 * `release` blanks and drops them, so `pool.maxSize` is a hard cap.
 	 */
 	public allocate(): ElementT {
 		const element = this.objectPool !== null ? this.objectPool.allocate() : null;
@@ -65,22 +66,33 @@ export class ElementPool<ElementT extends ObjectPoolInstance> {
 	}
 
 	/**
-	 * Return an element to the pool, which blanks it via `cleanObj()`. No-op
-	 * when pooling is disabled. The element must already be unlinked from the
-	 * data structure and must not be used afterwards.
+	 * Return an element to the pool, which blanks it via `cleanObj()`. O(1), and
+	 * allocates nothing. The element must already be unlinked from the data
+	 * structure and must not be used afterwards.
+	 *
+	 * Only elements this pool handed out and that are still in use are pooled.
+	 * Anything else (an element built because the pool was capped or out of
+	 * objects, or one already released) is blanked and dropped, so the pool
+	 * never holds an element twice and never grows past `pool.maxSize`. No-op
+	 * when pooling is disabled.
 	 */
 	public release(element: ElementT): void {
-		if (this.objectPool !== null) {
-			this.objectPool.release(element);
+		if (this.objectPool !== null && !this.objectPool.release(element)) {
+			element.cleanObj();
 		}
 	}
 
 	/**
-	 * Release many elements at once. No-op when pooling is disabled.
+	 * Release many elements at once, as `release` does for each. No-op when
+	 * pooling is disabled.
 	 */
 	public releaseAll(elements: ElementT[]): void {
-		if (this.objectPool !== null) {
-			this.objectPool.releaseMultiple(elements);
+		if (this.objectPool === null) {
+			return;
+		}
+
+		for (let i = 0; i < elements.length; i++) {
+			this.release(elements[i]);
 		}
 	}
 

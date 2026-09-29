@@ -37,6 +37,18 @@ describe('RedBlackTreeElement', () => {
 		expect(root.children().map((c) => c.value())).toEqual([3]);
 	});
 
+	it('children fills and returns a given output array instead of allocating', () => {
+		const tree = new RedBlackTree<number>((a, b) => a - b, [2, 1, 3]);
+		const root = tree.root()!;
+		const out: RedBlackTreeElement<number>[] = [root, root, root, root];
+
+		expect(root.children(out)).toBe(out);
+		expect(out.map((c) => c.value())).toEqual([1, 3]);
+		expect(root.left()!.children(out)).toBe(out);
+		expect(out).toEqual([]);
+		expect(root.children(null as any).map((c) => c.value())).toEqual([1, 3]);
+	});
+
 	it('sets any value while unlinked', () => {
 		const node = new RedBlackTreeElement<number>(1);
 

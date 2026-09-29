@@ -16,6 +16,9 @@ import {type ItemEncoder} from '../item/encoder';
  * 9 + 8n        payload: item bytes
  * ```
  *
+ * Graphs store edges as well as items, so their bytes are a
+ * `ByteGraphEnvelope`, which embeds one of these unchanged.
+ *
  * Full specification: `_specs/byte-envelope.md`.
  *
  * @category Base
@@ -29,21 +32,40 @@ export class ByteEnvelope {
 	/** Bytes per directory entry: offset and length. */
 	public static readonly EntrySize = 8;
 
-	private readonly _items: Uint8Array[];
+	private _items: Uint8Array[];
 
 	/**
-	 * @param items		Byte form of each item, in collection order. Non-array
-	 * 					input produces an empty envelope.
+	 * @param items		Byte form of each item, in collection order. The array is
+	 * 					copied; the item arrays themselves are kept as given.
+	 * 					Non-array input produces an empty envelope.
 	 */
 	constructor(items?: Uint8Array[] | null) {
 		this._items = Array.isArray(items) ? items.slice() : [];
 	}
 
 	/**
-	 * Build an envelope from items using the caller's encoder.
+	 * Build an envelope from items using the caller's encoder, in array order.
+	 * The encoded array is built once and kept, not copied again.
 	 */
 	public static encode<ItemT>(items: ItemT[], encodeItem: ItemEncoder<ItemT>): ByteEnvelope {
-		return new ByteEnvelope(items.map((item) => encodeItem(item)));
+		const encoded: Uint8Array[] = [];
+
+		for (let i = 0; i < items.length; i++) {
+			encoded.push(encodeItem(items[i]));
+		}
+
+		return ByteEnvelope.adopt(encoded);
+	}
+
+	/**
+	 * Envelope that takes ownership of items without copying the array. Only
+	 * for arrays built internally that nothing else references.
+	 */
+	private static adopt(items: Uint8Array[]): ByteEnvelope {
+		const envelope = new ByteEnvelope();
+		envelope._items = items;
+
+		return envelope;
 	}
 
 	/**
@@ -57,8 +79,10 @@ export class ByteEnvelope {
 			return null;
 		}
 
-		if (!ByteEnvelope.Magic.every((byte, i) => bytes[i] === byte)) {
-			return null;
+		for (let i = 0; i < ByteEnvelope.Magic.length; i++) {
+			if (bytes[i] !== ByteEnvelope.Magic[i]) {
+				return null;
+			}
 		}
 
 		if (bytes[4] !== ByteEnvelope.Version) {
@@ -84,10 +108,12 @@ export class ByteEnvelope {
 				return null;
 			}
 
+			// Copied, never a view: the envelope must not change when the
+			// source does, and decoders commonly read item.buffer from offset 0.
 			items.push(bytes.slice(start, end));
 		}
 
-		return new ByteEnvelope(items);
+		return ByteEnvelope.adopt(items);
 	}
 
 	/**
@@ -105,7 +131,13 @@ export class ByteEnvelope {
 	 * Rebuild items using the caller's decoder.
 	 */
 	public decode<ItemT>(decodeItem: ItemDecoder<ItemT>): ItemT[] {
-		return this._items.map((bytes) => decodeItem(bytes));
+		const items: ItemT[] = [];
+
+		for (let i = 0; i < this._items.length; i++) {
+			items.push(decodeItem(this._items[i]));
+		}
+
+		return items;
 	}
 
 	/**
@@ -114,7 +146,11 @@ export class ByteEnvelope {
 	public toBytes(): Uint8Array {
 		const count = this._items.length;
 		const payloadStart = ByteEnvelope.HeaderSize + count * ByteEnvelope.EntrySize;
-		const payloadSize = this._items.reduce((total, item) => total + item.length, 0);
+		let payloadSize = 0;
+
+		for (let i = 0; i < count; i++) {
+			payloadSize += this._items[i].length;
+		}
 
 		const bytes = new Uint8Array(payloadStart + payloadSize);
 		const view = new DataView(bytes.buffer);

@@ -2,7 +2,8 @@ import type {DirectedGraphEdge} from './edge';
 import type {DirectedGraphVertex} from './vertex';
 
 /**
- * Path returned by DirectedGraph `findPath`.
+ * Path returned by DirectedGraph `findPath`. Pass one back as its `out`
+ * argument to have the next search refill it instead of allocating a new one.
  *
  * @category Directed Graph
  */

@@ -22,14 +22,14 @@ directly in its ring buffer and allocates no element wrappers.</p>
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li><span id="itemt"><span class="tsd-kind-type-parameter">ItemT</span></span></li></ul></section>
-<section class="tsd-panel tsd-hierarchy" data-refl="489">
+<section class="tsd-panel tsd-hierarchy" data-refl="638">
 <h4>Hierarchy (<a href="../hierarchy.html#CircularQueueOptions">View Summary</a>)</h4>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><a href="DataStructureOptions.html" class="tsd-signature-type tsd-kind-interface">DataStructureOptions</a>
 <ul class="tsd-hierarchy">
 <li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">CircularQueueOptions</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue/options.ts#L14">circular/queue/options.ts:14</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue/options.ts#L14">circular/queue/options.ts:14</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -61,14 +61,16 @@ values from the removal method's return instead of a retained wrapper.</p>
 </div></div><aside class="tsd-sources">
 <p>Inherited from <a href="DataStructureOptions.html">DataStructureOptions</a>.<a href="DataStructureOptions.html#disableelementpooling">disableElementPooling</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/data/structure/options.ts#L21">data/structure/options.ts:21</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/data/structure/options.ts#L21">data/structure/options.ts:21</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="maxsize"><code class="tsd-tag">Optional</code><span>max<wbr/>Size</span><a href="#maxsize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">maxSize</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span></div>
-<div class="tsd-comment tsd-typography"><p>Capacity of the queue. Must be a positive integer; defaults to <code>25</code>.</p>
+<div class="tsd-comment tsd-typography"><p>Capacity of the queue. Must be a positive integer; defaults to <code>25</code>.
+The ring buffer allocates all <code>maxSize</code> slots at construction, so pick a
+real bound rather than a very large number.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue/options.ts#L18">circular/queue/options.ts:18</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue/options.ts#L20">circular/queue/options.ts:20</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="overwrite"><code class="tsd-tag">Optional</code><span>overwrite</span><a href="#overwrite" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">overwrite</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -77,7 +79,7 @@ opposite end instead of failing. Only a strict boolean is accepted;
 defaults to <code>false</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/circular/queue/options.ts#L24">circular/queue/options.ts:24</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/circular/queue/options.ts#L26">circular/queue/options.ts:26</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited">
 <h3 class="tsd-anchor-link" id="pool"><code class="tsd-tag">Optional</code><span>pool</span><a href="#pool" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">pool</span><span class="tsd-signature-symbol">?:</span> <a href="ObjectPoolOptions.html" class="tsd-signature-type tsd-kind-interface">ObjectPoolOptions</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></div>
@@ -87,7 +89,7 @@ start the pool empty and let it grow with demand.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="DataStructureOptions.html">DataStructureOptions</a>.<a href="DataStructureOptions.html#pool">pool</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/data/structure/options.ts#L27">data/structure/options.ts:27</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/data/structure/options.ts#L27">data/structure/options.ts:27</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

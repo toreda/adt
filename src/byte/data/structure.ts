@@ -18,8 +18,11 @@ export interface ByteDataStructure<ItemT> extends DataStructure<ItemT> {
 	 */
 	toByteEnvelope(): ByteEnvelope;
 	/**
-	 * Raw bytes of the whole collection: the serialized envelope from
-	 * `toByteEnvelope()`. The byte constructor accepts these bytes.
+	 * Raw bytes of the whole collection, which the byte constructor accepts.
+	 * For every data structure whose shape is its item order, this is the
+	 * serialized envelope from `toByteEnvelope()`. Graphs also have edges, so
+	 * `ByteDirectedGraph` returns a `ByteGraphEnvelope`, which embeds that
+	 * envelope and adds edge records.
 	 */
 	toBytes(): Uint8Array;
 }

@@ -1,9 +1,10 @@
 /**
- * Internal state data for a specific Queue instance.
+ * Shape of the JSON produced by `Queue.stringify()`: the queue's items, front
+ * to rear.
  *
  * @category Queue
  */
-export interface QueueState<T> {
-	elements: Array<T>;
+export interface QueueState<ItemT> {
+	elements: Array<ItemT>;
 	type: 'Queue';
 }

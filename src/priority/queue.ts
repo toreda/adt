@@ -1,6 +1,6 @@
 import {type DataStructure} from '../data/structure';
-import {type ArrayMethod} from '../array/method';
 import {type PriorityQueueComparator as Comparator} from './queue/comparator';
+import {type PriorityQueueMethod} from './queue/method';
 import {type PriorityQueueOptions as Options} from './queue/options';
 import {type QueryFilter} from '../query/filter';
 import {type QueryOptions} from '../query/options';
@@ -8,16 +8,46 @@ import {type QueryResult} from '../query/result';
 import type {PriorityQueueState as State} from './queue/state';
 import {isNumber} from '../utility';
 
+/** Shared `key()` for every query result. Heap elements have no key. */
+const queryKey = (): string | null => null;
+
 /**
  * Heap data structure which operates as a Min Heap or Max Heap
  * depending on user provided Comparator Function provided.
  *
+ * The comparator returns true when `a` must be closer to the front than `b`.
+ * Elements only move when one strictly beats the other, so equal priorities
+ * stay where they are. Every element, including `null`, is passed to the
+ * comparator, so a queue that holds `null` needs a comparator that handles it.
+ *
+ * Push, pop, and query deletes allocate nothing. The backing array never
+ * shrinks: it stays at the largest size the queue has reached and a separate
+ * count tracks the live elements, so a queue that fills and drains every frame
+ * keeps reusing the same storage. Vacated slots are set to `undefined`, so
+ * popped elements can still be garbage collected.
+ *
+ * Byte encoding is provided by the `BytePriorityQueue` subclass, which
+ * requires an `ItemCodec` at construction.
+ *
  * @category Priority Queue
  */
 export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
-	private readonly state: State<ItemT>;
-	private readonly comparator: Comparator<ItemT>;
+	/**
+	 * Backing array in heap order. Its length is the high-water mark: only
+	 * slots below `_size` hold live elements, the rest hold `undefined`.
+	 */
+	private readonly _elements: (ItemT | undefined)[];
+	/** Number of live elements. */
+	private _size: number;
+	protected readonly comparator: Comparator<ItemT>;
 
+	/**
+	 * @param comparator	Returns true when `a` must be closer to the front than `b`.
+	 * 						Required.
+	 * @param options		Optional config. `elements` are heapified on creation.
+	 * @throws				When `comparator` is not a function, or when
+	 * 						`options.elements` is present but not an array.
+	 */
 	constructor(comparator: Comparator<ItemT>, options?: Options<ItemT>) {
 		if (typeof comparator !== 'function') {
 			throw new Error('Must have a comparator function for priority queue to operate properly');
@@ -25,49 +55,64 @@ export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
 
 		this.comparator = comparator;
 
-		this.state = this.parseOptions(options);
+		this._elements = this.parseOptions(options);
+		this._size = this._elements.length;
 		this.heapify();
 	}
 
 	public peek(): ItemT | null {
-		if (this.isEmpty()) {
+		if (this._size === 0) {
 			return null;
 		}
 
-		return this.state.elements[0];
+		return this._elements[0] as ItemT;
 	}
 
+	/**
+	 * Remove and return the highest priority element. Keeps the backing
+	 * array's length.
+	 * @returns		Removed element or null when the queue is empty.
+	 */
 	public pop(): ItemT | null {
-		if (this.isEmpty()) {
+		if (this._size === 0) {
 			return null;
 		}
 
-		const highestPriority = this.peek();
+		const elements = this._elements;
+		const highestPriority = elements[0] as ItemT;
+		const lastIndex = --this._size;
+		const last = elements[lastIndex] as ItemT;
+		// Drop the reference but keep the slot, so the capacity is kept.
+		elements[lastIndex] = undefined;
 
-		this.swapNodes(0, this.size() - 1);
-		this.state.elements.pop();
-		this.fixHeap(0);
+		if (lastIndex > 0) {
+			elements[0] = last;
+			this.siftDown(0);
+		}
 
 		return highestPriority;
 	}
 
 	public push(element: ItemT): PriorityQueue<ItemT> {
-		this.state.elements.push(element);
-		this.fixHeap(this.size() - 1);
+		// Reuses a spare slot when there is one; grows the array otherwise.
+		const index = this._size++;
+		this._elements[index] = element;
+		this.siftUp(index);
 
 		return this;
 	}
 
+	/**
+	 * Restore heap order over every element. O(n). Does nothing when the
+	 * elements already form a heap.
+	 */
 	public heapify(): void {
 		if (this.isHeap()) {
 			return;
 		}
 
-		let node = this.getParent(this.size() - 1);
-
-		while (node != null && node >= 0) {
-			this.fixHeap(node);
-			node--;
+		for (let node = this.getParent(this._size - 1); node >= 0; node--) {
+			this.siftDown(node);
 		}
 	}
 
@@ -75,161 +120,228 @@ export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
 	 * Get number of elements currently in Priority Queue.
 	 */
 	public size(): number {
-		return this.state.elements.length;
+		return this._size;
 	}
 
 	/**
 	 * Check if priority queue has elements.
 	 */
 	public isEmpty(): boolean {
-		return this.state.elements.length === 0;
+		return this._size === 0;
 	}
 
-	public filter(func: ArrayMethod<ItemT, boolean>, thisArg?: unknown): PriorityQueue<ItemT> {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
+	/**
+	 * Every element in heap array order (not priority order), in a new array.
+	 * Allocates only the returned array.
+	 */
+	public values(): ItemT[] {
+		const values: ItemT[] = [];
 
-		if (thisArg) {
-			boundThis = thisArg as this;
+		for (let i = 0; i < this._size; i++) {
+			values.push(this._elements[i] as ItemT);
 		}
 
-		const elements: ItemT[] = [];
+		return values;
+	}
 
-		this.forEach((elem, idx, arr) => {
-			const result = func.call(boundThis, elem, idx, arr);
-			if (result) {
-				elements.push(elem);
+	/**
+	 * Create a new priority queue with the same comparator, holding the
+	 * elements for which func returns true.
+	 * @param func		Called with (element, index, queue) in heap array order, where
+	 * 					queue is this queue. Don't push, pop, or delete from it
+	 * 					inside func.
+	 * @param thisArg	Value used as `this` when calling func. Defaults to this queue.
+	 */
+	public filter(func: PriorityQueueMethod<ItemT, boolean>, thisArg?: unknown): PriorityQueue<ItemT> {
+		return this.filterInto(new PriorityQueue<ItemT>(this.comparator), func, thisArg);
+	}
+
+	/**
+	 * Fill `target`, which must be empty, with the elements for which func
+	 * returns true, then heapify it. Allocates only the target's array.
+	 * Subclasses build their own `filter()` result with this.
+	 */
+	protected filterInto<Q extends PriorityQueue<ItemT>>(
+		target: Q,
+		func: PriorityQueueMethod<ItemT, boolean>,
+		thisArg?: unknown
+	): Q {
+		const boundThis = thisArg === undefined ? this : thisArg;
+		const elements = this._elements as ItemT[];
+		const out = target._elements;
+		let count = 0;
+
+		for (let i = 0; i < this._size; i++) {
+			const element = elements[i];
+
+			if (func.call(boundThis, element, i, this)) {
+				out[count++] = element;
 			}
-		}, boundThis);
-
-		return new PriorityQueue(this.comparator, {...this.state, elements});
-	}
-
-	public forEach(func: ArrayMethod<ItemT, void>, thisArg?: unknown): PriorityQueue<ItemT> {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
-
-		if (thisArg) {
-			boundThis = thisArg as this;
 		}
 
-		this.state.elements.forEach((elem, idx) => {
-			func.call(boundThis, elem, idx, this.state.elements);
-		}, boundThis);
+		target._size = count;
+		target.heapify();
+
+		return target;
+	}
+
+	/**
+	 * Call func once for each element in heap array order (not priority order).
+	 * Allocates nothing.
+	 * @param func		Called with (element, index, queue) where queue is this
+	 * 					queue. Don't push, pop, or delete from it inside func.
+	 * @param thisArg	Value used as `this` when calling func. Defaults to this queue.
+	 */
+	public forEach(func: PriorityQueueMethod<ItemT, void>, thisArg?: unknown): PriorityQueue<ItemT> {
+		const boundThis = thisArg === undefined ? this : thisArg;
+		const elements = this._elements as ItemT[];
+
+		for (let i = 0; i < this._size; i++) {
+			func.call(boundThis, elements[i], i, this);
+		}
 
 		return this;
 	}
 
-	public stringify(): string {
-		return JSON.stringify(this.state);
+	/**
+	 * Serialize the queue to a JSON string shaped as `PriorityQueueState`,
+	 * elements in heap array order.
+	 * @returns		JSON string, or null when the state cannot be serialized
+	 * 				(e.g. elements contain circular references or BigInt values).
+	 */
+	public stringify(): string | null {
+		const state: State<ItemT> = {type: 'PriorityQueue', elements: this.values()};
+
+		try {
+			return JSON.stringify(state);
+		} catch {
+			return null;
+		}
 	}
 
+	/**
+	 * Find elements that pass every filter, in heap array order, stopping once
+	 * `limit` results are found. An empty filter array matches nothing.
+	 */
 	public query(
 		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
 		opts?: QueryOptions
 	): QueryResult<ItemT>[] {
 		const resultsArray: QueryResult<ItemT>[] = [];
-		const options = this.queryOptions(opts);
+		const limit = this.queryLimit(opts);
+		const elements = this._elements;
+		const isArray = Array.isArray(filters);
 
-		this.forEach((element) => {
-			let take = false;
+		for (let i = 0; i < this._size && resultsArray.length < limit; i++) {
+			const element = elements[i] as ItemT;
+			let take: boolean;
 
-			if (resultsArray.length >= options.limit) {
-				return false;
-			}
+			if (isArray) {
+				take = filters.length > 0;
 
-			if (Array.isArray(filters)) {
-				take =
-					!!filters.length &&
-					filters.every((filter) => {
-						return filter(element);
-					});
+				for (let f = 0; take && f < filters.length; f++) {
+					take = filters[f](element);
+				}
 			} else {
 				take = filters(element);
 			}
 
 			if (!take) {
-				return false;
+				continue;
 			}
 
-			const result: QueryResult<ItemT> = {} as QueryResult<ItemT>;
-			result.element = element;
-			result.key = (): string | null => null;
-			result.index = this.queryIndex.bind(this, element);
-			result.delete = this.queryDelete.bind(this, result);
-			resultsArray.push(result);
-		});
+			resultsArray.push({
+				element,
+				key: queryKey,
+				index: this.queryIndex.bind(this, element),
+				delete: this.queryDelete.bind(this, element)
+			});
+		}
 
 		return resultsArray;
 	}
 
+	/**
+	 * Remove every element. Clears the slots in place and keeps the backing
+	 * array at its length, so refilling the queue reuses its capacity.
+	 */
 	public clearElements(): PriorityQueue<ItemT> {
-		this.state.elements = [];
+		this._elements.fill(undefined, 0, this._size);
+		this._size = 0;
 
 		return this;
 	}
 
+	/**
+	 * Same as `clearElements()`. The comparator is kept.
+	 */
 	public reset(): PriorityQueue<ItemT> {
-		this.clearElements();
-
-		this.state.type = 'PriorityQueue';
-
-		return this;
+		return this.clearElements();
 	}
 
-	private swapNodes(nodeOne: number, nodeTwo: number): void {
-		if (nodeOne === nodeTwo) {
-			return;
-		}
-
-		const copyNode = this.state.elements[nodeOne];
-		this.state.elements[nodeOne] = this.state.elements[nodeTwo];
-		this.state.elements[nodeTwo] = copyNode;
+	/**
+	 * True when `a` must be strictly closer to the front than `b`, so an
+	 * element only moves past another when it strictly beats it.
+	 */
+	private beats(a: ItemT, b: ItemT): boolean {
+		return this.comparator(a, b);
 	}
 
-	private fixHeap(node: number, startFromRootArg?: boolean): void {
-		if (this.size() <= 1) {
-			return;
+	/**
+	 * Move the element at `node` toward the root while it strictly beats its parent.
+	 */
+	private siftUp(nodeArg: number): void {
+		const elements = this._elements as ItemT[];
+		let node = nodeArg;
+		const value = elements[node];
+
+		while (node > 0) {
+			const parent = (node - 1) >> 1;
+
+			if (!this.beats(value, elements[parent])) {
+				break;
+			}
+
+			elements[node] = elements[parent];
+			node = parent;
 		}
 
-		const startFromRoot = startFromRootArg ?? node < Math.floor(this.size() / 2);
-		let next = this.getNext(startFromRoot, node);
-
-		while (this.compareNodes(node, next) === false) {
-			this.swapNodes(node, next);
-			node = next;
-			next = this.getNext(startFromRoot, node);
-			if (!this.isInHeap(next)) break;
-		}
+		elements[node] = value;
 	}
 
-	private getNext(startFromRoot: boolean, node: number): number {
-		if (!startFromRoot) {
-			return this.getParent(node);
-		} else {
-			const {left, right} = this.getChildren(node);
+	/**
+	 * Move the element at `node` toward the leaves while a child strictly beats it.
+	 * Only live slots (below `_size`) are considered.
+	 */
+	private siftDown(nodeArg: number): void {
+		const elements = this._elements as ItemT[];
+		const size = this._size;
+		let node = nodeArg;
+		const value = elements[node];
 
-			if (!this.isInHeap(left) || !this.isInHeap(right)) {
-				return left;
+		for (;;) {
+			const left = 2 * node + 1;
+
+			if (left >= size) {
+				break;
 			}
 
-			const leftValue = this.state.elements[left];
-			const rightValue = this.state.elements[right];
+			const right = left + 1;
+			let best = left;
 
-			if (rightValue === null) {
-				return left;
+			if (right < size && this.beats(elements[right], elements[left])) {
+				best = right;
 			}
 
-			if (leftValue === null) {
-				return right;
+			if (!this.beats(elements[best], value)) {
+				break;
 			}
 
-			if (this.comparator(leftValue, rightValue)) {
-				return left;
-			} else {
-				return right;
-			}
+			elements[node] = elements[best];
+			node = best;
 		}
+
+		elements[node] = value;
 	}
 
 	private getParent(node: number): number {
@@ -237,249 +349,84 @@ export class PriorityQueue<ItemT> implements DataStructure<ItemT> {
 			return -1;
 		}
 
-		return Math.floor((node - 1) / 2);
+		return (node - 1) >> 1;
 	}
 
-	private getChildren(node: number): {left: number; right: number} {
-		const defaultReturn = {left: -1, right: -1};
+	/**
+	 * True when no live element strictly beats its parent. Equal priorities pass.
+	 */
+	private isHeap(): boolean {
+		const elements = this._elements as ItemT[];
 
-		const left = node * 2 + 1;
-		const right = node * 2 + 2;
-
-		if (!this.isInHeap(left)) {
-			return defaultReturn;
-		}
-
-		if (!this.isInHeap(right)) {
-			return {left, right: -1};
-		}
-
-		return {left, right};
-	}
-
-	private isInHeap(node: number): node is number {
-		if (node < 0) {
-			return false;
-		}
-
-		if (node >= this.size()) {
-			return false;
+		for (let node = 1; node < this._size; node++) {
+			if (this.beats(elements[node], elements[(node - 1) >> 1])) {
+				return false;
+			}
 		}
 
 		return true;
 	}
 
-	private compareNodes(node: number, next: number): boolean {
-		const nodeValue = this.state.elements[node];
-		const nextValue = this.state.elements[next];
-
-		const startFromRoot = node < next;
-
-		if (nextValue == null) {
-			return !startFromRoot;
+	private parseOptions(options?: Options<ItemT>): ItemT[] {
+		if (options?.elements == null) {
+			return [];
 		}
 
-		if (nodeValue == null) {
-			return !startFromRoot;
+		if (!Array.isArray(options.elements)) {
+			throw [Error('state elements must be an array')];
 		}
 
-		if (startFromRoot) {
-			return this.comparator(nodeValue, nextValue);
-		} else {
-			return this.comparator(nextValue, nodeValue);
-		}
+		return options.elements.slice();
 	}
 
-	private isHeap(): boolean {
-		let result = true;
-
-		const lastInternalNode = this.getParent(this.size() - 1);
-
-		if (lastInternalNode < 0) {
-			return true;
-		}
-
-		for (let node = 0; node <= lastInternalNode; node++) {
-			const child = this.getNext(true, node);
-			result = result && this.compareNodes(node, child);
-		}
-
-		return result;
-	}
-
-	private parseOptions(options?: Options<ItemT>): State<ItemT> {
-		const fromSerial = this.parseOptionsSerialized(options);
-		const finalState = this.parseOptionsOverrides(fromSerial, options);
-
-		return finalState;
-	}
-
-	private parseOptionsSerialized(options?: Options<ItemT>): State<ItemT> {
-		const state: State<ItemT> = this.getDefaultState();
-
-		if (!options) {
-			return state;
-		}
-
-		let result: State<ItemT> | null = null;
-
-		if (typeof options.serializedState === 'string') {
-			const parsed = this.parseSerializedString(options.serializedState);
-
-			if (Array.isArray(parsed)) {
-				throw parsed;
-			}
-
-			result = parsed;
-		}
-
-		if (result) {
-			state.elements = result.elements;
-		}
-
-		return state;
-	}
-
-	private parseSerializedString(data: string): State<ItemT> | Error[] | null {
-		if (typeof data !== 'string' || data === '') {
-			return null;
-		}
-
-		let result: State<ItemT> | Error[] | null = null;
-		let errors: Error[] = [];
-
-		try {
-			const parsed = JSON.parse(data);
-
-			if (parsed) {
-				errors = this.getStateErrors(parsed);
-			}
-
-			if (errors.length || !parsed) {
-				throw new Error('state is not a valid PriorityQueueState');
-			}
-
-			result = parsed;
-		} catch (e: unknown) {
-			if (e instanceof Error) {
-				errors.push(e);
-			}
-
-			result = errors;
-		}
-
-		return result;
-	}
-
-	private parseOptionsOverrides(stateArg: State<ItemT>, options?: Options<ItemT>): State<ItemT> {
-		const state: State<ItemT> = stateArg;
-
-		if (!options) {
-			return state;
-		}
-
-		const errors: Error[] = [];
-
-		if (options.elements != null) {
-			const e = this.getStateErrorsElements(options.elements);
-
-			if (e.length) {
-				errors.push(...e);
-			} else {
-				state.elements = options.elements.slice();
-			}
-		}
-
-		if (errors.length) {
-			throw errors;
-		}
-
-		return state;
-	}
-
-	private getDefaultState(): State<ItemT> {
-		const state: State<ItemT> = {
-			type: 'PriorityQueue',
-			elements: []
-		};
-
-		return state;
-	}
-
-	private getStateErrors(state: State<ItemT>): Error[] {
-		const errors: Error[] = [];
-
-		errors.push(...this.getStateErrorsElements(state.elements));
-		errors.push(...this.getStateErrorsType(state.type));
-
-		return errors;
-	}
-
-	private getStateErrorsElements(data: unknown): Error[] {
-		const errors: Error[] = [];
-		if (data == null || !Array.isArray(data)) {
-			errors.push(Error('state elements must be an array'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsType(data: unknown): Error[] {
-		const errors: Error[] = [];
-		if (data == null || data !== 'PriorityQueue') {
-			errors.push(Error('state type must be PriorityQueue'));
-		}
-
-		return errors;
-	}
-
-	private queryDelete(query: QueryResult<ItemT>): ItemT | null {
-		const index = query.index();
+	private queryDelete(element: ItemT): ItemT | null {
+		const index = this.queryIndex(element);
 
 		if (index === null) {
 			return null;
 		}
 
-		this.swapNodes(index, this.size() - 1);
-		this.state.elements.pop();
+		const elements = this._elements as ItemT[];
+		const lastIndex = --this._size;
+		const last = elements[lastIndex];
+		// Drop the reference but keep the slot, so the capacity is kept.
+		this._elements[lastIndex] = undefined;
 
-		if (this.isInHeap(index)) {
-			// The element swapped in from the end may belong above or below
-			// its new position, so pick the sift direction by checking the
-			// parent instead of relying on fixHeap's positional default.
-			const parent = this.getParent(index);
-			const siftUp = parent >= 0 && !this.compareNodes(parent, index);
-			this.fixHeap(index, !siftUp);
+		if (index < lastIndex) {
+			// The element moved in from the end may belong above or below
+			// this position, so sift in whichever direction it needs.
+			elements[index] = last;
+
+			if (index > 0 && this.beats(last, elements[(index - 1) >> 1])) {
+				this.siftUp(index);
+			} else {
+				this.siftDown(index);
+			}
 		}
 
-		return query.element;
+		return element;
 	}
 
-	private queryIndex(query: ItemT): number | null {
-		const index = this.state.elements.findIndex((element) => {
-			return element === query;
-		});
+	private queryIndex(element: ItemT): number | null {
+		// Only live slots are searched; spare slots hold undefined.
+		const elements = this._elements;
 
-		if (index < 0) {
-			return null;
+		for (let i = 0; i < this._size; i++) {
+			if (elements[i] === element) {
+				return i;
+			}
 		}
 
-		return index;
-	}
-
-	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {
-		const options: Required<QueryOptions> = {
-			limit: Infinity
-		};
-
-		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
-			options.limit = Math.round(opts.limit);
-		}
-
-		return options;
-	}
-
-	public toBinary(): Uint8Array | null {
 		return null;
+	}
+
+	private queryLimit(opts?: QueryOptions): number {
+		const limit = opts?.limit;
+
+		if (limit && isNumber(limit) && limit >= 1) {
+			return Math.round(limit);
+		}
+
+		return Infinity;
 	}
 }

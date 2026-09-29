@@ -1,365 +1,451 @@
 import {type DataStructure} from './data/structure';
-import {type ArrayMethod} from './array/method';
 import {type QueryFilter} from './query/filter';
 import {type QueryOptions} from './query/options';
 import {type QueryResult} from './query/result';
 import {QueueIterator} from './queue/iterator';
+import {type QueueMethod} from './queue/method';
 import {type QueueOptions} from './queue/options';
-import type {QueueState as State} from './queue/state';
+import type {QueueState} from './queue/state';
 import {isNumber} from './utility';
 
+/** Smallest ring buffer a queue allocates. */
+const MIN_CAPACITY = 16;
+
+/** Shared `key()` for every query result. Queue items have no keys. */
+const queryKeyNull = (): string | null => null;
+
 /**
- * Generic Queue data structure with FIFO element ordering.
+ * Unbounded FIFO queue. Items are added at the rear and removed from the front
+ * in O(1). Every traversal (`forEach`, `filter`, `query`, iteration, `at`)
+ * runs from the front to the rear, and position 0 is the front.
+ *
+ * Backed by a ring buffer that doubles when full and never shrinks. Once the
+ * buffer has grown to the queue's peak size, `push`, `pop`, `peek`, `at`,
+ * `forEach`, `clearElements`, and `reset` allocate nothing. `forEach` is the
+ * non-allocating way to walk the queue; `for...of` allocates one iterator per
+ * loop.
+ *
+ * Byte encoding is provided by the `ByteQueue` subclass, which requires an
+ * `ItemCodec` at construction.
  *
  * @category Queue
  */
-export class Queue<T> implements DataStructure<T> {
-	public readonly state: State<T>;
+export class Queue<ItemT> implements DataStructure<ItemT> {
+	/**
+	 * Ring buffer. Its length is the current capacity. Slots outside the live
+	 * range hold undefined.
+	 */
+	private _elements: Array<ItemT | undefined>;
+	/** Ring buffer slot holding the front item. */
+	private _front: number;
+	private _size: number;
 
-	constructor(options?: QueueOptions<T>) {
-		// Shallow clone by default.
-		// TODO: Add deep copy option.
-		this.state = this.parseOptions(options);
-	}
+	/**
+	 * @param options	Optional config. `elements` are copied into the queue
+	 * 					front to rear. A missing or non-array `elements` gives an
+	 * 					empty queue.
+	 */
+	constructor(options?: QueueOptions<ItemT> | null) {
+		const elements = options?.elements;
+		const count = Array.isArray(elements) ? elements.length : 0;
 
-	[Symbol.iterator](): QueueIterator<T> {
-		return new QueueIterator<T>(this);
+		let capacity = MIN_CAPACITY;
+		while (capacity < count) {
+			capacity *= 2;
+		}
+
+		this._elements = makeBuffer<ItemT>(capacity);
+		this._front = 0;
+		this._size = 0;
+
+		if (Array.isArray(elements)) {
+			for (let i = 0; i < elements.length; i++) {
+				this.push(elements[i]);
+			}
+		}
 	}
 
 	/**
-	 * Alias of front(). Get the first element without removing it,
-	 * if queue has elements.
-	 * @returns
+	 * Iterate items from front to rear.
 	 */
-	public peek(): T | null {
+	[Symbol.iterator](): QueueIterator<ItemT> {
+		return new QueueIterator<ItemT>(this);
+	}
+
+	/**
+	 * Alias of front(). Get the front item without removing it.
+	 * @returns		Front item, or null when the queue is empty.
+	 */
+	public peek(): ItemT | null {
 		return this.front();
 	}
 
 	/**
-	 * Remove first element in queue if one exists. Does nothing when queue is empty.
-	 * @returns
+	 * Remove and return the front item.
+	 * @returns		Removed item, or null when the queue is empty.
 	 */
-	public pop(): Queue<T> {
-		this.state.elements.shift();
+	public pop(): ItemT | null {
+		if (this._size === 0) {
+			return null;
+		}
+
+		const item = this._elements[this._front] as ItemT;
+		// Drop the reference so a popped item can be garbage collected.
+		this._elements[this._front] = undefined;
+		this._front = this.slot(1);
+		this._size--;
+
+		return item;
+	}
+
+	/**
+	 * Add an item at the rear. Allocates only when the ring buffer is full and
+	 * has to double.
+	 * @returns		This queue.
+	 */
+	public push(item: ItemT): Queue<ItemT> {
+		if (this._size === this._elements.length) {
+			this.grow();
+		}
+
+		this._elements[this.slot(this._size)] = item;
+		this._size++;
 
 		return this;
 	}
 
-	public push(element: T): Queue<T> {
-		this.state.elements.push(element);
+	/**
+	 * Get the front item without removing it.
+	 * @returns		Front item, or null when the queue is empty.
+	 */
+	public front(): ItemT | null {
+		if (this._size === 0) {
+			return null;
+		}
 
-		return this;
+		return this._elements[this._front] as ItemT;
 	}
 
 	/**
-	 * Get reference to first element without removing it.
-	 * @returns		Returns element T or null if queue is empty.
+	 * Get the item at position n. Like `Array.prototype.at` and
+	 * `CircularQueue.getIndex`, 0 is the front and negative positions count
+	 * back from the rear, so -1 is the rear.
+	 * @returns		Item at position n, or null when n is not an integer or is
+	 * 				outside the queue.
 	 */
-	public front(): T | null {
-		if (this.isEmpty()) {
+	public at(n: number): ItemT | null {
+		if (!Number.isInteger(n)) {
 			return null;
 		}
 
-		return this.state.elements[0];
+		const position = n < 0 ? n + this._size : n;
+
+		if (position < 0 || position >= this._size) {
+			return null;
+		}
+
+		return this._elements[this.slot(position)] as ItemT;
 	}
 
 	/**
-	 * Get Nth element from queue.
-	 * @param n		Position to
-	 * @returns		null when queue is empty or when queue does not have n items.
+	 * Get the rear item without removing it.
+	 * @returns		Rear item, or null when the queue is empty.
 	 */
-	public at(n: number): T | null {
-		if (typeof n !== 'number') {
+	public rear(): ItemT | null {
+		if (this._size === 0) {
 			return null;
 		}
 
-		if (n < 0 || n > this.size() - 1) {
-			return null;
-		}
-
-		return this.state.elements[n];
+		return this._elements[this.slot(this._size - 1)] as ItemT;
 	}
 
 	/**
-	 * Get the last element in queue or null when queue is empty.
-	 * @returns
+	 * Alias of rear().
 	 */
-	public rear(): T | null {
-		if (this.isEmpty()) {
-			return null;
-		}
-
-		return this.state.elements[this.size() - 1];
-	}
-
-	public back(): T | null {
+	public back(): ItemT | null {
 		return this.rear();
 	}
 
+	/**
+	 * Get number of items in the queue.
+	 */
 	public size(): number {
-		return this.state.elements.length;
+		return this._size;
 	}
 
 	public isEmpty(): boolean {
-		return this.state.elements.length === 0;
+		return this._size === 0;
 	}
 
-	public filter(func: ArrayMethod<T, boolean>, thisArg?: unknown): Queue<T> {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
-
-		if (thisArg) {
-			boundThis = thisArg as this;
-		}
-
-		const elements: T[] = [];
-
-		this.forEach((elem, idx, arr) => {
-			const result = func.call(boundThis, elem, idx, arr);
-			if (result) {
-				elements.push(elem);
-			}
-		}, boundThis);
-
-		return new Queue({...this.state, elements});
-	}
-
-	public forEach(func: ArrayMethod<T, void>, thisArg?: unknown): Queue<T> {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		let boundThis = this;
-
-		if (thisArg) {
-			boundThis = thisArg as this;
-		}
-
-		this.state.elements.forEach((elem, idx) => {
-			func.call(boundThis, elem, idx, this.state.elements);
-		}, boundThis);
-
-		return this;
-	}
-
-	public reverse(): Queue<T> {
-		this.state.elements.reverse();
-
-		return this;
-	}
-
-	public stringify(): string {
-		return JSON.stringify(this.state);
-	}
-
-	public query(filters: QueryFilter<T> | QueryFilter<T>[], opts?: QueryOptions): QueryResult<T>[] {
-		const resultsArray: QueryResult<T>[] = [];
-		const options = this.queryOptions(opts);
-
-		this.forEach((element) => {
-			let take = false;
-
-			if (resultsArray.length >= options.limit) {
-				return false;
-			}
-
-			if (Array.isArray(filters)) {
-				take =
-					!!filters.length &&
-					filters.every((filter) => {
-						return filter(element);
-					});
-			} else {
-				take = filters(element);
-			}
-
-			if (!take) {
-				return false;
-			}
-
-			const result: QueryResult<T> = {} as QueryResult<T>;
-			result.element = element;
-			result.key = (): string | null => null;
-			result.index = this.queryIndex.bind(this, element);
-			result.delete = this.queryDelete.bind(this, result);
-			resultsArray.push(result);
-		});
-
-		return resultsArray;
-	}
-
-	public clearElements(): Queue<T> {
-		this.state.elements = [];
-
-		return this;
-	}
-
-	public reset(): Queue<T> {
-		this.clearElements();
-
-		this.state.type = 'Queue';
-
-		return this;
-	}
-
-	private parseOptions(options?: QueueOptions<T>): State<T> {
-		const fromSerial = this.parseOptionsSerialized(options);
-		const finalState = this.parseOptionsOverrides(fromSerial, options);
-
-		return finalState;
-	}
-
-	private parseOptionsSerialized(options?: QueueOptions<T>): State<T> {
-		const state: State<T> = this.getDefaultState();
-
-		if (!options) {
-			return state;
-		}
-
-		let result: State<T> | null = null;
-
-		if (typeof options.serializedState === 'string') {
-			const parsed = this.parseSerializedString(options.serializedState);
-
-			if (Array.isArray(parsed)) {
-				throw parsed;
-			}
-
-			result = parsed;
-		}
-
-		if (result) {
-			state.elements = result.elements;
-		}
-
-		return state;
-	}
-
-	private parseSerializedString(state: string): State<T> | Error[] | null {
-		if (typeof state !== 'string' || state === '') {
-			return null;
-		}
-
-		let result: State<T> | Error[] | null = null;
-		let errors: Error[] = [];
-
-		try {
-			const parsed = JSON.parse(state);
-
-			if (parsed) {
-				errors = this.getStateErrors(parsed);
-			}
-
-			if (errors.length || !parsed) {
-				throw new Error('state is not a valid QueueState');
-			}
-
-			result = parsed;
-		} catch (e: unknown) {
-			if (e instanceof Error) {
-				errors.push(e);
-			}
-
-			result = errors;
-		}
+	/**
+	 * Create a new queue containing only the items for which func returns
+	 * true, in queue order.
+	 * @param func		Called with (item, index, queue) from front to rear.
+	 * @param thisArg	Value used as `this` when calling func. Defaults to this
+	 * 					queue when omitted.
+	 */
+	public filter(func: QueueMethod<ItemT, boolean>, thisArg?: unknown): Queue<ItemT> {
+		const result = new Queue<ItemT>();
+		this.filterInto(result, func, thisArg);
 
 		return result;
 	}
 
-	private parseOptionsOverrides(stateArg: State<T>, options?: QueueOptions<T>): State<T> {
-		const state: State<T> = stateArg;
+	/**
+	 * Push each item for which func returns true onto target, front to rear.
+	 * Subclasses build their own `filter()` result with this.
+	 */
+	protected filterInto(target: Queue<ItemT>, func: QueueMethod<ItemT, boolean>, thisArg?: unknown): void {
+		const boundThis = thisArg === undefined ? this : thisArg;
 
-		if (!options) {
-			return state;
+		for (let i = 0; i < this._size; i++) {
+			const item = this._elements[this.slot(i)] as ItemT;
+
+			if (func.call(boundThis, item, i, this)) {
+				target.push(item);
+			}
+		}
+	}
+
+	/**
+	 * Call func for each item, front to rear. Allocates nothing, so prefer it
+	 * over `for...of` on a hot path.
+	 *
+	 * @remarks
+	 * Like `Map` / `Set`, `CircularQueue`, and `LinkedList`, func receives the
+	 * queue itself as its third argument, not an array: the queue has no
+	 * backing array in front-to-rear order to hand out without copying. Items
+	 * are visited by position, so adding or removing items during the walk
+	 * shifts which items are visited.
+	 *
+	 * @param func		Called with (item, index, queue) from front to rear.
+	 * @param thisArg	Value used as `this` when calling func. Defaults to this
+	 * 					queue when omitted.
+	 */
+	public forEach(func: QueueMethod<ItemT, void>, thisArg?: unknown): Queue<ItemT> {
+		const boundThis = thisArg === undefined ? this : thisArg;
+
+		for (let i = 0; i < this._size; i++) {
+			func.call(boundThis, this._elements[this.slot(i)] as ItemT, i, this);
 		}
 
-		const errors: Error[] = [];
+		return this;
+	}
 
-		if (options.elements != null) {
-			const e = this.getStateErrorsElements(options.elements);
+	/**
+	 * Every item, front to rear, in a new array.
+	 */
+	public values(): ItemT[] {
+		const values: ItemT[] = [];
 
-			if (e.length) {
-				errors.push(...e);
+		for (let i = 0; i < this._size; i++) {
+			values.push(this._elements[this.slot(i)] as ItemT);
+		}
+
+		return values;
+	}
+
+	/**
+	 * Reverse the order of queued items in place, so the rear becomes the
+	 * front.
+	 * @returns		This queue.
+	 */
+	public reverse(): Queue<ItemT> {
+		for (let lo = 0, hi = this._size - 1; lo < hi; lo++, hi--) {
+			const loSlot = this.slot(lo);
+			const hiSlot = this.slot(hi);
+			const tmp = this._elements[loSlot];
+			this._elements[loSlot] = this._elements[hiSlot];
+			this._elements[hiSlot] = tmp;
+		}
+
+		return this;
+	}
+
+	/**
+	 * Serialize queue items, front to rear, to a JSON string shaped as
+	 * `QueueState`.
+	 * @returns		JSON string, or null when an item cannot be serialized
+	 * 				(e.g. items contain circular references or BigInt values).
+	 */
+	public stringify(): string | null {
+		const state: QueueState<ItemT> = {type: 'Queue', elements: this.values()};
+
+		try {
+			return JSON.stringify(state);
+		} catch {
+			return null;
+		}
+	}
+
+	/**
+	 * Find items that pass every filter, front to rear. Each result's `index()`
+	 * is the item's current position from the front, found when called. Its
+	 * `delete()` removes the item and closes the gap, keeping queue order.
+	 *
+	 * @remarks
+	 * Results find their item again by identity when `index()` or `delete()`
+	 * runs. When the same value is queued more than once, they act on the
+	 * first occurrence from the front.
+	 */
+	public query(
+		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
+		opts?: QueryOptions
+	): QueryResult<ItemT>[] {
+		const resultsArray: QueryResult<ItemT>[] = [];
+		const limit = this.queryLimit(opts);
+		const many = Array.isArray(filters);
+
+		// An empty filter array matches nothing.
+		if (many && filters.length === 0) {
+			return resultsArray;
+		}
+
+		// Stops walking as soon as the limit is reached.
+		for (let i = 0; i < this._size && resultsArray.length < limit; i++) {
+			const item = this._elements[this.slot(i)] as ItemT;
+			let take = true;
+
+			if (many) {
+				for (let f = 0; f < filters.length; f++) {
+					if (!filters[f](item)) {
+						take = false;
+						break;
+					}
+				}
 			} else {
-				state.elements = options.elements.slice();
+				take = filters(item);
+			}
+
+			if (!take) {
+				continue;
+			}
+
+			resultsArray.push({
+				element: item,
+				key: queryKeyNull,
+				index: this.indexOf.bind(this, item),
+				delete: this.queryDelete.bind(this, item)
+			});
+		}
+
+		return resultsArray;
+	}
+
+	/**
+	 * Remove every item. The ring buffer is cleared in place and keeps its
+	 * capacity, so refilling the queue allocates nothing.
+	 */
+	public clearElements(): Queue<ItemT> {
+		// Slots outside the live range already hold undefined.
+		for (let i = 0; i < this._size; i++) {
+			this._elements[this.slot(i)] = undefined;
+		}
+
+		this._front = 0;
+		this._size = 0;
+
+		return this;
+	}
+
+	/**
+	 * Restore the queue to an empty state. Same as `clearElements()`: the ring
+	 * buffer keeps its capacity.
+	 */
+	public reset(): Queue<ItemT> {
+		this.clearElements();
+
+		return this;
+	}
+
+	/**
+	 * Double the ring buffer, moving items to the start of the new buffer in
+	 * front to rear order.
+	 */
+	private grow(): void {
+		const next = makeBuffer<ItemT>(this._elements.length * 2);
+
+		for (let i = 0; i < this._size; i++) {
+			next[i] = this._elements[this.slot(i)];
+		}
+
+		this._elements = next;
+		this._front = 0;
+	}
+
+	/**
+	 * Ring buffer slot of the item at position from the front. Position is
+	 * always within [0, capacity], so one conditional subtract replaces a
+	 * modulo.
+	 */
+	private slot(position: number): number {
+		const n = this._front + position;
+		const capacity = this._elements.length;
+
+		return n >= capacity ? n - capacity : n;
+	}
+
+	/**
+	 * Position from the front of the first item identical to item.
+	 * @returns		Position, or null when item is not in the queue.
+	 */
+	private indexOf(item: ItemT): number | null {
+		for (let i = 0; i < this._size; i++) {
+			if (this._elements[this.slot(i)] === item) {
+				return i;
 			}
 		}
 
-		if (errors.length) {
-			throw errors;
-		}
-
-		return state;
+		return null;
 	}
 
-	private getDefaultState(): State<T> {
-		const state: State<T> = {
-			type: 'Queue',
-			elements: []
-		};
+	/**
+	 * Remove the first item identical to item, shifting every later item one
+	 * position toward the front so queue order is kept.
+	 * @returns		The removed item, or null when it is no longer queued.
+	 */
+	private queryDelete(item: ItemT): ItemT | null {
+		const position = this.indexOf(item);
 
-		return state;
-	}
-
-	private getStateErrors(state: State<T>): Error[] {
-		const errors: Error[] = [];
-
-		errors.push(...this.getStateErrorsElements(state.elements));
-		errors.push(...this.getStateErrorsType(state.type));
-
-		return errors;
-	}
-
-	private getStateErrorsElements(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || !Array.isArray(data)) {
-			errors.push(Error('state elements must be an array'));
-		}
-
-		return errors;
-	}
-
-	private getStateErrorsType(data: unknown): Error[] {
-		const errors: Error[] = [];
-
-		if (data == null || data !== 'Queue') {
-			errors.push(Error('state type must be Queue'));
-		}
-
-		return errors;
-	}
-
-	private queryDelete(query: QueryResult<T>): T | null {
-		const index = query.index();
-
-		if (index === null) {
+		if (position === null) {
 			return null;
 		}
 
-		const result = this.state.elements.splice(index, 1);
-
-		return result[0];
-	}
-
-	private queryIndex(query: T): number | null {
-		const index = this.state.elements.findIndex((element) => {
-			return element === query;
-		});
-
-		if (index < 0) {
-			return null;
+		for (let i = position; i < this._size - 1; i++) {
+			this._elements[this.slot(i)] = this._elements[this.slot(i + 1)];
 		}
 
-		return index;
+		this._elements[this.slot(this._size - 1)] = undefined;
+		this._size--;
+
+		return item;
 	}
 
-	private queryOptions(opts?: QueryOptions): Required<QueryOptions> {
-		const options: Required<QueryOptions> = {
-			limit: Infinity
-		};
+	/**
+	 * Maximum number of query results: `opts.limit` rounded, when it is a
+	 * number of at least 1, otherwise unlimited.
+	 */
+	private queryLimit(opts?: QueryOptions): number {
+		const limit = opts?.limit;
 
-		if (opts?.limit && isNumber(opts.limit) && opts.limit >= 1) {
-			options.limit = Math.round(opts.limit);
+		if (limit && isNumber(limit) && limit >= 1) {
+			return Math.round(limit);
 		}
 
-		return options;
+		return Infinity;
 	}
+}
+
+/**
+ * Ring buffer of capacity undefined slots. Built with push rather than
+ * `new Array(capacity)` so the array is packed, never holey.
+ */
+function makeBuffer<ItemT>(capacity: number): Array<ItemT | undefined> {
+	const buffer: Array<ItemT | undefined> = [];
+
+	for (let i = 0; i < capacity; i++) {
+		buffer.push(undefined);
+	}
+
+	return buffer;
 }

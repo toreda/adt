@@ -16,13 +16,15 @@ each item's bytes live, followed by the item bytes themselves. The envelope
 is shared by every byte data structure: only the item bytes inside it differ between data structures,
 and producing or reading those requires the caller's <code>ItemCodec</code>.</p>
 <p>Layout, all integers little-endian:</p>
-<pre><code><span class="hl-9">0</span><span class="hl-1">      </span><span class="hl-4">u8</span><span class="hl-1">[</span><span class="hl-9">4</span><span class="hl-1">]  </span><span class="hl-4">magic</span><span class="hl-1"> </span><span class="hl-7">&quot;TADT&quot;</span><br/><span class="hl-9">4</span><span class="hl-1">      </span><span class="hl-4">u8</span><span class="hl-1">     </span><span class="hl-4">format</span><span class="hl-1"> </span><span class="hl-4">version</span><br/><span class="hl-9">5</span><span class="hl-1">      </span><span class="hl-4">u32</span><span class="hl-1">    </span><span class="hl-4">item</span><span class="hl-1"> </span><span class="hl-3">count</span><span class="hl-1"> (</span><span class="hl-4">n</span><span class="hl-1">)</span><br/><span class="hl-9">9</span><span class="hl-1">      </span><span class="hl-4">n</span><span class="hl-1"> </span><span class="hl-4">x</span><span class="hl-1"> {</span><span class="hl-4">u32</span><span class="hl-1"> </span><span class="hl-4">offset</span><span class="hl-1">, </span><span class="hl-4">u32</span><span class="hl-1"> </span><span class="hl-4">length</span><span class="hl-1">}   </span><span class="hl-4">directory</span><span class="hl-1">, </span><span class="hl-4">offsets</span><span class="hl-1"> </span><span class="hl-4">relative</span><span class="hl-1"> </span><span class="hl-4">to</span><span class="hl-1"> </span><span class="hl-4">payload</span><span class="hl-1"> </span><span class="hl-4">start</span><br/><span class="hl-9">9</span><span class="hl-1"> + </span><span class="hl-9">8</span><span class="hl-0">n</span><span class="hl-1">        </span><span class="hl-10">payload</span><span class="hl-1">: </span><span class="hl-4">item</span><span class="hl-1"> </span><span class="hl-4">bytes</span>
+<pre><code><span class="hl-8">0</span><span class="hl-1">      </span><span class="hl-2">u8</span><span class="hl-1">[</span><span class="hl-8">4</span><span class="hl-1">]  </span><span class="hl-2">magic</span><span class="hl-1"> </span><span class="hl-3">&quot;TADT&quot;</span><br/><span class="hl-8">4</span><span class="hl-1">      </span><span class="hl-2">u8</span><span class="hl-1">     </span><span class="hl-2">format</span><span class="hl-1"> </span><span class="hl-2">version</span><br/><span class="hl-8">5</span><span class="hl-1">      </span><span class="hl-2">u32</span><span class="hl-1">    </span><span class="hl-2">item</span><span class="hl-1"> </span><span class="hl-6">count</span><span class="hl-1"> (</span><span class="hl-2">n</span><span class="hl-1">)</span><br/><span class="hl-8">9</span><span class="hl-1">      </span><span class="hl-2">n</span><span class="hl-1"> </span><span class="hl-2">x</span><span class="hl-1"> {</span><span class="hl-2">u32</span><span class="hl-1"> </span><span class="hl-2">offset</span><span class="hl-1">, </span><span class="hl-2">u32</span><span class="hl-1"> </span><span class="hl-2">length</span><span class="hl-1">}   </span><span class="hl-2">directory</span><span class="hl-1">, </span><span class="hl-2">offsets</span><span class="hl-1"> </span><span class="hl-2">relative</span><span class="hl-1"> </span><span class="hl-2">to</span><span class="hl-1"> </span><span class="hl-2">payload</span><span class="hl-1"> </span><span class="hl-2">start</span><br/><span class="hl-8">9</span><span class="hl-1"> + </span><span class="hl-8">8</span><span class="hl-4">n</span><span class="hl-1">        </span><span class="hl-10">payload</span><span class="hl-1">: </span><span class="hl-2">item</span><span class="hl-1"> </span><span class="hl-2">bytes</span>
 </code><button>Copy</button></pre>
 
+<p>Graphs store edges as well as items, so their bytes are a
+<code>ByteGraphEnvelope</code>, which embeds one of these unchanged.</p>
 <p>Full specification: <code>_specs/byte-envelope.md</code>.</p>
 </div></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L23">byte/envelope.ts:23</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L26">byte/envelope.ts:26</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -61,12 +63,13 @@ and producing or reading those requires the caller's <code>ItemCodec</code>.</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">items</span>: <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span>
-<div class="tsd-comment tsd-typography"><p>Byte form of each item, in collection order. Non-array
-input produces an empty envelope.</p>
+<div class="tsd-comment tsd-typography"><p>Byte form of each item, in collection order. The array is
+copied; the item arrays themselves are kept as given.
+Non-array input produces an empty envelope.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ByteEnvelope</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L38">byte/envelope.ts:38</a></li></ul></aside></div></li></ul></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L42">byte/envelope.ts:42</a></li></ul></aside></div></li></ul></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -76,26 +79,26 @@ input produces an empty envelope.</p>
 <div class="tsd-comment tsd-typography"><p>Bytes per directory entry: offset and length.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L30">byte/envelope.ts:30</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L33">byte/envelope.ts:33</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="headersize"><code class="tsd-tag">Static</code> <code class="tsd-tag">Readonly</code><span>Header<wbr/>Size</span><a href="#headersize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">HeaderSize</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">9</span></div>
 <div class="tsd-comment tsd-typography"><p>Bytes before the directory: magic, version, item count.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L28">byte/envelope.ts:28</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L31">byte/envelope.ts:31</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="magic"><code class="tsd-tag">Static</code> <code class="tsd-tag">Readonly</code><span>Magic</span><a href="#magic" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">Magic</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-keyword">readonly</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography"><p>ASCII &quot;TADT&quot;.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L25">byte/envelope.ts:25</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L28">byte/envelope.ts:28</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="version"><code class="tsd-tag">Static</code> <code class="tsd-tag">Readonly</code><span>Version</span><a href="#version" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">Version</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">1</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L26">byte/envelope.ts:26</a></li></ul></aside></section></section></details>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L29">byte/envelope.ts:29</a></li></ul></aside></section></section></details>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
 <h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
 <section>
@@ -117,7 +120,7 @@ input produces an empty envelope.</p>
 <li><span><span class="tsd-kind-parameter">decodeItem</span>: <a href="../types/ItemDecoder.html" class="tsd-signature-type tsd-kind-type-alias">ItemDecoder</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#decodeitemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#decodeitemt">ItemT</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L107">byte/envelope.ts:107</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L133">byte/envelope.ts:133</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="items"><span>items</span><a href="#items" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -128,7 +131,7 @@ input produces an empty envelope.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Uint8Array</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ArrayBufferLike</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L96">byte/envelope.ts:96</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L122">byte/envelope.ts:122</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="size"><span>size</span><a href="#size" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -137,7 +140,7 @@ input produces an empty envelope.</p>
 <div class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L100">byte/envelope.ts:100</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L126">byte/envelope.ts:126</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="tobytes"><span>to<wbr/>Bytes</span><a href="#tobytes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -148,14 +151,15 @@ input produces an empty envelope.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Uint8Array</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L114">byte/envelope.ts:114</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L146">byte/envelope.ts:146</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="encode"><code class="tsd-tag">Static</code><span>encode</span><a href="#encode" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="">
 <div class="tsd-signature tsd-anchor-link" id="encode-1"><span class="tsd-kind-call-signature">encode</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#encodeitemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">items</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#encodeitemt">ItemT</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">encodeItem</span><span class="tsd-signature-symbol">:</span> <a href="../types/ItemEncoder.html" class="tsd-signature-type tsd-kind-type-alias">ItemEncoder</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#encodeitemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">ByteEnvelope</a><a href="#encode-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Build an envelope from items using the caller's encoder.</p>
+<div class="tsd-comment tsd-typography"><p>Build an envelope from items using the caller's encoder, in array order.
+The encoded array is built once and kept, not copied again.</p>
 </div>
 <section class="tsd-panel">
 <h4>Type Parameters</h4>
@@ -168,7 +172,7 @@ input produces an empty envelope.</p>
 <li><span><span class="tsd-kind-parameter">encodeItem</span>: <a href="../types/ItemEncoder.html" class="tsd-signature-type tsd-kind-type-alias">ItemEncoder</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#encodeitemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">ByteEnvelope</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L45">byte/envelope.ts:45</a></li></ul></aside></div></li></ul></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L50">byte/envelope.ts:50</a></li></ul></aside></div></li></ul></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="frombytes"><code class="tsd-tag">Static</code><span>from<wbr/>Bytes</span><a href="#frombytes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -186,7 +190,7 @@ wrong magic or version, truncated header or directory, or a
 directory entry pointing outside the payload.</p>
 <aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/byte/envelope.ts#L55">byte/envelope.ts:55</a></li></ul></aside></div></li></ul></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/byte/envelope.ts#L77">byte/envelope.ts:77</a></li></ul></aside></div></li></ul></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

@@ -67,7 +67,10 @@ const expectValid = <T>(tree: RedBlackTree<T>): void => {
 			expect(right.parent()).toBe(node);
 		}
 
-		stack.push({node: left, low, high: value, blacks: below}, {node: right, low: value, high, blacks: below});
+		stack.push(
+			{node: left, low, high: value, blacks: below},
+			{node: right, low: value, high, blacks: below}
+		);
 	}
 
 	expect(tree.size()).toBe(count);
@@ -133,9 +136,9 @@ describe('RedBlackTree', () => {
 
 		it('only strict true disables it', () => {
 			expect(poolOf(new RedBlackTree(byNumber, [], {disableElementPooling: true}))).toBeNull();
-			expect(poolOf(new RedBlackTree(byNumber, [], {disableElementPooling: 'true' as any}))).toBeInstanceOf(
-				ObjectPool
-			);
+			expect(
+				poolOf(new RedBlackTree(byNumber, [], {disableElementPooling: 'true' as any}))
+			).toBeInstanceOf(ObjectPool);
 		});
 
 		it('recycles a removed node for a later insert', () => {
@@ -171,8 +174,58 @@ describe('RedBlackTree', () => {
 			plain.removeNode(first);
 
 			expect(plain.insert(2)).not.toBe(first);
-			expect(first.value()).toBe(1);
 			expect(first._tree).toBeNull();
+		});
+
+		it('blanks a removed node when pooling is disabled, so it does not keep its item', () => {
+			const plain = new RedBlackTree<{id: number}>((a, b) => a.id - b.id, [], {
+				disableElementPooling: true
+			});
+			const item = {id: 1};
+			const node = plain.insert(item) as RedBlackTreeElement<{id: number}>;
+			plain.insert({id: 2});
+			plain.insert({id: 0});
+
+			expect(plain.removeNode(node)).toBe(item);
+			expect(node.value()).toBeNull();
+			expect(node._tree).toBeNull();
+			expect(node._linkId).toBe(0);
+			expect(node.parent()).toBeNull();
+			expect(node.isLeaf()).toBe(true);
+			expect(node.color()).toBe('red');
+		});
+
+		it('blanks every node on clearElements when pooling is disabled', () => {
+			const plain = new RedBlackTree<number>(byNumber, [5, 3, 8, 1, 4, 9], {
+				disableElementPooling: true
+			});
+			const nodes = plain.toArray();
+			plain.clearElements();
+
+			for (const node of nodes) {
+				expect(node.value()).toBeNull();
+				expect(node._tree).toBeNull();
+				expect(node.parent()).toBeNull();
+				expect(node.isLeaf()).toBe(true);
+			}
+		});
+
+		it('clearElements returns every node to the pool', () => {
+			const pooled = new RedBlackTree<number>(byNumber);
+			for (let i = 0; i < 100; i++) {
+				pooled.insert((i * 37) % 101);
+			}
+			const nodes = new Set(pooled.toArray());
+			const pool = poolOf(pooled) as ObjectPool<any>;
+
+			expect(pool.size()).toBe(100);
+			pooled.clearElements();
+			expect(pool.size()).toBe(0);
+
+			for (let i = 0; i < 100; i++) {
+				expect(nodes.has(pooled.insert(i))).toBe(true);
+			}
+			expectValid(pooled);
 		});
 
 		it('behaves the same with pooling disabled', () => {
@@ -503,9 +556,9 @@ describe('RedBlackTree', () => {
 			expect(new RedBlackTree(byNumber, [], {allowDuplicates: true}).allowDuplicates).toBe(true);
 			expect(new RedBlackTree(byNumber, [], {allowDuplicates: false}).allowDuplicates).toBe(false);
 			for (const invalid of [0, 1, 'false', null, undefined, {}]) {
-				expect(new RedBlackTree(byNumber, [], {allowDuplicates: invalid as any}).allowDuplicates).toBe(
-					true
-				);
+				expect(
+					new RedBlackTree(byNumber, [], {allowDuplicates: invalid as any}).allowDuplicates
+				).toBe(true);
 			}
 		});
 
@@ -639,6 +692,25 @@ describe('RedBlackTree', () => {
 			expectValid(unique);
 		});
 
+		it('compares against each neighbor only once when the item stays in place', () => {
+			for (const allowDuplicates of [true, false]) {
+				let calls = 0;
+				const counted = new RedBlackTree<number>(
+					(a, b) => {
+						calls++;
+						return a - b;
+					},
+					[10, 20, 30, 40, 50],
+					{allowDuplicates}
+				);
+				const node = counted.find(30)!;
+				calls = 0;
+
+				expect(counted.update(node, 31)).toBe(node);
+				expect(calls).toBe(2);
+			}
+		});
+
 		it('when duplicates are disabled, accepts an item still unique', () => {
 			const unique = new RedBlackTree<number>(byNumber, [50, 30, 70], {allowDuplicates: false});
 			const node = unique.find(30);
@@ -646,6 +718,145 @@ describe('RedBlackTree', () => {
 			expect(unique.update(node, 40)).toBe(node);
 			expect((unique.update(node, 90) as RedBlackTreeElement<number>).value()).toBe(90);
 			expect(unique.values()).toEqual([50, 70, 90]);
+		});
+
+		it('relinks the same node when the item moves, keeping its identity and link id', () => {
+			const cases: [number, number][] = [
+				[50, 10],
+				[50, 90],
+				[30, 65],
+				[20, 85],
+				[80, 5],
+				[40, 55]
+			];
+
+			for (const [from, to] of cases) {
+				const numbers = new RedBlackTree<number>(byNumber, [50, 30, 70, 20, 40, 60, 80]);
+				const node = numbers.find(from)!;
+				const linkId = node._linkId;
+				const inUse = poolOf(numbers)!.size();
+
+				expect(numbers.update(node, to)).toBe(node);
+				expect(node._tree).toBe(numbers);
+				expect(node._linkId).toBe(linkId);
+				expect(numbers.find(to)).toBe(node);
+				expect(numbers.size()).toBe(7);
+				expect(poolOf(numbers)!.size()).toBe(inUse);
+				expectValid(numbers);
+			}
+		});
+
+		it('moving an item neither releases nor allocates a node', () => {
+			const numbers = new RedBlackTree<number>(byNumber, [50, 30, 70, 20, 40, 60, 80]);
+			const nodes = new Set(numbers.toArray());
+
+			for (let i = 0; i < 100; i++) {
+				const node = numbers.min()!;
+				numbers.update(node, (numbers.max()!.value() as number) + 1);
+				expectValid(numbers);
+			}
+
+			expect(new Set(numbers.toArray())).toEqual(nodes);
+			expect(numbers.size()).toBe(7);
+		});
+
+		it('keeps every red-black rule through many random moves', () => {
+			let seed = 12345;
+			const random = (): number => {
+				seed = (seed * 1103515245 + 12345) % 2147483648;
+				return seed / 2147483648;
+			};
+
+			for (const allowDuplicates of [true, false]) {
+				const numbers = new RedBlackTree<number>(byNumber, [], {allowDuplicates});
+				const nodes: RedBlackTreeElement<number>[] = [];
+
+				for (let i = 0; i < 200; i++) {
+					const result = numbers.insert(Math.floor(random() * 1000));
+					if (result !== 'duplicate_not_allowed') {
+						nodes.push(result);
+					}
+				}
+				const linkIds = nodes.map((node) => node._linkId);
+				expectValid(numbers);
+
+				for (let i = 0; i < 2000; i++) {
+					const index = Math.floor(random() * nodes.length);
+					const node = nodes[index];
+					const to = Math.floor(random() * 1000);
+					const result = numbers.update(node, to);
+
+					if (result === 'duplicate_not_allowed') {
+						expect(allowDuplicates).toBe(false);
+						expect(node._tree).toBeNull();
+						nodes.splice(index, 1);
+						linkIds.splice(index, 1);
+					} else {
+						expect(result).toBe(node);
+						expect(node._linkId).toBe(linkIds[index]);
+					}
+
+					if (i % 50 === 0) {
+						expectValid(numbers);
+					}
+				}
+
+				expectValid(numbers);
+				expect(numbers.size()).toBe(nodes.length);
+				expect(numbers.values()).toEqual(nodes.map((node) => node.value() as number).sort(byNumber));
+			}
+		});
+
+		it('query delete handles keep working after the item moves', () => {
+			const numbers = new RedBlackTree<number>(byNumber, [50, 30, 70, 20, 40]);
+			const [match] = numbers.query((v) => v === 30);
+
+			numbers.update(match.element, 90);
+
+			expect(match.delete()).toBe(90);
+			expect(numbers.values()).toEqual([20, 40, 50, 70]);
+			expectValid(numbers);
+		});
+
+		it('moves correctly with pooling disabled', () => {
+			const plain = new RedBlackTree<number>(byNumber, [50, 30, 70, 20, 40, 60, 80], {
+				disableElementPooling: true
+			});
+			const node = plain.find(30)!;
+			const linkId = node._linkId;
+
+			expect(plain.update(node, 75)).toBe(node);
+			expect(node.value()).toBe(75);
+			expect(node._tree).toBe(plain);
+			expect(node._linkId).toBe(linkId);
+			expect(plain.values()).toEqual([20, 40, 50, 60, 70, 75, 80]);
+			expectValid(plain);
+		});
+
+		it('moving into a duplicate when duplicates are disabled drops and recycles the node', () => {
+			const unique = new RedBlackTree<number>(byNumber, [50, 30, 70, 20], {allowDuplicates: false});
+			const node = unique.find(20)!;
+
+			expect(unique.update(node, 70)).toBe('duplicate_not_allowed');
+			expect(node._tree).toBeNull();
+			expect(unique.size()).toBe(3);
+			expect(poolOf(unique)!.size()).toBe(3);
+			expect(unique.insert(10)).toBe(node);
+			expectValid(unique);
+		});
+
+		it('blanks a node dropped by a duplicate-rejected move with pooling disabled', () => {
+			const plain = new RedBlackTree<number>(byNumber, [50, 30, 70, 20], {
+				allowDuplicates: false,
+				disableElementPooling: true
+			});
+			const node = plain.find(20)!;
+
+			expect(plain.update(node, 70)).toBe('duplicate_not_allowed');
+			expect(node.value()).toBeNull();
+			expect(node._tree).toBeNull();
+			expect(plain.values()).toEqual([30, 50, 70]);
+			expectValid(plain);
 		});
 
 		it('returns null and changes nothing for null or foreign nodes', () => {
@@ -753,6 +964,99 @@ describe('RedBlackTree', () => {
 		it('toArray returns nodes in sorted order', () => {
 			expect(tree.toArray().map((node) => node.value())).toEqual([20, 30, 40, 50, 60, 70, 80]);
 		});
+
+		it('every order and height match a recursive reference on random trees', () => {
+			type Node = RedBlackTreeElement<number> | null;
+			const pre = (n: Node, out: number[]): number[] => {
+				if (n) {
+					out.push(n.value() as number);
+					pre(n.left(), out);
+					pre(n.right(), out);
+				}
+				return out;
+			};
+			const post = (n: Node, out: number[]): number[] => {
+				if (n) {
+					post(n.left(), out);
+					post(n.right(), out);
+					out.push(n.value() as number);
+				}
+				return out;
+			};
+			const heightOf = (n: Node): number =>
+				n ? 1 + Math.max(heightOf(n.left()), heightOf(n.right())) : -1;
+			let seed = 7;
+			const random = (): number => {
+				seed = (seed * 16807) % 2147483647;
+				return seed;
+			};
+
+			for (let count = 0; count < 60; count++) {
+				const source = new RedBlackTree<number>(byNumber);
+				for (let i = 0; i < count; i++) {
+					source.insert(random() % 50);
+				}
+				for (let i = 0; i < count / 3; i++) {
+					source.remove(random() % 50);
+				}
+				const root = source.root();
+				const level: number[] = [];
+				const queue: Node[] = [root];
+				while (queue.length) {
+					const n = queue.shift();
+					if (n) {
+						level.push(n.value() as number);
+						queue.push(n.left(), n.right());
+					}
+				}
+
+				expect(source.preOrder()).toEqual(pre(root, []));
+				expect(source.postOrder()).toEqual(post(root, []));
+				expect(source.levelOrder()).toEqual(level);
+				expect(source.inOrder()).toEqual([...source.inOrder()].sort(byNumber));
+				expect(source.height()).toBe(heightOf(root));
+			}
+		});
+
+		it('height does not build arrays or call toArray', () => {
+			const spy = jest.spyOn(tree, 'toArray');
+
+			expect(tree.height()).toBe(2);
+			expect(tree.inOrder()).toEqual([20, 30, 40, 50, 60, 70, 80]);
+			expect(spy).not.toHaveBeenCalled();
+			spy.mockRestore();
+		});
+
+		it('iterator reuses one result object per iterator', () => {
+			const iterator = tree[Symbol.iterator]();
+			const first = iterator.next();
+
+			expect(first).toEqual({value: 20, done: false});
+			const second = iterator.next();
+
+			expect(second).toBe(first);
+			expect(second).toEqual({value: 30, done: false});
+			for (let i = 0; i < 5; i++) {
+				iterator.next();
+			}
+			const done = iterator.next();
+
+			expect(done).toBe(first);
+			expect(done).toEqual({value: null, done: true});
+			expect(iterator.next()).toEqual({value: null, done: true});
+			expect(tree[Symbol.iterator]().next()).not.toBe(first);
+		});
+
+		it('nested loops over the same tree stay independent', () => {
+			const pairs: number[] = [];
+			for (const a of new RedBlackTree(byNumber, [1, 2])) {
+				for (const b of new RedBlackTree(byNumber, [3, 4])) {
+					pairs.push((a as number) * 10 + (b as number));
+				}
+			}
+
+			expect(pairs).toEqual([13, 14, 23, 24]);
+		});
 	});
 
 	describe('forEach', () => {
@@ -776,6 +1080,7 @@ describe('RedBlackTree', () => {
 			const context = {};
 			let received: unknown = null;
 			tree.forEach(function (this: unknown) {
+				// eslint-disable-next-line @typescript-eslint/no-this-alias
 				received = this;
 			}, context);
 
@@ -817,7 +1122,10 @@ describe('RedBlackTree', () => {
 
 		it('builds a valid tree for every size', () => {
 			for (let count = 0; count <= 130; count++) {
-				const source = new RedBlackTree<number>(byNumber, new Array(count).fill(0).map((_, i) => i));
+				const source = new RedBlackTree<number>(
+					byNumber,
+					new Array(count).fill(0).map((_, i) => i)
+				);
 				const copy = source.filter(() => true);
 
 				expect(copy.values()).toEqual(source.values());
@@ -844,6 +1152,35 @@ describe('RedBlackTree', () => {
 			expectValid(copy);
 			copy.insert({k: 1});
 			expectValid(copy);
+		});
+
+		it('builds large trees without recursion', () => {
+			const count = 20000;
+			const source = new RedBlackTree<number>(byNumber, [], {disableElementPooling: true});
+			for (let i = 0; i < count; i++) {
+				source.insert(i);
+			}
+			const copy = source.filter(() => true);
+
+			expect(copy.size()).toBe(count);
+			expect(copy.height()).toBe(Math.floor(Math.log2(count)));
+			expect(copy.min()?.value()).toBe(0);
+			expect(copy.max()?.value()).toBe(count - 1);
+			expectValid(copy);
+		});
+
+		it('passes index and tree and honors thisArg', () => {
+			tree.insertArray([3, 1, 2]);
+			const ctx = {min: 2};
+			const seen: number[] = [];
+			const result = tree.filter(function (this: typeof ctx, element, index, source) {
+				expect(source).toBe(tree);
+				seen.push(index);
+				return (element.value() as number) >= this.min;
+			}, ctx);
+
+			expect(seen).toEqual([0, 1, 2]);
+			expect(result.values()).toEqual([2, 3]);
 		});
 
 		it('returns an empty tree when nothing matches', () => {
@@ -875,6 +1212,37 @@ describe('RedBlackTree', () => {
 			expect(tree.query(() => true, {limit: 2}).map((r) => r.element.value())).toEqual([20, 30]);
 			expect(tree.query(() => true, {limit: 0}).length).toBe(5);
 			expect(tree.query(() => true, {limit: NaN}).length).toBe(5);
+			expect(tree.query(() => true, {limit: -3}).length).toBe(5);
+			expect(tree.query(() => true, {limit: '2' as any}).length).toBe(5);
+			expect(tree.query(() => true, {limit: 2.4}).length).toBe(2);
+			expect(tree.query(() => true, {limit: Infinity}).length).toBe(5);
+			expect(tree.query(() => true, null as any).length).toBe(5);
+		});
+
+		it('shares key and index functions across results', () => {
+			const results = tree.query(() => true);
+
+			expect(results.length).toBe(5);
+			for (const result of results) {
+				expect(result.key).toBe(results[0].key);
+				expect(result.index).toBe(results[0].index);
+			}
+		});
+
+		it('stops at the first failing filter in an array', () => {
+			const second = jest.fn(() => true);
+			tree.query([(v) => v > 40, second]);
+
+			expect(second).toHaveBeenCalledTimes(2);
+		});
+
+		it('delete works when detached from its result', () => {
+			const [match] = tree.query((v) => v === 40);
+			const {delete: remove} = match;
+
+			expect(remove()).toBe(40);
+			expect(remove()).toBeNull();
+			expect(tree.values()).toEqual([20, 30, 50, 70]);
 		});
 
 		it('delete removes the match once', () => {
@@ -929,6 +1297,29 @@ describe('RedBlackTree', () => {
 				expect(node.parent()).toBeNull();
 				expect(node.isLeaf()).toBe(true);
 			}
+		});
+
+		it('clears large trees by walking links, without building a node array', () => {
+			const spy = jest.spyOn(tree, 'toArray');
+			for (let i = 0; i < 1000; i++) {
+				tree.insert((i * 7919) % 1000);
+			}
+
+			expect(tree.clearElements()).toBe(tree);
+			expect(spy).not.toHaveBeenCalled();
+			expect(tree.size()).toBe(0);
+			expect(tree.root()).toBeNull();
+			expect(tree.height()).toBe(-1);
+			expect(poolOf(tree)!.size()).toBe(0);
+			spy.mockRestore();
+
+			tree.insertArray([3, 1, 2]);
+			expect(tree.values()).toEqual([1, 2, 3]);
+			expectValid(tree);
+		});
+
+		it('clears an empty tree', () => {
+			expect(new RedBlackTree(byNumber).clearElements().size()).toBe(0);
 		});
 
 		it('reset keeps the comparator and returns the tree', () => {

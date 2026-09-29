@@ -11,7 +11,8 @@
 <li><a href="" aria-current="page">DirectedGraphPath</a></li></ul>
 <h1>Interface DirectedGraphPath&lt;ItemT&gt;</h1></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>Path returned by DirectedGraph <code>findPath</code>.</p>
+<div class="tsd-comment tsd-typography"><p>Path returned by DirectedGraph <code>findPath</code>. Pass one back as its <code>out</code>
+argument to have the next search refill it instead of allocating a new one.</p>
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">DirectedGraphPath</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#cost">cost</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#edges">edges</a><span class="tsd-signature-symbol">:</span> <a href="../classes/DirectedGraphEdge.html" class="tsd-signature-type tsd-kind-class">DirectedGraphEdge</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#vertices">vertices</a><span class="tsd-signature-symbol">:</span> <a href="../classes/DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
 <section class="tsd-panel">
@@ -19,7 +20,7 @@
 <ul class="tsd-type-parameter-list">
 <li><span id="itemt"><span class="tsd-kind-type-parameter">ItemT</span></span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph/path.ts#L9">directed/graph/path.ts:9</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph/path.ts#L10">directed/graph/path.ts:10</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -40,21 +41,21 @@
 <div class="tsd-comment tsd-typography"><p>Sum of the weights of <code>edges</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph/path.ts#L15">directed/graph/path.ts:15</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph/path.ts#L16">directed/graph/path.ts:16</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="edges"><span>edges</span><a href="#edges" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">edges</span><span class="tsd-signature-symbol">:</span> <a href="../classes/DirectedGraphEdge.html" class="tsd-signature-type tsd-kind-class">DirectedGraphEdge</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography"><p>Edges traveled, in order. Always one fewer than <code>vertices</code>.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph/path.ts#L13">directed/graph/path.ts:13</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph/path.ts#L14">directed/graph/path.ts:14</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="vertices"><span>vertices</span><a href="#vertices" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">vertices</span><span class="tsd-signature-symbol">:</span> <a href="../classes/DirectedGraphVertex.html" class="tsd-signature-type tsd-kind-class">DirectedGraphVertex</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#itemt">ItemT</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography"><p>Vertices from start to goal, both included.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/toreda/data-structures/blob/40f70a2b8029f593569807916f38c2e228358987/src/directed/graph/path.ts#L11">directed/graph/path.ts:11</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/toreda/data-structures/blob/2c20d95e206d798487b00f25bfa0d3ab0bc46684/src/directed/graph/path.ts#L12">directed/graph/path.ts:12</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

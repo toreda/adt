@@ -1,4 +1,5 @@
 import {ElementPool} from '../../src/element/pool';
+import {LinkedList} from '../../src/linked/list';
 import {ObjectPool} from '../../src/object/pool';
 import {type ObjectPoolInstance} from '../../src/object/pool/instance';
 
@@ -160,6 +161,65 @@ describe('ElementPool', () => {
 
 			expect(stateOf(copy).startSize).toBe(2);
 			expect(stateOf(copy).maxSize).toBe(2);
+		});
+	});
+
+	describe('maxSize cap', () => {
+		it('drops elements built past a capped pool instead of pooling them', () => {
+			const pool = new ElementPool(Node, {pool: {maxSize: 2}});
+			const nodes: Node[] = [];
+
+			for (let i = 0; i < 10; i++) {
+				const node = pool.allocate();
+				node.payload = String(i);
+				nodes.push(node);
+			}
+
+			nodes.forEach((n) => pool.release(n));
+
+			expect(stateOf(pool).objectCount).toBe(2);
+			expect(stateOf(pool).freeCount).toBe(2);
+			expect(pool.size()).toBe(0);
+			expect(nodes.every((n) => n.payload === null)).toBe(true);
+		});
+
+		it('releaseAll drops overflow elements too', () => {
+			const pool = new ElementPool(Node, {pool: {maxSize: 2}});
+			const nodes = [pool.allocate(), pool.allocate(), pool.allocate(), pool.allocate()];
+
+			pool.releaseAll(nodes);
+
+			expect(stateOf(pool).objectCount).toBe(2);
+			expect(stateOf(pool).freeCount).toBe(2);
+		});
+
+		it('keeps a capped LinkedList pool at maxSize after clearElements', () => {
+			const list = new LinkedList<number>([], {pool: {maxSize: 2}});
+			for (let i = 0; i < 10; i++) {
+				list.insert(i);
+			}
+
+			list.clearElements();
+
+			const state = (list as any).elements.objectPool.state;
+			expect(state.objectCount).toBe(2);
+			expect(state.freeCount).toBe(2);
+		});
+	});
+
+	describe('double release', () => {
+		it('never hands the same element out twice', () => {
+			const pool = new ElementPool(Node);
+			const node = pool.allocate();
+
+			pool.release(node);
+			pool.release(node);
+
+			const first = pool.allocate();
+			const second = pool.allocate();
+
+			expect(first).not.toBe(second);
+			expect(pool.size()).toBe(2);
 		});
 	});
 });

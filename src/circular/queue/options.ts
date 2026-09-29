@@ -14,6 +14,8 @@ import {type DataStructureOptions} from '../../data/structure/options';
 export interface CircularQueueOptions<ItemT> extends DataStructureOptions {
 	/**
 	 * Capacity of the queue. Must be a positive integer; defaults to `25`.
+	 * The ring buffer allocates all `maxSize` slots at construction, so pick a
+	 * real bound rather than a very large number.
 	 */
 	maxSize?: number;
 	/**

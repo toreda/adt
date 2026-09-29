@@ -4,7 +4,7 @@ import {ObjectPool} from '../../src/object/pool';
 
 const poolOf = (target: LinkedList<any>): ObjectPool<any> | null => (target as any).elements.objectPool;
 
-const repeat = (n: number, f: Function) => {
+const repeat = (n: number, f: () => void) => {
 	while (n-- > 0) f();
 };
 
@@ -115,7 +115,19 @@ describe('LinkedList', () => {
 			plain.removeNode(first);
 
 			expect(plain.insert('b')).not.toBe(first);
-			expect(first?.value()).toBe('a');
+			expect(first?.value()).toBeNull();
+		});
+
+		it('removeNode with pooling disabled returns the value and blanks the node', () => {
+			const plain = new LinkedList<string>(['a', 'b', 'c'], {disableElementPooling: true});
+			const middle = plain.head()?.next() as any;
+
+			expect(plain.removeNode(middle)).toBe('b');
+			expect(middle.value()).toBeNull();
+			expect(middle.next()).toBeNull();
+			expect(middle.prev()).toBeNull();
+			expect(middle._list).toBeNull();
+			expect(plain.values()).toEqual(['a', 'c']);
 		});
 
 		it('removeNode returns the value, not the blanked node', () => {
@@ -406,6 +418,42 @@ describe('LinkedList', () => {
 			});
 		}
 
+		it('removeNodes removes in array order, skips null and repeated nodes', () => {
+			const target = new LinkedList<number>([1, 2, 3, 4]);
+			const [a, b, c] = target.toArray();
+
+			expect(target.removeNodes([c, null, a, c, b])).toEqual([3, 1, 2]);
+			expect(target.values()).toEqual([4]);
+			expect(target.removeNodes([])).toEqual([]);
+		});
+
+		it('clearElements walks links and builds no array', () => {
+			const target = new LinkedList<number>([1, 2, 3]);
+			const toArray = jest.spyOn(target, 'toArray');
+
+			target.clearElements();
+
+			expect(toArray).not.toHaveBeenCalled();
+			expect(target.head()).toBeNull();
+			expect(target.tail()).toBeNull();
+			expect(target.size()).toBe(0);
+		});
+
+		it('clearElements with pooling disabled unlinks and blanks nodes', () => {
+			const target = new LinkedList<number>([1, 2, 3], {disableElementPooling: true});
+			const nodes = target.toArray();
+			target.clearElements();
+
+			for (const node of nodes) {
+				expect(node.next()).toBeNull();
+				expect(node.prev()).toBeNull();
+				expect(node._list).toBeNull();
+			}
+			expect(nodes.map((n) => n.value())).toEqual([null, null, null]);
+			target.insertArray([7, 8]);
+			expect(target.values()).toEqual([7, 8]);
+		});
+
 		it('keeps ownership through reverse', () => {
 			const target = new LinkedList<number>([1, 2, 3]);
 			target.reverse();
@@ -456,9 +504,11 @@ describe('LinkedList', () => {
 				let boundCustom: unknown = null;
 
 				list.forEach(function (this: unknown) {
+					// eslint-disable-next-line @typescript-eslint/no-this-alias
 					boundDefault = this;
 				});
 				list.forEach(function (this: unknown) {
+					// eslint-disable-next-line @typescript-eslint/no-this-alias
 					boundCustom = this;
 				}, custom);
 
@@ -568,8 +618,8 @@ describe('LinkedList', () => {
 				list.insert('string');
 				const iter = new LinkedListIterator(list);
 				expect(() => {
-					let res = iter.next();
-					res = iter.next();
+					iter.next();
+					iter.next();
 				}).not.toThrow();
 			});
 
@@ -616,6 +666,19 @@ describe('LinkedList', () => {
 				expect(arr.length).toBe(list.size());
 				expect(arr[0]).toBe(list.head()?.value());
 				expect(arr[arr.length - 1]).toBe(list.tail()?.value());
+			});
+
+			it('reuses one result object across next() calls', () => {
+				const target = new LinkedList<number>([1, 2]);
+				const it = target[Symbol.iterator]();
+				const first = it.next();
+
+				expect(first).toEqual({value: 1, done: false});
+				expect(it.next()).toBe(first);
+				expect(first).toEqual({value: 2, done: false});
+				expect(it.next()).toBe(first);
+				expect(first).toEqual({value: null, done: true});
+				expect([...target]).toEqual([1, 2]);
 			});
 		});
 	});
@@ -673,6 +736,34 @@ describe('LinkedList', () => {
 
 		it('matches nothing with an empty filter array', () => {
 			expect(new LinkedList<number>([1, 2]).query([])).toEqual([]);
+		});
+
+		it('requires every filter in an array and stops at the first failure', () => {
+			const target = new LinkedList<number>([1, 2, 3, 4, 5]);
+			const second = jest.fn((v: number) => v < 5);
+			const results = target.query([(v) => v > 2, second]);
+
+			expect(results.map((r) => r.element.value())).toEqual([3, 4]);
+			expect(second).toHaveBeenCalledTimes(3);
+		});
+
+		it('shares key and index functions across results', () => {
+			const results = new LinkedList<number>([1, 2, 3]).query(() => true);
+
+			expect(results[0].key).toBe(results[2].key);
+			expect(results[0].index).toBe(results[2].index);
+			expect(results[2].key()).toBeNull();
+			expect(results[2].index()).toBeNull();
+		});
+
+		it('rounds a fractional limit and ignores invalid ones', () => {
+			const target = new LinkedList<number>([1, 2, 3, 4]);
+
+			expect(target.query(() => true, {limit: 2.4}).length).toBe(2);
+			expect(target.query(() => true, {limit: 2.6}).length).toBe(3);
+			expect(target.query(() => true, {limit: 0}).length).toBe(4);
+			expect(target.query(() => true, {limit: NaN}).length).toBe(4);
+			expect(target.query(() => true, {limit: 'x' as any}).length).toBe(4);
 		});
 	});
 });

@@ -7,6 +7,5 @@ export interface ObjectPoolOptions {
 	increaseFactor?: number;
 	instanceArgs?: unknown[];
 	maxSize?: number;
-	serializedState?: string;
 	startSize?: number;
 }

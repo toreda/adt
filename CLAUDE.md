@@ -23,7 +23,7 @@ Wrapper pooling is implemented once in `ElementPool` (`src/element/pool.ts`). A 
 - `options` is always optional and therefore never holds a required value. A required value must be a positional constructor argument, which means a subclass.
 
 ## Binary Envelopes
-Byte encoding is not part of the base `DataStructure` contract. Each data structure gets a `Byte*` superset subclass (e.g. `ByteLinkedList`) that requires an `ItemCodec` at construction and implements `ByteDataStructure`. All byte classes share one container format, `ByteEnvelope`. The layout, validation rules, and byte class constructor contract are specified in `_specs/byte-envelope.md`; follow that spec when adding a byte class for another data structure.
+Byte encoding is not part of the base `DataStructure` contract. Each data structure gets a `Byte*` superset subclass (e.g. `ByteLinkedList`) that requires an `ItemCodec` at construction and implements `ByteDataStructure`. All byte classes share one container format, `ByteEnvelope`, except `ByteDirectedGraph`, whose `ByteGraphEnvelope` embeds an unchanged `ByteEnvelope` of vertex items and adds an edge section. `ObjectPool` has no byte class, because its objects are pool-owned scratch instances, not caller items. The layouts, validation rules, and byte class constructor contract are specified in `_specs/byte-envelope.md`; follow that spec when adding a byte class for another data structure.
 
 ## Data Structures
 
@@ -37,14 +37,18 @@ Byte encoding is not part of the base `DataStructure` contract. Each data struct
 ### Implementations
 
 **Trees**
-* `BinaryTree`: `<root>/src/binary/tree.ts`
 * `BinarySearchTree`: `<root>/src/binary/search/tree.ts`
+* `ByteBinarySearchTree`: `<root>/src/byte/binary/search/tree.ts` (superset of `BinarySearchTree` implementing `ByteDataStructure`)
 * `OctTree`: `<root>/src/oct/tree.ts`
+* `ByteOctTree`: `<root>/src/byte/oct/tree.ts` (superset of `OctTree` implementing `ByteDataStructure`)
 * `QuadTree`: `<root>/src/quad/tree.ts`
+* `ByteQuadTree`: `<root>/src/byte/quad/tree.ts` (superset of `QuadTree` implementing `ByteDataStructure`)
 * `RedBlackTree`: `<root>/src/red/black/tree.ts`
+* `ByteRedBlackTree`: `<root>/src/byte/red/black/tree.ts` (superset of `RedBlackTree` implementing `ByteDataStructure`)
 
 **Graphs**
 * `DirectedGraph`: `<root>/src/directed/graph.ts`
+* `ByteDirectedGraph`: `<root>/src/byte/directed/graph.ts` (superset of `DirectedGraph` implementing `ByteDataStructure`)
 
 **Lists**
 * `LinkedList`: `<root>/src/linked/list.ts`
@@ -56,6 +60,9 @@ Byte encoding is not part of the base `DataStructure` contract. Each data struct
 * `HashTable`: `<root>/src/hash/table.ts`
 * `ObjectPool`: `<root>/src/object/pool.ts`
 * `PriorityQueue`: `<root>/src/priority/queue.ts`
+* `BytePriorityQueue`: `<root>/src/byte/priority/queue.ts` (superset of `PriorityQueue` implementing `ByteDataStructure`)
 * `Queue`: `<root>/src/queue.ts`
+* `ByteQueue`: `<root>/src/byte/queue.ts` (superset of `Queue` implementing `ByteDataStructure`)
 * `Stack`: `<root>/src/stack.ts`
+* `ByteStack`: `<root>/src/byte/stack.ts` (superset of `Stack` implementing `ByteDataStructure`)
 * `Trie`: `<root>/src/trie.ts`
