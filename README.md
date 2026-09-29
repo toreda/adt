@@ -211,8 +211,7 @@ Use for navigation graphs, waypoint networks, tile and hex maps, and dialogue an
 
 * `findPath()` runs A* with your heuristic, or Dijkstra's algorithm without one, and returns the vertices, edges, and total cost.
 * One-way and bidirectional edges mix freely in one graph, which covers one-way doors, ledges, and conveyors.
-* Adjacency checks and edge insertion and removal are O(1), and vertex and edge wrappers are pooled.
-* Adjacency is stored in JavaScript `Map`s, and V8 reallocates a `Map`'s table as entries are added and removed. Adding and removing edges or vertices every frame therefore still produces garbage: about one full GC per 50,000 edge changes in our measurements. Build the graph up front, and keep per-frame work to lookups, `forEachNeighbor()`, and `findPath()`.
+* Adjacency checks and edge insertion and removal are O(1). Vertex and edge wrappers are pooled, and removing a vertex or edge allocates nothing. The engine may still resize the graph's internal `Map` and `Set` tables as it grows.
 * `forEachNeighbor()` visits a vertex's neighbors without allocating, for per-frame AI and steering queries.
 * `findPath()` reuses one search state per graph, and can refill a path object you pass in instead of returning a new one.
 
@@ -810,7 +809,7 @@ fromBytes.edgeCount(); // returns 1
 
 ### Vertex and edge pooling
 
-Vertex and edge wrappers are pooled by default, so once the pools have grown, adding and removing vertices and edges creates no new wrapper objects. Adjacency is stored in JavaScript `Map`s, and V8 still reallocates their tables as entries are added and removed, so frequent edge changes produce some garbage. The `pool` options apply to both pools. After a vertex or edge is removed, don't use it again; read the removed item from the return value of `removeVertex()`.
+Vertex and edge wrappers are pooled by default, so once the pools have grown, adding and removing vertices and edges creates no new wrapper objects. The engine may still resize the graph's internal `Map` and `Set` tables as it grows. The `pool` options apply to both pools. After a vertex or edge is removed, don't use it again; read the removed item from the return value of `removeVertex()`.
 
 ```typescript
 const pooled = new DirectedGraph<string>([], {pool: {startSize: 64}});
@@ -1435,7 +1434,8 @@ tree.height(); // returns 16 (never more than 2 log2(n + 1))
 // Nodes expose their color
 const small = new RedBlackTree<number>(byNumber, [20, 10, 30]);
 //         20 (black)
-//        /    \n//   10 (red)  30 (red)
+//        /    \
+//   10 (red)  30 (red)
 small.root()?.color(); // returns 'black'
 small.root()?.left()?.color(); // returns 'red'
 
