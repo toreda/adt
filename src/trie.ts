@@ -14,17 +14,19 @@ import type {TrieOptions} from './trie/options';
 import {booleanValue} from './boolean/value';
 import {isNumber, undefinedItemSkip} from './utility';
 
-/**
- * Shared `key()` for every query result, bound to the matched item's key.
- * Module level, so binding it creates no closure over the trie.
- */
-function queryResultKey(key: string | null): string | null {
-	return key;
+/** Pick for `collect()` keeping the node itself, as `withPrefix()` returns. */
+function trieNodeOf<T>(node: TrieElement<T>): TrieElement<T> {
+	return node;
 }
 
-/** Shared `index()` for every query result. Module level, so no closure per result. */
-function queryResultIndex(): number | null {
-	return null;
+/** Pick for `collect()` reading the node's key, as `keysWithPrefix()` returns. */
+function trieKeyOf<T>(node: TrieElement<T>): string {
+	return node._key as string;
+}
+
+/** Pick for `collect()` reading the node's item, as `values()` returns. */
+function trieValueOf<T>(node: TrieElement<T>): T {
+	return node._value as T;
 }
 
 /** Insert value at index, shifting later entries up. Unlike `splice`, allocates no result array. */
@@ -43,6 +45,50 @@ function arrayRemoveAt<T>(arr: T[], index: number): void {
 	}
 
 	arr.pop();
+}
+
+/**
+ * Single `query()` match. One shared class, so each match allocates one
+ * object and no bound functions: `key`, `index`, and `delete` are prototype
+ * methods, so call them on the result rather than detaching them.
+ */
+class TrieQueryResult<ItemT> implements QueryResult<TrieElement<ItemT>, ItemT> {
+	public readonly element: TrieElement<ItemT>;
+	private readonly trie: Trie<ItemT>;
+	/** Link id of the matched item when it matched. */
+	private readonly linkId: number;
+	/** Key of the matched item, kept after the item is removed or replaced. */
+	private readonly matchedKey: string | null;
+
+	constructor(trie: Trie<ItemT>, element: TrieElement<ItemT>) {
+		this.trie = trie;
+		this.element = element;
+		this.linkId = element._linkId;
+		this.matchedKey = element._key;
+	}
+
+	/** Key of the matched item, even after it is removed. */
+	public key(): string | null {
+		return this.matchedKey;
+	}
+
+	/** Always null: a trie orders items by key, not by index. */
+	public index(): number | null {
+		return null;
+	}
+
+	/**
+	 * Remove the matched item, but only while the element still holds it.
+	 * Removing or replacing the item changes its link id, so a stale result
+	 * deletes nothing instead of a later item.
+	 */
+	public delete(): ItemT | null {
+		if (this.element._linkId !== this.linkId) {
+			return null;
+		}
+
+		return this.trie.removeNode(this.element);
+	}
 }
 
 /**
@@ -140,14 +186,14 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	 * are created only for the part of the key not already in the trie.
 	 * @returns		The node now holding item. When the key was already stored,
 	 * 				this is the same node, and the item it held is replaced.
-	 * 				`invalid_key` when item is undefined (throws instead when
+	 * 				`undefined_item` when item is undefined (throws instead when
 	 * 				`allowUndefinedItem` is `false`; the key selector is never
-	 * 				called) or when the key selector does not return a string;
-	 * 				nothing is added then.
+	 * 				called). `invalid_key` when the key selector does not return
+	 * 				a string. Nothing is added in either case.
 	 */
 	public insert(item: ItemT): TrieElement<ItemT> | TrieError {
 		if (undefinedItemSkip(item, this.allowUndefinedItem, 'Trie')) {
-			return 'invalid_key';
+			return 'undefined_item';
 		}
 
 		const key = this.keySelector(item);
@@ -283,16 +329,24 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	 *
 	 * @remarks
 	 * A node stands for a key, so an item under a new key is held by a
-	 * different node. When the key changes, use the returned node from then on;
+	 * different node. When the key changes, use the returned node from then on.
+	 * Whether or not the key changes, item is stored as a fresh insert, so
 	 * query results that matched node no longer delete.
 	 *
 	 * @returns		The node now holding item: node itself when the key is
-	 * 				unchanged. `invalid_key` when the key selector does not return
+	 * 				unchanged. `undefined_item` when item is undefined (throws
+	 * 				instead when `allowUndefinedItem` is `false`; the key
+	 * 				selector is never called and node keeps its item).
+	 * 				`invalid_key` when the key selector does not return
 	 * 				a string for item: node's item is removed and item is not
 	 * 				added. Null when node is null, holds no item, or is not part
 	 * 				of this trie; nothing changes then.
 	 */
 	public update(node: TrieElement<ItemT> | null, item: ItemT): TrieElement<ItemT> | TrieError | null {
+		if (undefinedItemSkip(item, this.allowUndefinedItem, 'Trie')) {
+			return 'undefined_item';
+		}
+
 		if (!node || !this.isStored(node)) {
 			return null;
 		}
@@ -306,6 +360,9 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 
 		if (key === node._key) {
 			node._value = item;
+			// A replacement gets a fresh link id, exactly as insert() on the
+			// same key would, so stale query results delete nothing.
+			node._linkId = ++this.lastLinkId;
 			return node;
 		}
 
@@ -404,22 +461,7 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	 * 				nodes. Empty when prefix is not a string.
 	 */
 	public withPrefix(prefix: string, out?: TrieElement<ItemT>[] | null): TrieElement<ItemT>[] {
-		const result: TrieElement<ItemT>[] = Array.isArray(out) ? out : [];
-		const start = this.walk(prefix);
-		let count = 0;
-
-		if (start !== null) {
-			let node = this.firstTerminal(start);
-
-			while (node !== null) {
-				result[count++] = node;
-				node = this.nextTerminal(node, start);
-			}
-		}
-
-		result.length = count;
-
-		return result;
+		return this.collect(prefix, out, trieNodeOf);
 	}
 
 	/**
@@ -430,22 +472,7 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	 * 				keys. Empty when prefix is not a string.
 	 */
 	public keysWithPrefix(prefix: string, out?: string[] | null): string[] {
-		const result: string[] = Array.isArray(out) ? out : [];
-		const start = this.walk(prefix);
-		let count = 0;
-
-		if (start !== null) {
-			let node = this.firstTerminal(start);
-
-			while (node !== null) {
-				result[count++] = node._key as string;
-				node = this.nextTerminal(node, start);
-			}
-		}
-
-		result.length = count;
-
-		return result;
+		return this.collect(prefix, out, trieKeyOf);
 	}
 
 	/**
@@ -454,9 +481,10 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	 * nothing when no key starts with prefix or prefix is not a string.
 	 *
 	 * @remarks
-	 * Each node's successor is found before func runs, so func may remove the
-	 * current node's item. Items inserted during the walk may or may not be
-	 * visited.
+	 * Each node's successor is found before func runs, and the walk re-finds
+	 * its place by key when func removes or replaces that successor, so func
+	 * may remove or replace any items, not just the current one. Items
+	 * inserted during the walk may or may not be visited.
 	 *
 	 * @param func		Called with (element, index, trie). index counts visited
 	 * 					items from 0.
@@ -468,7 +496,7 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 		const start = this.walk(prefix);
 
 		if (start !== null) {
-			this.visit(start, func, thisArg);
+			this.visit(start, prefix, func, thisArg);
 		}
 
 		return this;
@@ -531,16 +559,18 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	 *
 	 * @remarks
 	 * Like `Map` / `Set`, func receives the trie itself as its third argument,
-	 * not an array. Each element's successor is found before func runs, so func
-	 * may remove the current element. Elements inserted during the walk may or
-	 * may not be visited.
+	 * not an array. Each element's successor is found before func runs, and
+	 * the walk re-finds its place by key when func removes or replaces that
+	 * successor, so func may remove or replace any elements, not just the
+	 * current one. Elements inserted during the walk may or may not be
+	 * visited.
 	 *
 	 * @param func		Called with (element, index, trie) in key order.
 	 * @param thisArg	Value used as `this` when calling func, as passed. Like
 	 * 					`Array.prototype.forEach`, `this` is undefined when omitted.
 	 */
 	public forEach(func: TrieMethod<ItemT, void>, thisArg?: unknown): Trie<ItemT> {
-		this.visit(this._root, func, thisArg);
+		this.visit(this._root, '', func, thisArg);
 
 		return this;
 	}
@@ -554,17 +584,11 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 
 	/**
 	 * Every item, in key order.
+	 * @param out	Optional array to fill instead of allocating a new one, as
+	 * 				in `withPrefix()`.
 	 */
-	public values(): ItemT[] {
-		const values: ItemT[] = [];
-		let node = this.min();
-
-		while (node !== null) {
-			values.push(node._value as ItemT);
-			node = this.nextTerminal(node, this._root);
-		}
-
-		return values;
+	public values(out?: ItemT[] | null): ItemT[] {
+		return this.collect('', out, trieValueOf);
 	}
 
 	/**
@@ -594,8 +618,10 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	 * replaced some other way.
 	 *
 	 * @remarks
-	 * Allocates only the returned array and one result (plus its bound `key`
-	 * and `delete`) per match. Elements that do not match allocate nothing.
+	 * Allocates only the returned array and one result per match. Elements
+	 * that do not match allocate nothing. A result's `key`, `index`, and
+	 * `delete` are prototype methods: call them on the result, e.g.
+	 * `result.delete()`, rather than detaching them.
 	 */
 	public query(
 		filters: QueryFilter<ItemT> | QueryFilter<ItemT>[],
@@ -614,12 +640,7 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 				continue;
 			}
 
-			resultsArray.push({
-				element: element,
-				key: queryResultKey.bind(null, element._key),
-				index: queryResultIndex,
-				delete: this.queryDelete.bind(this, element, element._linkId)
-			});
+			resultsArray.push(new TrieQueryResult(this, element));
 		}
 
 		return resultsArray;
@@ -734,6 +755,34 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 		return node;
 	}
 
+	/**
+	 * Fill out (or a new array) with pick of every node holding an item whose
+	 * key starts with prefix, in key order. The one walk behind
+	 * `withPrefix()`, `keysWithPrefix()`, and `values()`.
+	 */
+	private collect<OutT>(
+		prefix: string,
+		out: OutT[] | null | undefined,
+		pick: (node: TrieElement<ItemT>) => OutT
+	): OutT[] {
+		const result: OutT[] = Array.isArray(out) ? out : [];
+		const start = this.walk(prefix);
+		let count = 0;
+
+		if (start !== null) {
+			let node = this.firstTerminal(start);
+
+			while (node !== null) {
+				result[count++] = pick(node);
+				node = this.nextTerminal(node, start);
+			}
+		}
+
+		result.length = count;
+
+		return result;
+	}
+
 	private childOf(node: TrieElement<ItemT>, code: number): TrieElement<ItemT> | null {
 		const index = trieCodeSearch(node._codes, code);
 
@@ -773,6 +822,15 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 			return node._children[0];
 		}
 
+		return this.afterSubtree(node, limit);
+	}
+
+	/**
+	 * First node after node's whole subtree in a pre-order walk of limit's
+	 * subtree: the next sibling of node or of its nearest ancestor with one.
+	 * @returns		That node, or null when nothing follows node's subtree.
+	 */
+	private afterSubtree(node: TrieElement<ItemT>, limit: TrieElement<ItemT>): TrieElement<ItemT> | null {
 		let curr = node;
 
 		while (curr !== limit) {
@@ -792,6 +850,37 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 		}
 
 		return null;
+	}
+
+	/**
+	 * First node holding an item whose key is at or after key in key order,
+	 * within start's subtree. key's first offset code units spell start's own
+	 * path. Used by `visit()` to re-find its place after func changes the trie.
+	 */
+	private terminalAtOrAfter(
+		key: string,
+		offset: number,
+		start: TrieElement<ItemT>
+	): TrieElement<ItemT> | null {
+		let node = start;
+
+		for (let i = offset; i < key.length; i++) {
+			const index = trieCodeSearch(node._codes, key.charCodeAt(i));
+
+			if (index >= 0) {
+				node = node._children[index];
+				continue;
+			}
+
+			// key's path ends here: children from the insertion point on lead
+			// only to keys after key, and earlier siblings only to keys before it.
+			const slot = -index - 1;
+			const from = slot < node._children.length ? node._children[slot] : this.afterSubtree(node, start);
+
+			return from !== null ? this.firstTerminal(from) : null;
+		}
+
+		return this.firstTerminal(node);
 	}
 
 	/**
@@ -831,24 +920,42 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 
 	/**
 	 * Call func for each node holding an item in start's subtree, in key
-	 * order. The next node is found before func runs, so func may remove the
-	 * current item. When func drops that next node from the trie, the walk
-	 * ends; when func only removes its item, the walk continues past it.
+	 * order. start is the node at prefix's path. The next node, its key, and
+	 * its link id are captured before func runs, so func may change the trie
+	 * freely: when the captured node's item is removed or replaced, or its
+	 * node is pruned or even recycled elsewhere in the trie, the walk
+	 * re-finds its place from the captured key and continues with the first
+	 * stored key at or after it.
 	 */
-	private visit(start: TrieElement<ItemT>, func: TrieMethod<ItemT, void>, thisArg?: unknown): void {
+	private visit(
+		start: TrieElement<ItemT>,
+		prefix: string,
+		func: TrieMethod<ItemT, void>,
+		thisArg?: unknown
+	): void {
+		let limit: TrieElement<ItemT> | null = start;
 		let node = this.firstTerminal(start);
 		let index = 0;
 
-		while (node !== null) {
-			const next = this.nextTerminal(node, start);
+		while (node !== null && limit !== null) {
+			const next = this.nextTerminal(node, limit);
+			// Link ids are never reused, so an unchanged id proves next was
+			// untouched. Its key is kept to re-find the place otherwise.
+			const nextKey = next !== null ? (next._key as string) : '';
+			const nextLinkId = next !== null ? next._linkId : 0;
+
 			func.call(thisArg, node, index, this);
 			index++;
 
-			if (next === null || next._trie !== this) {
-				node = null;
-			} else {
-				node = next._terminal ? next : this.nextTerminal(next, start);
+			if (next === null || (next._trie === this && next._linkId === nextLinkId)) {
+				node = next;
+				continue;
 			}
+
+			// func removed, replaced, or moved next's item, and next or even
+			// limit may have been pruned and recycled. Re-walk both by key.
+			limit = this.walk(prefix);
+			node = limit !== null ? this.terminalAtOrAfter(nextKey, prefix.length, limit) : null;
 		}
 	}
 
@@ -870,19 +977,6 @@ export class Trie<ItemT> implements DataStructure<ItemT> {
 	/** Whether node is linked into this trie and holds an item. */
 	private isStored(node: TrieElement<ItemT>): boolean {
 		return node._trie === this && node._terminal;
-	}
-
-	/**
-	 * Remove a query match, but only while element still holds the item it
-	 * matched. Replacing or removing the item clears or changes the link id,
-	 * so a stale result deletes nothing instead of a later item.
-	 */
-	private queryDelete(element: TrieElement<ItemT>, linkId: number): ItemT | null {
-		if (element._linkId !== linkId) {
-			return null;
-		}
-
-		return this.removeNode(element);
 	}
 
 	/**

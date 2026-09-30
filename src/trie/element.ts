@@ -40,10 +40,10 @@ export class TrieElement<T> implements Element<T>, ObjectPoolInstance {
 	 */
 	public _trie: Trie<T> | null = null;
 	/**
-	 * Id of the insert that stored this node's item, unique within `_trie`, or
-	 * 0 when the node holds no item. Managed by `Trie` only. Each insert gets a
-	 * new id, so a handle that captured an old one can tell the item was
-	 * replaced or removed.
+	 * Id of the insert or replacement that stored this node's item, unique
+	 * within `_trie`, or 0 when the node holds no item. Managed by `Trie`
+	 * only. Each stored item gets a new id, so a handle that captured an old
+	 * one can tell the item was replaced or removed.
 	 */
 	public _linkId: number = 0;
 
@@ -84,15 +84,20 @@ export class TrieElement<T> implements Element<T>, ObjectPoolInstance {
 	 * key for it (e.g. replacing an item with an updated copy under the same
 	 * key). Any other value would be stored under the wrong key, so it is
 	 * ignored: use the trie's `update()` instead, which moves the item when
-	 * needed.
+	 * needed. An accepted value is stored through `update()`, so it gets a
+	 * fresh link id and query results that matched the old item no longer
+	 * delete.
 	 */
 	public value(elementValue?: T): T | null {
 		if (typeof elementValue === 'undefined') {
 			return this._value;
 		}
 
-		if (this._trie === null || (this._terminal && this._trie.keySelector(elementValue) === this._key)) {
+		if (this._trie === null) {
 			this._value = elementValue;
+		} else if (this._terminal && this._trie.keySelector(elementValue) === this._key) {
+			// The trie owns link ids, so same-key replacement goes through it.
+			this._trie.update(this, elementValue);
 		}
 
 		return null;

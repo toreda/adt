@@ -88,6 +88,18 @@ describe('TrieElement', () => {
 		expect(trie.get('a')).toBe(same);
 	});
 
+	it('replacing a value under the same key invalidates stale query results', () => {
+		const trie = new Trie<Entry>(byK, [{k: 'a', v: 1}]);
+		const [result] = trie.query(() => true);
+		const node = trie.find('a')!;
+		const same = {k: 'a', v: 2};
+
+		node.value(same);
+
+		expect(result.delete()).toBeNull();
+		expect(trie.get('a')).toBe(same);
+	});
+
 	it('ignores values set on a linked node that holds no item', () => {
 		const trie = new Trie<Entry>(byK, [{k: 'ab', v: 1}]);
 		const a = trie.root().child('a')!;

@@ -164,11 +164,11 @@ describe('allowUndefinedItem', () => {
 	});
 
 	describe('Trie', () => {
-		it('returns invalid_key without calling the key selector', () => {
+		it('returns undefined_item without calling the key selector', () => {
 			const trie = new Trie<{key: string}>(keyOf, [{key: 'a'}, undefined as any]);
 
 			expect(trie.size()).toBe(1);
-			expect(trie.insert(undefined as any)).toBe('invalid_key');
+			expect(trie.insert(undefined as any)).toBe('undefined_item');
 			expect(trie.size()).toBe(1);
 		});
 

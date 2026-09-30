@@ -268,7 +268,7 @@ describe('Trie', () => {
 
 			expect(any.insert(5)).toBe('invalid_key');
 			expect(any.insert(null)).toBe('invalid_key');
-			expect(any.insert(undefined)).toBe('invalid_key');
+			expect(any.insert(undefined)).toBe('undefined_item');
 			expect(any.size()).toBe(0);
 			expect(nodeCount(any)).toBe(1);
 		});
@@ -281,7 +281,7 @@ describe('Trie', () => {
 			expect(entries.get('k')).toBeNull();
 
 			// Skipped as a no-op: the stored null item is untouched.
-			expect(entries.insert(undefined)).toBe('invalid_key');
+			expect(entries.insert(undefined)).toBe('undefined_item');
 			expect(entries.get('k')).toBeNull();
 			expect(entries.size()).toBe(1);
 		});
@@ -478,6 +478,33 @@ describe('Trie', () => {
 			expect(entries.update(node, replacement)).toBe(node);
 			expect(entries.get('a')).toBe(replacement);
 			expectValid(entries);
+		});
+
+		it('invalidates stale query results when the key is unchanged', () => {
+			const entries = new Trie<Entry>(byK, [{k: 'a', v: 1}]);
+			const [result] = entries.query(() => true);
+			const node = entries.find('a')!;
+			const replacement = {k: 'a', v: 2};
+
+			expect(entries.update(node, replacement)).toBe(node);
+			expect(result.delete()).toBeNull();
+			expect(entries.get('a')).toBe(replacement);
+			expectValid(entries);
+		});
+
+		it('skips an undefined item as a no-op, or throws when not allowed', () => {
+			const byOptK = (entry?: Entry): string => entry?.k ?? '';
+			const entries = new Trie<Entry | undefined>(byOptK, [{k: 'a', v: 1}]);
+			const node = entries.find('a')!;
+
+			expect(entries.update(node, undefined)).toBe('undefined_item');
+			expect(entries.get('a')).toEqual({k: 'a', v: 1});
+			expect(entries.size()).toBe(1);
+
+			const strict = new Trie<Entry | undefined>(byOptK, [{k: 'a', v: 1}], {allowUndefinedItem: false});
+
+			expect(() => strict.update(strict.find('a'), undefined)).toThrow();
+			expect(strict.get('a')).toEqual({k: 'a', v: 1});
 		});
 
 		it('moves an item changed in place to its new key', () => {
@@ -711,7 +738,22 @@ describe('Trie', () => {
 			expect(seen).toEqual(['she', 'shells']);
 		});
 
-		it('forEachWithPrefix stops when the next node is dropped', () => {
+		it('forEachWithPrefix continues past a next node pruned by func', () => {
+			const seen: string[] = [];
+
+			trie.forEachWithPrefix('', (elem) => {
+				seen.push(elem.key()!);
+				if (elem.key() === 'sea') {
+					// 'sells' is the captured next node; removing it prunes it.
+					trie.remove('sells');
+				}
+			});
+
+			expect(seen).toEqual(['by', 'sea', 'she', 'shell', 'shells', 'shore', 'the']);
+			expectValid(trie);
+		});
+
+		it('forEachWithPrefix ends when func removes every remaining item', () => {
 			const seen: string[] = [];
 
 			trie.forEachWithPrefix('', (elem) => {
@@ -720,6 +762,20 @@ describe('Trie', () => {
 			});
 
 			expect(seen).toEqual(['by']);
+		});
+
+		it('forEachWithPrefix stays within its prefix after func prunes the next node', () => {
+			const seen: string[] = [];
+
+			trie.forEachWithPrefix('sh', (elem) => {
+				seen.push(elem.key()!);
+				if (elem.key() === 'she') {
+					trie.remove('shell');
+				}
+			});
+
+			expect(seen).toEqual(['she', 'shells', 'shore']);
+			expectValid(trie);
 		});
 	});
 
@@ -732,6 +788,13 @@ describe('Trie', () => {
 			expect(trie.keys()).toEqual(['cat', 'catalog', 'do', 'dog']);
 			expect(trie.values()).toEqual(['cat', 'catalog', 'do', 'dog']);
 			expect(trie.toArray().map((n) => n.key())).toEqual(['cat', 'catalog', 'do', 'dog']);
+		});
+
+		it('values fills and returns a given output array', () => {
+			const out: string[] = ['x', 'x', 'x', 'x', 'x', 'x'];
+
+			expect(trie.values(out)).toBe(out);
+			expect(out).toEqual(['cat', 'catalog', 'do', 'dog']);
 		});
 
 		it('values returns items, not keys', () => {
@@ -803,6 +866,57 @@ describe('Trie', () => {
 
 			expect(trie.size()).toBe(0);
 			expect(nodeCount(trie)).toBe(1);
+		});
+
+		it('continues past a next element removed and pruned by func', () => {
+			trie.insertArray(['a', 'ab', 'b']);
+			const seen: string[] = [];
+
+			trie.forEach((elem) => {
+				seen.push(elem.key()!);
+				if (elem.key() === 'a') {
+					trie.remove('ab');
+				}
+			});
+
+			expect(seen).toEqual(['a', 'b']);
+			expectValid(trie);
+		});
+
+		it('is not misled by a next node recycled into another key during func', () => {
+			trie.insertArray(['b', 'c']);
+			const seen: string[] = [];
+
+			trie.forEach((elem) => {
+				seen.push(elem.key()!);
+				if (elem.key() === 'b') {
+					// Releases node 'c' to the pool, which reissues it as node
+					// 'a', behind the walk, before the captured next node runs.
+					trie.remove('c');
+					trie.insert('a');
+				}
+			});
+
+			expect(seen).toEqual(['b']);
+			expect(trie.keys()).toEqual(['a', 'b']);
+			expectValid(trie);
+		});
+
+		it('visits an item replaced at the next key with its new value', () => {
+			const entries = new Trie<Entry>(byK, [
+				{k: 'a', v: 1},
+				{k: 'b', v: 2}
+			]);
+			const seen: number[] = [];
+
+			entries.forEach((elem) => {
+				seen.push(elem.value()!.v);
+				if (elem.key() === 'a') {
+					entries.insert({k: 'b', v: 9});
+				}
+			});
+
+			expect(seen).toEqual([1, 9]);
 		});
 	});
 
